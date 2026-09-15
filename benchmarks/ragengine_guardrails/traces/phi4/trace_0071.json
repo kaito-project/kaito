@@ -1,0 +1,2071 @@
+{
+  "index": 71,
+  "prompt": "Explain the differences between SQL and NoSQL databases with examples of when to use each.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 282.383,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 282.383,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 293.982,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 312.827,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 332.607,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 350.656,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 370.173,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 389.043,
+      "content": " fundamentally"
+    },
+    {
+      "timestamp_ms": 408.261,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 427.711,
+      "content": " approaches"
+    },
+    {
+      "timestamp_ms": 446.834,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 465.091,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 484.96,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 504.604,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 522.788,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 542.09,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 634.295,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 647.692,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 647.692,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 647.692,
+      "content": " strengths"
+    },
+    {
+      "timestamp_ms": 647.692,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 657.595,
+      "content": " ideal"
+    },
+    {
+      "timestamp_ms": 675.208,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 695.663,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 713.358,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 732.198,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 751.49,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 770.388,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 796.819,
+      "content": " breakdown"
+    },
+    {
+      "timestamp_ms": 808.842,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 827.706,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 846.529,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 865.435,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 884.807,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 903.433,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 923.205,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 942.422,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 961.133,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 981.147,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 999.085,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1018.439,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 1037.528,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 1056.543,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 1079.049,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1094.284,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1113.587,
+      "content": "Definition"
+    },
+    {
+      "timestamp_ms": 1132.596,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1151.266,
+      "content": " Characteristics"
+    },
+    {
+      "timestamp_ms": 1170.528,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1190.14,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1208.663,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1227.692,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1246.259,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 1265.297,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1284.355,
+      "content": " stands"
+    },
+    {
+      "timestamp_ms": 1303.742,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1326.236,
+      "content": " Struct"
+    },
+    {
+      "timestamp_ms": 1343.232,
+      "content": "ured"
+    },
+    {
+      "timestamp_ms": 1361.07,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 1491.738,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 1491.909,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1491.954,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1492.043,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 1492.091,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1492.13,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1496.25,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 1513.329,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 1533.336,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1560.324,
+      "content": " relational"
+    },
+    {
+      "timestamp_ms": 1570.249,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1589.673,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1610.252,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1627.891,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 1646.452,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1666.203,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 1684.825,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 1703.866,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 1722.753,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1741.875,
+      "content": " defining"
+    },
+    {
+      "timestamp_ms": 1760.912,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1780.411,
+      "content": " manipulating"
+    },
+    {
+      "timestamp_ms": 1799.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1818.039,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1836.827,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1856.27,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1875.393,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 1923.311,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1923.311,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 1933.316,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1951.39,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1970.206,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 1990.383,
+      "content": " schema"
+    },
+    {
+      "timestamp_ms": 2008.672,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2027.532,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2046.934,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 2065.801,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2084.886,
+      "content": "tables"
+    },
+    {
+      "timestamp_ms": 2104.485,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2122.848,
+      "content": " columns"
+    },
+    {
+      "timestamp_ms": 2142.079,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2162.02,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2180.136,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 2200.331,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2218.214,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2237.228,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 2256.358,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2274.957,
+      "content": " advance"
+    },
+    {
+      "timestamp_ms": 2294.523,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2314.397,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2332.695,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 2351.715,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2371.018,
+      "content": " organized"
+    },
+    {
+      "timestamp_ms": 2390.121,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2410.385,
+      "content": " rows"
+    },
+    {
+      "timestamp_ms": 2431.793,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2453.245,
+      "content": " columns"
+    },
+    {
+      "timestamp_ms": 2466.568,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2484.82,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2504.035,
+      "content": " tables"
+    },
+    {
+      "timestamp_ms": 2523.368,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2543.764,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2561.024,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2580.068,
+      "content": " linked"
+    },
+    {
+      "timestamp_ms": 2599.429,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2618.053,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 2636.833,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 2656.945,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2675.738,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2694.416,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 2713.574,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2732.932,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2751.821,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2770.94,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2790.23,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 2809.02,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 2828.263,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 2847.386,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 2865.986,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 2884.665,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2905.288,
+      "content": " SELECT"
+    },
+    {
+      "timestamp_ms": 2923.939,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2941.907,
+      "content": " INSERT"
+    },
+    {
+      "timestamp_ms": 2962.06,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2980.84,
+      "content": " UPDATE"
+    },
+    {
+      "timestamp_ms": 3003.54,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3018.426,
+      "content": " DELETE"
+    },
+    {
+      "timestamp_ms": 3037.479,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3057.592,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 3076.667,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3094.997,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3113.506,
+      "content": "Examples"
+    },
+    {
+      "timestamp_ms": 3134.715,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3151.539,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3170.297,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3189.869,
+      "content": " MySQL"
+    },
+    {
+      "timestamp_ms": 3208.685,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3227.934,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3246.604,
+      "content": " PostgreSQL"
+    },
+    {
+      "timestamp_ms": 3266.133,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3285.303,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3304.606,
+      "content": " Oracle"
+    },
+    {
+      "timestamp_ms": 3323.14,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 3341.856,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3362.319,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3380.303,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 3401.031,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 3425.449,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 3443.925,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3456.583,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3475.59,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 3495.98,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3513.64,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3532.903,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 3554.025,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 3570.936,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 3590.709,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3609.115,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3628.073,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3649.192,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3666.839,
+      "content": "Structured"
+    },
+    {
+      "timestamp_ms": 3686.163,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 3704.232,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3723.378,
+      "content": " Best"
+    },
+    {
+      "timestamp_ms": 3742.262,
+      "content": " suited"
+    },
+    {
+      "timestamp_ms": 3762.045,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3780.314,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 3799.755,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 3818.816,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3847.514,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3855.962,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3875.901,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 3895.098,
+      "content": " schema"
+    },
+    {
+      "timestamp_ms": 3913.853,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3934.967,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 3952.269,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3971.02,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3990.728,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4008.945,
+      "content": "AC"
+    },
+    {
+      "timestamp_ms": 4028.641,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 4047.624,
+      "content": " Transactions"
+    },
+    {
+      "timestamp_ms": 4088.758,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4088.758,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 4105.511,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4123.181,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 4142.883,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 4161.503,
+      "content": " AC"
+    },
+    {
+      "timestamp_ms": 4181.394,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 4199.582,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4220.636,
+      "content": "Atomic"
+    },
+    {
+      "timestamp_ms": 4237.988,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 4257.474,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4276.091,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 4295.452,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 4315.087,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4333.353,
+      "content": " Is"
+    },
+    {
+      "timestamp_ms": 4352.378,
+      "content": "olation"
+    },
+    {
+      "timestamp_ms": 4371.92,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4390.455,
+      "content": " Dur"
+    },
+    {
+      "timestamp_ms": 4410.077,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 4428.43,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4448.216,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 4467.117,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4485.56,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 4504.608,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 4524.087,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4542.912,
+      "content": " ideal"
+    },
+    {
+      "timestamp_ms": 4561.68,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 4581.755,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4603.267,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 4620.376,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 4638.015,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4662.447,
+      "content": " transaction"
+    },
+    {
+      "timestamp_ms": 4677.516,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 4695.17,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 4714.184,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4733.248,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4752.492,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4771.47,
+      "content": "Complex"
+    },
+    {
+      "timestamp_ms": 4790.628,
+      "content": " Queries"
+    },
+    {
+      "timestamp_ms": 4809.984,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4829.01,
+      "content": " Useful"
+    },
+    {
+      "timestamp_ms": 4847.62,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 4867.004,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4885.688,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 4905.614,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4924.244,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 4943.276,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 4962.586,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 4982.066,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5001.241,
+      "content": " joins"
+    },
+    {
+      "timestamp_ms": 5019.252,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5038.386,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": " aggreg"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": " tables"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5203.446,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5212.544,
+      "content": "Large"
+    },
+    {
+      "timestamp_ms": 5231.917,
+      "content": " Enterprises"
+    },
+    {
+      "timestamp_ms": 5248.848,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5267.432,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 5291.857,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 5305.942,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 5325.542,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5345.26,
+      "content": " enterprise"
+    },
+    {
+      "timestamp_ms": 5362.503,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5381.573,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 5401.571,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5419.423,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 5439.29,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5457.799,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 5476.617,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5495.902,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 5515.135,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5533.675,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 5552.997,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5571.675,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 5591.095,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 5610.79,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 5629.663,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 5648.705,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5667.774,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5686.313,
+      "content": "Definition"
+    },
+    {
+      "timestamp_ms": 5705.586,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5724.696,
+      "content": " Characteristics"
+    },
+    {
+      "timestamp_ms": 5743.945,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5763.315,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5782.095,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5839.867,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5839.867,
+      "content": "No"
+    },
+    {
+      "timestamp_ms": 5839.99,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 5857.722,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5877.203,
+      "content": " stands"
+    },
+    {
+      "timestamp_ms": 5895.791,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5915.1,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5934.115,
+      "content": "Not"
+    },
+    {
+      "timestamp_ms": 5953.458,
+      "content": " Only"
+    },
+    {
+      "timestamp_ms": 5972.227,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 5991.388,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 6010.829,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6030.12,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 6049.114,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 6067.914,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 6087.053,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6105.722,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 6124.6,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 6144.23,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6165.878,
+      "content": " semi"
+    },
+    {
+      "timestamp_ms": 6181.972,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6202.766,
+      "content": "structured"
+    },
+    {
+      "timestamp_ms": 6220.3,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6239.308,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6258.516,
+      "content": " un"
+    },
+    {
+      "timestamp_ms": 6277.389,
+      "content": "structured"
+    },
+    {
+      "timestamp_ms": 6296.368,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6315.651,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6334.787,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6353.598,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 6372.556,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6391.697,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 6410.711,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6430.217,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 6449.699,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 6468.162,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 6487.98,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6515.894,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6525.012,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6544.265,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 6565.786,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6582.819,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 6601.334,
+      "content": " schema"
+    },
+    {
+      "timestamp_ms": 6620.981,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6639.699,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6658.872,
+      "content": " More"
+    },
+    {
+      "timestamp_ms": 6677.955,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 6697.363,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6716.105,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 6734.841,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6753.678,
+      "content": " scalability"
+    },
+    {
+      "timestamp_ms": 6773.1,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6792.352,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6811.23,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 6831.416,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6850.345,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6868.114,
+      "content": " Can"
+    },
+    {
+      "timestamp_ms": 6887.579,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6906.809,
+      "content": " classified"
+    },
+    {
+      "timestamp_ms": 6925.748,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6944.878,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 6964.266,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 6982.523,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7001.957,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 7020.906,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7039.899,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7059.716,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 7078.215,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7096.455,
+      "content": " column"
+    },
+    {
+      "timestamp_ms": 7116.459,
+      "content": "-family"
+    },
+    {
+      "timestamp_ms": 7136.059,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7155.707,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7174.301,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 7202.891,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 7212.623,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7230.993,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7249.8,
+      "content": "Examples"
+    },
+    {
+      "timestamp_ms": 7269.003,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7288.049,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7306.878,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7326.763,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7344.687,
+      "content": "Document"
+    },
+    {
+      "timestamp_ms": 7364.969,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 7383.737,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 7402.164,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7421.513,
+      "content": " MongoDB"
+    },
+    {
+      "timestamp_ms": 7440.549,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7460.862,
+      "content": " Couch"
+    },
+    {
+      "timestamp_ms": 7478.741,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 7499.161,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7516.902,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7535.565,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7554.478,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 7574.026,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7592.798,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 7611.773,
+      "content": " Stores"
+    },
+    {
+      "timestamp_ms": 7633.325,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7650.077,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 7669.263,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7688.887,
+      "content": " Dynamo"
+    },
+    {
+      "timestamp_ms": 7707.194,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 7733.525,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7745.181,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 7765.257,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7784.851,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7803.189,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 7822.739,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 7841.049,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 7859.933,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7878.784,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7898.261,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7934.445,
+      "content": "Column"
+    },
+    {
+      "timestamp_ms": 7936.431,
+      "content": "-F"
+    },
+    {
+      "timestamp_ms": 7955.254,
+      "content": "amily"
+    },
+    {
+      "timestamp_ms": 7974.261,
+      "content": " Stores"
+    },
+    {
+      "timestamp_ms": 7993.042,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8012.425,
+      "content": " Apache"
+    },
+    {
+      "timestamp_ms": 8034.367,
+      "content": " Cassandra"
+    },
+    {
+      "timestamp_ms": 8050.753,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8070.495,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 8092.872,
+      "content": " Big"
+    },
+    {
+      "timestamp_ms": 8108.169,
+      "content": "table"
+    },
+    {
+      "timestamp_ms": 8127.184,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8145.961,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8166.581,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8184.464,
+      "content": "Graph"
+    },
+    {
+      "timestamp_ms": 8203.686,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 8222.455,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 8241.73,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8260.634,
+      "content": " Neo"
+    },
+    {
+      "timestamp_ms": 8279.936,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8298.648,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 8333.144,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8336.831,
+      "content": " Ar"
+    },
+    {
+      "timestamp_ms": 8356.613,
+      "content": "ango"
+    },
+    {
+      "timestamp_ms": 8375.499,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 8394.782,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8413.087,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8432.109,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 8451.199,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8470.226,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 8489.415,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 8508.95,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 8527.838,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 8546.543,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 8567.245,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8584.688,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8603.718,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8623.042,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8642.058,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 8663.44,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 8680.239,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 8699.209,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8719.205,
+      "content": " Ideal"
+    },
+    {
+      "timestamp_ms": 8737.242,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8756.882,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8776.073,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8794.292,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 8814.443,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 8832.651,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 8851.752,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8870.773,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 8889.55,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8908.642,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 8935.805,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 8964.581,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 8966.134,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8984.837,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9005.588,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9023.406,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9042.124,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9061.483,
+      "content": "Flexible"
+    },
+    {
+      "timestamp_ms": 9080.497,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 9099.756,
+      "content": " Models"
+    },
+    {
+      "timestamp_ms": 9118.844,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9138.306,
+      "content": " Perfect"
+    },
+    {
+      "timestamp_ms": 9157.339,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9176.21,
+      "content": " situations"
+    },
+    {
+      "timestamp_ms": 9195.051,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 9213.787,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9236.283,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9252.682,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 9271.47,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 9292.301,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 9310.431,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9329.203,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 9348.684,
+      "content": " frequently"
+    },
+    {
+      "timestamp_ms": 9366.604,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9386.161,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9404.748,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9424.02,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 9442.991,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9463.732,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 9481.268,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 9500.243,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9520.076,
+      "content": " advance"
+    },
+    {
+      "timestamp_ms": 9538.681,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9558.113,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9580.37,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9595.74,
+      "content": "High"
+    },
+    {
+      "timestamp_ms": 9635.611,
+      "content": " Through"
+    },
+    {
+      "timestamp_ms": 9635.779,
+      "content": "put"
+    },
+    {
+      "timestamp_ms": 9655.057,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9674.74,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 9691.422,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 9710.373,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 9729.088,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9748.572,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 9767.308,
+      "content": " throughput"
+    },
+    {
+      "timestamp_ms": 9785.94,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9805.566,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 9824.604,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9844.132,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9862.243,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9881.987,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 9900.575,
+      "content": " schema"
+    },
+    {
+      "timestamp_ms": 9919.87,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9939.501,
+      "content": " acceptable"
+    },
+    {
+      "timestamp_ms": 9958.166,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9977.045,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9996.282,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9996.282,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9996.425,
+      "type": "done"
+    }
+  ],
+  "full_response": "SQL and NoSQL databases are two fundamentally different approaches to data storage and management, each with its strengths and ideal use cases. Here's a breakdown of their differences and when to use each type:\n\n### SQL Databases\n\n**Definition and Characteristics:**\n- **SQL** stands for Structured Query Language.\n- SQL databases are also known as relational databases.\n- They use structured query language for defining and manipulating the data.\n- They are based on a fixed schema where the structure (tables, columns, data types) is defined in advance.\n- Data is organized in rows and columns, using tables that can be linked or related based on data common to each.\n- Common operations include SQL queries for SELECT, INSERT, UPDATE, DELETE, etc.\n\n**Examples:**\n- MySQL\n- PostgreSQL\n- Oracle Database\n- Microsoft SQL Server\n\n**When to Use SQL Databases:**\n- **Structured Data:** Best suited for storing structured data with a clear schema and relationships.\n- **ACID Transactions:** When you need strict ACID (Atomicity, Consistency, Isolation, Durability) compliance, SQL databases are ideal due to their focus on transactional integrity.\n- **Complex Queries:** Useful when you need to perform complex queries, joins, or aggregations across multiple tables.\n- **Large Enterprises:** Commonly used in enterprise applications where data integrity and accuracy are critical.\n  \n### NoSQL Databases\n\n**Definition and Characteristics:**\n- **NoSQL** stands for \"Not Only SQL.\"\n- NoSQL databases can store structured, semi-structured, and unstructured data.\n- They are designed to handle large volumes of data without requiring a fixed schema.\n- More flexible in terms of scalability and data model.\n- Can be classified into several types: document, key-value, column-family, and graph databases.\n\n**Examples:**\n- **Document Databases:** MongoDB, CouchDB\n- **Key-Value Stores:** Redis, DynamoDB (example for key-value store features)\n- **Column-Family Stores:** Apache Cassandra, Google Bigtable\n- **Graph Databases:** Neo4j, ArangoDB\n\n**When to Use NoSQL Databases:**\n- **Scalability:** Ideal for applications that require horizontal scaling or need to handle large volumes of data.\n- **Flexible Data Models:** Perfect for situations where the data model may need to change frequently, or the structure is not known in advance.\n- **High Throughput:** When high write and read throughput is needed, and a flexible schema is acceptable.\n- **",
+  "response_chars": 2438,
+  "num_chunks": 512,
+  "ttft_ms": 282.383,
+  "total_ms": 10000.706,
+  "model_name": "model-medium"
+}

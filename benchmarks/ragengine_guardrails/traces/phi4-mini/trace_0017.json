@@ -1,0 +1,1315 @@
+{
+  "index": 17,
+  "prompt": "Write a sample git commit message and diff that shows a developer removing hardcoded credentials from source code and moving them to environment variables.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 885.113,
+      "content": "Commit"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " Message"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "Ref"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "actor"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " Remove"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " removes"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 885.113,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " moves"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " adhere"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 1641.787,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "Diff"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "diff"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "git"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "/main"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": " b"
+    },
+    {
+      "timestamp_ms": 1642.026,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "/main"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "index"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": ".."
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3792.681,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "644"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "---"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "/main"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "+++"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " b"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "/main"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "@@"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " @@"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " express"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "express"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "';\n"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " dotenv"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3792.991,
+      "content": "dotenv"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "';\n\n"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " express"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "();\n\n"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " dotenv"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ".config"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "();\n\n"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "Config"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "_HOST"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 3977.333,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "_USER"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "};\n\n"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "@@"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 4797.991,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " @@"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " express"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "();\n\n"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " dotenv"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": ".config"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "();\n\n"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "Config"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "_HOST"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " removed"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5644.418,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": "_USER"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": " removed"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 6085.66,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": " removed"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 6460.636,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "};\n\n"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": ".connect"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "(database"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "Config"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": ");\n"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " removes"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "Config"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7190.721,
+      "content": " replaced"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " empty"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " removed"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " schema"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " assumes"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8131.346,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8154.705,
+      "type": "done"
+    }
+  ],
+  "full_response": "Commit Message:\n```\nRefactor: Remove hardcoded credentials and use environment variables\n\nThis commit removes hardcoded credentials from the source code and instead moves them to environment variables in order to improve security and adhere to best practices```\n\nDiff:\n```\ndiff --git a/src/main.js b/src/main.js\nindex 1a2b3c4..789d0e 100644\n--- a/src/main.js\n+++ b/src/main.js\n@@ -1,10 +1,8 @@\n import express from 'express';\n import dotenv from 'dotenv';\n\n const app = express();\n\n dotenv.config();\n\n-const databaseConfig = {\n-  host: process.env.DATABASE_HOST, // Hardcoded Value\n-  user: process.env.DATABASE_USER, // Hardcoded Value\n-  password: process.env.DATABASE_PASSWORD, // Hardcoded Value\n-  database: process.env.DATABASE_NAME \n-};\n\n@@ -8,14 +6,14 @@ const app = express();\n\n dotenv.config();\n\n const databaseConfig = {\n-  host: process.env.DATABASE_HOST, // Hardcoded Value removed\n-  user: process.env.DATABASE_USER, // Hardcoded Value removed\n-  password: process.env.DATABASE_PASSWORD, // Hardcoded Value removed\n-  database: process.env.DATABASE_NAME \n-};\n\n const connection = db.connect(databaseConfig);\n```\n\nThe commit removes hardcoded values from the `databaseConfig` object and it will be replaced with an empty object since those values were removed. The new schema assumes that environment variables are being used instead of hardcoded credentials.",
+  "response_chars": 1372,
+  "num_chunks": 323,
+  "ttft_ms": 885.113,
+  "total_ms": 8319.267,
+  "model_name": "Phi-4-mini-instruct"
+}

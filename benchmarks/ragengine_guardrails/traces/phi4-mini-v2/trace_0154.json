@@ -1,0 +1,951 @@
+{
+  "index": 154,
+  "prompt": "Write a sample git commit message and diff that shows a developer removing hardcoded credentials from source code and moving them to environment variables.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 940.397,
+      "content": "Sample"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " Commit"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " Message"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "Ref"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "actor"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " Move"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " Removed"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 940.397,
+      "content": " Added"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " references"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " strings"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " Updated"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " maintenance"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 1442.765,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "Im"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "provements"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " Enh"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "ances"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " avoiding"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " Simpl"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": "ifies"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1985.447,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " Ad"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "heres"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "Sample"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " Diff"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "Before"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "diff"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "//"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " config"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "ABCDE"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "\";\n"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": " DB"
+    },
+    {
+      "timestamp_ms": 2867.103,
+      "content": "_CONNECTION"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "_STRING"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "mysql"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "/db"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "\";\n"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "Sample"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " Diff"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "After"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "diff"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "//"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " config"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": ".API"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": ";\n"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": " DB"
+    },
+    {
+      "timestamp_ms": 3796.385,
+      "content": "_CONNECTION"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "_STRING"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": ".DB"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "_CONNECTION"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "_STRING"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": ";\n\n//"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " Documentation"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " Update"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "//"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " Make"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " DB"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "_CONNECTION"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": "_STRING"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 4307.821,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " starting"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " shows"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " removal"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 4629.825,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 4914.554,
+      "content": " replacement"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " references"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " Additionally"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " commitment"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " maintenance"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5434.597,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5529.301,
+      "type": "done"
+    }
+  ],
+  "full_response": "Sample Git Commit Message:\n```\nRefactor: Move hardcoded credentials to environment variables\n\n- Removed hardcoded credentials from source code\n- Added references to existing environment variables for API keys and database connection strings\n- Updated documentation for future maintenance and best practices\n\nImprovements:\n- Enhances security by avoiding hardcoded sensitive information\n- Simplifies deployment process by making use of environment variables\n- Adheres to the best practices for managing secrets\n```\n\nSample File Diff (Before):\n```diff\n// config.js\nconst API_KEY = \"12345-ABCDE\";\nconst DB_CONNECTION_STRING = \"mysql://user:pass@localhost/dbname\";\n```\n\nSample File Diff (After):\n```diff\n// config.js\nconst API_KEY = process.env.API_KEY;\nconst DB_CONNECTION_STRING = process.env.DB_CONNECTION_STRING;\n\n// Documentation Update\n// Make sure to set the API_KEY and DB_CONNECTION_STRING environment variables before starting the application\n```\n\nThis shows the removal of hardcoded API key and database connection string credentials from the source code and their replacement with references to environment variables. Additionally, it includes a commitment to update documentation for future maintenance and best practices.",
+  "response_chars": 1231,
+  "num_chunks": 232,
+  "ttft_ms": 940.397,
+  "total_ms": 5631.545,
+  "model_name": "Phi-4-mini-instruct"
+}

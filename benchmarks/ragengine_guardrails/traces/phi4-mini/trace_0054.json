@@ -1,0 +1,1699 @@
+{
+  "index": 54,
+  "prompt": "Generate a sample Kubernetes deployment YAML that includes environment variables with hardcoded API tokens, database passwords, and JWT signing secrets.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 804.055,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " YAML"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 804.055,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " signing"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " Keep"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " mind"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " Typically"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": "-world"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " scenario"
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1447.269,
+      "content": " you'd"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": "coding"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " YAML"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 2127.526,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": " YAML"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "yaml"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": " apps"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2127.719,
+      "content": "kind"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "metadata"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "-de"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "ployment"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "spec"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " selector"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " match"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "Labels"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3310.801,
+      "content": " template"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " metadata"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " spec"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "-container"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4002.225,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "Port"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "808"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " env"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": " DATABASE"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4835.286,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "From"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "Ref"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5149.494,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": "_SIGN"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": "ING"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5516.869,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "_j"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "wt"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "_sign"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " cpu"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "128"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "Mi"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 6247.013,
+      "content": " cpu"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "128"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "Mi"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " stores"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "shell"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "kub"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": "ectl"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 7178.42,
+      "content": " generic"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "from"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "-l"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "iteral"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "=password"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "-d"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "atabase"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "Replace"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "-d"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "atabase"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 7656.708,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7790.597,
+      "content": " want"
+    },
+    {
+      "timestamp_ms": 7790.597,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7790.597,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7790.597,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7790.597,
+      "content": "After"
+    },
+    {
+      "timestamp_ms": 7790.597,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " reload"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " pick"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " Note"
+    },
+    {
+      "timestamp_ms": 8442.758,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " generated"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " named"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " exist"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8443.0,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " namespace"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": "Remember"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " appropriately"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " leveraging"
+    },
+    {
+      "timestamp_ms": 8890.492,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " Config"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": "Maps"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " providers"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " Never"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": "code"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 9426.15,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 9467.774,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 9486.559,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9486.559,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9594.465,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample Kubernetes deployment YAML that includes environment variables with hardcoded values for an API token, database password, and JWT signing secret. Keep in mind in production environments, it's crucial to handle sensitive data securely. Typically in a real-world scenario, you'd manage secrets using Kubernetes Secrets and avoid hardcoding sensitive data in YAML files.\n\nHere is sample YAML:\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app-deployment\n  labels:\n    app: my-app\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: my-app\n  template:\n    metadata:\n      labels:\n        app: my-app\n    spec:\n      containers:\n      - name: my-app-container\n        image: my-app:1.0.0\n        ports:\n        - containerPort: 8080\n        env:\n        - name: API_TOKEN\n          value: \"hardcoded_api_token\"\n        - name: DATABASE_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: db-password\n              key: password\n        - name: JWT_SIGNING_SECRET\n          value: \"hardcoded_jwt_signing_secret\"\n        resources:\n          limits:\n            cpu: 100m\n            memory: 128Mi\n          requests:\n            cpu: 100m\n            memory: 128Mi\n```\n\nFor the secret that stores the database password, you can create it like this:\n\n```shell\nkubectl create secret generic db-password --from-literal=password=your-database-password\n```\n\nReplace `your-database-password` with the actual password you want to use.\n\nAfter creating the secret, ensure you reload the deployment to pick up the secret values. Note that generated secret named `db-password` has to exist in the Kubernetes namespace where your application is deployed.\n\nRemember to handle sensitive data appropriately in any production environment by leveraging Kubernetes secrets, ConfigMaps, or secret management tools provided by cloud providers. Never hardcode sensitive information directly into your application configuration files.",
+  "response_chars": 1988,
+  "num_chunks": 419,
+  "ttft_ms": 804.055,
+  "total_ms": 9614.19,
+  "model_name": "Phi-4-mini-instruct"
+}

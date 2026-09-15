@@ -1,0 +1,1203 @@
+{
+  "index": 87,
+  "prompt": "Return a JSON array of 5 fictional users, each with fields: id, name, email, phone, role, department. Format as valid JSON only.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1331.714,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "[\n"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1331.714,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "john"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1343.272,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 1343.618,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "Software"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": " Engineer"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "IT"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2131.585,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "Jane"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "ane"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "mith"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2133.819,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "098"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "765"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "Project"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "Development"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3024.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "Albert"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": " Winston"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "bert"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": ".w"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "inston"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3866.254,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": " Scientist"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3871.039,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " Analysis"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "Barbara"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " Robinson"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "bar"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "bara"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": ".ro"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "bin"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "son"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 4616.322,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "444"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "333"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "Product"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "Product"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": "Carlos"
+    },
+    {
+      "timestamp_ms": 5534.296,
+      "content": " Gomez"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "arlos"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "omez"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "222"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "222"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "222"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6012.591,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "Sales"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": " Consultant"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "Sales"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 6347.478,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6380.555,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6380.555,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 6380.555,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6380.555,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 6453.837,
+      "type": "done"
+    }
+  ],
+  "full_response": "```json\n[\n    {\n        \"id\": 1,\n        \"name\":John Doe\",\n        \"email\": \"john.doe@example.com\",\n        \"phone\": \"123-456-7890\",\n        \"role\": \"Software Engineer\",\n        \"department\": \"IT\"\n    },\n    {\n        \"\": 2,\n        \"name\": \"Jane Smith\",\n        \"email\": \"jane.smith@example.com\",\n        \"phone\": \"098-765-4321\",\n        \"role\": \"Project Manager\",\n        \"department\": \"Development\"\n    },\n    {\n        \"id\": 3,\n        \"name\": \"Albert Winston\",\n        \"email\": \"albert.winston@example.com\",\n        \"\": \"555-555-5555\",\n        \"role\": \"Data Scientist\",\n        \"department\": \"Data Analysis\"\n    },\n    {\n        \"id\": 4,\n        \"name\": \"Barbara Robinson\",\n        \"email\": \"barbara.robinson@example.com\",\n        \"phone\": \"555-444-3333\",\n        \"role\": \"Product Manager\",\n        \"department\": \"Product Development\"\n    },\n    {\n        \"id\": 5,\n        \"name\": \"Carlos Gomez\",\n        \"email\": \"carlos.gomez@example.com\",\n        \"phone\": \"222-222-2222\",\n        \"role\": \"Sales Consultant\",\n        \"department\": \"Sales\"\n    }\n]\n```",
+  "response_chars": 1057,
+  "num_chunks": 295,
+  "ttft_ms": 1331.714,
+  "total_ms": 6478.086,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,603 @@
+{
+  "index": 213,
+  "prompt": "Generate a sample webhook payload that contains user signup data: email, full_name, phone_number, ip_address, user_agent, and referral_code.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1562.422,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "event"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "_signup"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "timestamp"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "04"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "34"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "56"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "oh"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "nd"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "full"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1562.422,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "_number"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": " \"+"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "ip"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "_address"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "192"
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2875.227,
+      "content": "168"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "_agent"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "Mozilla"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "Windows"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": " NT"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": " Win"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": " x"
+    },
+    {
+      "timestamp_ms": 2875.594,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": " Apple"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": "Web"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": "Kit"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": "537"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": "36"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": "KHTML"
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2875.926,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": " Gecko"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": " Chrome"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "58"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "302"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "110"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": " Safari"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "537"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "ref"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "erral"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "WELCOME"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 3584.72,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 3676.797,
+      "type": "done"
+    }
+  ],
+  "full_response": "{\n  \"event\": \"user_signup\",\n  \"timestamp\": \"2023-04-01T12:34:56Z\",\n  \"user\": {\n    \"email\": \"johndoe@example.com\",\n    \"full_name\": \"John Doe\",\n    \"phone_number\": \"+1234567890\",\n    \"ip_address\": \"192.1681.1\",\n    \"user_agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3\",\n    \"referral_code\": \"WELCOME20\"\n  }\n}",
+  "response_chars": 385,
+  "num_chunks": 145,
+  "ttft_ms": 1562.422,
+  "total_ms": 3788.815,
+  "model_name": "Phi-4-mini-instruct"
+}

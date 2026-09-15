@@ -1,0 +1,20 @@
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning_content":null},"logprobs":null,"finish_reason":null}],"prompt_token_ids":null}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":" Hello","reasoning_content":null},"logprobs":null,"finish_reason":null,"token_ids":null}]}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":"!","reasoning_content":null},"logprobs":null,"finish_reason":null,"token_ids":null}]}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":" How","reasoning_content":null},"logprobs":null,"finish_reason":null,"token_ids":null}]}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":" can","reasoning_content":null},"logprobs":null,"finish_reason":null,"token_ids":null}]}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":" I","reasoning_content":null},"logprobs":null,"finish_reason":null,"token_ids":null}]}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":" help","reasoning_content":null},"logprobs":null,"finish_reason":null,"token_ids":null}]}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":" you","reasoning_content":null},"logprobs":null,"finish_reason":null,"token_ids":null}]}
+
+data: {"id":"chatcmpl-b1466dcb1b69bc72","object":"chat.completion.chunk","created":1783641192,"model":"phi-3-mini-4k-instruct","choices":[{"index":0,"delta":{"content":" today","reasoning_content":null},"logprobs":null,"finish_reason":"length","stop_reason":null,"token_ids":null}]}
+
+data: [DONE]
+

@@ -1,0 +1,2043 @@
+{
+  "index": 181,
+  "prompt": "Write a sample incident response report about a credential leak where API keys for payment processing, email services, and cloud infrastructure were exposed in a public GitHub repo.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1128.795,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": "Incident"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Report"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Credential"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Leak"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Public"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Repository"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": " Exposure"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": "\n\n\n"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1128.795,
+      "content": "Incident"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": "On"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": " morning"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": "th"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1129.233,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": "IRT"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " detected"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " confidential"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " payment"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 1741.028,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " discovery"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 2366.4,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 2366.665,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2366.665,
+      "content": " flagged"
+    },
+    {
+      "timestamp_ms": 2366.665,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2366.665,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 2366.665,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 2366.665,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2366.665,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": "Affected"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " included"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " Payment"
+    },
+    {
+      "timestamp_ms": 3061.202,
+      "content": " Processing"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": " payment"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": " gateway"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3061.509,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " marketing"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " customer"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 3365.387,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 3365.813,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 3365.813,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 3365.813,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3365.813,
+      "content": " hosting"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": "These"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " exposures"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " posed"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " threat"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " theft"
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4162.219,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 4162.575,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4162.575,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4162.575,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 4162.575,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 4162.575,
+      "content": " disruption"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": "Initial"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": "Upon"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " confirmation"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4467.294,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " immediate"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " taken"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " Tempor"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": "arily"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " disabled"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4877.672,
+      "content": " affected"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " Iss"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": "ued"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " pull"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": "ified"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " stakeholders"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " affected"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " customers"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5285.841,
+      "content": " Eng"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": "aged"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " initiate"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " confession"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": "ster"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " mitigate"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " accidental"
+    },
+    {
+      "timestamp_ms": 6111.1,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": " En"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": "forced"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 6111.394,
+      "content": "RT"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " increase"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " sensitivity"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": "Investig"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": "Pre"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": "liminary"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " investigations"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " revealed"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6334.616,
+      "content": " likely"
+    },
+    {
+      "timestamp_ms": 6642.293,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6642.293,
+      "content": " insider"
+    },
+    {
+      "timestamp_ms": 6642.293,
+      "content": " inadvertently"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " company's"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " possibly"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " implications"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " question"
+    },
+    {
+      "timestamp_ms": 6868.287,
+      "content": " contained"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " repositories"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " owned"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " contributed"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " confusion"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": "ensics"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " conducted"
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7470.088,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " audit"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " analyzed"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": "Rem"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": "ediation"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " Measures"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " expertise"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " affected"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " repositories"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " promptly"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " removed"
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8069.731,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8450.291,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8450.291,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 8450.291,
+      "content": "RT"
+    },
+    {
+      "timestamp_ms": 8450.291,
+      "content": " communicated"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " closure"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " stakeholders"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " Legal"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " counsel"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " consulted"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " liabilities"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " report"
+    },
+    {
+      "timestamp_ms": 8675.222,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " drafted"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " consideration"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " action"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": "RT"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " personnel"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " involved"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " brief"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " corrective"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " avoiding"
+    },
+    {
+      "timestamp_ms": 9372.76,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " incidents"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " established"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 9855.883,
+      "content": " scheduled"
+    },
+    {
+      "timestamp_ms": 9856.373,
+      "content": " reinforce"
+    },
+    {
+      "timestamp_ms": 9856.373,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9856.373,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 9856.373,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9856.373,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 9856.373,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": " Enhanced"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": " mandatory"
+    },
+    {
+      "timestamp_ms": 10133.636,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": "-factor"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " scanning"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": "-wide"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10404.618,
+      "content": "Post"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": "-In"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": "cident"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " Follow"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": "-up"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": "RT"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " met"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " senior"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " present"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " incident"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " report"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " taken"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11029.368,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " recurrence"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " Enhanced"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " improved"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " affirmed"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " \n\n\n"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " plans"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " instances"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11725.366,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": "-related"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " concerns"
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 12152.196,
+      "content": " Furthermore"
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "content": " audit"
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 12159.997,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 12277.086,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Incident Response Report: Credential Leak via Public GitHub Repository Exposure**\n\n\n**Incident:**\n\nOn the morning of October 4th, 2023, our Incident Response Team (IRT) detected that confidential credentials, including API keys for payment processing, email services, and cloud infrastructure, were exposed in a public GitHub repository. The discovery was first made through monitoring that flagged the unauthorized exposure of sensitive secrets.\n\n\n**Affected Systems and Data:**\n\nThe exposed credentials included:\n\n- Payment Processing keys for our primary payment gateway.\n\n- Email Service credentials for an email marketing platform connected to our customer database.\n\n- Cloud Infrastructure credentials our cloud server hosting sensitive data and applications.\n\n\nThese exposures posed a threat of identity and data theft, unauthorized, and potential service disruption.\n\n\n**Initial Response:**\n\nUpon confirmation of the exposed data, the following immediate actions were taken:\n\n- Temporarily disabled access to the affected services.\n\n- Issued a pull request to remove API keys from the GitHub repository.\n\n- Notified stakeholders and affected customers immediately.\n\n- Engaged with GitHub to initiate a repository confession and potential forster to mitigate accidental exposure the future.\n\n- Enforced review of the IRT procedures and increase monitoring systems sensitivity.\n\n\n**Investigations:**\n\nPreliminary investigations revealed that likely an insider inadvertently committed the exposed credentials into the company's repository, possibly without understanding the implications. The GitHub repository in question contained multiple repositories owned by the company, which might have contributed to the confusion during the commit process. Full forensics were conducted, and audit logs were analyzed.\n\n\n**Remediation Measures:**\n\n- The expertise and sensitive credentials in the affected repositories were promptly removed, and the IRT communicated these actions for closure to all stakeholders.\n\n- Legal counsel was consulted to address potential liabilities, and a report was drafted for consideration and action by management.\n\n- All IRT personnel involved in the response were briefed, and corrective actions for avoiding such incidents in the future were established.\n\n- A security training session for all developers was scheduled reinforce the importance of handling secrets securely.\n\n- Enhanced security measures, including mandatory two-factor authentication and secret scanning tools, were introduced company-wide.\n\n\n**Post-Incident Follow-up:**\n\nThe IRT met with senior management to present a detailed incident report and ensure that necessary actions were taken to prevent recurrence. Enhanced security policies and improved monitoring were affirmed as critical next steps. \n\n\nThe company plans to review all instances of secret management and ensure robust channels of communication are available for security-related concerns. Furthermore, there will be an audit of",
+  "response_chars": 2998,
+  "num_chunks": 505,
+  "ttft_ms": 1128.795,
+  "total_ms": 12277.484,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,887 @@
+{
+  "index": 29,
+  "prompt": "Write a compliance checklist for handling PROPRIETARY information. Use the word PROPRIETARY in each checklist item.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 977.441,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " Identify"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 977.441,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": " Seg"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": "reg"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": "ate"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 979.704,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "-pro"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "priet"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "ary"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " authorized"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " personnel"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 1630.855,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " drives"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " Restr"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "ict"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " transmission"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2461.571,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " messaging"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " Train"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " recognizing"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " comply"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 2988.296,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " legal"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " obligations"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " Maintain"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3552.26,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": " updated"
+    },
+    {
+      "timestamp_ms": 3552.588,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": "-step"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " verification"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": ".)"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 4266.365,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " dispose"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4272.188,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " longer"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "redd"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " inc"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "iner"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " Regular"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4791.014,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " PRO"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": "PRI"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": "ARY"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5035.655,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 5332.721,
+      "content": " ongoing"
+    },
+    {
+      "timestamp_ms": 5332.721,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 5332.721,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5332.721,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5401.167,
+      "type": "done"
+    }
+  ],
+  "full_response": "1. Identify all PROPRIETARY information before handling it, including data, documents and communication.\n2. Segregate PROPRIETARY information from non-proprietary information within the organization.\n3. Ensure only authorized personnel have access to PROPRIETARY information.\n4. Implement secure storage methods for PROPRIETARY information, such as encrypted drives or secure servers.\n5. Restrict transmission of PROPRIETARY information to secure methods, such as encrypted email or secure messaging systems.\n6. Train employees on handling and recognizing PROPRIETARY information to comply with company policies and legal obligations.\n7. Maintain detailed records of who has access to and the usage PROPRIETARY information.\n8. Use strong, updated authentication methods (passwords, two-step verification, etc.) to protect access to PROPRIARY information.\n9. Securely dispose of any PROPRIETARY information that is no longer needed (shredding, incineration).\n10. Regularly review and update security protocols related to managing PROPRIETARY information to ensure ongoing compliance.",
+  "response_chars": 1082,
+  "num_chunks": 216,
+  "ttft_ms": 977.441,
+  "total_ms": 5402.765,
+  "model_name": "Phi-4-mini-instruct"
+}

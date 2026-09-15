@@ -1,0 +1,2071 @@
+{
+  "index": 75,
+  "prompt": "Generate a JSON configuration file for a web application with sections for database, cache, logging, and authentication settings.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 334.512,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 334.718,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 343.078,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 343.285,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 405.81,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 405.944,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 406.057,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 418.39,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 444.637,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 456.559,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 479.291,
+      "content": " defining"
+    },
+    {
+      "timestamp_ms": 499.023,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 514.081,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 608.064,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 608.223,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 608.302,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 608.367,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 608.545,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 661.51,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 661.664,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 665.48,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 711.997,
+      "content": " logging"
+    },
+    {
+      "timestamp_ms": 712.127,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 723.284,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 747.99,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 815.055,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 815.317,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 815.464,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 819.173,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 917.465,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 917.662,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 917.77,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 917.852,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 917.968,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 931.113,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1019.067,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1019.216,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1019.293,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1019.359,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1031.487,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1056.176,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1089.78,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1090.03,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1103.17,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 1127.305,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1142.242,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1223.864,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1224.106,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1224.207,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 1224.287,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1239.426,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1325.946,
+      "content": "postgresql"
+    },
+    {
+      "timestamp_ms": 1326.121,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1326.212,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1326.306,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1337.127,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 1352.108,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1428.495,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1428.778,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 1428.949,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1429.246,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1531.754,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1531.754,
+      "content": "port"
+    },
+    {
+      "timestamp_ms": 1531.932,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1532.007,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1534.978,
+      "content": "543"
+    },
+    {
+      "timestamp_ms": 1543.339,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1562.216,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 1633.51,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1633.665,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1633.755,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 1638.581,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1716.54,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1716.746,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 1716.83,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 1716.896,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1838.856,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1839.014,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1839.091,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 1839.223,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1839.333,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1839.492,
+      "content": "secure"
+    },
+    {
+      "timestamp_ms": 1850.819,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 1943.14,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1943.329,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1943.425,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1943.494,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 1946.346,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1962.012,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2046.734,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 2046.99,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 2047.093,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2064.679,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2071.806,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2077.483,
+      "content": "use"
+    },
+    {
+      "timestamp_ms": 2145.361,
+      "content": "SSL"
+    },
+    {
+      "timestamp_ms": 2145.532,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2145.629,
+      "content": " false"
+    },
+    {
+      "timestamp_ms": 2150.93,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2264.134,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2264.35,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2264.448,
+      "content": "connection"
+    },
+    {
+      "timestamp_ms": 2264.522,
+      "content": "Timeout"
+    },
+    {
+      "timestamp_ms": 2264.586,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2271.123,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2284.548,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 2360.714,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2360.873,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2360.954,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2361.065,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2452.896,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2453.057,
+      "content": "cache"
+    },
+    {
+      "timestamp_ms": 2453.136,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2453.205,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2455.632,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2555.925,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2556.155,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 2556.273,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2556.36,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2556.471,
+      "content": "redis"
+    },
+    {
+      "timestamp_ms": 2571.014,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2610.728,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2736.619,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2736.619,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 2736.619,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2736.619,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2736.85,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": "port"
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2878.202,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2933.347,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2933.606,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 2938.213,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3035.687,
+      "content": " null"
+    },
+    {
+      "timestamp_ms": 3037.678,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3037.965,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3038.146,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3038.464,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 3050.923,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3067.661,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3169.67,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3169.845,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3169.925,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3169.986,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3170.043,
+      "content": "timeout"
+    },
+    {
+      "timestamp_ms": 3181.308,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3250.88,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3251.012,
+      "content": "300"
+    },
+    {
+      "timestamp_ms": 3251.079,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3259.381,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3361.739,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3361.905,
+      "content": "retry"
+    },
+    {
+      "timestamp_ms": 3361.984,
+      "content": "Attempts"
+    },
+    {
+      "timestamp_ms": 3362.057,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3362.117,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3375.72,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3427.42,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3427.689,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3431.21,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3476.735,
+      "content": "retry"
+    },
+    {
+      "timestamp_ms": 3476.937,
+      "content": "Interval"
+    },
+    {
+      "timestamp_ms": 3489.317,
+      "content": "Ms"
+    },
+    {
+      "timestamp_ms": 3506.003,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3579.523,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3579.68,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 3579.758,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3584.806,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3681.671,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3681.839,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3681.926,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3681.99,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3682.04,
+      "content": "logging"
+    },
+    {
+      "timestamp_ms": 3695.839,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3784.764,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3785.159,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3785.289,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3785.358,
+      "content": "level"
+    },
+    {
+      "timestamp_ms": 3798.688,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3811.525,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3862.085,
+      "content": "info"
+    },
+    {
+      "timestamp_ms": 3862.241,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3874.584,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3887.284,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3916.886,
+      "content": "output"
+    },
+    {
+      "timestamp_ms": 3999.343,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3999.603,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3999.909,
+      "content": "console"
+    },
+    {
+      "timestamp_ms": 4000.068,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4000.192,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4095.087,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4095.221,
+      "content": "file"
+    },
+    {
+      "timestamp_ms": 4095.285,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4095.338,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4099.637,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4120.956,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4193.707,
+      "content": "enabled"
+    },
+    {
+      "timestamp_ms": 4194.589,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4194.765,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 4194.898,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 4209.149,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4304.668,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4304.888,
+      "content": "path"
+    },
+    {
+      "timestamp_ms": 4304.966,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4305.028,
+      "content": " \"/"
+    },
+    {
+      "timestamp_ms": 4314.394,
+      "content": "var"
+    },
+    {
+      "timestamp_ms": 4324.616,
+      "content": "/log"
+    },
+    {
+      "timestamp_ms": 4401.159,
+      "content": "/app"
+    },
+    {
+      "timestamp_ms": 4401.405,
+      "content": "/application"
+    },
+    {
+      "timestamp_ms": 4401.493,
+      "content": ".log"
+    },
+    {
+      "timestamp_ms": 4401.667,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4470.085,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4470.341,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4470.429,
+      "content": "rotate"
+    },
+    {
+      "timestamp_ms": 4476.278,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4497.066,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 4517.704,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 4537.098,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4559.18,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4575.772,
+      "content": "max"
+    },
+    {
+      "timestamp_ms": 4706.06,
+      "content": "Size"
+    },
+    {
+      "timestamp_ms": 4706.213,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4706.291,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4709.224,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 4709.224,
+      "content": "MB"
+    },
+    {
+      "timestamp_ms": 4709.36,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4709.435,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4808.179,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4808.354,
+      "content": "max"
+    },
+    {
+      "timestamp_ms": 4808.436,
+      "content": "Files"
+    },
+    {
+      "timestamp_ms": 4808.498,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4808.551,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4818.971,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 4910.881,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4911.026,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4911.103,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4911.332,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4920.692,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5013.325,
+      "content": "format"
+    },
+    {
+      "timestamp_ms": 5013.325,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5013.582,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5013.723,
+      "content": "yyyy"
+    },
+    {
+      "timestamp_ms": 5115.49,
+      "content": "-MM"
+    },
+    {
+      "timestamp_ms": 5115.49,
+      "content": "-dd"
+    },
+    {
+      "timestamp_ms": 5115.707,
+      "content": " HH"
+    },
+    {
+      "timestamp_ms": 5115.842,
+      "content": ":mm"
+    },
+    {
+      "timestamp_ms": 5115.933,
+      "content": ":ss"
+    },
+    {
+      "timestamp_ms": 5120.876,
+      "content": ".S"
+    },
+    {
+      "timestamp_ms": 5127.957,
+      "content": "SS"
+    },
+    {
+      "timestamp_ms": 5145.913,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5218.061,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5218.238,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5218.238,
+      "content": "include"
+    },
+    {
+      "timestamp_ms": 5220.937,
+      "content": "StackTrace"
+    },
+    {
+      "timestamp_ms": 5322.472,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5322.86,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 5323.022,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5323.151,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5323.232,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5350.579,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5422.554,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5422.72,
+      "content": "authentication"
+    },
+    {
+      "timestamp_ms": 5422.797,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5422.866,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5435.906,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5450.459,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5525.136,
+      "content": "enabled"
+    },
+    {
+      "timestamp_ms": 5525.373,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5525.473,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 5525.541,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 5589.698,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5589.938,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5590.036,
+      "content": "jwt"
+    },
+    {
+      "timestamp_ms": 5600.66,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 5732.069,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5732.34,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5732.475,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5732.764,
+      "content": "_jwt"
+    },
+    {
+      "timestamp_ms": 5733.002,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 5733.129,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 5741.233,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5841.507,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5841.696,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5841.784,
+      "content": "session"
+    },
+    {
+      "timestamp_ms": 5841.849,
+      "content": "Ex"
+    },
+    {
+      "timestamp_ms": 5842.096,
+      "content": "piry"
+    },
+    {
+      "timestamp_ms": 5849.847,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5904.287,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5904.531,
+      "content": "360"
+    },
+    {
+      "timestamp_ms": 5910.279,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 6040.989,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6041.371,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6041.539,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6041.612,
+      "content": "refresh"
+    },
+    {
+      "timestamp_ms": 6041.668,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 6041.72,
+      "content": "Ex"
+    },
+    {
+      "timestamp_ms": 6048.893,
+      "content": "piry"
+    },
+    {
+      "timestamp_ms": 6139.544,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6139.808,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6139.906,
+      "content": "720"
+    },
+    {
+      "timestamp_ms": 6139.975,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 6140.035,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6344.269,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6344.269,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6344.269,
+      "content": "login"
+    },
+    {
+      "timestamp_ms": 6344.269,
+      "content": "Attempts"
+    },
+    {
+      "timestamp_ms": 6344.269,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6344.269,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6344.269,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6354.407,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6354.407,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6368.927,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6368.927,
+      "content": "lock"
+    },
+    {
+      "timestamp_ms": 6446.652,
+      "content": "out"
+    },
+    {
+      "timestamp_ms": 6446.652,
+      "content": "Duration"
+    },
+    {
+      "timestamp_ms": 6446.652,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6551.652,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6551.652,
+      "content": "900"
+    },
+    {
+      "timestamp_ms": 6551.652,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6551.652,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6551.919,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6551.919,
+      "content": "captcha"
+    },
+    {
+      "timestamp_ms": 6560.055,
+      "content": "Enabled"
+    },
+    {
+      "timestamp_ms": 6565.513,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6577.618,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 6652.263,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6652.434,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6652.575,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6652.694,
+      "content": "captcha"
+    },
+    {
+      "timestamp_ms": 6754.372,
+      "content": "Provider"
+    },
+    {
+      "timestamp_ms": 6754.53,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6754.64,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6754.716,
+      "content": "re"
+    },
+    {
+      "timestamp_ms": 6754.786,
+      "content": "CAP"
+    },
+    {
+      "timestamp_ms": 6763.256,
+      "content": "TCHA"
+    },
+    {
+      "timestamp_ms": 6856.313,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6856.636,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6856.797,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6856.966,
+      "content": "providers"
+    },
+    {
+      "timestamp_ms": 6860.388,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6959.295,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 6959.528,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6959.63,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6959.7,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6959.758,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6974.481,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 7023.456,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7023.608,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7030.746,
+      "content": "local"
+    },
+    {
+      "timestamp_ms": 7065.41,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7068.514,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7120.412,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7120.58,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 7132.27,
+      "content": "Field"
+    },
+    {
+      "timestamp_ms": 7162.872,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7166.577,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7265.74,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 7265.885,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7265.957,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7266.015,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7266.065,
+      "content": "bcrypt"
+    },
+    {
+      "timestamp_ms": 7279.303,
+      "content": "Cost"
+    },
+    {
+      "timestamp_ms": 7367.747,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7367.929,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7368.04,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 7368.121,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7375.55,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7471.189,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 7471.333,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7471.399,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7471.465,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7471.513,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7581.311,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 7581.464,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7581.53,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7675.179,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 7675.179,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7675.179,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7675.179,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7675.179,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7675.179,
+      "content": "providers"
+    },
+    {
+      "timestamp_ms": 7675.376,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7686.917,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 7698.949,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7777.467,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7777.601,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 7777.665,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7777.719,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 7797.513,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7879.942,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7880.09,
+      "content": "google"
+    },
+    {
+      "timestamp_ms": 7880.258,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7880.342,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 7888.572,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7982.885,
+      "content": "clientId"
+    },
+    {
+      "timestamp_ms": 7983.039,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7983.112,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7983.176,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8098.84,
+      "content": "_google"
+    },
+    {
+      "timestamp_ms": 8098.84,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 8098.84,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8098.84,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8098.84,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8099.122,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8099.316,
+      "content": "client"
+    },
+    {
+      "timestamp_ms": 8187.565,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 8187.71,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8187.779,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8187.88,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8291.981,
+      "content": "_google"
+    },
+    {
+      "timestamp_ms": 8292.745,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 8292.925,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 8293.006,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8293.068,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8293.122,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8392.752,
+      "content": "redirect"
+    },
+    {
+      "timestamp_ms": 8392.9,
+      "content": "Uri"
+    },
+    {
+      "timestamp_ms": 8392.97,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8393.026,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8393.077,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 8494.454,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 8494.598,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8494.675,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 8494.732,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 8494.784,
+      "content": "/auth"
+    },
+    {
+      "timestamp_ms": 8514.565,
+      "content": "/google"
+    },
+    {
+      "timestamp_ms": 8518.589,
+      "content": "/callback"
+    },
+    {
+      "timestamp_ms": 8597.323,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8597.476,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 8597.552,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 8597.616,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 8614.369,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8699.38,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8714.231,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8714.357,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 8714.424,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8714.477,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8801.783,
+      "content": "facebook"
+    },
+    {
+      "timestamp_ms": 8801.932,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8802.007,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8802.069,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8809.912,
+      "content": "appId"
+    },
+    {
+      "timestamp_ms": 8824.134,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8875.518,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8875.675,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8881.989,
+      "content": "_facebook"
+    },
+    {
+      "timestamp_ms": 8912.845,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 8936.129,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8945.756,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8959.679,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 9015.273,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9015.483,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 9015.601,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 9118.783,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9118.944,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9119.014,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 9119.071,
+      "content": "_facebook"
+    },
+    {
+      "timestamp_ms": 9119.119,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 9129.02,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 9174.486,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9174.696,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 9190.627,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9208.343,
+      "content": "redirect"
+    },
+    {
+      "timestamp_ms": 9266.401,
+      "content": "Uri"
+    },
+    {
+      "timestamp_ms": 9266.534,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9266.599,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9282.554,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 9314.167,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 9332.112,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 9340.485,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 9389.25,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 9389.467,
+      "content": "/auth"
+    },
+    {
+      "timestamp_ms": 9397.259,
+      "content": "/facebook"
+    },
+    {
+      "timestamp_ms": 9520.245,
+      "content": "/callback"
+    },
+    {
+      "timestamp_ms": 9520.497,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 9520.662,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 9520.78,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 9520.862,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9532.982,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 9532.982,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 9551.998,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 9572.416,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9631.045,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 9631.196,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9631.264,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 9648.004,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 9673.28,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 9685.929,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9707.843,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9728.8,
+      "content": " Explanation"
+    },
+    {
+      "timestamp_ms": 9745.972,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9763.268,
+      "content": " Fields"
+    },
+    {
+      "timestamp_ms": 9780.376,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9798.115,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9936.353,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9938.631,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 9938.769,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9938.846,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9938.91,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9950.599,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9950.782,
+      "content": " Defines"
+    },
+    {
+      "timestamp_ms": 9950.865,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9999.95,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 10000.324,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 10008.548,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10133.655,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10133.655,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10133.655,
+      "type": "done"
+    }
+  ],
+  "full_response": "Creating a JSON configuration file for a web application involves defining various settings for components like the database, cache, logging, and authentication. Below is an example structure for such a configuration file:\n\n```json\n{\n  \"database\": {\n    \"type\": \"postgresql\",\n    \"host\": \"localhost\",\n    \"port\": 5432,\n    \"username\": \"app_user\",\n    \"password\": \"secure_password\",\n    \"database\": \"app_db\",\n    \"useSSL\": false,\n    \"connectionTimeout\": 30\n  },\n  \"cache\": {\n    \"type\": \"redis\",\n    \"host\": \"localhost\",\n    \"port\": 6379,\n    \"password\": null,\n    \"database\": 0,\n    \"timeout\": 300,\n    \"retryAttempts\": 5,\n    \"retryIntervalMs\": 2000\n  },\n  \"logging\": {\n    \"level\": \"info\",\n    \"output\": \"console\",\n    \"file\": {\n      \"enabled\": true,\n      \"path\": \"/var/log/app/application.log\",\n      \"rotate\": true,\n      \"maxSize\": \"100MB\",\n      \"maxFiles\": 7\n    },\n    \"format\": \"yyyy-MM-dd HH:mm:ss.SSS\",\n    \"includeStackTrace\": true\n  },\n  \"authentication\": {\n    \"enabled\": true,\n    \"jwtSecret\": \"your_jwt_secret_key\",\n    \"sessionExpiry\": 3600,\n    \"refreshTokenExpiry\": 7200,\n    \"loginAttempts\": 5,\n    \"lockoutDuration\": 900,\n    \"captchaEnabled\": true,\n    \"captchaProvider\": \"reCAPTCHA\",\n    \"providers\": [\n      {\n        \"type\": \"local\",\n        \"usernameField\": \"email\",\n        \"bcryptCost\": 10\n      },\n      {\n        \"type\": \"oauth2\",\n        \"providers\": [\n          {\n            \"name\": \"google\",\n            \"clientId\": \"your_google_client_id\",\n            \"clientSecret\": \"your_google_client_secret\",\n            \"redirectUri\": \"https://yourapp.com/auth/google/callback\"\n          },\n          {\n            \"name\": \"facebook\",\n            \"appId\": \"your_facebook_app_id\",\n            \"appSecret\": \"your_facebook_app_secret\",\n            \"redirectUri\": \"https://yourapp.com/auth/facebook/callback\"\n          }\n        ]\n      }\n    ]\n  }\n}\n```\n\n### Explanation of Fields:\n- **Database:**\n  - Defines the connection parameters for the",
+  "response_chars": 1967,
+  "num_chunks": 512,
+  "ttft_ms": 334.512,
+  "total_ms": 10134.047,
+  "model_name": "model-medium"
+}

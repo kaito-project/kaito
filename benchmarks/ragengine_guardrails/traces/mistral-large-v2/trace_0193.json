@@ -1,0 +1,855 @@
+{
+  "index": 193,
+  "prompt": "How does a compiler differ from an interpreter?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 990.653,
+      "content": "Comp"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": "ilers and interpre"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": "ters are"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " both tools"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " to translate high"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": "-level programming language"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " into machine"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " code that"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " computer can execute,"
+    },
+    {
+      "timestamp_ms": 990.653,
+      "content": " but they work"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": " in fundamentally"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": " different ways. Here"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": "’s a breakdown"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": " of their"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": " key differences:\n\n###"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": " **1. Translation"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": " Process**\n- **"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": "Compiler**:\n  -"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": " Translates the **"
+    },
+    {
+      "timestamp_ms": 1526.554,
+      "content": "entire source"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " code** into"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " code (or"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " an intermediate"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " byte"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "code) **before"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "**.\n"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "  - Produ"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "ces an"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " **executable file"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "., `.exe"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "`, `.out"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": "`)"
+    },
+    {
+      "timestamp_ms": 2216.804,
+      "content": " that can"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": ".\n  - Example"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": ": C"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": ", C"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": "++,"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " Go.\n\n- **"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": "Interpreter**:\n "
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " - Translates and"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " executes"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " the source"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " code **line"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " line** (or"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " statement"
+    },
+    {
+      "timestamp_ms": 2956.642,
+      "content": " by statement"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": ") **"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": "at runtime"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": "**.\n  - Does"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " **not** produce"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " executable file;"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " interpreter"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " the code"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": ".\n  - Example"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": ": Python,"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": " JavaScript, Ruby"
+    },
+    {
+      "timestamp_ms": 3745.945,
+      "content": ", PHP"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": ".\n\n### **2"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": ". Execution Speed"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": "**\n- **Compiler"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": "**:\n  - Generally"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": " **faster execution"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": "** because the entire"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": " is optimized"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": " converted"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": " to machine"
+    },
+    {
+      "timestamp_ms": 4237.497,
+      "content": " code beforehand.\n "
+    },
+    {
+      "timestamp_ms": 4347.936,
+      "content": " - The"
+    },
+    {
+      "timestamp_ms": 4347.936,
+      "content": " compiled"
+    },
+    {
+      "timestamp_ms": 4347.936,
+      "content": " binary"
+    },
+    {
+      "timestamp_ms": 4347.936,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 4347.936,
+      "content": " directly on the CPU"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": ".\n\n- **Inter"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": "preter**:\n  -"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": " **Slower execution"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": "** because each"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": " line is translated"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": " and executed"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4631.451,
+      "content": " the fly.\n"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "  - No"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "optimization, so"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": " repeated"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": " execution ("
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "e.g., loops"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": ") requires"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": " re-trans"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "lation.\n\n### **"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "3. Error"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "**\n- **Compiler"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": "**:\n  - Reports"
+    },
+    {
+      "timestamp_ms": 5300.851,
+      "content": " **all errors"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " at once** after"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " scanning"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " the entire program"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": "compile"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": "-time errors"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": ").\n  - If"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " are syntax"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " errors, the program"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": " won’t compile.\n\n"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": "- **Interpreter"
+    },
+    {
+      "timestamp_ms": 5870.145,
+      "content": "**:\n  - St"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": "ops at"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": " **first error"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": " encountered"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": "** and reports"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": " it immediately"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": ".\n  - Use"
+    },
+    {
+      "timestamp_ms": 6222.895,
+      "content": "ful for debugging since"
+    },
+    {
+      "timestamp_ms": 6444.394,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 6444.394,
+      "content": " are caught"
+    },
+    {
+      "timestamp_ms": 6444.394,
+      "content": " early.\n\n### **"
+    },
+    {
+      "timestamp_ms": 6444.394,
+      "content": "4. Port"
+    },
+    {
+      "timestamp_ms": 6444.394,
+      "content": "ability**\n- **"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": "Compiler**:\n  -"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": "comp"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": "iled binary"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": "-specific** (e"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": ".g., Windows"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": "exe` won"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": "’t run on Linux"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": ").\n  - To"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " on another"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " system, the"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7241.61,
+      "content": " must be recomp"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": "iled.\n\n"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": "- **Inter"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": "preter**:\n  -"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " **More"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " portable** because"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " the interpreter"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": "e.g., Python"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " JavaScript engine"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": ") handles"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": ".\n  - The"
+    },
+    {
+      "timestamp_ms": 8135.17,
+      "content": " same source"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " code can run"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " on any"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " system with"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " interpreter"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " installed"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": ".\n\n### **5"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": ". Development"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " & Debug"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": "ging**\n- **"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": "Compiler**:\n  -"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8886.221,
+      "content": "Slower development"
+    },
+    {
+      "timestamp_ms": 8886.451,
+      "content": " cycle** (edit"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " → compile → run"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " → debug"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": ").\n  - Hard"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": "er to debug"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " are only visible"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " after full"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " compilation.\n\n-"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": " **Interpreter**:\n"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": "  - **F"
+    },
+    {
+      "timestamp_ms": 8914.637,
+      "content": "aster development cycle"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": "** (edit"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": " → run immediately"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": "  - E"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": "asier debugging"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9462.437,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9462.69,
+      "type": "done"
+    }
+  ],
+  "full_response": "Compilers and interpreters are both tools used to translate high-level programming language code into machine code that a computer can execute, but they work in fundamentally different ways. Here’s a breakdown of their key differences:\n\n### **1. Translation Process**\n- **Compiler**:\n  - Translates the **entire source code** into machine code (or an intermediate code like bytecode) **before execution**.\n  - Produces an **executable file** (e.g., `.exe`, `.out`) that can run independently.\n  - Example: C, C++, Rust, Go.\n\n- **Interpreter**:\n  - Translates and executes the source code **line by line** (or statement by statement) **at runtime**.\n  - Does **not** produce a separate executable file; the interpreter itself runs the code.\n  - Example: Python, JavaScript, Ruby, PHP.\n\n### **2. Execution Speed**\n- **Compiler**:\n  - Generally **faster execution** because the entire program is optimized and converted to machine code beforehand.\n  - The compiled binary runs directly on the CPU.\n\n- **Interpreter**:\n  - **Slower execution** because each line is translated and executed on the fly.\n  - No pre-optimization, so repeated execution (e.g., loops) requires re-translation.\n\n### **3. Error Handling**\n- **Compiler**:\n  - Reports **all errors at once** after scanning the entire program (compile-time errors).\n  - If there are syntax errors, the program won’t compile.\n\n- **Interpreter**:\n  - Stops at the **first error encountered** and reports it immediately.\n  - Useful for debugging since errors are caught early.\n\n### **4. Portability**\n- **Compiler**:\n  - The **compiled binary is platform-specific** (e.g., Windows `.exe` won’t run on Linux).\n  - To run on another system, the code must be recompiled.\n\n- **Interpreter**:\n  - **More portable** because the interpreter (e.g., Python, JavaScript engine) handles platform differences.\n  - The same source code can run on any system with the interpreter installed.\n\n### **5. Development & Debugging**\n- **Compiler**:\n  - **Slower development cycle** (edit → compile → run → debug).\n  - Harder to debug since errors are only visible after full compilation.\n\n- **Interpreter**:\n  - **Faster development cycle** (edit → run immediately).\n  - Easier debugging since errors are",
+  "response_chars": 2233,
+  "num_chunks": 208,
+  "ttft_ms": 990.653,
+  "total_ms": 9463.004,
+  "model_name": "Mistral-Large-3"
+}

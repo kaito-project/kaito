@@ -1,0 +1,911 @@
+{
+  "index": 73,
+  "prompt": "Describe how content delivery networks improve web performance.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 817.06,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " Delivery Networks"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " (CD"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": "Ns)"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " significantly improve web performance"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " by optimizing"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " the delivery"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " of content to"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " users. Here’s"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " how they achieve"
+    },
+    {
+      "timestamp_ms": 817.06,
+      "content": " this:\n\n### **"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": "1. Reduced Lat"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": "ency ("
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": "aster Load"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": " Times)**\n  "
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": " - **Ge"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": "ographically"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": " Distributed Serv"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": "ers**: CDNs"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": " store cached"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": " copies of content"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": " images, videos"
+    },
+    {
+      "timestamp_ms": 1237.605,
+      "content": ", scripts, HTML"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": ") in"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": " multiple **Points"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": " of Presence"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": " (Po"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": "Ps)** worldwide"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": " a user requests"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": ", the CD"
+    },
+    {
+      "timestamp_ms": 1752.817,
+      "content": "N delivers"
+    },
+    {
+      "timestamp_ms": 1753.043,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1753.043,
+      "content": " from the nearest"
+    },
+    {
+      "timestamp_ms": 1753.043,
+      "content": " server,"
+    },
+    {
+      "timestamp_ms": 1753.043,
+      "content": " reducing the"
+    },
+    {
+      "timestamp_ms": 1753.043,
+      "content": " distance"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " travel.\n   -"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " **Lower"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " Round"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": "-Trip Time"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " (RT"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": "T)**: Sh"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": "orter physical"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " distances between the"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " user and the server"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " mean"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " fewer"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " network h"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": "ops,"
+    },
+    {
+      "timestamp_ms": 2353.17,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " in faster response"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " times.\n\n### **"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": "2. Load"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " Bal"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": "ancing &"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " Reduced"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": "rain**\n   -"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " **Tra"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": "ffic Distribution"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " CDNs distribute requests"
+    },
+    {
+      "timestamp_ms": 2770.867,
+      "content": " across multiple edge"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " servers, preventing"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " single origin"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " server from becoming"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " overwhelmed."
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " This reduces the"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " risk of downt"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": "ime or"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " slowdown"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": "s during"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": " spikes ("
+    },
+    {
+      "timestamp_ms": 3176.81,
+      "content": "e.g., flash"
+    },
+    {
+      "timestamp_ms": 3456.538,
+      "content": " sales, viral"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": ").\n   - **"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": "Origin"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": " Shield"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": "**: Some"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": " CDNs act"
+    },
+    {
+      "timestamp_ms": 3456.758,
+      "content": " as a"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " buffer"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " servers and"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " the origin"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " server, reducing direct"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " requests to"
+    },
+    {
+      "timestamp_ms": 3679.332,
+      "content": " the origin and improving"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": " efficiency.\n\n### **"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": "3. C"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": "aching &"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": " Static Content Optimization"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": "**\n   - **"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": "Edge"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": " Caching**: Frequ"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": "ently accessed"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": " static"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": " content (e.g"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": "., images, CSS"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": ", Java"
+    },
+    {
+      "timestamp_ms": 4204.142,
+      "content": "Script) is cached"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": " at edge"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": " locations"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": ", eliminating"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": " the need to"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": " fetch it from the"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": " origin server repeatedly"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": ".\n   - **"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": "Cache In"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": "validation &"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": "TL ("
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": "Time-to"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": "-Live"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": ")**: CDNs use"
+    },
+    {
+      "timestamp_ms": 4535.853,
+      "content": " smart caching strategies"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " get fresh"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " content while"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " minimizing"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " origin"
+    },
+    {
+      "timestamp_ms": 4937.916,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 5056.302,
+      "content": " requests.\n"
+    },
+    {
+      "timestamp_ms": 5056.302,
+      "content": "   - **Dynamic"
+    },
+    {
+      "timestamp_ms": 5056.302,
+      "content": " Content"
+    },
+    {
+      "timestamp_ms": 5056.302,
+      "content": " Acceleration**: Some"
+    },
+    {
+      "timestamp_ms": 5056.302,
+      "content": " CDNs optimize dynamic"
+    },
+    {
+      "timestamp_ms": 5056.302,
+      "content": " content (e.g"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": "., API"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": " responses,"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": " personalized pages"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": ") using"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": " techniques like **TCP"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": " optimization"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": " route optimization"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": ", and pref"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": "etching**.\n\n###"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": " **4. Improved"
+    },
+    {
+      "timestamp_ms": 5503.269,
+      "content": " Bandwidth Efficiency"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "**\n   - **"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "Com"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "pression**:"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " CDNs compress"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " Gzip"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": ", Bro"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "tli"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": ") before"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": ", reducing file"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " sizes"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " and speed"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": " up transfers"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": ".\n   - **"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "Min"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "ification"
+    },
+    {
+      "timestamp_ms": 6167.061,
+      "content": "**: Java"
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": "Script,"
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": " CSS, and HTML"
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": " files are min"
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": "ified ("
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": "removing unnecessary characters"
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": ") to reduce"
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": " payload"
+    },
+    {
+      "timestamp_ms": 6510.235,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 6524.963,
+      "content": ".\n   - **"
+    },
+    {
+      "timestamp_ms": 6524.963,
+      "content": "Image"
+    },
+    {
+      "timestamp_ms": 6524.963,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 6524.963,
+      "content": " Video Optimization**: CD"
+    },
+    {
+      "timestamp_ms": 6524.963,
+      "content": "Ns automatically"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " resize"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " convert"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " formats"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " WebP,"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " AVIF"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": "), and"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " apply lazy"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " loading to"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": ".\n\n### **5"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": ". D"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": "DoS"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " Protection &"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " Security Enh"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": "ancements**\n   -"
+    },
+    {
+      "timestamp_ms": 7174.05,
+      "content": " **Tra"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": "ffic Scrub"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": "bing**: CDNs"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " absorb"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " filter"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " malicious traffic"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " DDoS attacks"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": ") before it"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " reaches the origin"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " server, ensuring"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " upt"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": "ime.\n   -"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7625.956,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7668.592,
+      "type": "done"
+    }
+  ],
+  "full_response": "Content Delivery Networks (CDNs) significantly improve web performance by optimizing the delivery of content to users. Here’s how they achieve this:\n\n### **1. Reduced Latency (Faster Load Times)**\n   - **Geographically Distributed Servers**: CDNs store cached copies of content (e.g., images, videos, scripts, HTML) in multiple **Points of Presence (PoPs)** worldwide. When a user requests content, the CDN delivers it from the nearest server, reducing the distance data must travel.\n   - **Lower Round-Trip Time (RTT)**: Shorter physical distances between the user and the server mean fewer network hops, resulting in faster response times.\n\n### **2. Load Balancing & Reduced Server Strain**\n   - **Traffic Distribution**: CDNs distribute requests across multiple edge servers, preventing any single origin server from becoming overwhelmed. This reduces the risk of downtime or slowdowns during traffic spikes (e.g., flash sales, viral content).\n   - **Origin Shielding**: Some CDNs act as a buffer between edge servers and the origin server, reducing direct requests to the origin and improving its efficiency.\n\n### **3. Caching & Static Content Optimization**\n   - **Edge Caching**: Frequently accessed static content (e.g., images, CSS, JavaScript) is cached at edge locations, eliminating the need to fetch it from the origin server repeatedly.\n   - **Cache Invalidation & TTL (Time-to-Live)**: CDNs use smart caching strategies to ensure users get fresh content while minimizing origin server requests.\n   - **Dynamic Content Acceleration**: Some CDNs optimize dynamic content (e.g., API responses, personalized pages) using techniques like **TCP optimization, route optimization, and prefetching**.\n\n### **4. Improved Bandwidth Efficiency**\n   - **Compression**: CDNs compress files (e.g., Gzip, Brotli) before delivery, reducing file sizes and speeding up transfers.\n   - **Minification**: JavaScript, CSS, and HTML files are minified (removing unnecessary characters) to reduce payload size.\n   - **Image & Video Optimization**: CDNs automatically resize, convert formats (e.g., WebP, AVIF), and apply lazy loading to improve performance.\n\n### **5. DDoS Protection & Security Enhancements**\n   - **Traffic Scrubbing**: CDNs absorb and filter malicious traffic (e.g., DDoS attacks) before it reaches the origin server, ensuring uptime.\n   - **",
+  "response_chars": 2351,
+  "num_chunks": 222,
+  "ttft_ms": 817.06,
+  "total_ms": 7853.821,
+  "model_name": "Mistral-Large-3"
+}

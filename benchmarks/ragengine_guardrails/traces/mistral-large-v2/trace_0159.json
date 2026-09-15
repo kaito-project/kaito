@@ -1,0 +1,879 @@
+{
+  "index": 159,
+  "prompt": "Create a comprehensive comparison of all major cloud providers (AWS, Azure, GCP) covering at least 20 different service categories with detailed pros and cons for each.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 722.781,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": "’s a **com"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": "prehensive comparison**"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " of **Amazon"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " Services (AWS),"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " Azure,"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " and Google Cloud Platform"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " (GCP"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": ")** across **"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": "20+"
+    },
+    {
+      "timestamp_ms": 722.781,
+      "content": " service categories**, including"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " **pros"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " cons** for each"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " provider"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": ".\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " **1. Compute"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": "**\n###"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " **AWS"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " EC"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": "2 (El"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": "astic Compute Cloud"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": ")**\n"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": "✅ **Pro"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": "s:**\n-"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": "argest instance"
+    },
+    {
+      "timestamp_ms": 949.575,
+      "content": " variety"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " (3"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": "00+ types"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": ", including ARM"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " Grav"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": "iton).\n- Spot"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": "stances for"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " cost savings (up"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " to 90"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": "% discount"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": ").\n- Auto"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " Sc"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": "aling with"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " granular"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": ".\n- Strong"
+    },
+    {
+      "timestamp_ms": 1360.493,
+      "content": " hybrid"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": " support (Out"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "posts"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": ", Local"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": " Z"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "ones).\n\n"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "❌ **Cons:**\n"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "- Complex"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": " pricing (res"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "erved instances"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": ", savings"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": " plans"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "- Ste"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "eper learning"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": " curve for"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": " beg"
+    },
+    {
+      "timestamp_ms": 1564.655,
+      "content": "inners.\n\n### **"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "Azure: Virtual"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " Machines (VM"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": ")**\n✅"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " **Pros:**\n"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "- Deep"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " Windows"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "/L"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "inux integration ("
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "especially"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " Windows"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " Server).\n- Azure"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " Hybrid"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " Benef"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "it ("
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": "reuse"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1853.009,
+      "content": " Windows licenses).\n-"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " Bur"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": "stable"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": "s (B-series"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": ") for cost"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": ".\n- Strong"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " enterprise"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " adoption"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " (Microsoft"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " ecosystem"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": "❌ **Cons:**\n"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": "- Few"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": "er instance"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": " types than AWS"
+    },
+    {
+      "timestamp_ms": 2178.497,
+      "content": ".\n- Some"
+    },
+    {
+      "timestamp_ms": 2288.441,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 2288.441,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 2288.441,
+      "content": " Power"
+    },
+    {
+      "timestamp_ms": 2288.441,
+      "content": "Shell/"
+    },
+    {
+      "timestamp_ms": 2288.441,
+      "content": "CLI.\n\n###"
+    },
+    {
+      "timestamp_ms": 2288.441,
+      "content": " **GCP"
+    },
+    {
+      "timestamp_ms": 2288.441,
+      "content": ": Compute"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": " Engine**\n"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": "✅ **"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": "Pros:**\n-"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": "ustained-use"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": " discounts** (aut"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": "omatic cost"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": " savings).\n- **"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": "Live"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": " migration"
+    },
+    {
+      "timestamp_ms": 2477.474,
+      "content": "** of"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " VMs (no"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " downtime during"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " maintenance).\n- **"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": "Custom machine"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " types** (optim"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": "ize CPU/R"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": "AM).\n- Strong"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": " (GKE"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": "❌ **Cons:**\n"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": "- Sm"
+    },
+    {
+      "timestamp_ms": 2793.17,
+      "content": "aller global"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " footprint"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " AWS/A"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": "zure.\n- Few"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": "er enterprise"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": "e.g., no"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " native"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " hybrid"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " Out"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": "posts).\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " **2. Server"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": "less Computing"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": "**\n###"
+    },
+    {
+      "timestamp_ms": 2998.313,
+      "content": " **AWS: Lambda"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": "✅ **"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": "Pros:**\n-"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": " **L"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": "argest language"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": "** (Python"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": ", Node.js,"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": " Java,"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": " Go, Ruby"
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": ", ."
+    },
+    {
+      "timestamp_ms": 3207.813,
+      "content": "NET,"
+    },
+    {
+      "timestamp_ms": 3312.492,
+      "content": " Rust).\n- **"
+    },
+    {
+      "timestamp_ms": 3312.492,
+      "content": "Long"
+    },
+    {
+      "timestamp_ms": 3312.492,
+      "content": "est max"
+    },
+    {
+      "timestamp_ms": 3312.492,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 3312.492,
+      "content": " time (15"
+    },
+    {
+      "timestamp_ms": 3312.492,
+      "content": " min)**.\n-"
+    },
+    {
+      "timestamp_ms": 3312.492,
+      "content": " **Event-driven integr"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "ations** (S"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "3, DynamoDB"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": ", API"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": " Gateway).\n"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "- **Pro"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "visioned"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": " Concurrency** ("
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "reduces cold starts"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": ").\n\n❌"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": " **Cons:**\n-"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "Cold starts** can"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": " be slow"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": " (~100"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "ms–"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": "2s"
+    },
+    {
+      "timestamp_ms": 3714.885,
+      "content": ").\n- **Complex"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " pricing** (request"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": "s +"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " time).\n\n###"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " **Azure: Azure"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " Functions**\n"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": "✅ **Pros"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": ":**\n- **Deep"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " integration** (Office"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " 36"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": "5, Power"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 3739.432,
+      "content": "- **Dur"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": "able Functions"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": "** (state"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": "ful workflow"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": "s).\n- **"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": "umption &"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": " Premium plans"
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "content": "** ("
+    },
+    {
+      "timestamp_ms": 3919.535,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3919.878,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a **comprehensive comparison** of **Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP)** across **20+ service categories**, including **pros and cons** for each provider.\n\n---\n\n## **1. Compute Services**\n### **AWS: EC2 (Elastic Compute Cloud)**\n✅ **Pros:**\n- Largest instance variety (300+ types, including ARM-based Graviton).\n- Spot Instances for cost savings (up to 90% discount).\n- Auto Scaling with granular control.\n- Strong hybrid cloud support (Outposts, Local Zones).\n\n❌ **Cons:**\n- Complex pricing (reserved instances, savings plans).\n- Steeper learning curve for beginners.\n\n### **Azure: Virtual Machines (VMs)**\n✅ **Pros:**\n- Deep Windows/Linux integration (especially Windows Server).\n- Azure Hybrid Benefit (reuse existing Windows licenses).\n- Burstable VMs (B-series) for cost efficiency.\n- Strong enterprise adoption (Microsoft ecosystem).\n\n❌ **Cons:**\n- Fewer instance types than AWS.\n- Some features require PowerShell/CLI.\n\n### **GCP: Compute Engine**\n✅ **Pros:**\n- **Sustained-use discounts** (automatic cost savings).\n- **Live migration** of VMs (no downtime during host maintenance).\n- **Custom machine types** (optimize CPU/RAM).\n- Strong Kubernetes integration (GKE).\n\n❌ **Cons:**\n- Smaller global footprint than AWS/Azure.\n- Fewer enterprise features (e.g., no native hybrid cloud like Outposts).\n\n---\n\n## **2. Serverless Computing**\n### **AWS: Lambda**\n✅ **Pros:**\n- **Largest language support** (Python, Node.js, Java, Go, Ruby, .NET, Rust).\n- **Longest max execution time (15 min)**.\n- **Event-driven integrations** (S3, DynamoDB, API Gateway).\n- **Provisioned Concurrency** (reduces cold starts).\n\n❌ **Cons:**\n- **Cold starts** can be slow (~100ms–2s).\n- **Complex pricing** (requests + compute time).\n\n### **Azure: Azure Functions**\n✅ **Pros:**\n- **Deep Microsoft integration** (Office 365, Power Platform).\n- **Durable Functions** (stateful workflows).\n- **Consumption & Premium plans** (",
+  "response_chars": 1951,
+  "num_chunks": 214,
+  "ttft_ms": 722.781,
+  "total_ms": 3920.172,
+  "model_name": "Mistral-Large-3"
+}

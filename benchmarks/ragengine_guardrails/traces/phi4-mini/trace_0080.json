@@ -1,0 +1,1287 @@
+{
+  "index": 80,
+  "prompt": "Describe how content delivery networks improve web performance.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 844.018,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " Delivery"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " Networks"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " around"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " globe"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 844.018,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " ways"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " Distribution"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " Content"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 1644.346,
+      "content": " copies"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " located"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " geographic"
+    },
+    {
+      "timestamp_ms": 1644.548,
+      "content": " locations"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": "edge"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": ".\""
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " page"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " CDN"
+    },
+    {
+      "timestamp_ms": 2205.083,
+      "content": " selects"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " nearest"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " distance"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2205.315,
+      "content": " travel"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " consequently"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " decreasing"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " Traffic"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " Content"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " numerous"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " balance"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 2779.245,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " peak"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " thereby"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " chance"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " overload"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3331.578,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": "aching"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": " utilize"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": " caching"
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3331.831,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " frequently"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " accessed"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " CDN"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " leading"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " quicker"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " returning"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " visitors"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " Because"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " caching"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 3867.318,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " origin"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " alleviate"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4155.061,
+      "content": "-side"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " bott"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": "lene"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": "cks"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " Band"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": "width"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " Reduction"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " serving"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " cached"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4515.561,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " decrease"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " bandwidth"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " origin"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " reduced"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " bandwidth"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " requirement"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " lowers"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " chance"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " congestion"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5059.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " internet"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " backbone"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " optimal"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " transfer"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": "Do"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " protection"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " threat"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5781.334,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " SSL"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " delivered"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": "-user"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6091.385,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 6091.616,
+      "content": " malicious"
+    },
+    {
+      "timestamp_ms": 6091.616,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 6236.591,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6236.591,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 6236.591,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 6236.591,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6236.591,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 6236.591,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 6236.591,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " strategically"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " positioning"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " evenly"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " caching"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " bandwidth"
+    },
+    {
+      "timestamp_ms": 6699.018,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " offering"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " greatly"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " contributes"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " seamless"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " browsing"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7240.221,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 7313.596,
+      "content": " worldwide"
+    },
+    {
+      "timestamp_ms": 7313.596,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7313.596,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7360.882,
+      "type": "done"
+    }
+  ],
+  "full_response": "Content Delivery Networks (CDNs) are designed to deliver web content more efficiently to users around the globe. They significantly improve web performance in several key ways:\n\n1. Distribution of Content: CDNs work by storing copies web content on multiple servers located at various geographic locations or \"edge nodes.\" When a user requests a page or resource, the CDN selects nearest server to the user, reducing the distance the data needs to travel and consequently decreasing load times.\n\n2. Traffic Management: Content distribution across numerous servers helps balance the load, especially during peak traffic times, thereby reducing the chance of overload and maintaining consistent performance for all users3. Caching: CDNs utilize caching, where frequently accessed content is stored on the CDN servers, leading to quicker access times for returning visitors. Because caching reduces the demand on the origin server, it also helps to alleviate any potential server-side bottlenecks.\n\n4. Bandwidth Reduction: By serving cached content over the network, CDNs help decrease the bandwidth demand on the origin server. This reduced bandwidth requirement simultaneously lowers the chance of congestion on the internet backbone and ensures optimal data transfer.\n\n5. Security: CDNs offer additional security measures like DDoS protection, threat detection, and SSL encryption, which ensure that the content delivered to the end-user is secure and protected malicious actors.\n\nIn summary, content delivery networks enhance web performance by strategically positioning servers, distributing traffic evenly, using caching for faster access, limiting bandwidth demand, and offering security solutions. This approach greatly contributes to providing a seamless, efficient, and more reliable browsing experience for users worldwide.",
+  "response_chars": 1831,
+  "num_chunks": 316,
+  "ttft_ms": 844.018,
+  "total_ms": 7428.165,
+  "model_name": "Phi-4-mini-instruct"
+}

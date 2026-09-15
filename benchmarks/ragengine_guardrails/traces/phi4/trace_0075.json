@@ -1,0 +1,2071 @@
+{
+  "index": 75,
+  "prompt": "Explain how vector databases work and their role in semantic search.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 243.06,
+      "content": "Vector"
+    },
+    {
+      "timestamp_ms": 260.471,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 277.667,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 297.246,
+      "content": " specialized"
+    },
+    {
+      "timestamp_ms": 316.056,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 334.945,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 354.51,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 384.647,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 391.943,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 411.049,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 433.038,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 449.789,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 468.25,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 488.102,
+      "content": "-dimensional"
+    },
+    {
+      "timestamp_ms": 512.063,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 525.788,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 545.89,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 567.194,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 582.635,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 601.542,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 620.729,
+      "content": " becoming"
+    },
+    {
+      "timestamp_ms": 641.201,
+      "content": " increasingly"
+    },
+    {
+      "timestamp_ms": 658.827,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 677.694,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 696.633,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 716.215,
+      "content": " realm"
+    },
+    {
+      "timestamp_ms": 735.204,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 753.86,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 772.991,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 792.28,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 811.536,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 830.632,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 849.57,
+      "content": "-driven"
+    },
+    {
+      "timestamp_ms": 873.254,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 887.474,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 906.45,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 929.231,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 944.191,
+      "content": " ability"
+    },
+    {
+      "timestamp_ms": 979.619,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 982.201,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 1001.644,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1021.495,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1039.719,
+      "content": " numerical"
+    },
+    {
+      "timestamp_ms": 1058.605,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 1077.783,
+      "content": " representations"
+    },
+    {
+      "timestamp_ms": 1099.304,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1120.47,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1135.251,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1153.993,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1185.383,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 1191.813,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1210.596,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1230.13,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 1249.25,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 1267.877,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1287.212,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1308.999,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 1326.679,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1345.84,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 1363.862,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 1382.418,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1401.422,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1421.941,
+      "content": " How"
+    },
+    {
+      "timestamp_ms": 1440.088,
+      "content": " Vector"
+    },
+    {
+      "timestamp_ms": 1458.989,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 1477.794,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 1498.61,
+      "content": " Work"
+    },
+    {
+      "timestamp_ms": 1516.016,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1545.572,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1553.756,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1581.351,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1592.131,
+      "content": "Vector"
+    },
+    {
+      "timestamp_ms": 1613.39,
+      "content": " Representation"
+    },
+    {
+      "timestamp_ms": 1630.015,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1654.889,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 1668.105,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1687.604,
+      "content": " transformed"
+    },
+    {
+      "timestamp_ms": 1706.333,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1725.999,
+      "content": " numerical"
+    },
+    {
+      "timestamp_ms": 1744.517,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 1763.554,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1786.398,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 1802.738,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1821.191,
+      "content": " piece"
+    },
+    {
+      "timestamp_ms": 1839.746,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1859.609,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1878.449,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1908.843,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 1916.052,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 1935.117,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 1953.975,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 1973.15,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 1992.119,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2089.627,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 2089.627,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2089.627,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2089.627,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 2089.627,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2113.567,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2125.807,
+      "content": " represented"
+    },
+    {
+      "timestamp_ms": 2145.105,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2185.89,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2185.89,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 2201.65,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2220.906,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2241.536,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 2259.908,
+      "content": "-dimensional"
+    },
+    {
+      "timestamp_ms": 2367.978,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 2368.2,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2368.276,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2368.316,
+      "content": " transformations"
+    },
+    {
+      "timestamp_ms": 2368.348,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2373.123,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 2395.882,
+      "content": " achieved"
+    },
+    {
+      "timestamp_ms": 2413.953,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2430.636,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 2449.133,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2471.81,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2487.904,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 2506.715,
+      "content": " embeddings"
+    },
+    {
+      "timestamp_ms": 2528.112,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2544.558,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2563.746,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2582.528,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2601.582,
+      "content": " Word"
+    },
+    {
+      "timestamp_ms": 2621.082,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2640.408,
+      "content": "Vec"
+    },
+    {
+      "timestamp_ms": 2658.946,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2678.042,
+      "content": " Glo"
+    },
+    {
+      "timestamp_ms": 2697.671,
+      "content": "Ve"
+    },
+    {
+      "timestamp_ms": 2741.081,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2741.081,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2756.685,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 2773.224,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2794.314,
+      "content": " convolution"
+    },
+    {
+      "timestamp_ms": 2814.062,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 2830.569,
+      "content": " neural"
+    },
+    {
+      "timestamp_ms": 2849.509,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 2868.787,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2890.481,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 2907.164,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2926.329,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2945.215,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2963.728,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2983.505,
+      "content": "Index"
+    },
+    {
+      "timestamp_ms": 3008.402,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3021.639,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3040.016,
+      "content": " Vector"
+    },
+    {
+      "timestamp_ms": 3061.222,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 3077.916,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 3098.172,
+      "content": " specialized"
+    },
+    {
+      "timestamp_ms": 3116.196,
+      "content": " indexing"
+    },
+    {
+      "timestamp_ms": 3136.33,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 3154.125,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3186.091,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 3193.126,
+      "content": " organize"
+    },
+    {
+      "timestamp_ms": 3211.481,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3230.365,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 3254.527,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3268.642,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 3287.712,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3307.047,
+      "content": " Unlike"
+    },
+    {
+      "timestamp_ms": 3325.885,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 3346.529,
+      "content": " relational"
+    },
+    {
+      "timestamp_ms": 3363.967,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 3383.1,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3401.872,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 3422.871,
+      "content": " row"
+    },
+    {
+      "timestamp_ms": 3439.805,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 3458.715,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 3477.99,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3498.408,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 3517.837,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 3535.196,
+      "content": " employ"
+    },
+    {
+      "timestamp_ms": 3554.443,
+      "content": " indices"
+    },
+    {
+      "timestamp_ms": 3574.219,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3592.911,
+      "content": " Approx"
+    },
+    {
+      "timestamp_ms": 3615.897,
+      "content": "imate"
+    },
+    {
+      "timestamp_ms": 3630.655,
+      "content": " Ne"
+    },
+    {
+      "timestamp_ms": 3649.744,
+      "content": "arest"
+    },
+    {
+      "timestamp_ms": 3669.811,
+      "content": " Neighbor"
+    },
+    {
+      "timestamp_ms": 3687.926,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3706.814,
+      "content": "ANN"
+    },
+    {
+      "timestamp_ms": 3728.47,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3745.003,
+      "content": " indexes"
+    },
+    {
+      "timestamp_ms": 3764.488,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3783.932,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3803.111,
+      "content": " optimized"
+    },
+    {
+      "timestamp_ms": 3821.175,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3850.533,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 3859.967,
+      "content": "-dimensional"
+    },
+    {
+      "timestamp_ms": 3878.301,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3900.896,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3916.46,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 3942.84,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 3954.5,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 3973.455,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3992.491,
+      "content": " k"
+    },
+    {
+      "timestamp_ms": 4011.512,
+      "content": "-d"
+    },
+    {
+      "timestamp_ms": 4032.587,
+      "content": " trees"
+    },
+    {
+      "timestamp_ms": 4049.657,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4068.847,
+      "content": " ball"
+    },
+    {
+      "timestamp_ms": 4090.022,
+      "content": " trees"
+    },
+    {
+      "timestamp_ms": 4106.928,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4126.808,
+      "content": " Loc"
+    },
+    {
+      "timestamp_ms": 4145.277,
+      "content": "ality"
+    },
+    {
+      "timestamp_ms": 4164.504,
+      "content": "-S"
+    },
+    {
+      "timestamp_ms": 4183.405,
+      "content": "ensitive"
+    },
+    {
+      "timestamp_ms": 4203.082,
+      "content": " Hash"
+    },
+    {
+      "timestamp_ms": 4221.713,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4246.571,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4259.9,
+      "content": "LS"
+    },
+    {
+      "timestamp_ms": 4283.564,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 4297.544,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 4316.469,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4335.512,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 4354.866,
+      "content": " quant"
+    },
+    {
+      "timestamp_ms": 4375.089,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 4392.733,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4411.618,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4430.861,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4450.236,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4486.773,
+      "content": "Similar"
+    },
+    {
+      "timestamp_ms": 4486.882,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 4507.569,
+      "content": " Search"
+    },
+    {
+      "timestamp_ms": 4527.917,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4553.003,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4568.138,
+      "content": " core"
+    },
+    {
+      "timestamp_ms": 4583.969,
+      "content": " capability"
+    },
+    {
+      "timestamp_ms": 4603.159,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4621.177,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 4640.48,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 4659.966,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4678.911,
+      "content": " retrieving"
+    },
+    {
+      "timestamp_ms": 4697.735,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4716.632,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 4735.858,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 4754.845,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 4774.587,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4792.794,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4812.084,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 4841.318,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 4852.308,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4869.563,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4888.399,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4911.86,
+      "content": " done"
+    },
+    {
+      "timestamp_ms": 4926.445,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4945.549,
+      "content": " distance"
+    },
+    {
+      "timestamp_ms": 4964.491,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 4983.85,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 5002.583,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5021.715,
+      "content": " Eu"
+    },
+    {
+      "timestamp_ms": 5044.763,
+      "content": "clidean"
+    },
+    {
+      "timestamp_ms": 5059.767,
+      "content": " distance"
+    },
+    {
+      "timestamp_ms": 5089.723,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5098.214,
+      "content": " cosine"
+    },
+    {
+      "timestamp_ms": 5118.446,
+      "content": " similarity"
+    },
+    {
+      "timestamp_ms": 5137.864,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5155.286,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5174.932,
+      "content": " Ham"
+    },
+    {
+      "timestamp_ms": 5193.142,
+      "content": "ming"
+    },
+    {
+      "timestamp_ms": 5212.273,
+      "content": " distance"
+    },
+    {
+      "timestamp_ms": 5231.532,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5250.661,
+      "content": " depending"
+    },
+    {
+      "timestamp_ms": 5269.481,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5289.069,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5308.109,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 5326.623,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5346.035,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5364.886,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5384.915,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5404.884,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5423.047,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 5442.025,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5459.898,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5479.449,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5498.346,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5519.027,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 5545.523,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 5555.342,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 5574.272,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5594.256,
+      "content": " Performance"
+    },
+    {
+      "timestamp_ms": 5612.586,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5633.4,
+      "content": " Vector"
+    },
+    {
+      "timestamp_ms": 5651.418,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 5670.29,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5688.816,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 5707.894,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5727.073,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 5746.141,
+      "content": " massive"
+    },
+    {
+      "timestamp_ms": 5765.19,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 5784.221,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5803.244,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5822.585,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5841.457,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 5861.019,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5879.884,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5898.717,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 5917.66,
+      "content": " manner"
+    },
+    {
+      "timestamp_ms": 5936.795,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6030.463,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 6030.463,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6030.463,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6030.463,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 6032.285,
+      "content": " horizontally"
+    },
+    {
+      "timestamp_ms": 6051.389,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6070.399,
+      "content": " Optim"
+    },
+    {
+      "timestamp_ms": 6089.591,
+      "content": "izations"
+    },
+    {
+      "timestamp_ms": 6144.563,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6144.563,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 6146.41,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 6166.012,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 6186.776,
+      "content": " quick"
+    },
+    {
+      "timestamp_ms": 6203.924,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 6223.49,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 6241.933,
+      "content": " despite"
+    },
+    {
+      "timestamp_ms": 6265.759,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6287.123,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 6299.177,
+      "content": "-dimensional"
+    },
+    {
+      "timestamp_ms": 6318.235,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 6337.46,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6356.559,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6377.84,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6395.374,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6413.773,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6434.531,
+      "content": " Role"
+    },
+    {
+      "timestamp_ms": 6451.743,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6471.035,
+      "content": " Semantic"
+    },
+    {
+      "timestamp_ms": 6490.27,
+      "content": " Search"
+    },
+    {
+      "timestamp_ms": 6509.799,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6528.243,
+      "content": "Semantic"
+    },
+    {
+      "timestamp_ms": 6547.603,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 6566.091,
+      "content": " aims"
+    },
+    {
+      "timestamp_ms": 6585.723,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6604.514,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 6624.352,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6653.366,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 6661.861,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6680.769,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 6700.018,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 6718.441,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6737.742,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 6756.667,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6775.962,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 6794.973,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6813.956,
+      "content": " intent"
+    },
+    {
+      "timestamp_ms": 6833.69,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6853.088,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6872.633,
+      "content": " contextual"
+    },
+    {
+      "timestamp_ms": 6890.409,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 6910.448,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 6929.055,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 6947.667,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6968.113,
+      "content": " Vector"
+    },
+    {
+      "timestamp_ms": 6985.807,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 7005.179,
+      "content": " play"
+    },
+    {
+      "timestamp_ms": 7023.904,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7043.072,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 7062.099,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 7081.242,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7100.094,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7119.413,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7139.883,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 7158.119,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7176.427,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7195.501,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7214.991,
+      "content": "Understanding"
+    },
+    {
+      "timestamp_ms": 7237.192,
+      "content": " Context"
+    },
+    {
+      "timestamp_ms": 7254.071,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7271.97,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 7291.01,
+      "content": " converting"
+    },
+    {
+      "timestamp_ms": 7310.096,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 7329.747,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 7348.167,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7367.715,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 7388.183,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 7405.238,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 7426.726,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7443.59,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 7463.395,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 7481.671,
+      "content": " capture"
+    },
+    {
+      "timestamp_ms": 7500.915,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 7522.399,
+      "content": " meanings"
+    },
+    {
+      "timestamp_ms": 7540.58,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7561.591,
+      "content": " contextual"
+    },
+    {
+      "timestamp_ms": 7580.167,
+      "content": " nuances"
+    },
+    {
+      "timestamp_ms": 7609.817,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7615.875,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7634.309,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 7653.023,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 7672.871,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7691.294,
+      "content": " discern"
+    },
+    {
+      "timestamp_ms": 7711.443,
+      "content": " synonyms"
+    },
+    {
+      "timestamp_ms": 7739.603,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7748.618,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 7769.402,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 7792.879,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7806.245,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7825.401,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 7844.336,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 7863.521,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 7885.794,
+      "content": " keyword"
+    },
+    {
+      "timestamp_ms": 7902.156,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 7920.568,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 7939.453,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7958.803,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7978.141,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7996.816,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8015.579,
+      "content": "Enh"
+    },
+    {
+      "timestamp_ms": 8034.822,
+      "content": "anced"
+    },
+    {
+      "timestamp_ms": 8054.039,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 8074.247,
+      "content": "levance"
+    },
+    {
+      "timestamp_ms": 8094.478,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8111.574,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 8130.912,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8151.48,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8173.767,
+      "content": " inputs"
+    },
+    {
+      "timestamp_ms": 8188.817,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8206.451,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 8226.214,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8244.508,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8264.322,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 8283.852,
+      "content": " finds"
+    },
+    {
+      "timestamp_ms": 8302.534,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 8321.845,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 8340.662,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 8359.258,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 8378.44,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8401.692,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 8416.638,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8435.955,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 8454.644,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8473.704,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 8507.922,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8512.136,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8531.079,
+      "content": " concept"
+    },
+    {
+      "timestamp_ms": 8552.637,
+      "content": "ually"
+    },
+    {
+      "timestamp_ms": 8569.217,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 8589.81,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 8607.331,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 8632.708,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 8648.55,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 8681.063,
+      "content": "ually"
+    },
+    {
+      "timestamp_ms": 8683.876,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 8703.647,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8722.073,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8741.397,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8759.905,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8781.514,
+      "content": "Eff"
+    },
+    {
+      "timestamp_ms": 8797.962,
+      "content": "iciency"
+    },
+    {
+      "timestamp_ms": 8816.932,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8836.101,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 8855.161,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 8874.466,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 8895.043,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8912.574,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 8931.618,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 8950.715,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 8969.741,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8989.102,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 9007.591,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9027.796,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9047.044,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 9064.964,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 9084.174,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9103.461,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 9122.289,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 9147.146,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 9161.669,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 9180.946,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 9199.884,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 9222.28,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 9236.815,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 9255.947,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 9275.057,
+      "content": "-search"
+    },
+    {
+      "timestamp_ms": 9294.05,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 9313.125,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9332.396,
+      "content": " rely"
+    },
+    {
+      "timestamp_ms": 9351.335,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9370.078,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 9389.315,
+      "content": "-text"
+    },
+    {
+      "timestamp_ms": 9408.621,
+      "content": " indexing"
+    },
+    {
+      "timestamp_ms": 9427.51,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9446.489,
+      "content": " keyword"
+    },
+    {
+      "timestamp_ms": 9465.787,
+      "content": " matching"
+    },
+    {
+      "timestamp_ms": 9484.629,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9504.293,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9523.317,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9542.418,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9561.604,
+      "content": "Cross"
+    },
+    {
+      "timestamp_ms": 9585.11,
+      "content": "-modal"
+    },
+    {
+      "timestamp_ms": 9599.766,
+      "content": " Searches"
+    },
+    {
+      "timestamp_ms": 9618.75,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9647.425,
+      "content": " Vector"
+    },
+    {
+      "timestamp_ms": 9658.156,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 9676.262,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9694.912,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 9713.801,
+      "content": " multi"
+    },
+    {
+      "timestamp_ms": 9733.192,
+      "content": "-modal"
+    },
+    {
+      "timestamp_ms": 9751.7,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9771.066,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9790.253,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 9809.234,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 9828.062,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9856.077,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 9866.216,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9885.772,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 9904.46,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9923.472,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 9942.525,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9961.65,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9980.737,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 9980.737,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9980.737,
+      "type": "done"
+    }
+  ],
+  "full_response": "Vector databases are specialized databases designed to efficiently store and search through high-dimensional vector data. These databases are becoming increasingly significant in the realm of semantic search and various AI-driven applications due to their ability to handle and process numerical vector representations. Here's an overview of how they function and their role in semantic search:\n\n### How Vector Databases Work\n\n1. **Vector Representation**: Data is transformed into numerical vectors, where each piece of data (e.g., text documents, images, or products) is represented as a point in a high-dimensional space. These transformations are commonly achieved using techniques such as word embeddings (e.g., Word2Vec, GloVe) for text or convolutional neural networks for images.\n\n2. **Indexing**: Vector databases use specialized indexing techniques to efficiently organize and store these vectors. Unlike traditional relational databases that use row-based storage, vector databases employ indices like Approximate Nearest Neighbor (ANN) indexes that are optimized for high-dimensional data. Common index types include k-d trees, ball trees, Locality-Sensitive Hashing (LSH), and product quantization.\n\n3. **Similarity Search**: The core capability of vector databases is retrieving the most similar vectors to a query vector. This is done using distance metrics such as Euclidean distance, cosine similarity, or Hamming distance, depending on the nature of the data and the application.\n\n4. **Scalability and Performance**: Vector databases are designed to handle massive amounts of data, often in a distributed manner, allowing them to scale horizontally. Optimizations and parallel processing enable quick retrieval times despite the high-dimensional nature of the data.\n\n### Role in Semantic Search\n\nSemantic search aims to improve the accuracy of search results by understanding the query's intent and the contextual relationships between terms. Vector databases play a crucial role in this by:\n\n1. **Understanding Context**: By converting text queries and documents into vectors, vector databases capture semantic meanings and contextual nuances. This means they can discern synonyms, related terms, and context better than keyword-based search.\n\n2. **Enhanced Relevance**: When a user inputs a query, the database finds vectors representing similar concepts, allowing the retrieval of results that are conceptually related rather than just textually similar.\n\n3. **Efficiency**: By using efficient data retrieval techniques specific to vector data, vector databases can provide relevant search results much faster than traditional text-search methods that rely on full-text indexing and keyword matching.\n\n4. **Cross-modal Searches**: Vector databases can handle multi-modal data, meaning they can search across text, images, and other",
+  "response_chars": 2852,
+  "num_chunks": 512,
+  "ttft_ms": 243.06,
+  "total_ms": 9985.043,
+  "model_name": "model-medium"
+}

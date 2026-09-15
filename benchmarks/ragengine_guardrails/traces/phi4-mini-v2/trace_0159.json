@@ -1,0 +1,2055 @@
+{
+  "index": 159,
+  "prompt": "Create a comprehensive comparison of all major cloud providers (AWS, Azure, GCP) covering at least 20 different service categories with detailed pros and cons for each.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1090.379,
+      "content": "Sure"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " I'd"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " happy"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " comparison"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " major"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " providers"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 1090.379,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " categories"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2289.338,
+      "content": " pros"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " cons"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " provider"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "aa"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2289.679,
+      "content": "Amazon"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": "BS"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": " EC"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3158.854,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": "DS"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " Lambda"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " Best"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " global"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " reach"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " Complex"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " steep"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " curve"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " Lambda"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 3166.735,
+      "content": " billing"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " unpredictable"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": "Microsoft"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": "Ms"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " Cosmos"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " DB"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " Good"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3815.351,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " Pricing"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " Some"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " Cosmos"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " DB"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " delivered"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " soon"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " advertised"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "Google"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4636.087,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Compute"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Engine"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Fire"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": "store"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Big"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": "table"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Simple"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " pricing"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " come"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " free"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " Limited"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " geographical"
+    },
+    {
+      "timestamp_ms": 5357.509,
+      "content": " reach"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " expensive"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": "aa"
+    },
+    {
+      "timestamp_ms": 5670.466,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "Amazon"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " Elastic"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " Be"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "anst"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "alk"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " Lights"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "ail"
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6205.968,
+      "content": " Designed"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " industry"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "-leading"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " SDK"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " Elastic"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " Be"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "anst"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "alk"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " customizable"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "Microsoft"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7061.95,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Cognitive"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Strong"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": "/CD"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Dev"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": "Ops"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 7638.915,
+      "content": "-intensive"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " pricing"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " projects"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": "Google"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 8464.262,
+      "content": " Engine"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": " Run"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": "astore"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8530.693,
+      "content": " Simple"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " pricing"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " Limited"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " custom"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "izations"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " unconventional"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "/A"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "zure"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": " Computing"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9461.121,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": "Amazon"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " Lambda"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " Step"
+    },
+    {
+      "timestamp_ms": 10177.994,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " Gateway"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " Flexible"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " powerful"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " Cold"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " starts"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " increase"
+    },
+    {
+      "timestamp_ms": 10178.512,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " billing"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " opaque"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " sometimes"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": "Microsoft"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " Logic"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " Apps"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " Signal"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " Good"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " building"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " everything"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " radios"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10883.703,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " Can"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " tricky"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " optimize"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 11800.778,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " starts"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": "Google"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": "Pros"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 11801.126,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": " Pub"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": "/Sub"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": " Run"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": " Simple"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": " pricing"
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11916.268,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11970.059,
+      "type": "done"
+    }
+  ],
+  "full_response": "Sure, I'd be happy to provide a comprehensive comparison of the major cloud providers: Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). Below is an overview of 20 key service categories with the pros cons for each provider.\n\n### 1. Infrastructure as a Service (IaaS)\n\n- **Amazon Web Services (AWS)**\n  - **Pros:** EBS, EC2,3, RDS, Lambda. Best for global reach.\n  - **Cons:** Complex and steep learning curve, Lambda service billing can be unpredictable.\n\n- **Microsoft Azure**\n  - **Pros:** VMs, App Service, Cosmos DB, Azure Functions. Good integration with Microsoft products.\n  - **Cons:** Pricing can be complex. Some services (like Cosmos DB) are not delivered as soon as advertised.\n\n- **Google Cloud Platform (GCP)**\n  - **Pros:** Compute Engine, Cloud Functions, Firestore, Bigtable. Simple pricing model; features often come for free.\n  - **Cons:** Limited geographical reach compared to AWS; can be expensive.\n\n### 2. Platform as a Service (PaaS)\n\n- **Amazon Web Services (AWS)**\n  - **Pros:** Elastic Beanstalk, Lightsail. Designed to scale, industry-leading SDKs.\n  - **Cons:** AWS Elastic Beanstalk is less customizable compared to private deployment.\n\n- **Microsoft Azure**\n  - **Pros:** Azure App Service, Azure Functions, Cognitive Services. Strong CI/CD integration with Azure DevOps.\n  - **Cons:** Platform can be resource-intensive; pricing might be high for small scale projects.\n\n- **Google Cloud Platform (GCP)**\n  - **Pros:** App Engine, Cloud Run, Cloud Datastore, Cloud SQL. Simple pricing, can be faster deployment.\n  - **Cons:** Limited customizations; can be unconventional compared to AWS/Azure.\n\n### 3. Serverless Computing\n\n- **Amazon Web Services (AWS)**\n  - **Pros:** Lambda, Step Functions API Gateway. Flexible and powerful.\n  - **Cons:** Cold starts can increase latency, billing is opaque sometimes.\n\n- **Microsoft Azure**\n  - **Pros:** Azure Functions, Logic Apps, SignalR. Good for building everything from radios to databases.\n  - **Cons:** Can be tricky to optimize for performance; similar issues of starts.\n\n- **Google Cloud Platform (GCP)**\n  - **Pros:** Cloud Functions, Cloud Pub/Sub, Cloud Run. Simple pricing,",
+  "response_chars": 2186,
+  "num_chunks": 508,
+  "ttft_ms": 1090.379,
+  "total_ms": 12317.154,
+  "model_name": "Phi-4-mini-instruct"
+}

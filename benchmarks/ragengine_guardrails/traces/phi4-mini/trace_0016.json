@@ -1,0 +1,1943 @@
+{
+  "index": 16,
+  "prompt": "Explain how attention mechanisms work in transformer models.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 731.634,
+      "content": "Attention"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " fundamental"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " facilitate"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " ability"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " weigh"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " significance"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 731.634,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " producing"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " translation"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " sentence"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " hinge"
+    },
+    {
+      "timestamp_ms": 1320.013,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " Here's"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1898.127,
+      "content": " transformers"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": "Inputs"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1898.396,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " want"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " sentence"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " cat"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " sat"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " mat"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": "\"."
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " sentence"
+    },
+    {
+      "timestamp_ms": 2578.643,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " represented"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": "Query"
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3271.994,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " representations"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " projected"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 3272.352,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " linear"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " transformations"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "query"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " projections"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " comparison"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 3991.602,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " relate"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": "oring"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " Attention"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": "ights"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4448.83,
+      "content": " calculates"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " pair"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": "wise"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " alignment"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " score"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " pair"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4718.117,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " dot"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " respective"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " scores"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " indicate"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " placed"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " larger"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " score"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " implies"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5375.332,
+      "content": " greater"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " degree"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " relationship"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": "Normalization"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " raw"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " scores"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " normalized"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5977.648,
+      "content": " applying"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " soft"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": "max"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " transforming"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " probability"
+    },
+    {
+      "timestamp_ms": 5977.885,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " relative"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " contributing"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 6389.499,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6523.003,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6523.003,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 6523.003,
+      "content": " generated"
+    },
+    {
+      "timestamp_ms": 6523.003,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6523.003,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6523.003,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": "Weighted"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " Sum"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " Values"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " After"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " normalization"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " weighted"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " Summ"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " weighted"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 7178.311,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " position"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": "Multi"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": "-head"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " Attention"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " Transformers"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " heads"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": "typically"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " eight"
+    },
+    {
+      "timestamp_ms": 7798.233,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " twelve"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " jointly"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " attend"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " sub"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": "spaces"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " doing"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 8371.022,
+      "content": " captures"
+    },
+    {
+      "timestamp_ms": 8394.907,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " aspects"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " leading"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " consideration"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 8886.316,
+      "content": " Generation"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": "-weight"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " sum"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " position"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " passed"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " subsequent"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " ultimately"
+    },
+    {
+      "timestamp_ms": 9443.258,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " soft"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": "max"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " produces"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " predictive"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " probability"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": "Overall"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10034.555,
+      "content": " addition"
+    },
+    {
+      "timestamp_ms": 10163.82,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10163.82,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 10163.82,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 10163.82,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 10163.82,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 10163.82,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " dynamically"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " allocate"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " emphasis"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " phrases"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " parsing"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " surrounding"
+    },
+    {
+      "timestamp_ms": 10461.315,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " improving"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " natural"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10731.565,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10781.2,
+      "type": "done"
+    }
+  ],
+  "full_response": "Attention mechanisms in transformer models are fundamental components that facilitate the model's ability to weigh the significance of different parts of the input when producing an output. This is especially important for tasks like language translation, where the meaning of a sentence can hinge on the understanding of specific words within the context. Here's how attention mechanisms typically work in transformers1. **Inputs**: Consider a sequence of words that you want to process. For example, the transformer needs to analyze the sentence \"The cat sat on the mat\". Each word in this sentence is represented as a vector in the model's vector space.\n\n2. **Query, Key Value representations**: Each word vector is projected into three separate vectors using linear transformations: a `query` (Q), `key` (K), and `value` (V). These projections enable comparison between different words to understand how they relate to one another.\n\n3. **Scoring and Attention Weights**: The model calculates a pairwise alignment score between each pair of words using the dot product of their respective query and key vectors. These scores indicate how much focus should be placed on each other; a larger score implies a greater degree of relationship.\n\n4. **Normalization**: The raw scores are normalized by applying softmax function, transforming them into a probability distribution. This distribution represents the relative importance that each word should have when contributing to the next word in the sequence generated by the model.\n\n5. **Weighted Sum of Values**: After normalization, each value vector is weighted by these attention values. Summing all the weighted value vectors for a given position in the sequence results in the output.\n\n6. **Multi-head Attention**: Transformers use multiple attention heads (typically eight or twelve), which allows the model to jointly attend to different parts of the sequence from different representation subspaces. By doing so, the model captures various aspects of the relationships between words in the sequence, leading to better understanding and context consideration.\n\n7. **Output Generation**: The attention-weighted sum vectors from each position in the sequence are then passed through subsequent layers of the transformer and ultimately the final softmax layer, which produces the predictive probability of the next word in the output sequence based on the entire sequence.\n\nOverall, the addition of attention mechanisms allows transformer models to dynamically allocate emphasis on different words or phrases while parsing the surrounding context, significantly improving their performance in various natural language processing tasks.",
+  "response_chars": 2688,
+  "num_chunks": 480,
+  "ttft_ms": 731.634,
+  "total_ms": 10919.658,
+  "model_name": "Phi-4-mini-instruct"
+}

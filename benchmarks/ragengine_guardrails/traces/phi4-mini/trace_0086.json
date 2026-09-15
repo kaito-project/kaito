@@ -1,0 +1,679 @@
+{
+  "index": 86,
+  "prompt": "What is graph-based data modeling and when should you use a graph database?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 863.527,
+      "content": "Graph"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " modeling"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " refers"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " consisting"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": "also"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " vertices"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " edges"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": "also"
+    },
+    {
+      "timestamp_ms": 863.527,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " links"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " depict"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": "-world"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " modeling"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " useful"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " analyzing"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1408.238,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " interconnected"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " ways"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": "Graph"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " n"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": "atively"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " graphs"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " optimized"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 1973.866,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " answer"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " scalability"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": "You"
+    },
+    {
+      "timestamp_ms": 2485.973,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " involving"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " deep"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " travers"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": "als"
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3038.397,
+      "content": " answering"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": "who"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " belongs"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " whom"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": "?\","
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " exploring"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": "/tr"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": "ends"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " social"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " recommendation"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " fraud"
+    },
+    {
+      "timestamp_ms": 3654.386,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " analytics"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " benefit"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 3911.075,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3978.506,
+      "content": " modeling"
+    },
+    {
+      "timestamp_ms": 3978.506,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3978.506,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 4018.354,
+      "type": "done"
+    }
+  ],
+  "full_response": "Graph-based data modeling refers to the representation of data using graph structures, consisting of nodes (also called vertices) and edges (also called links) to depict real-world relationships and entities. This modeling approach is particularly useful for representing and analyzing connected data, where entities are interconnected in complex ways.\n\nGraph databases store data natively in the form of graphs and are optimized for managing connected data. They enable efficient queries to answer complex questions about relationships between entities, providing high performance and scalability.\n\nYou should consider using a graph database when your data involves complex relationships, and you need to perform queries involving deep graph traversals, answering \"who belongs to whom?\", or exploring patterns/trends within your data. For instance, applications in social networks, recommendation systems, fraud detection, and network analytics can benefit significantly from graph-based data modeling.",
+  "response_chars": 1003,
+  "num_chunks": 164,
+  "ttft_ms": 863.527,
+  "total_ms": 4098.97,
+  "model_name": "Phi-4-mini-instruct"
+}

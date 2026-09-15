@@ -1,0 +1,811 @@
+{
+  "index": 33,
+  "prompt": "Generate sample output from a secrets scanning tool that found 8 different types of credentials in a repository, showing the file path, line number, and detected secret type for each.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 829.919,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "-----"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "--------------"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "--"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "--------------------------------"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "-------"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "+\n\n"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": " Det"
+    },
+    {
+      "timestamp_ms": 829.919,
+      "content": "ected"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "-----"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "--------------"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "--"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "+\n\n"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": " CONTRIBUT"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "ING"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": ".md"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": " SSH"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": "env"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": ".local"
+    },
+    {
+      "timestamp_ms": 1533.183,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "|\n\n"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " README"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": ".md"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "23"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " Account"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2323.41,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " Mail"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3109.682,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": "17"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " Private"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": ".sql"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 3109.986,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "|\n\n"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " config"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": ".sh"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "_modules"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "/token"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "izer"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "33"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " Encryption"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 3911.067,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "-----"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "--------------"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "--"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "+\n\n"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "(Note"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " fictional"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " scanning"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 4573.808,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "content": ".)"
+    },
+    {
+      "timestamp_ms": 4829.63,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 4872.572,
+      "type": "done"
+    }
+  ],
+  "full_response": "```\n\n+---------------------+--------------+------------------+---------------------------------------+\n\n| File Name           | Line Number  | Detected Secret  |\n\n+---------------------+--------------+------------------+\n\n| CONTRIBUTING.md     15           | SSH Key          |\n\n| .env.local          | 4            | Database Password|\n\n| README.md           | 23           | Service Account  |\n\n| api/config.json     | 10           | API Key          |\n\n| secrets.js          | 5            | Mail Service API |\n\n| server.js | 17           | Private Key      |\n\n| database.sql        | 30           | Database Password|\n\n| config.sh           | 12           | GitHub Token     |\n\n| node_modules/tokenizer.js | 33   | Encryption Key  |\n\n+---------------------+--------------+------------------+\n\n```\n\n(Note: This is just a fictional dataset. A real application of a secrets scanning tool must handle this with confidentiality and follow the organization’s security practices.)",
+  "response_chars": 977,
+  "num_chunks": 197,
+  "ttft_ms": 829.919,
+  "total_ms": 5017.401,
+  "model_name": "Phi-4-mini-instruct"
+}

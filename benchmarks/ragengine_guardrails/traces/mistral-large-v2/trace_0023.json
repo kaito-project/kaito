@@ -1,0 +1,875 @@
+{
+  "index": 23,
+  "prompt": "Describe the CAP theorem and its implications for distributed database design.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 819.132,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " **CAP theorem"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": "**,"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " also known as **"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": "Brewer"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": "'s theorem"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": "**, is"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " a fundamental principle"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " in distributed systems"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " that states"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " is impossible for"
+    },
+    {
+      "timestamp_ms": 819.132,
+      "content": " a distributed"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " to simultaneously provide"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " three of"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " the following guarantees"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": ":\n\n1. **"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": "Consistency ("
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": "C)** – Every"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " the most"
+    },
+    {
+      "timestamp_ms": 1333.883,
+      "content": " recent write or an"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " error."
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " nodes see"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " the same data at"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " the same time.\n"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": "2. **Availability"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " (A"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": ")** – Every request"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " a ("
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": "non-error"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": ") response, even"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " if some"
+    },
+    {
+      "timestamp_ms": 1850.258,
+      "content": " nodes fail"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": ". The"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " system remains operational"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": "3. **Partition"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " Tolerance (P"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": ")** – The"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " system continues to operate"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " despite"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": "communication"
+    },
+    {
+      "timestamp_ms": 2255.891,
+      "content": " failures between"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " nodes).\n\n### **"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": "Implications of the"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " CAP Theorem**\nSince"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " partitions are inevitable"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " in distributed"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " systems, the CAP"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " theorem forces"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " designers"
+    },
+    {
+      "timestamp_ms": 2559.275,
+      "content": " to choose between **"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": "consistency**"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " and **availability"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": "** when"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " a partition"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " occurs. This"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " leads to three"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " designs"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": ":\n\n1"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": ". **CP"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": "Consistency +"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": " Partition Toler"
+    },
+    {
+      "timestamp_ms": 3077.508,
+      "content": "ance)**\n   -"
+    },
+    {
+      "timestamp_ms": 3274.053,
+      "content": " Sac"
+    },
+    {
+      "timestamp_ms": 3274.053,
+      "content": "rifices"
+    },
+    {
+      "timestamp_ms": 3274.053,
+      "content": " availability to"
+    },
+    {
+      "timestamp_ms": 3274.053,
+      "content": " ensure consistency"
+    },
+    {
+      "timestamp_ms": 3274.053,
+      "content": ".\n   - If"
+    },
+    {
+      "timestamp_ms": 3478.951,
+      "content": " a partition occurs"
+    },
+    {
+      "timestamp_ms": 3478.951,
+      "content": ", the system may"
+    },
+    {
+      "timestamp_ms": 3478.951,
+      "content": " block or"
+    },
+    {
+      "timestamp_ms": 3478.951,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 3478.951,
+      "content": " errors until consistency"
+    },
+    {
+      "timestamp_ms": 3478.951,
+      "content": " is restored.\n  "
+    },
+    {
+      "timestamp_ms": 3478.951,
+      "content": " - Example: **"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "MongoDB ("
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": " consistency mode"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "), H"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "Base"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": " Zoo"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "eeper, et"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "cd.**\n\n"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "2. **AP"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": " (Availability"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": " + Partition Tolerance"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": ")**\n   - Sac"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": "rifices consistency to"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": " remain"
+    },
+    {
+      "timestamp_ms": 4096.578,
+      "content": " available.\n   -"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": " N"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": "odes may return stale"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": " data during"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": " a partition"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": ", but the"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": " system remains operational.\n"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": "   - Example:"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": " **C"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": "assandra"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": ", DynamoDB,"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": "ouchDB,"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": " Riak"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": ".**\n\n3. **"
+    },
+    {
+      "timestamp_ms": 4506.411,
+      "content": "CA (Consist"
+    },
+    {
+      "timestamp_ms": 4710.184,
+      "content": "ency + Availability"
+    },
+    {
+      "timestamp_ms": 4710.184,
+      "content": ")**\n   - Sac"
+    },
+    {
+      "timestamp_ms": 4710.184,
+      "content": "rifices partition"
+    },
+    {
+      "timestamp_ms": 4710.184,
+      "content": " tolerance (only"
+    },
+    {
+      "timestamp_ms": 4710.184,
+      "content": " works in a single"
+    },
+    {
+      "timestamp_ms": 4710.184,
+      "content": "-node"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": " non-part"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": "itioned"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": ").\n   - Not"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": " practical for"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 5015.355,
+      "content": "-scale distributed systems.\n"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "   - Example:"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": " **Traditional relational"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": " databases (My"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "SQL, PostgreSQL"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": ") in non"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "-dist"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "ributed set"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "ups.**\n\n### **"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "ractical Trade"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "-offs in Distributed"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 5425.236,
+      "content": "abases**\n- **"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": "Event"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": "ual Consistency ("
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": "AP Systems"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": "):**\n  -"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " AP"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " systems often"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " **event"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": "ual consistency**,"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " where updates"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " propagate"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": "ynchronously, and conflicts"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5937.16,
+      "content": " resolved later"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": " via vector"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": " clocks or"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": " last"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": "-write-w"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": "ins).\n  -"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": " Example: **Amazon"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": " Dynamo"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": " Cassandra"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": ".**\n\n"
+    },
+    {
+      "timestamp_ms": 6557.975,
+      "content": "- **Strong"
+    },
+    {
+      "timestamp_ms": 6558.76,
+      "content": " Consistency (CP"
+    },
+    {
+      "timestamp_ms": 6558.76,
+      "content": " Systems):**\n "
+    },
+    {
+      "timestamp_ms": 6558.76,
+      "content": " - CP systems enforce"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " strict consistency but"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " may become"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " unavailable during partitions"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": ".\n  - Example"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": ": **Google"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " Sp"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": "anner (uses"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " True"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": "Time"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " global"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": " consistency), et"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": "cd.**\n\n"
+    },
+    {
+      "timestamp_ms": 7141.226,
+      "content": "- **Tun"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "able Consist"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "ency ("
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "Hy"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "brid Appro"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "aches):**\n "
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " - Some databases"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " tuning"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " levels"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " per"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " **C"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "assandra’s"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": " QU"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "OR"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": "UM, ONE"
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7893.009,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7985.142,
+      "type": "done"
+    }
+  ],
+  "full_response": "The **CAP theorem**, also known as **Brewer's theorem**, is a fundamental principle in distributed systems that states it is impossible for a distributed data store to simultaneously provide all three of the following guarantees:\n\n1. **Consistency (C)** – Every read receives the most recent write or an error. All nodes see the same data at the same time.\n2. **Availability (A)** – Every request receives a (non-error) response, even if some nodes fail. The system remains operational.\n3. **Partition Tolerance (P)** – The system continues to operate despite network partitions (communication failures between nodes).\n\n### **Implications of the CAP Theorem**\nSince network partitions are inevitable in distributed systems, the CAP theorem forces designers to choose between **consistency** and **availability** when a partition occurs. This leads to three possible system designs:\n\n1. **CP (Consistency + Partition Tolerance)**\n   - Sacrifices availability to ensure consistency.\n   - If a partition occurs, the system may block or return errors until consistency is restored.\n   - Example: **MongoDB (in strong consistency mode), HBase, ZooKeeper, etcd.**\n\n2. **AP (Availability + Partition Tolerance)**\n   - Sacrifices consistency to remain available.\n   - Nodes may return stale data during a partition, but the system remains operational.\n   - Example: **Cassandra, DynamoDB, CouchDB, Riak.**\n\n3. **CA (Consistency + Availability)**\n   - Sacrifices partition tolerance (only works in a single-node or non-partitioned network).\n   - Not practical for large-scale distributed systems.\n   - Example: **Traditional relational databases (MySQL, PostgreSQL) in non-distributed setups.**\n\n### **Practical Trade-offs in Distributed Databases**\n- **Eventual Consistency (AP Systems):**\n  - AP systems often use **eventual consistency**, where updates propagate asynchronously, and conflicts are resolved later (e.g., via vector clocks or last-write-wins).\n  - Example: **Amazon Dynamo, Cassandra.**\n\n- **Strong Consistency (CP Systems):**\n  - CP systems enforce strict consistency but may become unavailable during partitions.\n  - Example: **Google Spanner (uses TrueTime for global consistency), etcd.**\n\n- **Tunable Consistency (Hybrid Approaches):**\n  - Some databases allow tuning consistency levels per query (e.g., **Cassandra’s QUORUM, ONE,",
+  "response_chars": 2343,
+  "num_chunks": 213,
+  "ttft_ms": 819.132,
+  "total_ms": 8064.921,
+  "model_name": "Mistral-Large-3"
+}

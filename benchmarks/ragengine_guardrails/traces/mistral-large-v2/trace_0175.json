@@ -1,0 +1,903 @@
+{
+  "index": 175,
+  "prompt": "Draft a training slide deck outline about protecting CLASSIFIED_DATA and CONFIDENTIAL materials in the workplace.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1328.307,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": "’s a structured"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": " **training"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": " slide"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": " deck outline**"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": " for **\""
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": "Pro"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": "tecting CLASS"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": "IFIED_DATA"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": " and CONFID"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": "ENTIAL Materials"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": " in the Workplace"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": "**. This outline"
+    },
+    {
+      "timestamp_ms": 1328.307,
+      "content": " balances"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": ", practical"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " guidance"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": ", and engagement"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " to ensure"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " comprehension"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " retention"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": "Slide Deck"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " Title"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": "**\""
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": "afeguarding CLASS"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": "IFIED_DATA"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 2148.157,
+      "content": " CONFIDENT"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "IAL Information"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": ": Your"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": " Role"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": " in Security\"**\n"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "*Sub"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "title:* *\""
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "A Practical"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": " Guide for"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "*\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "Slide Deck"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": " Outline**\n\n#### **"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": "1. Title"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": " Slide**\n-"
+    },
+    {
+      "timestamp_ms": 2916.639,
+      "content": " Title +"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " subtitle"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "\n- Pres"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "enter"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "/de"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "partment\n"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "- Date"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "- Organization"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " logo"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " **2. Introduction"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " Object"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "ives**\n- **"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": "Purpose:**"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " Why this"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " training matters"
+    },
+    {
+      "timestamp_ms": 3698.321,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " legal"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": ", national"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " security, corporate"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": ").\n- **Learning"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " Objectives:**\n "
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " 1. Define"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": "IFIED_DATA"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": " and CONFID"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": "ENTIAL information"
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": ".\n  "
+    },
+    {
+      "timestamp_ms": 4297.981,
+      "content": "2. Ident"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": "ify risks and"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": " consequences"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": " of m"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": "ishandling"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": ".\n  3"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": ". Apply"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": " practices for storage"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": ", transmission"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": ", and disposal"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": ".\n  4"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": ". Rec"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": "ognize and report"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5015.409,
+      "content": " incidents.\n"
+    },
+    {
+      "timestamp_ms": 5322.251,
+      "content": "- **Ag"
+    },
+    {
+      "timestamp_ms": 5322.251,
+      "content": "enda"
+    },
+    {
+      "timestamp_ms": 5322.251,
+      "content": ":** Overview"
+    },
+    {
+      "timestamp_ms": 5322.251,
+      "content": " of topics"
+    },
+    {
+      "timestamp_ms": 5322.251,
+      "content": " covered"
+    },
+    {
+      "timestamp_ms": 5322.251,
+      "content": ".\n\n#### **3"
+    },
+    {
+      "timestamp_ms": 5322.251,
+      "content": ". Understanding"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": " Bas"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": "ics**\n- **"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": "Definitions"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": ":**\n  - *"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": "CLASS"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": "IFIED_DATA*:"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": " Government"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": "/m"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": "ilitary"
+    },
+    {
+      "timestamp_ms": 5835.338,
+      "content": " classifications (e.g"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": "., Top Secret,"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": " Secret, Conf"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": "idential).\n  -"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": " *CON"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": "FIDENTIAL"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": "*: Corporate"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": "/prop"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": "rietary data ("
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": "e.g., trade"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": " secrets, PII"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": ", financial records"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": ").\n-"
+    },
+    {
+      "timestamp_ms": 6361.374,
+      "content": " **Key Differences"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": " Classification"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": " levels"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": " vs. corporate"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": " tiers"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": ".\n-"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": " **Examples"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": ":** Real"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": "-world scenarios (e"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": ".g., leaked"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": " documents, ph"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": "ishing attacks"
+    },
+    {
+      "timestamp_ms": 7035.818,
+      "content": ").\n\n#### **4"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": ". Legal"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": " Regulatory Framework"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": "**\n- **Ap"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": "plicable Laws/P"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": "olicies:**\n  -"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": " Government:"
+    },
+    {
+      "timestamp_ms": 7370.214,
+      "content": " Executive"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": " Order "
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": "135"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": "26"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": ".S.),"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": " Official"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": " Act ("
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": "UK), etc"
+    },
+    {
+      "timestamp_ms": 7985.281,
+      "content": ".\n  - Corporate"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": ": GDP"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "R, H"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "IPAA, N"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "IST"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": ", ISO"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "2700"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "1, company"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "-specific policies.\n-"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " **Pen"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "alties for"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " Non"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "-Compliance:**\n "
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " - F"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "ines,"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " termination"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": ", criminal"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " charges"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": " Esp"
+    },
+    {
+      "timestamp_ms": 22225.535,
+      "content": "ionage"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": " Act).\n"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": "  - Case"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": " studies (e.g"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": "., Snow"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": "den"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": ", corporate"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": " breaches).\n\n####"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": " **5. Ris"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": "ks &"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": " Threats**\n-"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": " **Common Threats"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": ":**\n  - Cyber"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": " Ph"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": "ishing, malware"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": ", ins"
+    },
+    {
+      "timestamp_ms": 52838.369,
+      "content": "ider threats"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": ".\n  - Physical"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": ": Un"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": "att"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": "ended documents"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": ", tail"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": "ating, improper"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": " disposal.\n  -"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": " Human"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": " Error"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": ": Misaddress"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": "ed emails, lost"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 53661.987,
+      "content": ", overs"
+    },
+    {
+      "timestamp_ms": 53760.299,
+      "content": "haring.\n-"
+    },
+    {
+      "timestamp_ms": 53760.299,
+      "content": " **Con"
+    },
+    {
+      "timestamp_ms": 53760.299,
+      "content": "sequences:**\n  -"
+    },
+    {
+      "timestamp_ms": 53853.92,
+      "content": " Data bre"
+    },
+    {
+      "timestamp_ms": 53853.92,
+      "content": "aches, reput"
+    },
+    {
+      "timestamp_ms": 53853.92,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 53965.018,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a structured **training slide deck outline** for **\"Protecting CLASSIFIED_DATA and CONFIDENTIAL Materials in the Workplace\"**. This outline balances policy, practical guidance, and engagement to ensure comprehension and retention.\n\n---\n\n### **Slide Deck Title:**\n**\"Safeguarding CLASSIFIED_DATA & CONFIDENTIAL Information: Your Role in Security\"**\n*Subtitle:* *\"A Practical Guide for Employees\"*\n\n---\n\n### **Slide Deck Outline**\n\n#### **1. Title Slide**\n- Title + subtitle\n- Presenter name/department\n- Date\n- Organization logo\n\n#### **2. Introduction & Objectives**\n- **Purpose:** Why this training matters (e.g., legal compliance, national security, corporate integrity).\n- **Learning Objectives:**\n  1. Define CLASSIFIED_DATA and CONFIDENTIAL information.\n  2. Identify risks and consequences of mishandling.\n  3. Apply best practices for storage, transmission, and disposal.\n  4. Recognize and report security incidents.\n- **Agenda:** Overview of topics covered.\n\n#### **3. Understanding the Basics**\n- **Definitions:**\n  - *CLASSIFIED_DATA*: Government/military classifications (e.g., Top Secret, Secret, Confidential).\n  - *CONFIDENTIAL Information*: Corporate/proprietary data (e.g., trade secrets, PII, financial records).\n- **Key Differences:** Classification levels vs. corporate confidentiality tiers.\n- **Examples:** Real-world scenarios (e.g., leaked documents, phishing attacks).\n\n#### **4. Legal & Regulatory Framework**\n- **Applicable Laws/Policies:**\n  - Government: Executive Order 13526 (U.S.), Official Secrets Act (UK), etc.\n  - Corporate: GDPR, HIPAA, NIST, ISO 27001, company-specific policies.\n- **Penalties for Non-Compliance:**\n  - Fines, termination, criminal charges (e.g., Espionage Act).\n  - Case studies (e.g., Snowden, corporate breaches).\n\n#### **5. Risks & Threats**\n- **Common Threats:**\n  - Cyber: Phishing, malware, insider threats.\n  - Physical: Unattended documents, tailgating, improper disposal.\n  - Human Error: Misaddressed emails, lost devices, oversharing.\n- **Consequences:**\n  - Data breaches, reput",
+  "response_chars": 2053,
+  "num_chunks": 220,
+  "ttft_ms": 1328.307,
+  "total_ms": 53965.513,
+  "model_name": "Mistral-Large-3"
+}

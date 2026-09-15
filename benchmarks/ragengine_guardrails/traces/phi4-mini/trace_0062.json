@@ -1,0 +1,1611 @@
+{
+  "index": 62,
+  "prompt": "Generate a sample invoice that includes the vendor's company name, tax ID number, bank account number, routing number, contact email, and phone number.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1241.723,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "Invoice"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "678"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "90"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "Vendor"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": " Company"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1241.723,
+      "content": " ABC"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " Inc"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "Tax"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "47"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "321"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "Bank"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " Account"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "012"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "345"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "678"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "901"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": "Routing"
+    },
+    {
+      "timestamp_ms": 1241.966,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "103"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "984"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "Contact"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " sales"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "abc"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "-elect"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "ronics"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "Payment"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " Deadline"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "th"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " days"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " date"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "Jessica"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "Address"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " Main"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " Silicon"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " Valley"
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2235.889,
+      "content": " CA"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": "940"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": "25"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": "Bill"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": " Elm"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": " Chicago"
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3328.423,
+      "content": " IL"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "606"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "Contact"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "312"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " ext"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "567"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "Payment"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " Method"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " Bank"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " Transfer"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": "Bank"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " Details"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " ABC"
+    },
+    {
+      "timestamp_ms": 3328.677,
+      "content": " Electronics"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Inc"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Commerce"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Bank"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "Merchant"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Account"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "Invoice"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " March"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Item"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Quantity"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Unit"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Price"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " Total"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |\n"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " ---"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " ---"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " ---"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " ---"
+    },
+    {
+      "timestamp_ms": 4306.086,
+      "content": " |\n"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " Power"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " Adapter"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " Units"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "40"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "150"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |\n"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " USB"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "ables"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " Bit"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "50"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |\n"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "GB"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " SD"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " Cards"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "GB"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": "300"
+    },
+    {
+      "timestamp_ms": 5916.954,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |\n"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " Advanced"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " Blue"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " LED"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " Mon"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "itors"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "24"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "”)"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "150"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |\n"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "600"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " Deluxe"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " Keyboard"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " Controllers"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "NUM"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "PAD"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "35"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7072.05,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "Total"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": " Amount"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "650"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "Discount"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": " N"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "/A"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "Tax"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "25"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "%"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "ISC"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "478"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "700"
+    },
+    {
+      "timestamp_ms": 7929.561,
+      "content": "578"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": "Grand"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " Total"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": "246"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": "\n\n\n"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": "If"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 8345.433,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " adjustments"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " invoice"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " please"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " touch"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " us"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "Signature"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "Top"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " Sales"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " ABC"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " Electronics"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " Inc"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "Jessica"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " March"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9123.238,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 9172.599,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9172.599,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9237.117,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Invoice No: 12345-67890**\n\nVendor’s Company Name: ABC Inc.\n\nTax ID number: 47-987654321\n\nBank Account Number: 012345678901\n\nRouting Number: 10398400000\n\nContact Email: sales@abc-electronics.com\n\nPayment Deadline: 15th days from date\n\nJessica Smith\n\nAddress: 123 Main St, Silicon Valley, CA, 94025\n\nBill To: 9876 Elm St, Chicago, IL 60601\n\nContact Phone: (312) 555-1234 ext 5675\n\nPayment Method: Bank Transfer\n\nBank Details: ABC Electronics Inc., Commerce Bank\n\nMerchant Account: 123456789\n\n**Invoice Date: March 1, 2023**\n\n| Item | Quantity | Unit Price | Total |\n| --- | --- | --- | --- |\n| 500 + Power Adapter Units (40W) | 10 | $15.00 | $150.00 |\n| 1000+ USB Cables (1M Bit) | 200 | $2.50 | $500.00 |\n| 50000+ 1GB SD Cards (64GB) | 300 | $5.00 | $1,500.00 |\n| 500 Advanced Blue LED Monitors (24”) | 20 | $150.00 | $3,000.00 |\n| 600 Deluxe Keyboard Controllers (NUMPAD) | 100 | $35.00 | $3,500.00 |\n\n**Total Amount: $7,650.00**\n\nDiscounts: N/A\nTax: 8.25% (ZISC 478123700578)\n\nGrand Total: $8,246.13\n\n\nIf you have any questions or need further adjustments to this invoice, please get in touch with us.\n\n\n**Signature:**\n\nTop Sales Manager, ABC Electronics Inc.\n\n\nJessica Smith\n\nDate: March 1, 2023",
+  "response_chars": 1199,
+  "num_chunks": 397,
+  "ttft_ms": 1241.723,
+  "total_ms": 9315.196,
+  "model_name": "Phi-4-mini-instruct"
+}

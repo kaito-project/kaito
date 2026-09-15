@@ -1,0 +1,2059 @@
+{
+  "index": 77,
+  "prompt": "Explain the differences between SQL and NoSQL databases with examples of when to use each.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 966.696,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": "Rel"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": "ational"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 966.696,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " Discussion"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": "abases"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " Child"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " My"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1709.894,
+      "content": " Postgre"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " Mongo"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " Cassandra"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " people"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": "\"."
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " Imagine"
+    },
+    {
+      "timestamp_ms": 2304.807,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " toy"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " box"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " toys"
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3037.97,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " Now"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " mainly"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " ways"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " organize"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " toys"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": " box"
+    },
+    {
+      "timestamp_ms": 3038.381,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "abases"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " having"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " boxes"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " compartments"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " inside"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " toy"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " box"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "called"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "table"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": "\")"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " there's"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3829.229,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " tells"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " compartment"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " box"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " go"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " want"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " toy"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " label"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " compartment"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4471.223,
+      "content": " Imagine"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " you're"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " keeping"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " friends"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " birthdays"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 4845.511,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " friend's"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " date"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " birthday"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 5160.007,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " easy"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " birthday"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": "No"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": "abases"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " having"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " baskets"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " boxes"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " mixed"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 5798.545,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " looking"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " compartments"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " toy"
+    },
+    {
+      "timestamp_ms": 6503.046,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " grab"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " toy"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6503.407,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " figure"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " always"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " hides"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " Imagine"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " you're"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " keeping"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7106.274,
+      "content": " books"
+    },
+    {
+      "timestamp_ms": 7214.255,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7214.255,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7214.255,
+      "content": " library"
+    },
+    {
+      "timestamp_ms": 7214.255,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7214.255,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 7214.255,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7214.255,
+      "content": " labeling"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " boxes"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": "comp"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": "art"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": "ments"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " categories"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " fairy"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " tales"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " fantasy"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " adventure"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " throw"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " books"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " baskets"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " color"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7909.349,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " book"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " grab"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " basket"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " color"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " grab"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " book"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " inside"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 8752.757,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9362.64,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " don't"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " mind"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " spending"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " planning"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " designing"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9366.965,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 9395.525,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9395.525,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9395.525,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9395.525,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " organizing"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " toy"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " finding"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " toys"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " birthday"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10076.272,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " don't"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " exact"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " want"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " flexibility"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " huge"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " constantly"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " changing"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " needing"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " fast"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " don't"
+    },
+    {
+      "timestamp_ms": 10800.853,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " complicated"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " there's"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " label"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " connecting"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " games"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 11100.392,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11100.664,
+      "type": "done"
+    }
+  ],
+  "full_response": "SQL (Relational) and NoSQL databases are two different types of data storage solutions, and they have distinct features and capabilities. Here are some key differences between them and examples of when to use each type # Discussion of SQL vs NoSQL Databases to a Child:\n\nSQL databases (like MySQL, PostgreSQL) and NoSQL databases (like MongoDB, Cassandra) are tools that people use to store instructions - these instructions are called \"data\". Imagine you have a big toy box (the database) where you keep all your toys (the). Now, there are mainly two ways to organize and find your toys in the box.\n\n1. **SQL Databases**: These are like having boxes with labels and compartments inside. Each toy has a labeled box (called a \"table\") and there's a list that tells you which compartment each box should go in. If you want to find a toy, you look up the label and find the compartment.\n\n- Example: Imagine you're keeping track of your friends and their birthdays. You create one big list with each friend's name next to the date of their birthday. A SQL database is like this list, where it's easy to search for a birthday.\n\n2. **NoSQL Databases**: These are like having baskets and boxes all mixed together with no labels. Instead of looking for labels or compartments, you learn where the toy often and look there. This way, you can grab the toy quickly, but it might take you some time to figure out where it always hides.\n\n- Example: Imagine you're keeping track of all the books in a library. Instead of labeling boxes (compartments) with categories like fairy tales, fantasy, or adventure, you just throw all books into big baskets by color or size. To find a specific book, you grab a basket by color and then quickly grab the book inside.\n\n**When to Use SQL vs NoSQL:**\n\n- **Use SQL when:**\n  - You need to store and manage structured data.\n  - You need to ensure data accuracy and consistency.\n  - don't mind spending more time planning and designing your database (e.g., organizing your toy labels).\n  - Common data queries like finding all toys by birthday work well for your project.\n\n- **Use NoSQL when:**\n  - You don't need the exact data structure and want more flexibility.\n  - Your data is huge and constantly changing, needing fast access.\n  - You don't need complicated relationships between the data (e.g., there's no need to label connecting games with",
+  "response_chars": 2371,
+  "num_chunks": 509,
+  "ttft_ms": 966.696,
+  "total_ms": 11306.736,
+  "model_name": "Phi-4-mini-instruct"
+}

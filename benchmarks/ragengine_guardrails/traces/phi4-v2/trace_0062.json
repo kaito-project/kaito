@@ -1,0 +1,2071 @@
+{
+  "index": 62,
+  "prompt": "What are the main differences between Python and Go for building web APIs?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 462.046,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 462.189,
+      "content": " building"
+    },
+    {
+      "timestamp_ms": 495.101,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 495.389,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 512.958,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 564.982,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 565.144,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 567.944,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 604.399,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 604.529,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 625.484,
+      "content": " advantages"
+    },
+    {
+      "timestamp_ms": 692.17,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 692.429,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 692.576,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 703.298,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 720.676,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 739.57,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 767.72,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 781.24,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 796.527,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 819.888,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 834.152,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 870.325,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 875.509,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 891.042,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 911.042,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 931.793,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 949.45,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1023.621,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 1023.621,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1023.621,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 1096.678,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1096.826,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1096.906,
+      "content": " Performance"
+    },
+    {
+      "timestamp_ms": 1096.906,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1100.608,
+      "content": " Speed"
+    },
+    {
+      "timestamp_ms": 1147.257,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1147.442,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1158.719,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1239.016,
+      "content": "Go"
+    },
+    {
+      "timestamp_ms": 1239.226,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1239.339,
+      "content": " Known"
+    },
+    {
+      "timestamp_ms": 1239.418,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1254.979,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1330.353,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 1330.527,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1330.618,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 1331.773,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1434.845,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 1434.999,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1435.081,
+      "content": " compiled"
+    },
+    {
+      "timestamp_ms": 1435.081,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1435.158,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 1444.916,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1465.486,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1484.408,
+      "content": " offering"
+    },
+    {
+      "timestamp_ms": 1504.121,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 1536.307,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 1542.295,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 1629.822,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 1638.287,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1638.505,
+      "content": " interpreted"
+    },
+    {
+      "timestamp_ms": 1638.695,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 1654.355,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1661.961,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 1677.62,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1693.792,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1747.391,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 1747.541,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 1754.367,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1819.991,
+      "content": " good"
+    },
+    {
+      "timestamp_ms": 1820.237,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 1825.428,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1825.7,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 1852.344,
+      "content": "-performance"
+    },
+    {
+      "timestamp_ms": 1882.499,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 1902.102,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 1902.343,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1923.652,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 1946.332,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 1962.032,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 1977.701,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 2047.755,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2047.931,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 2056.018,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2056.018,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2074.357,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2150.112,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2150.304,
+      "content": "Python"
+    },
+    {
+      "timestamp_ms": 2150.41,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2150.495,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 2215.139,
+      "content": " interpreted"
+    },
+    {
+      "timestamp_ms": 2215.344,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 2215.437,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2224.578,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 2244.485,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 2274.193,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2282.073,
+      "content": " slower"
+    },
+    {
+      "timestamp_ms": 2354.496,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 2354.766,
+      "content": " speeds"
+    },
+    {
+      "timestamp_ms": 2354.885,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 2358.446,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2407.254,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 2407.386,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2414.684,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 2437.305,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2559.514,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 2559.737,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2559.851,
+      "content": " extensive"
+    },
+    {
+      "timestamp_ms": 2559.985,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 2560.113,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2560.221,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 2569.281,
+      "content": " compensate"
+    },
+    {
+      "timestamp_ms": 2600.95,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2614.666,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 2631.721,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 2645.535,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 2664.911,
+      "content": " optimized"
+    },
+    {
+      "timestamp_ms": 2755.141,
+      "content": " correctly"
+    },
+    {
+      "timestamp_ms": 2755.36,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2755.484,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2755.577,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 2765.036,
+      "content": "currency"
+    },
+    {
+      "timestamp_ms": 2779.467,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2866.746,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2866.877,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2866.942,
+      "content": "Go"
+    },
+    {
+      "timestamp_ms": 2866.999,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2873.042,
+      "content": " Designed"
+    },
+    {
+      "timestamp_ms": 2972.019,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2972.171,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 2972.279,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 2972.35,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 2972.406,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2986.539,
+      "content": " concurrency"
+    },
+    {
+      "timestamp_ms": 3012.246,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3023.924,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 3174.158,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 3174.332,
+      "content": " gor"
+    },
+    {
+      "timestamp_ms": 3174.409,
+      "content": "outines"
+    },
+    {
+      "timestamp_ms": 3174.468,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3174.523,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 3185.241,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3185.44,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 3185.54,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 3197.569,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3276.688,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 3279.485,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3279.601,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3279.748,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 3291.5,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3366.612,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 3366.76,
+      "content": " suited"
+    },
+    {
+      "timestamp_ms": 3366.835,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3378.21,
+      "content": " building"
+    },
+    {
+      "timestamp_ms": 3386.974,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 3413.952,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 3483.671,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3485.634,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 3485.815,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3485.967,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 3541.212,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 3541.379,
+      "content": " simultaneous"
+    },
+    {
+      "timestamp_ms": 3541.457,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 3559.246,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 3580.008,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3686.677,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 3686.815,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3686.879,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3686.938,
+      "content": "Python"
+    },
+    {
+      "timestamp_ms": 3686.999,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3695.735,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 3712.191,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3742.365,
+      "content": " Global"
+    },
+    {
+      "timestamp_ms": 3750.982,
+      "content": " Interpreter"
+    },
+    {
+      "timestamp_ms": 3789.155,
+      "content": " Lock"
+    },
+    {
+      "timestamp_ms": 3789.384,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3891.184,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 3891.382,
+      "content": "IL"
+    },
+    {
+      "timestamp_ms": 3891.456,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3891.571,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3891.659,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3900.624,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3993.257,
+      "content": " bottleneck"
+    },
+    {
+      "timestamp_ms": 3993.398,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3993.505,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 3993.579,
+      "content": "-bound"
+    },
+    {
+      "timestamp_ms": 3995.401,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 4095.79,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 4095.988,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4096.11,
+      "content": " threading"
+    },
+    {
+      "timestamp_ms": 4096.251,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4096.77,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 4121.474,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4137.499,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4151.173,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 4200.314,
+      "content": "/O"
+    },
+    {
+      "timestamp_ms": 4200.51,
+      "content": "-bound"
+    },
+    {
+      "timestamp_ms": 4205.584,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 4300.441,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4300.823,
+      "content": " asynchronous"
+    },
+    {
+      "timestamp_ms": 4300.975,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 4301.082,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4301.153,
+      "content": "using"
+    },
+    {
+      "timestamp_ms": 4402.895,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4403.029,
+      "content": "async"
+    },
+    {
+      "timestamp_ms": 4403.092,
+      "content": "io"
+    },
+    {
+      "timestamp_ms": 4403.144,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4403.194,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4513.071,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 4525.527,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 4525.661,
+      "content": " Fast"
+    },
+    {
+      "timestamp_ms": 4525.725,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 4525.778,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4525.877,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4540.77,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 4610.777,
+      "content": " effective"
+    },
+    {
+      "timestamp_ms": 4626.395,
+      "content": " concurrency"
+    },
+    {
+      "timestamp_ms": 4626.593,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4626.686,
+      "content": " Still"
+    },
+    {
+      "timestamp_ms": 4626.769,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4710.015,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 4710.195,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4710.261,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4710.315,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4720.583,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 4823.936,
+      "content": " simpler"
+    },
+    {
+      "timestamp_ms": 4824.07,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4824.137,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 4824.191,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 4835.953,
+      "content": "ant"
+    },
+    {
+      "timestamp_ms": 4836.127,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4885.385,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 4885.527,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4893.361,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5017.468,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": "cosystem"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": " Libraries"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": "Python"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": " Bo"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": "asts"
+    },
+    {
+      "timestamp_ms": 5222.564,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5222.629,
+      "content": " vast"
+    },
+    {
+      "timestamp_ms": 5222.681,
+      "content": " ecosystem"
+    },
+    {
+      "timestamp_ms": 5232.684,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5232.862,
+      "content": " powerful"
+    },
+    {
+      "timestamp_ms": 5233.101,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 5235.735,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5259.848,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 5287.296,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 5297.323,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5345.321,
+      "content": " Django"
+    },
+    {
+      "timestamp_ms": 5345.495,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5350.173,
+      "content": " Flask"
+    },
+    {
+      "timestamp_ms": 5370.015,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5426.648,
+      "content": " Fast"
+    },
+    {
+      "timestamp_ms": 5426.887,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 5426.993,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5535.507,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5535.765,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 5535.876,
+      "content": " third"
+    },
+    {
+      "timestamp_ms": 5535.949,
+      "content": "-party"
+    },
+    {
+      "timestamp_ms": 5536.009,
+      "content": " extensions"
+    },
+    {
+      "timestamp_ms": 5540.057,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5630.608,
+      "content": " accelerate"
+    },
+    {
+      "timestamp_ms": 5630.795,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 5630.879,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5630.936,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5641.641,
+      "content": " extensive"
+    },
+    {
+      "timestamp_ms": 5654.768,
+      "content": " ecosystem"
+    },
+    {
+      "timestamp_ms": 5684.263,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5703.844,
+      "content": " quick"
+    },
+    {
+      "timestamp_ms": 5737.668,
+      "content": "en"
+    },
+    {
+      "timestamp_ms": 5737.835,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5749.981,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 5836.226,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5836.389,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5836.478,
+      "content": " numerous"
+    },
+    {
+      "timestamp_ms": 5845.447,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 5845.796,
+      "content": "-built"
+    },
+    {
+      "timestamp_ms": 5867.285,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 5889.19,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5902.678,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 6021.412,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 6021.611,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6021.741,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 6021.866,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6021.95,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6022.015,
+      "content": "Go"
+    },
+    {
+      "timestamp_ms": 6050.25,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6054.878,
+      "content": " While"
+    },
+    {
+      "timestamp_ms": 6076.069,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 6097.526,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6117.35,
+      "content": " ecosystem"
+    },
+    {
+      "timestamp_ms": 6132.245,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6150.573,
+      "content": " growing"
+    },
+    {
+      "timestamp_ms": 6246.644,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6246.778,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6246.842,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6246.895,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 6246.947,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6353.09,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 6353.303,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6353.413,
+      "content": " mature"
+    },
+    {
+      "timestamp_ms": 6353.697,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6353.894,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 6363.772,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6451.008,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6451.209,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 6451.345,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 6451.432,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6458.275,
+      "content": " few"
+    },
+    {
+      "timestamp_ms": 6474.185,
+      "content": " popular"
+    },
+    {
+      "timestamp_ms": 6554.077,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 6554.495,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 6554.68,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 6554.867,
+      "content": " Gin"
+    },
+    {
+      "timestamp_ms": 6659.474,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6659.623,
+      "content": " Echo"
+    },
+    {
+      "timestamp_ms": 6659.7,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6659.765,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6659.818,
+      "content": " Be"
+    },
+    {
+      "timestamp_ms": 6666.944,
+      "content": "ego"
+    },
+    {
+      "timestamp_ms": 6759.23,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6759.61,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 6759.808,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6759.937,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 6763.218,
+      "content": " focuses"
+    },
+    {
+      "timestamp_ms": 6810.288,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6810.431,
+      "content": " lightweight"
+    },
+    {
+      "timestamp_ms": 6819.568,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6837.769,
+      "content": " simple"
+    },
+    {
+      "timestamp_ms": 6964.177,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 6964.459,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6964.86,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 6965.032,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6965.187,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6965.45,
+      "content": " Syntax"
+    },
+    {
+      "timestamp_ms": 6973.592,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7032.53,
+      "content": " Ease"
+    },
+    {
+      "timestamp_ms": 7032.754,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7050.368,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 7055.796,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7069.752,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7085.978,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7169.076,
+      "content": "Python"
+    },
+    {
+      "timestamp_ms": 7169.271,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7169.35,
+      "content": " Known"
+    },
+    {
+      "timestamp_ms": 7169.413,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7269.729,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7272.239,
+      "content": " readable"
+    },
+    {
+      "timestamp_ms": 7272.517,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7272.639,
+      "content": " expressive"
+    },
+    {
+      "timestamp_ms": 7272.733,
+      "content": " syntax"
+    },
+    {
+      "timestamp_ms": 7380.927,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7384.772,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 7384.966,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7385.069,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 7385.176,
+      "content": " considered"
+    },
+    {
+      "timestamp_ms": 7385.24,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 7398.098,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7411.822,
+      "content": " beginners"
+    },
+    {
+      "timestamp_ms": 7481.436,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7481.588,
+      "content": " pick"
+    },
+    {
+      "timestamp_ms": 7481.654,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7495.185,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7505.416,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7547.151,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 7547.391,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7580.848,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7587.187,
+      "content": " emphasizes"
+    },
+    {
+      "timestamp_ms": 7680.024,
+      "content": " readability"
+    },
+    {
+      "timestamp_ms": 7686.542,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7686.699,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7686.915,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7687.03,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 7697.896,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7782.613,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7782.764,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 7782.839,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 7782.894,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7789.765,
+      "content": "bases"
+    },
+    {
+      "timestamp_ms": 7810.536,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7885.006,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 7885.388,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7885.617,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7887.74,
+      "content": "Go"
+    },
+    {
+      "timestamp_ms": 7958.917,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7959.14,
+      "content": " Has"
+    },
+    {
+      "timestamp_ms": 7959.246,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7964.545,
+      "content": " simpler"
+    },
+    {
+      "timestamp_ms": 7991.29,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8001.694,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8089.234,
+      "content": " explicit"
+    },
+    {
+      "timestamp_ms": 8089.384,
+      "content": " syntax"
+    },
+    {
+      "timestamp_ms": 8089.452,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 8089.51,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8095.513,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8113.908,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 8141.762,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 8154.935,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 8191.447,
+      "content": "++."
+    },
+    {
+      "timestamp_ms": 8191.6,
+      "content": " Its"
+    },
+    {
+      "timestamp_ms": 8244.154,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 8244.351,
+      "content": " priorit"
+    },
+    {
+      "timestamp_ms": 8249.058,
+      "content": "izes"
+    },
+    {
+      "timestamp_ms": 8301.197,
+      "content": " simplicity"
+    },
+    {
+      "timestamp_ms": 8301.362,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8307.911,
+      "content": " readability"
+    },
+    {
+      "timestamp_ms": 8325.65,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8402.609,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 8402.873,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8402.968,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 8403.027,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 8499.019,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8499.183,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 8499.265,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 8499.333,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 8499.409,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8602.273,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8603.201,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 8603.357,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8603.439,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8603.505,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 8614.385,
+      "content": " appear"
+    },
+    {
+      "timestamp_ms": 8629.027,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 8709.137,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 8709.137,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 8709.137,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8709.137,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8724.719,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 8744.026,
+      "content": " typing"
+    },
+    {
+      "timestamp_ms": 8806.257,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8806.415,
+      "content": " lack"
+    },
+    {
+      "timestamp_ms": 8806.495,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8821.521,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 8838.833,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 8915.175,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 8915.424,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 8915.51,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8915.575,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 8938.47,
+      "content": " Error"
+    },
+    {
+      "timestamp_ms": 9011.016,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 9011.238,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9011.365,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9011.756,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9063.342,
+      "content": "Go"
+    },
+    {
+      "timestamp_ms": 9063.618,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9071.222,
+      "content": " Uses"
+    },
+    {
+      "timestamp_ms": 9088.074,
+      "content": " explicit"
+    },
+    {
+      "timestamp_ms": 9118.866,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 9129.586,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 9152.019,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9167.411,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 9216.01,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 9216.173,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 9222.136,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 9245.94,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9331.652,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 9331.859,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 9331.995,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9332.081,
+      "content": " addition"
+    },
+    {
+      "timestamp_ms": 9340.059,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9359.794,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9378.122,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 9400.563,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 9412.17,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 9445.84,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9451.839,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 9472.679,
+      "content": " encourages"
+    },
+    {
+      "timestamp_ms": 9497.849,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 9509.854,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9527.67,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 9595.318,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 9595.467,
+      "content": " explicitly"
+    },
+    {
+      "timestamp_ms": 9595.535,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9603.894,
+      "content": " promptly"
+    },
+    {
+      "timestamp_ms": 9625.596,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9716.208,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 9716.883,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9717.051,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9717.176,
+      "content": "Python"
+    },
+    {
+      "timestamp_ms": 9717.271,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9736.763,
+      "content": " Uses"
+    },
+    {
+      "timestamp_ms": 9760.103,
+      "content": " exceptions"
+    },
+    {
+      "timestamp_ms": 9779.903,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9799.702,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 9817.641,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 9832.092,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9934.244,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 9934.378,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9934.442,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 9934.495,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9934.584,
+      "content": " cleaner"
+    },
+    {
+      "timestamp_ms": 9946.905,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 9984.426,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9984.58,
+      "content": " separating"
+    },
+    {
+      "timestamp_ms": 10034.995,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 10035.149,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 10040.689,
+      "content": " logic"
+    },
+    {
+      "timestamp_ms": 10240.577,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 10240.577,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 10240.577,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 10240.577,
+      "content": " paths"
+    },
+    {
+      "timestamp_ms": 10240.577,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10240.577,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 10240.75,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10240.75,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10240.75,
+      "type": "done"
+    }
+  ],
+  "full_response": "When building web APIs, Python and Go offer distinct advantages and trade-offs. Below are some of the main differences between using these two languages for web API development:\n\n### Performance and Speed\n\n- **Go**: Known for its performance and efficiency, Go is compiled to machine code, offering faster execution times compared to interpreted languages like Python. This makes Go a good choice for high-performance web APIs that require handling large volumes of requests.\n  \n- **Python**: An interpreted language, Python generally has slower execution speeds compared to Go. However, Python's extensive libraries can often compensate for performance issues when optimized correctly.\n\n### Concurrency\n\n- **Go**: Designed with built-in support for concurrency, Go uses goroutines and channels to handle multiple operations simultaneously. This makes it particularly suited for building scalable APIs that need to handle many simultaneous connections efficiently.\n  \n- **Python**: Python's Global Interpreter Lock (GIL) can be a bottleneck for CPU-bound operations when using threading. However, for I/O-bound tasks, asynchronous programming (using `asyncio` and frameworks like FastAPI) can provide effective concurrency. Still, Go's model is often simpler and more performant at scale.\n\n### Ecosystem and Libraries\n\n- **Python**: Boasts a vast ecosystem with powerful libraries and frameworks such as Django, Flask, FastAPI, and many third-party extensions that accelerate development. This extensive ecosystem can quicken the development process with numerous pre-built features for web development.\n  \n- **Go**: While Go's ecosystem is growing, it is not as large or mature as Python's. Go has a few popular web frameworks like Gin, Echo, and Beego, but it generally focuses on lightweight and simple web server frameworks.\n\n### Syntax and Ease of Use\n\n- **Python**: Known for its readable and expressive syntax, Python is often considered easier for beginners to pick up and use effectively. It emphasizes readability, which can lead to more maintainable codebases.\n  \n- **Go**: Has a simpler and more explicit syntax compared to other languages like C++. Its design prioritizes simplicity and readability, which can also lead to highly maintainable code. However, it may appear less flexible due to its strict typing and lack of some dynamic language features.\n\n### Error Handling\n\n- **Go**: Uses explicit error handling, where functions often return an error value in addition to their regular return value. This encourages developers to handle errors explicitly and promptly.\n  \n- **Python**: Uses exceptions for error handling, which can lead to cleaner code by separating error handling logic from regular code paths. However,",
+  "response_chars": 2737,
+  "num_chunks": 512,
+  "ttft_ms": 462.046,
+  "total_ms": 10241.023,
+  "model_name": "model-medium"
+}

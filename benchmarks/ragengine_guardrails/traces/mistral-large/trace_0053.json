@@ -1,0 +1,815 @@
+{
+  "index": 53,
+  "prompt": "What are design patterns? Describe the Observer, Factory, and Singleton patterns.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 655.161,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": " **Design"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": " Patterns**\nDesign patterns"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": " are reusable"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": ", well"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": "-pro"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": "ven solutions to common"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": " problems in"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": " software design"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": ". They provide"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 655.161,
+      "content": " practices for struct"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": "uring"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": " to improve maintainability"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": ", scal"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": "ability, and flexibility"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": ". Design"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": " patterns are categorized"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": " into three"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": " main types:\n\n1"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": ". **Cre"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": "ational Patterns"
+    },
+    {
+      "timestamp_ms": 852.958,
+      "content": "** – Deal"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": " with object creation mechanisms"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": ".\n2. **"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": "Structural Patterns"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": "** – Focus"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": " on class"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": " object composition.\n3"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": ". **Behavior"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": "al Patterns** –"
+    },
+    {
+      "timestamp_ms": 1213.599,
+      "content": " Define communication"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": " between objects.\n\n"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": "---\n\n## **1"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": ". Observer"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": " Pattern ("
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": "Behavioral)**\n**"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": "Purpose:** Def"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": "ines a"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": " one-to"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": "-many"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": " dependency"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": " between objects so"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": " that when one"
+    },
+    {
+      "timestamp_ms": 1582.442,
+      "content": " object ("
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": "subject**) changes state"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": ", all"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": " its depend"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": "ents (**observ"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": "ers**) are notified"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": " updated automatically"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": ".\n\n###"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": " **Key"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": " Components:**\n- **"
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": "Subject ("
+    },
+    {
+      "timestamp_ms": 1981.891,
+      "content": "Observable):**"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " Main"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": "tains a"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " list of observers and"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " methods to attach"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": "/d"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": "etach them"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": ".\n- **Observer"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " Def"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": "ines an update"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " interface for"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " objects"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " that should"
+    },
+    {
+      "timestamp_ms": 2469.525,
+      "content": " be notified of"
+    },
+    {
+      "timestamp_ms": 2533.204,
+      "content": " changes.\n- **"
+    },
+    {
+      "timestamp_ms": 2533.204,
+      "content": "Concrete Subject"
+    },
+    {
+      "timestamp_ms": 2533.204,
+      "content": ":** Im"
+    },
+    {
+      "timestamp_ms": 2533.204,
+      "content": "plements the"
+    },
+    {
+      "timestamp_ms": 2533.204,
+      "content": " subject and sends"
+    },
+    {
+      "timestamp_ms": 2778.599,
+      "content": " notifications"
+    },
+    {
+      "timestamp_ms": 2778.599,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2778.599,
+      "content": " observers.\n- **"
+    },
+    {
+      "timestamp_ms": 2778.599,
+      "content": "Concrete Observer"
+    },
+    {
+      "timestamp_ms": 2778.599,
+      "content": ":** Im"
+    },
+    {
+      "timestamp_ms": 2778.599,
+      "content": "plements the observer"
+    },
+    {
+      "timestamp_ms": 2778.599,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " and reacts"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " to updates"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": ".\n\n### **Example"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " Use Cases"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": ":**\n- Event"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " GUI buttons"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": ", stock"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " updates).\n- Publish"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": "-sub"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": "scribe systems"
+    },
+    {
+      "timestamp_ms": 3158.493,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": " news feeds"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": ", messaging"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": " apps"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": ").\n\n### **Example"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": " (Java"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": "-like"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": " Pseud"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": "ocode):**\n```"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": "java\n//"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": " Subject ("
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": "Observable)\nclass"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": " News"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": "Ag"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": "ency {\n    private"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": " List<News"
+    },
+    {
+      "timestamp_ms": 3536.322,
+      "content": "Channel"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": "> channels"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": " = new Array"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": "List<>();\n\n    public"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": " void addObserver"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": "(News"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": "Channel channel"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": ") {\n        channels"
+    },
+    {
+      "timestamp_ms": 3685.821,
+      "content": ".add"
+    },
+    {
+      "timestamp_ms": 3718.745,
+      "content": "(channel);\n    }\n\n"
+    },
+    {
+      "timestamp_ms": 3718.745,
+      "content": "    public void remove"
+    },
+    {
+      "timestamp_ms": 3718.745,
+      "content": "Observer"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": "(NewsChannel channel"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": ") {\n        channels"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": ".remove(channel);\n   "
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": " }\n\n    public void"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": "News"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": "(String news) {\n"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": "        for (News"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": "Channel channel : channels"
+    },
+    {
+      "timestamp_ms": 3887.744,
+      "content": ") {\n            channel"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": ".update"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": "(news"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": ");\n        }\n   "
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": " }\n}\n\n//"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": " Observer"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": "interface"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": " NewsChannel {\n   "
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": " void update(String news"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": ");\n}\n\n//"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": " Concrete Observer"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": "\nclass NewsChannel"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": "Impl"
+    },
+    {
+      "timestamp_ms": 4117.914,
+      "content": " implements News"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": "Channel {\n    private"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": " String news;\n\n"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": "    @"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": "Override\n    public"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": " void update(String news"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": ") {\n        this"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": ".news"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": " = news"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": ";\n        System"
+    },
+    {
+      "timestamp_ms": 4286.336,
+      "content": ".out.println(\"Bre"
+    },
+    {
+      "timestamp_ms": 4301.458,
+      "content": "aking News"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": ": \" + news"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": ");\n    }\n}\n\n//"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": " Usage\nNews"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": "Ag"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": "ency agency"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": " = new NewsAg"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": "ency();\nNewsChannel"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": " channel1"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": " = new NewsChannel"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": "Impl();\nNewsChannel"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": " channel2 = new"
+    },
+    {
+      "timestamp_ms": 4502.132,
+      "content": " NewsChannelImpl();\n\n"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "agency.addObserver"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "(channel1);\nag"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "ency.addObserver(channel"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "2);\n\n"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "agency.set"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "News(\"New"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": " AI breakthrough"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": " announced"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "!\");\n//"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": " Output:\n//"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": " Bre"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": "aking News: New"
+    },
+    {
+      "timestamp_ms": 4866.659,
+      "content": " AI breakthrough"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": " announced"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": "!\n// Bre"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": "aking News: New"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": " AI breakthrough announced!\n"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": "```\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": " **2. Factory"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": " Pattern (Cre"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "content": "ational"
+    },
+    {
+      "timestamp_ms": 5203.694,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5252.868,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Design Patterns**\nDesign patterns are reusable, well-proven solutions to common problems in software design. They provide best practices for structuring code to improve maintainability, scalability, and flexibility. Design patterns are categorized into three main types:\n\n1. **Creational Patterns** – Deal with object creation mechanisms.\n2. **Structural Patterns** – Focus on class and object composition.\n3. **Behavioral Patterns** – Define communication between objects.\n\n---\n\n## **1. Observer Pattern (Behavioral)**\n**Purpose:** Defines a one-to-many dependency between objects so that when one object (the **subject**) changes state, all its dependents (**observers**) are notified and updated automatically.\n\n### **Key Components:**\n- **Subject (Observable):** Maintains a list of observers and provides methods to attach/detach them.\n- **Observer:** Defines an update interface for objects that should be notified of changes.\n- **Concrete Subject:** Implements the subject and sends notifications to observers.\n- **Concrete Observer:** Implements the observer interface and reacts to updates.\n\n### **Example Use Cases:**\n- Event handling systems (e.g., GUI buttons, stock market updates).\n- Publish-subscribe systems (e.g., news feeds, messaging apps).\n\n### **Example (Java-like Pseudocode):**\n```java\n// Subject (Observable)\nclass NewsAgency {\n    private List<NewsChannel> channels = new ArrayList<>();\n\n    public void addObserver(NewsChannel channel) {\n        channels.add(channel);\n    }\n\n    public void removeObserver(NewsChannel channel) {\n        channels.remove(channel);\n    }\n\n    public void setNews(String news) {\n        for (NewsChannel channel : channels) {\n            channel.update(news);\n        }\n    }\n}\n\n// Observer\ninterface NewsChannel {\n    void update(String news);\n}\n\n// Concrete Observer\nclass NewsChannelImpl implements NewsChannel {\n    private String news;\n\n    @Override\n    public void update(String news) {\n        this.news = news;\n        System.out.println(\"Breaking News: \" + news);\n    }\n}\n\n// Usage\nNewsAgency agency = new NewsAgency();\nNewsChannel channel1 = new NewsChannelImpl();\nNewsChannel channel2 = new NewsChannelImpl();\n\nagency.addObserver(channel1);\nagency.addObserver(channel2);\n\nagency.setNews(\"New AI breakthrough announced!\");\n// Output:\n// Breaking News: New AI breakthrough announced!\n// Breaking News: New AI breakthrough announced!\n```\n\n---\n\n## **2. Factory Pattern (Creational",
+  "response_chars": 2451,
+  "num_chunks": 198,
+  "ttft_ms": 655.161,
+  "total_ms": 5254.48,
+  "model_name": "Mistral-Large-3"
+}

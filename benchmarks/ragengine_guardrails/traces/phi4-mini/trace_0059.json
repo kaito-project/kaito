@@ -1,0 +1,591 @@
+{
+  "index": 59,
+  "prompt": "Write a sample .env file for a Python Flask application that includes DATABASE_URL, SECRET_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STRIPE_API_KEY, and SENDGRID_API_KEY.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1453.055,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "IRE"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "BASE"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "_ENABLE"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "_ERROR"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "_S"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "IL"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "ENC"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "ING"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "=True"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "FL"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "ASK"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "_APP"
+    },
+    {
+      "timestamp_ms": 1453.055,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": ".py"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "FL"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "ASK"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "_RUN"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "_HOST"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "FL"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "ASK"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "_ENV"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "development"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "DATABASE"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "_URL"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "=m"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "ongodb"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "270"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "17"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 1453.339,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "SECRET"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 2372.676,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "STR"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "IPE"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_str"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "ipe"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 2372.947,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3187.683,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3187.683,
+      "content": "SEND"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "GRID"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "_send"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3187.814,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": "env"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3187.98,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": "-side"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": " git"
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3701.515,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 3815.359,
+      "type": "done"
+    }
+  ],
+  "full_response": "```\nFIREBASE_ENABLE_ERROR_SILENCING=True\nFLASK_APP=.py\nFLASK_RUN_HOST=0.0.0.0\nFLASK_ENV=development\n\nDATABASE_URL=mongodb://localhost:27017/yourdb\nSECRET_KEY=your_secret_key\nAWS_ACCESS_KEY_ID=your_aws_access_key\nAWS_SECRET_ACCESS_KEY=your_aws_secret_access_key\nSTRIPE_API_KEY=your_stripe_api_key\nSENDGRID_API_KEY=your_sendgrid_api_key\n```\n\nNote: For a production, it would be best to store your .env file and sensitive information such as this on the server-side and not include them in version control systems like git.",
+  "response_chars": 520,
+  "num_chunks": 142,
+  "ttft_ms": 1453.055,
+  "total_ms": 3889.604,
+  "model_name": "Phi-4-mini-instruct"
+}

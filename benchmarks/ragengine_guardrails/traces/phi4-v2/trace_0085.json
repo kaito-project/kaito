@@ -1,0 +1,2071 @@
+{
+  "index": 85,
+  "prompt": "Describe the publish-subscribe messaging pattern and give examples of its use.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 318.588,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 318.789,
+      "content": " publish"
+    },
+    {
+      "timestamp_ms": 318.854,
+      "content": "-sub"
+    },
+    {
+      "timestamp_ms": 319.029,
+      "content": "scribe"
+    },
+    {
+      "timestamp_ms": 379.868,
+      "content": " messaging"
+    },
+    {
+      "timestamp_ms": 380.045,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 380.196,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 394.2,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 509.245,
+      "content": " abbreviated"
+    },
+    {
+      "timestamp_ms": 509.476,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 509.615,
+      "content": " pub"
+    },
+    {
+      "timestamp_ms": 509.879,
+      "content": "-sub"
+    },
+    {
+      "timestamp_ms": 509.966,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 512.213,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 561.267,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 561.403,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 565.741,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 616.074,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 616.21,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 624.236,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 694.459,
+      "content": " disse"
+    },
+    {
+      "timestamp_ms": 694.656,
+      "content": "minated"
+    },
+    {
+      "timestamp_ms": 703.452,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 703.452,
+      "content": " publishers"
+    },
+    {
+      "timestamp_ms": 719.493,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 765.896,
+      "content": " interested"
+    },
+    {
+      "timestamp_ms": 766.083,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 777.482,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 794.869,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 921.134,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 921.393,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 921.485,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 921.541,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 921.589,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 934.586,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 934.781,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 946.372,
+      "content": " dec"
+    },
+    {
+      "timestamp_ms": 982.803,
+      "content": "ou"
+    },
+    {
+      "timestamp_ms": 989.897,
+      "content": "pling"
+    },
+    {
+      "timestamp_ms": 1007.317,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 1024.389,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 1121.107,
+      "content": " producers"
+    },
+    {
+      "timestamp_ms": 1121.335,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1121.657,
+      "content": " consumers"
+    },
+    {
+      "timestamp_ms": 1121.929,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1122.062,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 1136.902,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1227.592,
+      "content": " publishers"
+    },
+    {
+      "timestamp_ms": 1227.794,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1227.87,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 1228.065,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 1231.25,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1338.067,
+      "content": " needing"
+    },
+    {
+      "timestamp_ms": 1338.264,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1338.363,
+      "content": " know"
+    },
+    {
+      "timestamp_ms": 1338.447,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 1338.621,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1344.754,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 1430.474,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1430.7,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1430.795,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1430.862,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 1444.962,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1460.635,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 1532.817,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 1532.98,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1533.108,
+      "content": " publishers"
+    },
+    {
+      "timestamp_ms": 1536.108,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1641.624,
+      "content": " needing"
+    },
+    {
+      "timestamp_ms": 1641.941,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1642.125,
+      "content": " know"
+    },
+    {
+      "timestamp_ms": 1642.217,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1642.397,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1655.411,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 1669.855,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 1720.309,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1720.489,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1728.974,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1839.946,
+      "content": " Characteristics"
+    },
+    {
+      "timestamp_ms": 1840.134,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1840.303,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1840.408,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1840.49,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1840.686,
+      "content": "Dec"
+    },
+    {
+      "timestamp_ms": 1942.086,
+      "content": "ou"
+    },
+    {
+      "timestamp_ms": 1942.086,
+      "content": "pling"
+    },
+    {
+      "timestamp_ms": 1942.277,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1942.36,
+      "content": " Publishers"
+    },
+    {
+      "timestamp_ms": 1942.416,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1955.166,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 2044.506,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2044.706,
+      "content": " dec"
+    },
+    {
+      "timestamp_ms": 2044.802,
+      "content": "ou"
+    },
+    {
+      "timestamp_ms": 2044.866,
+      "content": "pled"
+    },
+    {
+      "timestamp_ms": 2053.009,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2076.71,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 2159.518,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 2168.536,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 2168.689,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2168.84,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 2168.956,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2212.846,
+      "content": " know"
+    },
+    {
+      "timestamp_ms": 2212.995,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2223.199,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2241.416,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2260.357,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 2279.594,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2350.95,
+      "content": " addresses"
+    },
+    {
+      "timestamp_ms": 2351.079,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2351.145,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 2358.227,
+      "content": " interact"
+    },
+    {
+      "timestamp_ms": 2454.304,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 2454.714,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2454.89,
+      "content": " messaging"
+    },
+    {
+      "timestamp_ms": 2455.013,
+      "content": " broker"
+    },
+    {
+      "timestamp_ms": 2455.132,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2482.932,
+      "content": " event"
+    },
+    {
+      "timestamp_ms": 2494.881,
+      "content": " bus"
+    },
+    {
+      "timestamp_ms": 2556.448,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2556.831,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2556.961,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2570.796,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2587.296,
+      "content": "Topics"
+    },
+    {
+      "timestamp_ms": 2659.298,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2659.897,
+      "content": " Channels"
+    },
+    {
+      "timestamp_ms": 2660.012,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2660.086,
+      "content": " Messages"
+    },
+    {
+      "timestamp_ms": 2761.858,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2762.076,
+      "content": " categorized"
+    },
+    {
+      "timestamp_ms": 2762.194,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2762.292,
+      "content": " topics"
+    },
+    {
+      "timestamp_ms": 2762.398,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2775.569,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 2834.251,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2834.423,
+      "content": " Sub"
+    },
+    {
+      "timestamp_ms": 2835.106,
+      "content": "scribers"
+    },
+    {
+      "timestamp_ms": 2967.541,
+      "content": " express"
+    },
+    {
+      "timestamp_ms": 2967.727,
+      "content": " interest"
+    },
+    {
+      "timestamp_ms": 2967.794,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2967.85,
+      "content": " subscribing"
+    },
+    {
+      "timestamp_ms": 2968.017,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2968.017,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 2968.145,
+      "content": " topics"
+    },
+    {
+      "timestamp_ms": 2985.343,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3041.245,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 3041.378,
+      "content": " publishers"
+    },
+    {
+      "timestamp_ms": 3041.443,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 3170.829,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3170.962,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3171.029,
+      "content": " topics"
+    },
+    {
+      "timestamp_ms": 3171.084,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3171.136,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3171.206,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3175.259,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3248.765,
+      "content": "As"
+    },
+    {
+      "timestamp_ms": 3248.926,
+      "content": "ynchronous"
+    },
+    {
+      "timestamp_ms": 3249.012,
+      "content": " Communication"
+    },
+    {
+      "timestamp_ms": 3250.699,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3376.133,
+      "content": " Messages"
+    },
+    {
+      "timestamp_ms": 3376.382,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3376.524,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 3376.644,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 3376.75,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3376.851,
+      "content": " received"
+    },
+    {
+      "timestamp_ms": 3384.952,
+      "content": " asynchronously"
+    },
+    {
+      "timestamp_ms": 3404.831,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3479.667,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 3479.861,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 3479.942,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3480.02,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 3588.988,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3589.263,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3589.355,
+      "content": " soon"
+    },
+    {
+      "timestamp_ms": 3589.415,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3589.469,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 3594.692,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 3688.05,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 3688.05,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3788.056,
+      "content": " regardless"
+    },
+    {
+      "timestamp_ms": 3788.056,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3788.056,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3788.056,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3788.056,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3788.056,
+      "content": " publishing"
+    },
+    {
+      "timestamp_ms": 3788.334,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3790.015,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3809.8,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3897.901,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3898.118,
+      "content": "No"
+    },
+    {
+      "timestamp_ms": 3898.26,
+      "content": " Order"
+    },
+    {
+      "timestamp_ms": 3898.382,
+      "content": " Requirement"
+    },
+    {
+      "timestamp_ms": 3903.557,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3994.878,
+      "content": " Messages"
+    },
+    {
+      "timestamp_ms": 3995.035,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3995.101,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3995.187,
+      "content": " consumed"
+    },
+    {
+      "timestamp_ms": 3995.427,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4064.648,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4064.899,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 4073.653,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4073.857,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 4195.262,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 4195.641,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4195.833,
+      "content": " depending"
+    },
+    {
+      "timestamp_ms": 4195.966,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4196.078,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4196.187,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4208.892,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4297.736,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 4301.131,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4301.236,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 4301.339,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4301.428,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4354.68,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4354.839,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4356.0,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 4400.635,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 4400.82,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 4414.177,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4481.221,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4481.383,
+      "content": " pub"
+    },
+    {
+      "timestamp_ms": 4481.46,
+      "content": "-sub"
+    },
+    {
+      "timestamp_ms": 4490.552,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 4511.286,
+      "content": " supports"
+    },
+    {
+      "timestamp_ms": 4604.315,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 4604.541,
+      "content": " scalability"
+    },
+    {
+      "timestamp_ms": 4604.667,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4604.745,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4615.962,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 4624.122,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 4708.231,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4708.475,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 4708.649,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4719.056,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 4719.2,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 4809.04,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 4809.266,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4809.415,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4809.562,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4817.468,
+      "content": " messaging"
+    },
+    {
+      "timestamp_ms": 4916.859,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4917.051,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4917.135,
+      "content": " distribute"
+    },
+    {
+      "timestamp_ms": 4917.199,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4917.257,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 5014.143,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5014.423,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5014.577,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5014.657,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5014.718,
+      "content": "Flex"
+    },
+    {
+      "timestamp_ms": 5023.842,
+      "content": "ibility"
+    },
+    {
+      "timestamp_ms": 5049.388,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5117.004,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5117.185,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5117.257,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 5119.578,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5140.229,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 5231.405,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5231.597,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5231.699,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 5235.184,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5235.323,
+      "content": " publishers"
+    },
+    {
+      "timestamp_ms": 5255.315,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5326.605,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 5326.798,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5326.886,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5330.896,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 5423.514,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5423.673,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 5423.754,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5423.818,
+      "content": " vary"
+    },
+    {
+      "timestamp_ms": 5429.46,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 5445.04,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 5526.439,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5526.573,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5526.643,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 5526.697,
+      "content": " Cases"
+    },
+    {
+      "timestamp_ms": 5550.919,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5558.934,
+      "content": " Examples"
+    },
+    {
+      "timestamp_ms": 5632.983,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 5633.158,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5633.245,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5639.024,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5655.342,
+      "content": "Real"
+    },
+    {
+      "timestamp_ms": 5692.603,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 5692.752,
+      "content": " Notifications"
+    },
+    {
+      "timestamp_ms": 5733.148,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5733.363,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5840.353,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5840.514,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5840.593,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5840.657,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 5840.715,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5843.407,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 5886.086,
+      "content": " news"
+    },
+    {
+      "timestamp_ms": 5886.237,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 6008.336,
+      "content": " publishes"
+    },
+    {
+      "timestamp_ms": 6008.582,
+      "content": " breaking"
+    },
+    {
+      "timestamp_ms": 6008.767,
+      "content": " stories"
+    },
+    {
+      "timestamp_ms": 6008.922,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6009.06,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6009.202,
+      "content": " news"
+    },
+    {
+      "timestamp_ms": 6014.448,
+      "content": " feed"
+    },
+    {
+      "timestamp_ms": 6059.645,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6059.834,
+      "content": " Sub"
+    },
+    {
+      "timestamp_ms": 6071.702,
+      "content": "scribers"
+    },
+    {
+      "timestamp_ms": 6140.973,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6141.263,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 6141.429,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 6153.652,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6193.765,
+      "content": " interested"
+    },
+    {
+      "timestamp_ms": 6193.899,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6206.5,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 6245.483,
+      "content": " topics"
+    },
+    {
+      "timestamp_ms": 6245.639,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6345.437,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 6345.743,
+      "content": " instant"
+    },
+    {
+      "timestamp_ms": 6345.889,
+      "content": " notifications"
+    },
+    {
+      "timestamp_ms": 6346.026,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 6346.111,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 6448.258,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6448.456,
+      "content": " SMS"
+    },
+    {
+      "timestamp_ms": 6448.593,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6448.725,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 6449.569,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6454.966,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6550.563,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6550.73,
+      "content": "Social"
+    },
+    {
+      "timestamp_ms": 6550.807,
+      "content": " Media"
+    },
+    {
+      "timestamp_ms": 6550.87,
+      "content": " Fe"
+    },
+    {
+      "timestamp_ms": 6551.058,
+      "content": "eds"
+    },
+    {
+      "timestamp_ms": 6609.677,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6609.873,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6610.068,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6634.735,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6657.684,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6664.988,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 6755.2,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6755.349,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 6755.415,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6755.474,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 6765.93,
+      "content": " posts"
+    },
+    {
+      "timestamp_ms": 6787.354,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 6797.778,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6858.258,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6858.484,
+      "content": " social"
+    },
+    {
+      "timestamp_ms": 6858.616,
+      "content": " media"
+    },
+    {
+      "timestamp_ms": 6940.327,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 6955.586,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6955.763,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6955.836,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6959.433,
+      "content": " followers"
+    },
+    {
+      "timestamp_ms": 6968.859,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 6994.335,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 7061.911,
+      "content": " subscribed"
+    },
+    {
+      "timestamp_ms": 7062.125,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7062.214,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 7063.489,
+      "content": " notifications"
+    },
+    {
+      "timestamp_ms": 7091.77,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7165.845,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7178.236,
+      "content": " posts"
+    },
+    {
+      "timestamp_ms": 7178.452,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7178.572,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 7182.928,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 7201.635,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 7266.608,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7273.699,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7273.861,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7273.949,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7293.695,
+      "content": "Stock"
+    },
+    {
+      "timestamp_ms": 7368.925,
+      "content": " Trading"
+    },
+    {
+      "timestamp_ms": 7378.98,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 7379.19,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7379.291,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7471.936,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7471.936,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7472.147,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7472.245,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 7472.319,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7527.778,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 7527.953,
+      "content": " stock"
+    },
+    {
+      "timestamp_ms": 7528.036,
+      "content": " trading"
+    },
+    {
+      "timestamp_ms": 7550.791,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7559.833,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7582.417,
+      "content": " broker"
+    },
+    {
+      "timestamp_ms": 7597.999,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7675.379,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7675.559,
+      "content": " publish"
+    },
+    {
+      "timestamp_ms": 7675.646,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 7675.714,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 7695.318,
+      "content": " price"
+    },
+    {
+      "timestamp_ms": 7778.678,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 7778.846,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 7778.943,
+      "content": " few"
+    },
+    {
+      "timestamp_ms": 7779.013,
+      "content": " milliseconds"
+    },
+    {
+      "timestamp_ms": 7789.23,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7809.856,
+      "content": " Tr"
+    },
+    {
+      "timestamp_ms": 7880.918,
+      "content": "aders"
+    },
+    {
+      "timestamp_ms": 7881.048,
+      "content": " subscribed"
+    },
+    {
+      "timestamp_ms": 7881.115,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7885.087,
+      "content": " particular"
+    },
+    {
+      "timestamp_ms": 7956.861,
+      "content": " stocks"
+    },
+    {
+      "timestamp_ms": 7957.172,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 8086.739,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 8086.739,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 8086.951,
+      "content": " instantly"
+    },
+    {
+      "timestamp_ms": 8087.037,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8087.107,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 8087.167,
+      "content": " informed"
+    },
+    {
+      "timestamp_ms": 8087.507,
+      "content": " trading"
+    },
+    {
+      "timestamp_ms": 8087.618,
+      "content": " decisions"
+    },
+    {
+      "timestamp_ms": 8101.148,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8146.862,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8147.058,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8149.811,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8170.58,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 8189.924,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 8253.366,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8253.536,
+      "content": " Analysis"
+    },
+    {
+      "timestamp_ms": 8253.615,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8399.888,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8399.888,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8399.888,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8399.888,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8399.888,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 8399.888,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8400.112,
+      "content": " Servers"
+    },
+    {
+      "timestamp_ms": 8400.321,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 8458.053,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 8458.306,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8465.076,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8481.979,
+      "content": " published"
+    },
+    {
+      "timestamp_ms": 8503.079,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8517.098,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8598.179,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 8598.498,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8598.595,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8598.659,
+      "content": " Log"
+    },
+    {
+      "timestamp_ms": 8609.932,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 8704.662,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 8704.821,
+      "content": " subscribe"
+    },
+    {
+      "timestamp_ms": 8704.905,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8704.961,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 8705.012,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 8806.564,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 8806.78,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8811.761,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 8812.176,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 8812.36,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8818.328,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 8868.963,
+      "content": " anomalies"
+    },
+    {
+      "timestamp_ms": 8869.145,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8876.198,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8919.146,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 8919.343,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8932.705,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 9007.684,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9007.949,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9008.104,
+      "content": "Io"
+    },
+    {
+      "timestamp_ms": 9012.126,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 9028.618,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9050.442,
+      "content": "Internet"
+    },
+    {
+      "timestamp_ms": 9072.89,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9086.794,
+      "content": " Things"
+    },
+    {
+      "timestamp_ms": 9220.463,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 9220.613,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9220.685,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9220.741,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9220.791,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9220.837,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 9220.882,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9315.27,
+      "content": " IoT"
+    },
+    {
+      "timestamp_ms": 9315.694,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 9315.9,
+      "content": " publish"
+    },
+    {
+      "timestamp_ms": 9316.061,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9319.978,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9335.457,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9417.614,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9417.836,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 9417.951,
+      "content": " temperature"
+    },
+    {
+      "timestamp_ms": 9418.035,
+      "content": " readings"
+    },
+    {
+      "timestamp_ms": 9429.676,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9462.563,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9470.325,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9520.12,
+      "content": " central"
+    },
+    {
+      "timestamp_ms": 9520.376,
+      "content": " IoT"
+    },
+    {
+      "timestamp_ms": 9523.648,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 9546.408,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9624.529,
+      "content": " Various"
+    },
+    {
+      "timestamp_ms": 9624.681,
+      "content": " subscribers"
+    },
+    {
+      "timestamp_ms": 9624.755,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 9624.824,
+      "content": " analytics"
+    },
+    {
+      "timestamp_ms": 9638.82,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 9724.758,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9724.89,
+      "content": " alert"
+    },
+    {
+      "timestamp_ms": 9724.953,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 9725.005,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9737.926,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9830.688,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 9830.844,
+      "content": " IoT"
+    },
+    {
+      "timestamp_ms": 9830.917,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 9830.976,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9831.026,
+      "content": " subscribe"
+    },
+    {
+      "timestamp_ms": 9931.754,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9932.008,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9941.267,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9941.553,
+      "content": " stream"
+    },
+    {
+      "timestamp_ms": 9941.702,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9945.382,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 9970.45,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 9987.081,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 10002.891,
+      "content": " action"
+    },
+    {
+      "timestamp_ms": 10002.891,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10002.891,
+      "type": "done"
+    }
+  ],
+  "full_response": "The publish-subscribe messaging pattern, often abbreviated as pub-sub, is a communication model where messages are disseminated by publishers to interested parties, known as subscribers. This pattern allows for decoupling between message producers and consumers, ensuring that publishers can send messages without needing to know who the subscribers are, and subscribers can receive messages from publishers without needing to know how to find them.\n\n### Key Characteristics:\n\n1. **Decoupling:** Publishers and subscribers are decoupled, meaning they do not need to know each other's methods or addresses. They interact through a messaging broker or event bus.\n\n2. **Topics or Channels:** Messages are categorized into topics or channels. Subscribers express interest by subscribing to specific topics, while publishers send messages to topics.\n\n3. **Asynchronous Communication:** Messages are typically sent and received asynchronously, allowing subscribers to receive messages as soon as they become available, regardless of the time of publishing.\n\n4. **No Order Requirement:** Messages can be consumed in any order or multiple times, depending on the system's implementation and requirements.\n\n5. **Scalability:** The pub-sub pattern supports high scalability, as multiple subscribers can receive the same message simultaneously, and the messaging system can distribute the load.\n\n6. **Flexibility:** It is flexible in terms of the number of publishers or subscribers, and either or both can vary over time.\n\n### Use Cases and Examples:\n\n1. **Real-time Notifications:**\n   - **Example:** A news website publishes breaking stories on a news feed. Subscribers (users who are interested in certain topics) receive instant notifications via email or SMS.\n   \n2. **Social Media Feeds:**\n   - **Example:** When a user posts content on a social media platform, all their followers who have subscribed to receive notifications of new posts will automatically receive updates.\n\n3. **Stock Trading Systems:**\n   - **Example:** In stock trading, a broker system might publish real-time price updates every few milliseconds. Traders subscribed to particular stocks receive these updates instantly to make informed trading decisions.\n\n4. **Log Monitoring and Analysis:**\n   - **Example:** Servers generate logs that are published to a monitoring system. Log management tools subscribe and analyze these logs in real time to detect anomalies or system failures.\n\n5. **IoT (Internet of Things):**\n   - **Example:** IoT devices publish data (e.g., temperature readings) to a central IoT platform. Various subscribers like analytics services, alert systems, or other IoT devices can subscribe to this data stream for further processing or action",
+  "response_chars": 2732,
+  "num_chunks": 512,
+  "ttft_ms": 318.588,
+  "total_ms": 10007.391,
+  "model_name": "model-medium"
+}

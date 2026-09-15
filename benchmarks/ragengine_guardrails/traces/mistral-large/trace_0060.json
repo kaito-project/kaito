@@ -1,0 +1,651 @@
+{
+  "index": 60,
+  "prompt": "Write a Python function that calculates the Fibonacci sequence using dynamic programming.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 760.976,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": " Fib"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": "onacci Sequence with"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": " Dynamic Programming in"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": " Python\n\nHere's"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": " a Python function that"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": " calculates the Fibonacci"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": " sequence using dynamic programming"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": " (m"
+    },
+    {
+      "timestamp_ms": 760.976,
+      "content": "emoization)"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": " to improve"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": " efficiency:\n\n```python"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": "\ndef fib"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": "onacci(n,"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": " memo={"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": "}):\n    \"\"\"\n"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": "    Calculate"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": " the n"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": "th Fibonacci number"
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": " using dynamic programming ("
+    },
+    {
+      "timestamp_ms": 1071.552,
+      "content": "memoization).\n\n"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": "    Args:\n       "
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": " n (int):"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": " The position"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": " in the Fibonacci"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": " sequence (0-based"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": ")\n        memo"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": " (dict): Dictionary"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": " to store computed"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": " values (used internally"
+    },
+    {
+      "timestamp_ms": 1428.828,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "    Returns:\n       "
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": " int: The n"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "th Fibonacci number"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "\n    \"\"\"\n   "
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": " if n in"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": " memo:\n        return"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": " memo[n]\n"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "    if n <="
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": " 1:\n       "
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": " return n"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "    memo"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "[n] = fib"
+    },
+    {
+      "timestamp_ms": 1594.787,
+      "content": "onacci(n-1"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": ", memo"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": ") + fib"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": "onacci(n-2"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": ", memo)\n   "
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": " return memo[n"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": "]\n\n# Example usage"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": ":\nif __name"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": "__ == \"__main"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": "__\":\n    for"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": " i"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": " in range(1"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": "0):\n        print"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": "(f\"Fib"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": "onacci({i})"
+    },
+    {
+      "timestamp_ms": 1919.52,
+      "content": " = {fibonacci"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "(i)}\")\n```\n\n"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "## Alternative"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": " Implementation (Tab"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "ulation"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "'s another"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": " programming approach using"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": " tab"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "ulation (bottom-up"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "):\n\n"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": "```python\ndef"
+    },
+    {
+      "timestamp_ms": 2103.08,
+      "content": " fibonacci_tab"
+    },
+    {
+      "timestamp_ms": 2185.592,
+      "content": "ulation"
+    },
+    {
+      "timestamp_ms": 2185.592,
+      "content": "(n):\n"
+    },
+    {
+      "timestamp_ms": 2185.592,
+      "content": "    \"\"\"\n    Calculate"
+    },
+    {
+      "timestamp_ms": 2185.592,
+      "content": " the nth Fib"
+    },
+    {
+      "timestamp_ms": 2270.615,
+      "content": "onacci number using dynamic"
+    },
+    {
+      "timestamp_ms": 2273.412,
+      "content": " programming (tab"
+    },
+    {
+      "timestamp_ms": 2273.412,
+      "content": "ulation).\n\n    Args"
+    },
+    {
+      "timestamp_ms": 2273.412,
+      "content": ":\n        n ("
+    },
+    {
+      "timestamp_ms": 2273.412,
+      "content": "int): The position"
+    },
+    {
+      "timestamp_ms": 2273.412,
+      "content": " in the Fibonacci"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": " sequence (0-based"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": ")\n\n    Returns:\n"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": "        int: The"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": " nth Fibonacci"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": " number\n    \"\"\"\n"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": "    if n <="
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": " 1:\n       "
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": " return n"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": "\n\n    # Initialize"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": " a table"
+    },
+    {
+      "timestamp_ms": 2463.472,
+      "content": " to store Fibonacci"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " numbers\n    fib"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " = [0]"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " * (n +"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " 1)\n   "
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " fib[1"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": "] = 1"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": "\n\n    for i"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " in range(2"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": ", n + "
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": "1):\n        fib"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": "[i] = fib"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": "[i-1]"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " + fib[i-"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": "2]\n\n    return"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": " fib[n]\n\n"
+    },
+    {
+      "timestamp_ms": 2807.156,
+      "content": "# Example usage:\n"
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": "if __name__"
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": " == \"__main__\":\n"
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": "    for i in"
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": " range(10"
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": "):\n        print(f"
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": "\"Fibonacci"
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": "({i}) ="
+    },
+    {
+      "timestamp_ms": 2940.536,
+      "content": " {fibonacci_tab"
+    },
+    {
+      "timestamp_ms": 3021.715,
+      "content": "ulation(i)}\")\n"
+    },
+    {
+      "timestamp_ms": 3021.715,
+      "content": "```\n\n## Key Features"
+    },
+    {
+      "timestamp_ms": 3021.715,
+      "content": ":\n\n1. **"
+    },
+    {
+      "timestamp_ms": 3021.715,
+      "content": "Memoization ("
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": "Top-down"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " approach)**:\n  "
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " - Stores"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " previously computed results"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " avoid redundant calculations\n"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": "   - Uses"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " recursion"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " dictionary to cache"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": " results\n"
+    },
+    {
+      "timestamp_ms": 3286.044,
+      "content": "   - Time"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": " complexity: O(n"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": "   - Space complexity"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": ": O(n)\n\n"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": "2. **Tab"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": "ulation (Bottom-up"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": " approach)**:\n  "
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": " - Build"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": "s the solution iter"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": "atively from smaller"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": " subproblems\n"
+    },
+    {
+      "timestamp_ms": 3419.895,
+      "content": "   - Uses an"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": " array to store intermediate"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": " results\n   -"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": " Time complexity: O"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": "(n)\n   -"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": " Space complexity: O"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": "(n) (can"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": " be optimized"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": " to O("
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "content": "1))\n\n"
+    },
+    {
+      "timestamp_ms": 3636.52,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3812.925,
+      "type": "done"
+    }
+  ],
+  "full_response": "# Fibonacci Sequence with Dynamic Programming in Python\n\nHere's a Python function that calculates the Fibonacci sequence using dynamic programming (memoization) to improve efficiency:\n\n```python\ndef fibonacci(n, memo={}):\n    \"\"\"\n    Calculate the nth Fibonacci number using dynamic programming (memoization).\n\n    Args:\n        n (int): The position in the Fibonacci sequence (0-based)\n        memo (dict): Dictionary to store computed values (used internally)\n\n    Returns:\n        int: The nth Fibonacci number\n    \"\"\"\n    if n in memo:\n        return memo[n]\n    if n <= 1:\n        return n\n    memo[n] = fibonacci(n-1, memo) + fibonacci(n-2, memo)\n    return memo[n]\n\n# Example usage:\nif __name__ == \"__main__\":\n    for i in range(10):\n        print(f\"Fibonacci({i}) = {fibonacci(i)}\")\n```\n\n## Alternative Implementation (Tabulation)\n\nHere's another dynamic programming approach using tabulation (bottom-up):\n\n```python\ndef fibonacci_tabulation(n):\n    \"\"\"\n    Calculate the nth Fibonacci number using dynamic programming (tabulation).\n\n    Args:\n        n (int): The position in the Fibonacci sequence (0-based)\n\n    Returns:\n        int: The nth Fibonacci number\n    \"\"\"\n    if n <= 1:\n        return n\n\n    # Initialize a table to store Fibonacci numbers\n    fib = [0] * (n + 1)\n    fib[1] = 1\n\n    for i in range(2, n + 1):\n        fib[i] = fib[i-1] + fib[i-2]\n\n    return fib[n]\n\n# Example usage:\nif __name__ == \"__main__\":\n    for i in range(10):\n        print(f\"Fibonacci({i}) = {fibonacci_tabulation(i)}\")\n```\n\n## Key Features:\n\n1. **Memoization (Top-down approach)**:\n   - Stores previously computed results to avoid redundant calculations\n   - Uses recursion with a dictionary to cache results\n   - Time complexity: O(n)\n   - Space complexity: O(n)\n\n2. **Tabulation (Bottom-up approach)**:\n   - Builds the solution iteratively from smaller subproblems\n   - Uses an array to store intermediate results\n   - Time complexity: O(n)\n   - Space complexity: O(n) (can be optimized to O(1))\n\n",
+  "response_chars": 1999,
+  "num_chunks": 157,
+  "ttft_ms": 760.976,
+  "total_ms": 3813.385,
+  "model_name": "Mistral-Large-3"
+}

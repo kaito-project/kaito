@@ -1,0 +1,2071 @@
+{
+  "index": 44,
+  "prompt": "What is infrastructure as code and what are its benefits?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 279.512,
+      "content": "Infrastructure"
+    },
+    {
+      "timestamp_ms": 279.616,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 298.591,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 319.928,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 336.163,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 355.224,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 374.485,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 393.557,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 412.686,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 431.899,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 450.704,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 469.063,
+      "content": " practice"
+    },
+    {
+      "timestamp_ms": 488.685,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 507.87,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 527.49,
+      "content": " Dev"
+    },
+    {
+      "timestamp_ms": 546.057,
+      "content": "Ops"
+    },
+    {
+      "timestamp_ms": 565.372,
+      "content": " methodology"
+    },
+    {
+      "timestamp_ms": 638.459,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 638.459,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 638.459,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 641.291,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 660.412,
+      "content": " provisioning"
+    },
+    {
+      "timestamp_ms": 679.876,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 698.306,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 717.543,
+      "content": " centers"
+    },
+    {
+      "timestamp_ms": 736.591,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 756.148,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 775.235,
+      "content": "-readable"
+    },
+    {
+      "timestamp_ms": 794.841,
+      "content": " definition"
+    },
+    {
+      "timestamp_ms": 812.402,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 831.628,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 850.816,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 870.051,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 888.938,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 910.569,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 928.873,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 945.979,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 965.12,
+      "content": " interactive"
+    },
+    {
+      "timestamp_ms": 985.29,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1002.982,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 1022.196,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1041.522,
+      "content": " Essentially"
+    },
+    {
+      "timestamp_ms": 1060.367,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1080.061,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1100.393,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 1117.513,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 1137.224,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1155.705,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1178.51,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 1201.187,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1212.702,
+      "content": " provision"
+    },
+    {
+      "timestamp_ms": 1231.822,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 1250.991,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 1271.958,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1291.589,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1309.773,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 1327.707,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1345.96,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 1365.415,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 1386.742,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1404.485,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1422.503,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1442.567,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1460.616,
+      "content": " closer"
+    },
+    {
+      "timestamp_ms": 1480.212,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 1498.914,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 1517.258,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 1537.195,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 1555.973,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 1575.261,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1594.988,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1612.975,
+      "content": " benefits"
+    },
+    {
+      "timestamp_ms": 1631.787,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1650.733,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1669.908,
+      "content": " Core"
+    },
+    {
+      "timestamp_ms": 1689.346,
+      "content": " Concepts"
+    },
+    {
+      "timestamp_ms": 1707.702,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1728.366,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1745.756,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1764.972,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1784.22,
+      "content": "Automation"
+    },
+    {
+      "timestamp_ms": 1802.991,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1823.2,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 1841.001,
+      "content": " define"
+    },
+    {
+      "timestamp_ms": 1862.323,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1879.636,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 1901.643,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1926.352,
+      "content": " templates"
+    },
+    {
+      "timestamp_ms": 1937.104,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1955.528,
+      "content": " scripts"
+    },
+    {
+      "timestamp_ms": 1974.603,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1993.543,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2012.8,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2031.68,
+      "content": " executed"
+    },
+    {
+      "timestamp_ms": 2052.203,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2070.517,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 2089.044,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 2108.128,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2127.414,
+      "content": " configure"
+    },
+    {
+      "timestamp_ms": 2147.067,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2165.725,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2184.866,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 2283.604,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2283.604,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2283.604,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2283.604,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 2283.786,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 2298.879,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2318.297,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 2336.636,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2356.128,
+      "content": " treated"
+    },
+    {
+      "timestamp_ms": 2375.124,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2393.758,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2412.956,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2432.719,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2451.076,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 2469.77,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2488.909,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2508.417,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 2527.573,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2546.096,
+      "content": " repositories"
+    },
+    {
+      "timestamp_ms": 2565.264,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2585.121,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2603.172,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2628.731,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 2641.864,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2659.965,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 2679.98,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2698.943,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 2718.12,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2738.14,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2755.977,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 2774.654,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2794.778,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 2812.742,
+      "content": " tracking"
+    },
+    {
+      "timestamp_ms": 2831.956,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2851.097,
+      "content": " collaboration"
+    },
+    {
+      "timestamp_ms": 2869.847,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2889.924,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2909.971,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 2927.429,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 2946.122,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2965.362,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2986.483,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3004.073,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3022.824,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 3041.569,
+      "content": "pro"
+    },
+    {
+      "timestamp_ms": 3061.418,
+      "content": "duc"
+    },
+    {
+      "timestamp_ms": 3079.522,
+      "content": "ibility"
+    },
+    {
+      "timestamp_ms": 3098.552,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3118.722,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 3136.811,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3155.754,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3176.679,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3194.137,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3212.996,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 3232.866,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3251.264,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3271.195,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 3289.66,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3308.271,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3331.456,
+      "content": " consistently"
+    },
+    {
+      "timestamp_ms": 3346.612,
+      "content": " reproduced"
+    },
+    {
+      "timestamp_ms": 3365.561,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 3385.233,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 3404.785,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 3422.965,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3442.248,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3460.663,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3479.737,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 3498.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3521.026,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3537.757,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3555.998,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3577.191,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 3594.1,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3613.918,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3632.441,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3651.314,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3670.293,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 3689.833,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 3709.057,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3727.48,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 3747.272,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 3765.614,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 3784.643,
+      "content": " minim"
+    },
+    {
+      "timestamp_ms": 3804.334,
+      "content": "izes"
+    },
+    {
+      "timestamp_ms": 3823.849,
+      "content": " manual"
+    },
+    {
+      "timestamp_ms": 3841.855,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 3860.957,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3879.755,
+      "content": " inconsistencies"
+    },
+    {
+      "timestamp_ms": 3898.842,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3918.387,
+      "content": " enforcing"
+    },
+    {
+      "timestamp_ms": 3944.01,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 3956.186,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 3975.338,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3994.129,
+      "content": " deployments"
+    },
+    {
+      "timestamp_ms": 4013.333,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 4033.091,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 4051.514,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 4070.522,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4089.586,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4108.219,
+      "content": " Benefits"
+    },
+    {
+      "timestamp_ms": 4128.882,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4146.676,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 4165.686,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4183.881,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 4203.687,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4223.007,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4244.547,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4261.511,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4280.54,
+      "content": "Eff"
+    },
+    {
+      "timestamp_ms": 4299.541,
+      "content": "iciency"
+    },
+    {
+      "timestamp_ms": 4319.209,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4338.248,
+      "content": " Time"
+    },
+    {
+      "timestamp_ms": 4356.195,
+      "content": "-S"
+    },
+    {
+      "timestamp_ms": 4375.682,
+      "content": "aving"
+    },
+    {
+      "timestamp_ms": 4394.995,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4414.207,
+      "content": " Automated"
+    },
+    {
+      "timestamp_ms": 4432.617,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 4451.596,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 4470.899,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 4489.893,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4509.326,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4531.598,
+      "content": " spent"
+    },
+    {
+      "timestamp_ms": 4547.201,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4566.783,
+      "content": " manual"
+    },
+    {
+      "timestamp_ms": 4585.221,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 4604.43,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4651.7,
+      "content": " Rapid"
+    },
+    {
+      "timestamp_ms": 4651.7,
+      "content": " provisioning"
+    },
+    {
+      "timestamp_ms": 4661.491,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 4680.574,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 4699.233,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4718.832,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 4738.225,
+      "content": " adapt"
+    },
+    {
+      "timestamp_ms": 4756.744,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4775.473,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 4794.577,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4813.889,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 4834.107,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4852.24,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 4872.655,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4890.482,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4909.406,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4928.703,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4947.212,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 4966.338,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4985.222,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5005.309,
+      "content": " Aud"
+    },
+    {
+      "timestamp_ms": 5024.406,
+      "content": "iting"
+    },
+    {
+      "timestamp_ms": 5042.321,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5063.748,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 5080.677,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 5099.555,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 5118.745,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 5137.748,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5156.709,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5175.805,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5195.157,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 5214.136,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5234.352,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 5252.157,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 5271.37,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5292.164,
+      "content": " compare"
+    },
+    {
+      "timestamp_ms": 5310.63,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 5328.3,
+      "content": " versions"
+    },
+    {
+      "timestamp_ms": 5347.643,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5366.281,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5385.252,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 5404.946,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 5423.653,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5442.457,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5462.569,
+      "content": " roll"
+    },
+    {
+      "timestamp_ms": 5480.84,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 5500.242,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5520.625,
+      "content": " previous"
+    },
+    {
+      "timestamp_ms": 5538.265,
+      "content": " states"
+    },
+    {
+      "timestamp_ms": 5558.238,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5576.332,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 5595.131,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5614.194,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5633.286,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5653.083,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5671.61,
+      "content": "Coll"
+    },
+    {
+      "timestamp_ms": 5701.154,
+      "content": "abor"
+    },
+    {
+      "timestamp_ms": 5709.529,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 5728.562,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5748.463,
+      "content": " Teams"
+    },
+    {
+      "timestamp_ms": 5766.948,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5786.422,
+      "content": " collaborate"
+    },
+    {
+      "timestamp_ms": 5806.81,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5824.06,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 5843.286,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5863.063,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 5881.7,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 5903.007,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 5920.117,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5940.115,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5957.613,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5977.0,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 5995.545,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 6035.263,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6036.781,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 6057.67,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 6073.27,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6097.033,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 6111.18,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 6131.632,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6149.507,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 6167.241,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 6186.562,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6205.597,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6224.174,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 6243.178,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6264.343,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6281.59,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6300.391,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6319.658,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6342.133,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6358.627,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6382.827,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 6395.863,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 6415.528,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 6433.811,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6454.148,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 6472.265,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6491.089,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6510.655,
+      "content": " easily"
+    },
+    {
+      "timestamp_ms": 6529.752,
+      "content": " scaled"
+    },
+    {
+      "timestamp_ms": 6548.847,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 6567.742,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6586.683,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 6605.894,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 6624.887,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6644.612,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 6662.831,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6681.939,
+      "content": " adjusting"
+    },
+    {
+      "timestamp_ms": 6707.958,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6721.647,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6738.978,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6757.701,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6776.956,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 6795.751,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 6816.284,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 6834.32,
+      "content": " loads"
+    },
+    {
+      "timestamp_ms": 6862.85,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 6873.518,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 6891.18,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 6910.491,
+      "content": " periods"
+    },
+    {
+      "timestamp_ms": 6930.922,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6949.259,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 6967.593,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 6987.701,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 7078.912,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 7078.912,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 7078.912,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 7078.912,
+      "content": " straightforward"
+    },
+    {
+      "timestamp_ms": 7081.853,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7100.954,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7120.098,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7139.523,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7158.218,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 7177.962,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 7196.414,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7215.442,
+      "content": " Compliance"
+    },
+    {
+      "timestamp_ms": 7234.558,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7254.245,
+      "content": " Ens"
+    },
+    {
+      "timestamp_ms": 7272.113,
+      "content": "ures"
+    },
+    {
+      "timestamp_ms": 7292.17,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7311.654,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 7329.412,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7349.25,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 7367.876,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7386.923,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 7407.252,
+      "content": " deployments"
+    },
+    {
+      "timestamp_ms": 7425.928,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7444.151,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7480.62,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 7481.969,
+      "content": " discrepancies"
+    },
+    {
+      "timestamp_ms": 7501.203,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 7520.369,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 7544.883,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7558.761,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 7578.024,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7597.573,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7615.813,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 7636.26,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 7655.745,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7673.475,
+      "content": " align"
+    },
+    {
+      "timestamp_ms": 7692.769,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7711.468,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7730.477,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 7749.46,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 7768.36,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7787.188,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7806.765,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7825.552,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7845.032,
+      "content": "Risk"
+    },
+    {
+      "timestamp_ms": 7863.923,
+      "content": " Reduction"
+    },
+    {
+      "timestamp_ms": 7882.902,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7904.457,
+      "content": " Automated"
+    },
+    {
+      "timestamp_ms": 7921.169,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 7940.189,
+      "content": " decrease"
+    },
+    {
+      "timestamp_ms": 7959.069,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7978.451,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 8021.66,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8021.66,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 8035.379,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 8054.593,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8073.25,
+      "content": " Scripts"
+    },
+    {
+      "timestamp_ms": 8092.704,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8111.827,
+      "content": " templates"
+    },
+    {
+      "timestamp_ms": 8131.211,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8149.297,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 8168.864,
+      "content": "-defined"
+    },
+    {
+      "timestamp_ms": 8187.678,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8207.404,
+      "content": " tested"
+    },
+    {
+      "timestamp_ms": 8225.829,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8245.572,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 8268.205,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 8284.23,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 8301.951,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8321.922,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 8341.384,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8359.583,
+      "content": " maintained"
+    },
+    {
+      "timestamp_ms": 8378.38,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8397.596,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 8416.943,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8436.145,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8454.713,
+      "content": "Cost"
+    },
+    {
+      "timestamp_ms": 8473.909,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8492.917,
+      "content": "Effect"
+    },
+    {
+      "timestamp_ms": 8513.347,
+      "content": "iveness"
+    },
+    {
+      "timestamp_ms": 8531.672,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8550.499,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 8569.339,
+      "content": " autom"
+    },
+    {
+      "timestamp_ms": 8588.106,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 8622.105,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 8626.42,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 8645.674,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8666.323,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 8684.579,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8703.127,
+      "content": " optimize"
+    },
+    {
+      "timestamp_ms": 8721.943,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8741.847,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 8759.772,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8779.299,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8797.71,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8816.94,
+      "content": " thus"
+    },
+    {
+      "timestamp_ms": 8836.169,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 8855.61,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 8873.944,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8893.763,
+      "content": " Unused"
+    },
+    {
+      "timestamp_ms": 8912.425,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8931.427,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8950.874,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8970.617,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 8988.776,
+      "content": " identified"
+    },
+    {
+      "timestamp_ms": 9008.18,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9026.913,
+      "content": " dealt"
+    },
+    {
+      "timestamp_ms": 9045.749,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9066.123,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 9084.58,
+      "content": " automated"
+    },
+    {
+      "timestamp_ms": 9103.408,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 9122.577,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9142.05,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 9160.339,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9179.887,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9198.857,
+      "content": "Speed"
+    },
+    {
+      "timestamp_ms": 9219.08,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9237.317,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 9255.784,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9274.986,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 9295.337,
+      "content": " platforms"
+    },
+    {
+      "timestamp_ms": 9313.23,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9332.649,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 9351.04,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 9370.008,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 9389.576,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 9408.612,
+      "content": " rapid"
+    },
+    {
+      "timestamp_ms": 9427.065,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 9446.227,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9466.385,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 9486.019,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9503.72,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 9523.119,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 9541.861,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9561.058,
+      "content": " innovate"
+    },
+    {
+      "timestamp_ms": 9580.212,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9599.391,
+      "content": " respond"
+    },
+    {
+      "timestamp_ms": 9618.113,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9637.216,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 9656.211,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 9676.206,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 9694.379,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9713.917,
+      "content": "Languages"
+    },
+    {
+      "timestamp_ms": 9732.83,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9751.537,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 9771.342,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 9790.051,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9809.259,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9828.639,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 9847.498,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 9873.133,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 9885.368,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 9904.347,
+      "content": " Terra"
+    },
+    {
+      "timestamp_ms": 9923.825,
+      "content": "form"
+    },
+    {
+      "timestamp_ms": 9943.346,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9963.527,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 9981.97,
+      "content": "Formation"
+    },
+    {
+      "timestamp_ms": 10000.463,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10000.463,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10000.463,
+      "type": "done"
+    }
+  ],
+  "full_response": "Infrastructure as Code (IaC) is a key practice in the DevOps methodology that involves managing and provisioning computer data centers through machine-readable definition files, rather than physical hardware configuration or interactive configuration tools. Essentially, it allows infrastructure to be managed and provisioned through code, just like software development.\n\nHere’s a closer look at IaC and its benefits:\n\n### Core Concepts:\n1. **Automation**: You define your infrastructure using templates or scripts that can be executed to automatically deploy and configure resources.\n   \n2. **Version Control**: Infrastructure is treated as code, which means it's stored in repositories and can use version control tools like Git. This allows for better tracking, collaboration, and history management.\n\n3. **Reproducibility**: By using code, you ensure that your infrastructure can be consistently reproduced across different environments, such as development, testing, and production.\n\n4. **Consistency**: IaC minimizes manual errors and inconsistencies by enforcing standard configurations and deployments across various environments.\n\n### Benefits of Infrastructure as Code:\n\n1. **Efficiency and Time-Saving**: Automated infrastructure setup reduces the time spent on manual configuration. Rapid provisioning allows organizations to quickly adapt to changes and scale as needed.\n\n2. **Versioning and Auditing**: With IaC, you can track changes over time, compare different versions of your infrastructure configurations, and roll back to previous states if necessary.\n\n3. **Collaboration**: Teams can collaborate more effectively by using version control systems, which allows developers and operations teams to work together to manage infrastructure as they do with application code.\n\n4. **Scalability**: Infrastructure can be easily scaled up or down based on demand by adjusting the code. This makes handling increased loads during high traffic periods or scaling back during low usage times straightforward.\n\n5. **Consistency and Compliance**: Ensures that environments are consistent across different deployments. It reduces discrepancies between development, testing, and production environments, aligning with compliance standards.\n\n6. **Risk Reduction**: Automated processes decrease the risk of human error. Scripts and templates are well-defined and tested, ensuring intended configurations are applied and maintained.\n\n7. **Cost-Effectiveness**: By automating infrastructure management, organizations can optimize the use of resources, thus reducing costs. Unused resources can be quickly identified and dealt with through automated means.\n\n8. **Speed of Deployment**: Cloud platforms and IaC enable rapid deployment of infrastructure, allowing organizations to innovate and respond to market changes quickly.\n\nLanguages and tools commonly used for IaC include Terraform, CloudFormation (",
+  "response_chars": 2905,
+  "num_chunks": 512,
+  "ttft_ms": 279.512,
+  "total_ms": 10004.167,
+  "model_name": "model-medium"
+}

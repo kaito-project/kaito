@@ -1,0 +1,2063 @@
+{
+  "index": 126,
+  "prompt": "Write a detailed 2000-word essay about the evolution of programming languages from Assembly to modern languages, covering at least 15 different languages.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 972.112,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " Evolution"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " Programming"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " Languages"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " From"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " Modern"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " Languages"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": "-word"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " essay"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": "Introduction"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " realm"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 972.112,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " undergone"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " remarkable"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " transitioning"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " assembly"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " y"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": "est"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": "ery"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": "ears"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " versatile"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1586.616,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " age"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " journey"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " reflects"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " interplay"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " technological"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " advancements"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " ever"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": "-growing"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " aspirations"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " essay"
+    },
+    {
+      "timestamp_ms": 1998.425,
+      "content": " explores"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " tracing"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " historical"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " milestones"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " examining"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " impact"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " least"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " fifteen"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2502.902,
+      "content": " had"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " solve"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " today"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " Birth"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": "250"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": "stone"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " timeline"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " assembly"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 3129.524,
+      "content": " programmers"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " clearer"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " directive"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " allowed"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " manipulation"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3734.32,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " yet"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " steep"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " curve"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3936.408,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " landscape"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " computational"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " era"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 4243.843,
+      "content": " strictly"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": "-dependent"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " demanding"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " programmers"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " intimate"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " inner"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " workings"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": "From"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": "250"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 4868.905,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " desire"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " portability"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " abstraction"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " gave"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " rise"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " conceived"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " Brian"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " Kern"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "igh"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "an"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " Dennis"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "itchie"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " Bell"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " Labs"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": " brid"
+    },
+    {
+      "timestamp_ms": 5492.859,
+      "content": "ged"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " gap"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " concrete"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " assembly"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " univers"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": "ality"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " sought"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5880.45,
+      "content": " becoming"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " foundation"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " upon"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6026.976,
+      "content": " contemporary"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " Emer"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": "gence"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": "-Level"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " Languages"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 6874.742,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " FOR"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": "TRAN"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " IBM"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " FOR"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": "TRAN"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": "Formula"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " Translation"
+    },
+    {
+      "timestamp_ms": 6882.713,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " Its"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " success"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " scientific"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " engineering"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " computations"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " paved"
+    },
+    {
+      "timestamp_ms": 7356.338,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": " innovations"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": " COB"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": "OL"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7356.657,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "imed"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " COB"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "OL"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "Common"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " Business"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "-Or"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "iented"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "-special"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": "ists"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 8022.374,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8035.76,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " English"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "-like"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " syntax"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " Pascal"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " Designed"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " teaching"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " Pascal"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " Nik"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "laus"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " W"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": "irth"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " emphasized"
+    },
+    {
+      "timestamp_ms": 8676.773,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " laying"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " groundwork"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " Developed"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " Dartmouth"
+    },
+    {
+      "timestamp_ms": 9242.842,
+      "content": " College"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": "Beg"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": "inners"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": "-purpose"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " Symbol"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": "ic"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " Instruction"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " approachable"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " novice"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " programmers"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " facilitated"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " educational"
+    },
+    {
+      "timestamp_ms": 9793.672,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": " Ada"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": "198"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": " Foster"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": " Department"
+    },
+    {
+      "timestamp_ms": 10038.977,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " Defense"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " Ada"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " sought"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " rigorous"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " successor"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " FOR"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": "TRAN"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " COB"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": "OL"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " focusing"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10479.435,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " Rise"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " Object"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "-Or"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "iented"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " Parad"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "ig"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "ms"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " Small"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "talk"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " Small"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "talk"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " pioneer"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " realm"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11291.619,
+      "content": " promoting"
+    },
+    {
+      "timestamp_ms": 11312.794,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 11312.794,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 11312.794,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11394.884,
+      "type": "done"
+    }
+  ],
+  "full_response": "The Evolution of Programming Languages: From Assembly to Modern Languages (2000-word essay)\n\nIntroduction (200 words)\n\nThe realm of programming languages has undergone a remarkable evolution, transitioning from the assembly language of yesteryears to the high-level, versatile languages that power the digital age. This journey reflects the dynamic interplay between technological advancements and the ever-growing aspirations of developers. This essay explores this evolution, tracing the historical milestones and examining the impact the development of at least fifteen distinct programming languages has had on the way we solve complex problems today.\n\nThe Birth of Assembly (250 words)\n\nThe stepstone of programming's timeline, assembly language, provided programmers with a clearer understanding of machine-level operations. It provided a directive so low-level that it allowed direct manipulation of the computer's hardware; yet, it also introduced the steep learning curve that defined the programming landscape of the initial computational era. Assembly languages were strictly hardware-dependent, demanding that programmers have intimate knowledge of the machine's inner workings.\n\nFrom Assembly to the C Language (250 words)\n\nThe desire for portability and abstraction gave rise to the C language, conceived in 1972 by Brian Kernighan and Dennis Ritchie at Bell Labs. C bridged the gap between the concrete world of assembly and the abstract universality sought by developers, becoming the foundation upon which many of the contemporary languages would be built.\n\nThe Emergence of High-Level Languages (500 words)\n\n1 FORTRAN: In 1957, IBM introduced FORTRAN (Formula Translation System), the first high-level programming language. Its success in scientific and engineering computations paved the for further innovations.\n2. COBOL: Aimed at business data processing, COBOL (Common Business-Oriented Language, 1959) made it possible for non-specialists to write software quickly with its English-like syntax.\n3. Pascal: Designed for teaching programming and structured programming, Pascal (1970), created by Niklaus Wirth, emphasized data types and control structures, laying the groundwork for future object-oriented programming languages.\n4. Basic (1976): Developed at Dartmouth College, Basic (Beginners All-purpose Symbolic Instruction Code) provided an approachable platform for novice programmers and facilitated educational purposes.\n5. Ada (1980): Fostered by the Department of Defense, Ada sought to be the rigorous successor of FORTRAN and COBOL, focusing on reliability and maintainability.\n\nThe Rise of Object-Oriented Paradigms (500 words)\n\n6. Smalltalk (1972): Smalltalk was a pioneer in the realm of object-oriented languages, promoting concepts such",
+  "response_chars": 2774,
+  "num_chunks": 510,
+  "ttft_ms": 972.112,
+  "total_ms": 11443.153,
+  "model_name": "Phi-4-mini-instruct"
+}

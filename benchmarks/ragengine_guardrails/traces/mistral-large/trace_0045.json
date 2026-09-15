@@ -1,0 +1,819 @@
+{
+  "index": 45,
+  "prompt": "Explain how HTTPS works, including the TLS handshake process.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 677.588,
+      "content": "HT"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": "TPS (Hyper"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": "text Transfer"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " Protocol Secure"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": ") is the"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " secure version"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " of HTTP"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": ", the"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " which data"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " is sent"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " between a"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " browser and a website"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": ". HTTPS"
+    },
+    {
+      "timestamp_ms": 677.588,
+      "content": " ensures that all communications"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": " between your"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": " browser and the website"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": " are encrypted"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": ", providing"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": ", integrity, and"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": ". This"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": " is achieved using **"
+    },
+    {
+      "timestamp_ms": 900.253,
+      "content": "TLS (Transport"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " Layer Security"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": ")**,"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " successor to SSL"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " (Secure S"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": "ockets Layer). Below"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " is a detailed explanation"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " of how HTTPS"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " works, including the"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " **TLS hand"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": "shake**"
+    },
+    {
+      "timestamp_ms": 1133.59,
+      "content": " process.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " **Key"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " Components of HTTPS**\n"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": "1. **Enc"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": "ryption**:"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " Ensures data"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " be read"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " by e"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": "avesdro"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": "ppers.\n2."
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " **Authentication**: Ver"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": "ifies that"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " the website is who"
+    },
+    {
+      "timestamp_ms": 1347.837,
+      "content": " it claims"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": " to be ("
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": "using digital"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": " certificates).\n3."
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": " **Integr"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": "ity**: Ensures"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": " is not altered"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": " during transmission"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": "How HTTPS"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": " Works ("
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": "Step-by-Step"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": ")**\n"
+    },
+    {
+      "timestamp_ms": 1540.992,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": ". **User"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": "s a Secure"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " Connection"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": "**:\n   - A"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " user types"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": "https://example.com"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": "` in their"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " browser.\n"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": "   - The browser"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " initiates"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " a connection"
+    },
+    {
+      "timestamp_ms": 1754.307,
+      "content": " to the website"
+    },
+    {
+      "timestamp_ms": 1948.508,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1948.508,
+      "content": " server on **"
+    },
+    {
+      "timestamp_ms": 1948.508,
+      "content": "port 44"
+    },
+    {
+      "timestamp_ms": 1948.508,
+      "content": "3** (default"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": " for HTTPS).\n\n2"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": ". **Server"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": " Respond"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": "s with"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": " Its"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": " Certificate**:\n   -"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": " The server sends its"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": " **T"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": "LS/"
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": "SSL certificate** ("
+    },
+    {
+      "timestamp_ms": 1963.71,
+      "content": "containing"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " public key and"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " to the"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " browser.\n\n3."
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " **Browser"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " Verifies"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " the Certificate"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": "**:\n   - The"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " browser checks the"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " certificate against"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " a list"
+    },
+    {
+      "timestamp_ms": 2180.701,
+      "content": " of trusted"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " **Certificate Author"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": "ities (CAs"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": ")**.\n   -"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " verifies:\n    "
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " - The certificate"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " is valid (not"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " expired or"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " revoked).\n    "
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " - The domain"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 2349.176,
+      "content": " matches the certificate"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": ".\n     - The"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": " CA"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": " is trusted"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": "igiCert"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": ", Let"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": "’s Enc"
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": "rypt).\n\n4."
+    },
+    {
+      "timestamp_ms": 2550.138,
+      "content": " **TLS Hand"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": "shake (Key"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": " Exchange &"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": " Session"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": " Establishment"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": ")**:\n   -"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": " The browser"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": " and server"
+    },
+    {
+      "timestamp_ms": 2731.717,
+      "content": " perform a **T"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": "LS handshake**"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " to establish a secure"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": ".\n   - The"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": "shake varies"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " slightly"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " depending on the **"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": "TLS version**"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " (e"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": ".g., TLS"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " 1.2"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": ". TLS"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " 1.3"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3112.965,
+      "content": " but the"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": " general steps are"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": ":\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": "TLS Handshake"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": " Process (Detailed"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": ")**\n"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": " TLS hand"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": "shake is"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": " multi"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": "-step process where the"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": " client and server agree"
+    },
+    {
+      "timestamp_ms": 3401.941,
+      "content": " on encryption"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": " parameters and"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": " exchange"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": " keys securely"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": ".\n\n#### **1"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": ". Client"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": " Hello"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": " (In"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": "itiated"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": " by the Browser"
+    },
+    {
+      "timestamp_ms": 3608.921,
+      "content": ")**\n- The"
+    },
+    {
+      "timestamp_ms": 3664.81,
+      "content": " browser sends a **"
+    },
+    {
+      "timestamp_ms": 3664.81,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 3664.81,
+      "content": "Hello** message"
+    },
+    {
+      "timestamp_ms": 3664.81,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3664.81,
+      "content": " the server, including"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": ":\n  - Supported"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": " **TLS versions"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "., TLS"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": " 1.2"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": ", TLS 1"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": ".3).\n "
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": " - Supported **c"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "ipher suites"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "., AES"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "-G"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "CM, Cha"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "Cha2"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3888.706,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3938.614,
+      "type": "done"
+    }
+  ],
+  "full_response": "HTTPS (Hypertext Transfer Protocol Secure) is the secure version of HTTP, the protocol over which data is sent between a browser and a website. HTTPS ensures that all communications between your browser and the website are encrypted, providing confidentiality, integrity, and authentication. This is achieved using **TLS (Transport Layer Security)**, the successor to SSL (Secure Sockets Layer). Below is a detailed explanation of how HTTPS works, including the **TLS handshake** process.\n\n---\n\n### **Key Components of HTTPS**\n1. **Encryption**: Ensures data cannot be read by eavesdroppers.\n2. **Authentication**: Verifies that the website is who it claims to be (using digital certificates).\n3. **Integrity**: Ensures data is not altered during transmission.\n\n---\n\n### **How HTTPS Works (Step-by-Step)**\n1. **User Requests a Secure Connection**:\n   - A user types `https://example.com` in their browser.\n   - The browser initiates a connection to the website’s server on **port 443** (default for HTTPS).\n\n2. **Server Responds with Its Certificate**:\n   - The server sends its **TLS/SSL certificate** (containing its public key and identity) to the browser.\n\n3. **Browser Verifies the Certificate**:\n   - The browser checks the certificate against a list of trusted **Certificate Authorities (CAs)**.\n   - It verifies:\n     - The certificate is valid (not expired or revoked).\n     - The domain name matches the certificate.\n     - The CA is trusted (e.g., DigiCert, Let’s Encrypt).\n\n4. **TLS Handshake (Key Exchange & Session Establishment)**:\n   - The browser and server perform a **TLS handshake** to establish a secure session.\n   - The handshake varies slightly depending on the **TLS version** (e.g., TLS 1.2 vs. TLS 1.3), but the general steps are:\n\n---\n\n### **TLS Handshake Process (Detailed)**\nThe TLS handshake is a multi-step process where the client and server agree on encryption parameters and exchange keys securely.\n\n#### **1. Client Hello (Initiated by the Browser)**\n- The browser sends a **ClientHello** message to the server, including:\n  - Supported **TLS versions** (e.g., TLS 1.2, TLS 1.3).\n  - Supported **cipher suites** (e.g., AES-GCM, ChaCha20",
+  "response_chars": 2172,
+  "num_chunks": 199,
+  "ttft_ms": 677.588,
+  "total_ms": 4076.689,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,1935 @@
+{
+  "index": 161,
+  "prompt": "Write an incident report about an employee who accidentally shared INTERNAL_ONLY documents externally. Reference INTERNAL_ONLY classification multiple times.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1091.991,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "Incident"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " Report"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " Unauthorized"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " External"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " Sharing"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " Documents"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "Time"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "35"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": "Reporter"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1091.991,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " Officer"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "Department"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " Human"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "Incident"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " Summary"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "An"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " HR"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " inadvertently"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 1625.701,
+      "content": " designation"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " personnel"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " unsecured"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " thread"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " recipient"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": " breach"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2111.768,
+      "content": "Description"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": "On"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 2930.9,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " inadvertently"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " thread"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " series"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2931.349,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2931.588,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " candidate"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " upcoming"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " recruitment"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " drives"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " salary"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " benefits"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3722.49,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " thread"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " inadvertently"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " candidate"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " had"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " broken"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " chain"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " mailing"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " recipient"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " opened"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4767.013,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " failing"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " notice"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " forwarded"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4768.629,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 4769.027,
+      "content": " inbox"
+    },
+    {
+      "timestamp_ms": 4769.027,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4769.027,
+      "content": " potentially"
+    },
+    {
+      "timestamp_ms": 4769.027,
+      "content": " exposing"
+    },
+    {
+      "timestamp_ms": 4769.027,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4769.027,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "Actions"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " Taken"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " thread"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " quarant"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "ined"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " company's"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " department"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " upon"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " recognizing"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " breach"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 5134.23,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " temporarily"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " suspended"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " HR"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " department"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " notified"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " department"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " heads"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " disable"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5579.084,
+      "content": " candidate"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " implicated"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " individuals"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " thorough"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " activity"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " conducted"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6056.501,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 6153.441,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6153.441,
+      "content": " scope"
+    },
+    {
+      "timestamp_ms": 6153.441,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6153.441,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6153.441,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 6153.441,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " recurrence"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " affected"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " individuals"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " alerted"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " breach"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " safeguarding"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6712.458,
+      "content": "Recommendations"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " Immediate"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " strengthening"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 7260.136,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": " mandatory"
+    },
+    {
+      "timestamp_ms": 7272.138,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " sessions"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7772.397,
+      "content": " verifying"
+    },
+    {
+      "timestamp_ms": 7772.691,
+      "content": " recipient"
+    },
+    {
+      "timestamp_ms": 7772.691,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 7772.691,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 7772.691,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " filtering"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " tracking"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " insecure"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " classified"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8393.385,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " Design"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": "ate"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " individual"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " responsible"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " overseeing"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " auditing"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8929.23,
+      "content": "Conclusion"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " incident"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " underscores"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " vigilance"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " adherence"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9257.943,
+      "content": " Immediate"
+    },
+    {
+      "timestamp_ms": 9330.42,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 9330.42,
+      "content": " taken"
+    },
+    {
+      "timestamp_ms": 9330.42,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 9330.42,
+      "content": " minimized"
+    },
+    {
+      "timestamp_ms": 9330.42,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9330.42,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " damage"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " preventive"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " implemented"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " incidents"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " recur"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 9896.358,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "Report"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Prepared"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Officer"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "Human"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Department"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "Reviewed"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Approved"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "Jane"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " HR"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": "Human"
+    },
+    {
+      "timestamp_ms": 10343.474,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 10422.456,
+      "content": " Department"
+    },
+    {
+      "timestamp_ms": 10422.456,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10442.521,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Incident Report: Unauthorized External Sharing of INTERNAL_ONLY Documents**\n\n**Date:** October 30, 2023\n\n**Time:** 14:35\n\n**Reporter:** John Doe, IT Security Officer\n\n**Department:** Human Resources\n\n**Incident Summary:**\nAn HR employee, Jane Smith, inadvertently sent several INTERNAL_ONLY designation documents containing sensitive personnel data via an unsecured email thread to an external recipient, resulting in a potential data breach.\n\n**Description of Incident:**\nOn October 30, 2023, at 14:, Jane Smith inadvertently shared an email thread containing a series of INTERNAL_ONLY documents. documents include a list of candidate information for upcoming recruitment drives, detailed employee files, and specific internal salary and benefits data.\n\nThe email thread was inadvertently sent to an external job candidate who had broken the chain of the mailing group. The external recipient opened the email and, failing to notice the classification status, forwarded the INTERNAL_ONLY documents to a personal inbox, potentially exposing sensitive employee information.\n\n**Actions Taken:**\n1. The email thread was immediately quarantined by the company's IT department upon recognizing the breach.\n2. Jane Smith was temporarily suspended to prevent any further risk.\n3. The HR department notified the relevant department heads to disable access to the candidate information for the implicated individuals.\n4. A thorough review of Jane Smith's activity was conducted to understand the scope of the unauthorized sharing and to prevent recurrence.\n5. All affected individuals were alerted about the breach and provided with information on safeguarding their data.\n\n**Recommendations:**\n1. Immediate review and strengthening of company policies regarding the handling and sharing of_ONLY documents.\n2. Conduct mandatory training sessions for all employees on data classification, secure communication practices, and the importance of verifying recipient before sending sensitive information.\n3. Implement advanced email filtering and tracking tools to detect and prevent insecure sharing of INTERNAL_ONLY classified documents.\n4. Designate a specific team or individual responsible for overseeing and auditing all INTERNAL_ONLY document distribution and sharing practices.\n\n**Conclusion:**\nThis incident underscores the need for continuous vigilance and adherence to data security protocols when handling INTERNAL_ONLY documents. Immediate actions taken have minimized the potential damage, but preventive measures must be implemented to ensure such incidents do not recur in the future.\n\n**Report Prepared by:**\nJohn Doe, IT Security Officer\nHuman Resources Department\n\n**Reviewed and Approved By:**\nJane Smith, HR Manager\nHuman Resources Department",
+  "response_chars": 2751,
+  "num_chunks": 478,
+  "ttft_ms": 1091.991,
+  "total_ms": 10533.496,
+  "model_name": "Phi-4-mini-instruct"
+}

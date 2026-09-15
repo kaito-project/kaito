@@ -1,0 +1,2071 @@
+{
+  "index": 154,
+  "prompt": "Write a sample git commit message and diff that shows a developer removing hardcoded credentials from source code and moving them to environment variables.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 337.188,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 337.41,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 337.51,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 337.573,
+      "content": " ref"
+    },
+    {
+      "timestamp_ms": 342.921,
+      "content": "actoring"
+    },
+    {
+      "timestamp_ms": 415.255,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 415.456,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 415.595,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 418.712,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 440.617,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 750.391,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 757.272,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 757.495,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 757.628,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 757.708,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 757.923,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 758.024,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 758.164,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 758.26,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 758.339,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 758.409,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 758.474,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 758.536,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 758.596,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 758.696,
+      "content": " handled"
+    },
+    {
+      "timestamp_ms": 758.811,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 762.226,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 781.79,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 852.849,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1072.961,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1073.202,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1073.27,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1073.324,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1073.378,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 1078.957,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 1079.073,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 1079.136,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 1079.197,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1079.244,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1079.293,
+      "content": " corresponding"
+    },
+    {
+      "timestamp_ms": 1079.34,
+      "content": " diff"
+    },
+    {
+      "timestamp_ms": 1079.384,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1079.427,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1087.111,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 1109.12,
+      "content": " Commit"
+    },
+    {
+      "timestamp_ms": 1123.629,
+      "content": " Message"
+    },
+    {
+      "timestamp_ms": 1152.244,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1162.522,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1185.576,
+      "content": "plaintext"
+    },
+    {
+      "timestamp_ms": 1235.558,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1235.83,
+      "content": "Ref"
+    },
+    {
+      "timestamp_ms": 1237.61,
+      "content": "actor"
+    },
+    {
+      "timestamp_ms": 1429.632,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1429.85,
+      "content": " Remove"
+    },
+    {
+      "timestamp_ms": 1429.933,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 1429.996,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1430.05,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1430.1,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 1430.148,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1430.193,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1430.236,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 1430.281,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1449.094,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1508.665,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1508.83,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1508.904,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 1525.557,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 1789.472,
+      "content": " removes"
+    },
+    {
+      "timestamp_ms": 1789.67,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1789.823,
+      "content": " instances"
+    },
+    {
+      "timestamp_ms": 1789.942,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1790.032,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 1790.095,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1790.148,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1791.417,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1791.564,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 1791.738,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1791.841,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1791.914,
+      "content": "These"
+    },
+    {
+      "timestamp_ms": 1792.029,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1792.113,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 1876.245,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 1876.384,
+      "content": " replaced"
+    },
+    {
+      "timestamp_ms": 1876.491,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1876.58,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1886.314,
+      "content": " respective"
+    },
+    {
+      "timestamp_ms": 1904.046,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1970.19,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1970.425,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1970.566,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 1981.72,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2033.974,
+      "content": "security"
+    },
+    {
+      "timestamp_ms": 2034.25,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2037.419,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 2173.809,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 2173.985,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2174.058,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2174.113,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 2174.162,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2174.208,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2174.251,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2217.072,
+      "content": " documented"
+    },
+    {
+      "timestamp_ms": 2217.21,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2229.342,
+      "content": " README"
+    },
+    {
+      "timestamp_ms": 2263.504,
+      "content": ".md"
+    },
+    {
+      "timestamp_ms": 2267.906,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2287.628,
+      "content": "Related"
+    },
+    {
+      "timestamp_ms": 2307.679,
+      "content": " tickets"
+    },
+    {
+      "timestamp_ms": 2584.773,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2585.071,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 2585.221,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2585.313,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 2585.371,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2585.426,
+      "content": "Changes"
+    },
+    {
+      "timestamp_ms": 2585.474,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 2585.519,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2585.563,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2585.606,
+      "content": " Removed"
+    },
+    {
+      "timestamp_ms": 2585.649,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 2585.69,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 2585.731,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 2585.901,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2589.763,
+      "content": " src"
+    },
+    {
+      "timestamp_ms": 2634.654,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 2634.878,
+      "content": "/database"
+    },
+    {
+      "timestamp_ms": 2648.052,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 2683.268,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2691.523,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2704.756,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 2949.187,
+      "content": "placed"
+    },
+    {
+      "timestamp_ms": 2949.336,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 2949.407,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": " src"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": "/services"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": "Service"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 2956.806,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2957.132,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2957.676,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2971.617,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2991.509,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3027.37,
+      "content": " Added"
+    },
+    {
+      "timestamp_ms": 3034.979,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 3049.876,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3095.103,
+      "content": " README"
+    },
+    {
+      "timestamp_ms": 3095.267,
+      "content": ".md"
+    },
+    {
+      "timestamp_ms": 3105.199,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3363.09,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 3363.355,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 3363.491,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3363.633,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 3363.784,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 3363.911,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3370.203,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 3370.416,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 3370.554,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3370.855,
+      "content": "Verify"
+    },
+    {
+      "timestamp_ms": 3372.464,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3372.664,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 3372.804,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 3372.947,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3402.048,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 3412.166,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 3428.685,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 3703.48,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3703.636,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3703.715,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 3703.787,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 3703.846,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3703.891,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 3703.939,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3703.984,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3704.028,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3704.071,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3704.112,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 3704.153,
+      "content": " Diff"
+    },
+    {
+      "timestamp_ms": 3704.195,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3704.237,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3714.836,
+      "content": "diff"
+    },
+    {
+      "timestamp_ms": 3733.713,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3782.244,
+      "content": "diff"
+    },
+    {
+      "timestamp_ms": 3782.393,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 3792.199,
+      "content": "git"
+    },
+    {
+      "timestamp_ms": 3988.877,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3989.154,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 3989.228,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 3989.283,
+      "content": "/database"
+    },
+    {
+      "timestamp_ms": 3989.332,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 3989.38,
+      "content": " b"
+    },
+    {
+      "timestamp_ms": 3996.966,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 3997.108,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 3997.311,
+      "content": "/database"
+    },
+    {
+      "timestamp_ms": 3997.417,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 4002.581,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4021.463,
+      "content": "index"
+    },
+    {
+      "timestamp_ms": 4068.882,
+      "content": " adb"
+    },
+    {
+      "timestamp_ms": 4069.047,
+      "content": "de"
+    },
+    {
+      "timestamp_ms": 4077.16,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 4231.467,
+      "content": ".."
+    },
+    {
+      "timestamp_ms": 4231.726,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 4231.866,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4231.997,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 4232.111,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4236.763,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 4236.909,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4237.084,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 4247.546,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4272.284,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 4324.285,
+      "content": "644"
+    },
+    {
+      "timestamp_ms": 4324.435,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4330.093,
+      "content": "---"
+    },
+    {
+      "timestamp_ms": 4345.824,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4361.73,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 4466.237,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 4466.397,
+      "content": "/database"
+    },
+    {
+      "timestamp_ms": 4466.465,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 4466.525,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4466.578,
+      "content": "+++"
+    },
+    {
+      "timestamp_ms": 4476.509,
+      "content": " b"
+    },
+    {
+      "timestamp_ms": 4500.514,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 4514.878,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 4534.562,
+      "content": "/database"
+    },
+    {
+      "timestamp_ms": 4552.838,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 4576.518,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4598.556,
+      "content": "@@"
+    },
+    {
+      "timestamp_ms": 4612.395,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4630.111,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 4650.115,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4733.914,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 4733.914,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 4734.103,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 4734.233,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4744.226,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 4836.438,
+      "content": " @@"
+    },
+    {
+      "timestamp_ms": 4836.637,
+      "content": " module"
+    },
+    {
+      "timestamp_ms": 4836.716,
+      "content": ".exports"
+    },
+    {
+      "timestamp_ms": 4836.777,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4839.662,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4907.94,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4908.101,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 4908.261,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 4917.191,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 4965.545,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 4965.677,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5027.333,
+      "content": "before"
+    },
+    {
+      "timestamp_ms": 5027.516,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5027.594,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5039.816,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 5049.391,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 5146.103,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5146.347,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5146.427,
+      "content": "my"
+    },
+    {
+      "timestamp_ms": 5146.502,
+      "content": "Username"
+    },
+    {
+      "timestamp_ms": 5146.719,
+      "content": "',\n"
+    },
+    {
+      "timestamp_ms": 5163.017,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5182.469,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 5219.027,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 5223.785,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5239.805,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5266.227,
+      "content": "my"
+    },
+    {
+      "timestamp_ms": 5277.808,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 5296.881,
+      "content": "',\n"
+    },
+    {
+      "timestamp_ms": 5453.648,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5453.786,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5453.85,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 5453.904,
+      "content": " Do"
+    },
+    {
+      "timestamp_ms": 5454.017,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5454.157,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 5454.239,
+      "content": " above"
+    },
+    {
+      "timestamp_ms": 5454.415,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 5468.478,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 5510.297,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5510.47,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 5637.554,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5637.874,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 5638.052,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5638.21,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 5638.351,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5638.451,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5641.633,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 5662.206,
+      "content": ".DB"
+    },
+    {
+      "timestamp_ms": 5860.494,
+      "content": "_USERNAME"
+    },
+    {
+      "timestamp_ms": 5860.667,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 5860.754,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 5860.824,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5860.889,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 5861.014,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5862.599,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5862.77,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 5871.862,
+      "content": ".DB"
+    },
+    {
+      "timestamp_ms": 5872.122,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 5872.334,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 5969.149,
+      "content": " };\n\n"
+    },
+    {
+      "timestamp_ms": 5969.289,
+      "content": ".diff"
+    },
+    {
+      "timestamp_ms": 5969.42,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 5969.538,
+      "content": "git"
+    },
+    {
+      "timestamp_ms": 5969.68,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5982.968,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 6008.417,
+      "content": "/services"
+    },
+    {
+      "timestamp_ms": 6022.199,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 6054.768,
+      "content": "Service"
+    },
+    {
+      "timestamp_ms": 6059.796,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 6178.004,
+      "content": " b"
+    },
+    {
+      "timestamp_ms": 6178.239,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 6178.434,
+      "content": "/services"
+    },
+    {
+      "timestamp_ms": 6178.577,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 6178.684,
+      "content": "Service"
+    },
+    {
+      "timestamp_ms": 6178.75,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 6193.601,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6212.382,
+      "content": "index"
+    },
+    {
+      "timestamp_ms": 6232.315,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6391.654,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6391.887,
+      "content": "fac"
+    },
+    {
+      "timestamp_ms": 6392.067,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6392.17,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 6392.241,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 6392.289,
+      "content": ".."
+    },
+    {
+      "timestamp_ms": 6392.364,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6392.472,
+      "content": "ba"
+    },
+    {
+      "timestamp_ms": 6406.47,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 6421.896,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 6534.878,
+      "content": "03"
+    },
+    {
+      "timestamp_ms": 6535.023,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6536.345,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 6536.472,
+      "content": "644"
+    },
+    {
+      "timestamp_ms": 6536.566,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6536.633,
+      "content": "---"
+    },
+    {
+      "timestamp_ms": 6576.69,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6576.933,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 6725.118,
+      "content": "/services"
+    },
+    {
+      "timestamp_ms": 6725.262,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 6725.327,
+      "content": "Service"
+    },
+    {
+      "timestamp_ms": 6725.38,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 6725.426,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6725.474,
+      "content": "+++"
+    },
+    {
+      "timestamp_ms": 6725.518,
+      "content": " b"
+    },
+    {
+      "timestamp_ms": 6764.935,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 6764.935,
+      "content": "/services"
+    },
+    {
+      "timestamp_ms": 6775.773,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 6784.052,
+      "content": "Service"
+    },
+    {
+      "timestamp_ms": 6820.896,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 6837.372,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6845.353,
+      "content": "@@"
+    },
+    {
+      "timestamp_ms": 7094.555,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7094.688,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7094.753,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7094.888,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 7094.997,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 7095.099,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7095.186,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7107.514,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 7107.698,
+      "content": " @@"
+    },
+    {
+      "timestamp_ms": 7107.894,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 7108.046,
+      "content": " axios"
+    },
+    {
+      "timestamp_ms": 7108.18,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7108.283,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 7112.522,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 7128.56,
+      "content": "axios"
+    },
+    {
+      "timestamp_ms": 7201.893,
+      "content": "');\n"
+    },
+    {
+      "timestamp_ms": 7202.123,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 7202.317,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 7203.164,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7247.463,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 7247.615,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7266.162,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 7280.191,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 7299.25,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 7479.405,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 7479.555,
+      "content": "_HERE"
+    },
+    {
+      "timestamp_ms": 7479.624,
+      "content": "';"
+    },
+    {
+      "timestamp_ms": 7479.681,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 7479.731,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 7479.777,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 7479.821,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7479.867,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 7479.922,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7490.06,
+      "content": "to"
+    },
+    {
+      "timestamp_ms": 7510.12,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7528.388,
+      "content": " removed"
+    },
+    {
+      "timestamp_ms": 7573.449,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7573.599,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 7588.063,
+      "content": "-module"
+    },
+    {
+      "timestamp_ms": 7603.64,
+      "content": ".exports"
+    },
+    {
+      "timestamp_ms": 7714.046,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7714.285,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7714.419,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7714.529,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7714.725,
+      "content": " fetchData"
+    },
+    {
+      "timestamp_ms": 7721.512,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7737.999,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 7758.141,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 7898.257,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7898.404,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7898.474,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7898.533,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 7898.584,
+      "content": " axios"
+    },
+    {
+      "timestamp_ms": 7898.63,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 7898.674,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 7911.834,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 7928.466,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 8039.821,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 8039.958,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 8040.025,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": "/data"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": "',"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 8228.266,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 8228.478,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8233.365,
+      "content": "Bearer"
+    },
+    {
+      "timestamp_ms": 8263.875,
+      "content": " ${"
+    },
+    {
+      "timestamp_ms": 8274.053,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 8317.702,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 8318.001,
+      "content": "}`"
+    },
+    {
+      "timestamp_ms": 8330.776,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 8642.471,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 8642.641,
+      "content": "module"
+    },
+    {
+      "timestamp_ms": 8642.779,
+      "content": ".exports"
+    },
+    {
+      "timestamp_ms": 8642.881,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8643.047,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8643.212,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 8643.335,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8653.231,
+      "content": " fetchData"
+    },
+    {
+      "timestamp_ms": 8653.329,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8653.393,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 8653.445,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 8653.49,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8653.536,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 8653.587,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8653.631,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 8653.676,
+      "content": " axios"
+    },
+    {
+      "timestamp_ms": 8654.873,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 8804.509,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 8804.643,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 8804.707,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 8804.76,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 8804.808,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 8804.855,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 8804.903,
+      "content": "/data"
+    },
+    {
+      "timestamp_ms": 8806.396,
+      "content": "',"
+    },
+    {
+      "timestamp_ms": 8994.07,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8994.283,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 8994.361,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 8994.423,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 8996.505,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8996.62,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 8996.693,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8996.756,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 8996.819,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 8996.873,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9025.98,
+      "content": "Bearer"
+    },
+    {
+      "timestamp_ms": 9034.75,
+      "content": " ${"
+    },
+    {
+      "timestamp_ms": 9054.12,
+      "content": "process"
+    },
+    {
+      "timestamp_ms": 9239.817,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 9239.966,
+      "content": ".API"
+    },
+    {
+      "timestamp_ms": 9240.032,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 9240.084,
+      "content": "}`"
+    },
+    {
+      "timestamp_ms": 9240.133,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 9240.181,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9240.227,
+      "content": " });\n"
+    },
+    {
+      "timestamp_ms": 9240.272,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9240.315,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 9244.512,
+      "content": " };\n"
+    },
+    {
+      "timestamp_ms": 9466.167,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 9466.318,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9466.383,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9466.44,
+      "content": " README"
+    },
+    {
+      "timestamp_ms": 9466.489,
+      "content": ".md"
+    },
+    {
+      "timestamp_ms": 9466.536,
+      "content": " Update"
+    },
+    {
+      "timestamp_ms": 9466.582,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 9466.631,
+      "content": "uggestion"
+    },
+    {
+      "timestamp_ms": 9466.677,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9466.718,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 9466.76,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9473.858,
+      "content": " README"
+    },
+    {
+      "timestamp_ms": 9552.655,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9552.791,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 9552.86,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 9561.951,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9571.731,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 9592.059,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9607.634,
+      "content": " section"
+    },
+    {
+      "timestamp_ms": 9649.201,
+      "content": " outlining"
+    },
+    {
+      "timestamp_ms": 9649.422,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 9664.763,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9685.598,
+      "content": " configure"
+    },
+    {
+      "timestamp_ms": 9703.962,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9748.148,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 9755.545,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9767.391,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 9788.845,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9808.654,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 9819.983,
+      "content": "markdown"
+    },
+    {
+      "timestamp_ms": 9982.886,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9983.038,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 9983.116,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 9983.181,
+      "content": " Variables"
+    },
+    {
+      "timestamp_ms": 9983.24,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9983.295,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 9983.349,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 9983.4,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9989.238,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 10007.554,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10007.554,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10007.701,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! When refactoring code to remove hardcoded credentials and instead use environment variables, it is important to ensure sensitive information is handled securely. Below is an example of a sample Git commit message and the corresponding diff.\n\n### Sample Commit Message\n\n```plaintext\nRefactor: Remove hardcoded credentials from source code and replace with environment variables\n\nThis commit removes all instances of hardcoded credentials from the source code.\nThese credentials have been replaced with their respective environment variables to enhance\nsecurity and maintainability. The necessary environment variables are documented in README.md.\n\nRelated tickets: #1234\n\nChanges made:\n- Removed hardcoded database credentials in src/config/database.js.\n- Replaced hardcoded API keys in src/services/apiService.js with environment variables.\n- Added documentation to README.md to guide developers on setting up these environment variables.\n\nVerify that environment variables are set up before using the application after this change.\n```\n\n### Sample Diff\n\n```diff\ndiff --git a/src/config/database.js b/src/config/database.js\nindex adbde01..d1f3c2b 100644\n--- a/src/config/database.js\n+++ b/src/config/database.js\n@@ -10,7 +10,7 @@ module.exports = {\n   // Using hardcoded credentials (before)\n   // username: 'myUsername',\n   // password: 'myPassword',\n-  // Do not use above credentials after this commit\n+  username: process.env.DB_USERNAME,\n+  password: process.env.DB_PASSWORD,\n };\n\n.diff --git a/src/services/apiService.js b/src/services/apiService.js\nindex 4fac7b8..5ba9f03 100644\n--- a/src/services/apiService.js\n+++ b/src/services/apiService.js\n@@ -5,8 +5,8 @@ const axios = require('axios');\n \n const API_KEY = 'YOUR_API_KEY_HERE'; // Hardcoded in example (to be removed)\n \n-module.exports = {\n-  fetchData: function() {\n-    return axios.get('https://api.example.com/data', {\n-      headers: { 'Authorization': `Bearer ${API_KEY}` }\n+module.exports = {\n+  fetchData: function() {\n+    return axios.get('https://api.example.com/data', {\n+      headers: { 'Authorization': `Bearer ${process.env.API_KEY}` }\n     });\n   }\n };\n```\n\n### README.md Update Suggestion\n\nIn the README or relevant documentation, add a section outlining how to configure the necessary environment variables.\n\n```markdown\n## Environment Variables\n\nTo run the application,",
+  "response_chars": 2362,
+  "num_chunks": 512,
+  "ttft_ms": 337.188,
+  "total_ms": 10013.901,
+  "model_name": "model-medium"
+}

@@ -1,0 +1,2059 @@
+{
+  "index": 76,
+  "prompt": "Describe the architecture of a typical Kubernetes cluster and the role of each component.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 855.922,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " consists"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 855.922,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " plane"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 1430.448,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " serves"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " purpose"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 1434.907,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " workloads"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": "Control"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " Plane"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " plane"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " master"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " acts"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " brain"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " manages"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2096.352,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " scheduling"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " orches"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": "tration"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " plane"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 2659.554,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3478.658,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 3478.658,
+      "content": "-ap"
+    },
+    {
+      "timestamp_ms": 3478.658,
+      "content": "iser"
+    },
+    {
+      "timestamp_ms": 3478.658,
+      "content": "ver"
+    },
+    {
+      "timestamp_ms": 3478.658,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3478.658,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "cheduler"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "-controller"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "-manager"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 3478.914,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": "iser"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": "ver"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": "-ap"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": "iser"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": "ver"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 3484.53,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " plane"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " plugins"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " talk"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " validates"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 4094.62,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": "cheduler"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": "cheduler"
+    },
+    {
+      "timestamp_ms": 4502.816,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " watches"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " uns"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": "cheduled"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " selects"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 4809.265,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": "-controller"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": "-manager"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": "-controller"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": "-manager"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " minor"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " controllers"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " replication"
+    },
+    {
+      "timestamp_ms": 5355.414,
+      "content": " controller"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " endpoint"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " controller"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " namespace"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " controller"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " desired"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " matches"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6039.773,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " serves"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " location"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 6520.489,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6579.992,
+      "content": "Worker"
+    },
+    {
+      "timestamp_ms": 6579.992,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 6579.992,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6579.992,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 6579.992,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 6579.992,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " consists"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": "let"
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7293.505,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "-pro"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "xy"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " Container"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " Runtime"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " Interface"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "CRI"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "let"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "let"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "node"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " agent"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8094.12,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " spec"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "-pro"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "xy"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "-pro"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": "xy"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " proxy"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 8796.173,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 8840.755,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 8840.755,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8840.755,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " networking"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " balancing"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " inter"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": "-p"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": "od"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " exposing"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": "Container"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " Runtime"
+    },
+    {
+      "timestamp_ms": 9316.778,
+      "content": " Interface"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": "CRI"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " Container"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " Runtime"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " Interface"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": "CRI"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " workloads"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " supports"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " arbitrary"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " runt"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": "imes"
+    },
+    {
+      "timestamp_ms": 9904.732,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " universally"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": "-de"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": "ployed"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " implements"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": "ubernetes"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": " CR"
+    },
+    {
+      "timestamp_ms": 10445.558,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "]("
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "github"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "/k"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "ubernetes"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "/k"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "ubernetes"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "/blob"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "/master"
+    },
+    {
+      "timestamp_ms": 10698.924,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "/f"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "eder"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "beta"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "containers"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "ervice"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "/types"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": ".go"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": "Finally"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11159.302,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 11159.659,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 11159.659,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": " Class"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": "-pro"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": "vision"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 11302.924,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11364.325,
+      "type": "done"
+    }
+  ],
+  "full_response": "A Kubernetes cluster is a group of machines that work together to run containerized applications. A cluster typically consists of three types of nodes: the control plane node, the worker nodes, and the database. Each component in cluster serves a different purpose in managing and running containerized workloads.\n\nControl Plane Node:\nThe control plane node, also called the master node, acts as the brain of the Kubernetes cluster. It manages the overall scheduling, cluster management, and orchestration functions. The Kubernetes control plane uses several processes to manage the cluster, including the kube-apiserver, the kube-scheduler, the kube-controller-manager, and etcd.\n\n1. Kubeiserver: The kube-apiserver is the component that every component of the Kubernetes cluster, including the control plane and the node plugins, talk to. It receives, validates, and processes REST requests, then updates the Kubernetes state as needed.\n\n2. Kube-scheduler: The kube-scheduler receives and watches for new, unscheduled pods and selects the appropriate worker node for those pods to run on.\n\n3. Kube-controller-manager: The kube-controller-manager runs multiple minor controllers like the replication controller, the endpoint controller, and the namespace controller. It ensures the desired state specified by the user matches the current state.\n\n4. etcd: The etcd is a key-value store that serves as the primary location of configuration information for the entire Kubernetes cluster.\n\nWorker Node:\nThe worker nodes are the machines in the cluster that run the containerized applications. Each worker node consists of a set of worker processes, including Kubelet, Kube-proxy, and Container Runtime Interface (CRI).\n\n1. Kubelet: The kubelet is the primary \"node agent\" that runs on each worker node and ensures that all the containers specified in the pod's spec are running in the container runtime.\n\n2. Kube-proxy: Kube-proxy is a network proxy that runs on each worker node and provides networking and load balancing for inter-pod communication as well as exposing services to the external world.\n\nContainer Runtime Interface (CRI):\nThe Container Runtime Interface (CRI) is an interface for running containerized workloads. Kubernetes supports arbitrary container runtimes using this interface. The Kubernetes project also provides a universally-deployed container runtime called containerd, which implements the [Kubernetes CRI](https://github.com/kubernetes/kubernetes/blob/master/api/federation/v1beta1/containerservice/types.go).\n\nFinally, the Kubernetes also requires a Storage Class to store pre-provisioned",
+  "response_chars": 2616,
+  "num_chunks": 509,
+  "ttft_ms": 855.922,
+  "total_ms": 11524.726,
+  "model_name": "Phi-4-mini-instruct"
+}

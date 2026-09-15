@@ -1,0 +1,2035 @@
+{
+  "index": 78,
+  "prompt": "Write a sample README that shows example curl commands including Bearer tokens, API keys in headers, and basic auth credentials.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 384.66,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 384.66,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 399.787,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 421.482,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 437.572,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 456.611,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 475.029,
+      "content": " README"
+    },
+    {
+      "timestamp_ms": 494.165,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 514.612,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 537.295,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 551.103,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 570.332,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 590.389,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 608.848,
+      "content": " commands"
+    },
+    {
+      "timestamp_ms": 634.92,
+      "content": " demonstrating"
+    },
+    {
+      "timestamp_ms": 648.167,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 666.352,
+      "content": " ways"
+    },
+    {
+      "timestamp_ms": 684.541,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 704.504,
+      "content": " authenticate"
+    },
+    {
+      "timestamp_ms": 723.465,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 743.479,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 761.155,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 780.736,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 800.535,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 818.418,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 839.197,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 857.442,
+      "content": "earer"
+    },
+    {
+      "timestamp_ms": 876.268,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 895.666,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 913.377,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 933.367,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 951.504,
+      "content": " included"
+    },
+    {
+      "timestamp_ms": 970.493,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 991.949,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 1008.494,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1027.718,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1046.923,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 1065.809,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 1085.151,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1104.015,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1125.361,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1142.176,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1167.643,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 1184.35,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1201.554,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1218.57,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 1238.529,
+      "content": " short"
+    },
+    {
+      "timestamp_ms": 1256.422,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 1276.217,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1295.177,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1313.545,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 1333.588,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1354.738,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1371.139,
+      "content": " purpose"
+    },
+    {
+      "timestamp_ms": 1390.189,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1408.444,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1428.794,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1446.863,
+      "content": " functionalities"
+    },
+    {
+      "timestamp_ms": 1465.869,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1484.802,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 1504.574,
+      "content": " Getting"
+    },
+    {
+      "timestamp_ms": 1525.691,
+      "content": " Started"
+    },
+    {
+      "timestamp_ms": 1541.973,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1563.514,
+      "content": "Instructions"
+    },
+    {
+      "timestamp_ms": 1580.401,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1599.066,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1618.474,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1637.266,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 1656.322,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 1675.656,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1694.713,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1713.35,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1732.981,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 1778.753,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1778.753,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 1792.043,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1808.781,
+      "content": " Usage"
+    },
+    {
+      "timestamp_ms": 1827.88,
+      "content": " Examples"
+    },
+    {
+      "timestamp_ms": 1846.763,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1866.283,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 1887.708,
+      "content": " section"
+    },
+    {
+      "timestamp_ms": 1904.978,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 1926.718,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 1942.312,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1960.996,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1982.412,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2000.714,
+      "content": " interact"
+    },
+    {
+      "timestamp_ms": 2018.158,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2037.45,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2056.442,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2075.625,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2094.886,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2113.616,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 2132.409,
+      "content": "`.\n\n"
+    },
+    {
+      "timestamp_ms": 2151.667,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2170.386,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 2189.479,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 2208.797,
+      "content": "earer"
+    },
+    {
+      "timestamp_ms": 2228.976,
+      "content": " Tokens"
+    },
+    {
+      "timestamp_ms": 2246.691,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2266.676,
+      "content": "Bearer"
+    },
+    {
+      "timestamp_ms": 2293.027,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 2306.389,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2339.015,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2343.674,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2361.202,
+      "content": " authenticate"
+    },
+    {
+      "timestamp_ms": 2380.242,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 2401.068,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2418.193,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2437.416,
+      "content": " bearer"
+    },
+    {
+      "timestamp_ms": 2456.505,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 2477.308,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 2494.672,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2515.201,
+      "content": " included"
+    },
+    {
+      "timestamp_ms": 2532.552,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2555.185,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2571.79,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2591.489,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 2609.659,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2628.087,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 2648.589,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2665.904,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 2686.069,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2704.169,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2725.534,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 2742.911,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2761.792,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 2780.267,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2808.569,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 2818.384,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 2839.435,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2859.879,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 2875.23,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 2895.263,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 2966.498,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 2966.498,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2966.498,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 2980.493,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2992.026,
+      "content": "/resources"
+    },
+    {
+      "timestamp_ms": 3010.199,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 3028.838,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 3048.845,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 3066.822,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3085.435,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 3104.798,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3124.73,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 3143.003,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3164.465,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 3182.719,
+      "content": "earer"
+    },
+    {
+      "timestamp_ms": 3199.558,
+      "content": " YOUR"
+    },
+    {
+      "timestamp_ms": 3218.897,
+      "content": "_B"
+    },
+    {
+      "timestamp_ms": 3238.062,
+      "content": "EAR"
+    },
+    {
+      "timestamp_ms": 3257.116,
+      "content": "ER"
+    },
+    {
+      "timestamp_ms": 3276.029,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 3295.435,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3314.194,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3333.121,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3352.256,
+      "content": "Replace"
+    },
+    {
+      "timestamp_ms": 3371.538,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3391.137,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 3409.631,
+      "content": "_B"
+    },
+    {
+      "timestamp_ms": 3428.427,
+      "content": "EAR"
+    },
+    {
+      "timestamp_ms": 3448.168,
+      "content": "ER"
+    },
+    {
+      "timestamp_ms": 3468.933,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 3485.442,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3505.179,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3525.787,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3568.404,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 3568.404,
+      "content": " bearer"
+    },
+    {
+      "timestamp_ms": 3580.583,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 3603.097,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3619.964,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3638.634,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 3657.099,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3676.327,
+      "content": " Keys"
+    },
+    {
+      "timestamp_ms": 3695.162,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3714.467,
+      "content": " Headers"
+    },
+    {
+      "timestamp_ms": 3741.911,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3751.92,
+      "content": "Some"
+    },
+    {
+      "timestamp_ms": 3771.046,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 3790.526,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 3809.266,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3831.696,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3848.545,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3866.602,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3886.092,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3904.667,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 3924.539,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3942.712,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3961.539,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 3981.077,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4000.031,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 4018.919,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 4106.574,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4106.574,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 4106.574,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4106.574,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 4114.619,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 4133.701,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4153.354,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 4171.949,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4190.536,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 4209.472,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 4228.743,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4247.779,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 4267.402,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 4287.518,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 4304.791,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 4323.835,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4342.278,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 4362.64,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4381.217,
+      "content": "/resources"
+    },
+    {
+      "timestamp_ms": 4400.272,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 4419.2,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 4438.335,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4457.233,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4476.379,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 4497.468,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4514.475,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 4533.435,
+      "content": "-Type"
+    },
+    {
+      "timestamp_ms": 4552.744,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4571.454,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 4591.453,
+      "content": "/json"
+    },
+    {
+      "timestamp_ms": 4609.798,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 4628.632,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 4648.882,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4666.976,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4686.083,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 4707.109,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4723.876,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 4743.508,
+      "content": "-api"
+    },
+    {
+      "timestamp_ms": 4762.847,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 4782.791,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4800.265,
+      "content": " YOUR"
+    },
+    {
+      "timestamp_ms": 4819.379,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 4838.509,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4857.83,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 4876.793,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4903.45,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4915.12,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4934.202,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 4952.736,
+      "content": " YOUR"
+    },
+    {
+      "timestamp_ms": 4971.686,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 4990.69,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 5013.834,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5031.457,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5048.034,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 5066.967,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5086.101,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5114.242,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5124.926,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 5143.608,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5162.651,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 5181.572,
+      "content": " '{\""
+    },
+    {
+      "timestamp_ms": 5200.344,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 5219.427,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5239.236,
+      "content": "\":\""
+    },
+    {
+      "timestamp_ms": 5257.871,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 5276.853,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5296.16,
+      "content": "\",\""
+    },
+    {
+      "timestamp_ms": 5316.252,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 5333.981,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5353.214,
+      "content": "\":\""
+    },
+    {
+      "timestamp_ms": 5372.109,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 5391.314,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5410.092,
+      "content": "\"}"
+    },
+    {
+      "timestamp_ms": 5429.139,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 5448.121,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 5467.4,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5487.67,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5505.821,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 5524.841,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 5543.891,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 5563.58,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5582.006,
+      "content": "Basic"
+    },
+    {
+      "timestamp_ms": 5604.394,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 5619.899,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 5650.035,
+      "content": " encoding"
+    },
+    {
+      "timestamp_ms": 5657.854,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5677.787,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 5696.312,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5715.942,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 5734.385,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5754.773,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 5773.138,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 5791.486,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5810.244,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 5830.256,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5850.138,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5868.329,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5886.765,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5905.844,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 5924.927,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5944.792,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 5963.279,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5982.904,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 6001.421,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 6020.294,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6039.833,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 6058.247,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6077.471,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 6096.74,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6228.469,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 6228.618,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 6228.677,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6228.728,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 6228.773,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 6228.815,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 6230.801,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 6248.815,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 6269.179,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 6288.263,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6307.298,
+      "content": "/resources"
+    },
+    {
+      "timestamp_ms": 6325.337,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6344.65,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 6363.777,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6385.652,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6402.727,
+      "content": "u"
+    },
+    {
+      "timestamp_ms": 6420.741,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6440.472,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 6458.445,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6477.611,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 6496.625,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6515.817,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 6535.347,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6553.958,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6573.638,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 6592.037,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 6611.06,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6630.638,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 6649.094,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6668.649,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6688.307,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 6706.462,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6726.507,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6745.066,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6764.259,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 6783.015,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6802.094,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 6821.468,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6840.732,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 6859.544,
+      "content": " $("
+    },
+    {
+      "timestamp_ms": 6880.769,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 6899.412,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6917.421,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 6935.32,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 6953.781,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 6974.215,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6994.036,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 7013.768,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 7030.889,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7049.545,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 7070.05,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 7088.221,
+      "content": ")\"\n"
+    },
+    {
+      "timestamp_ms": 7107.562,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7126.831,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7145.748,
+      "content": "Ensure"
+    },
+    {
+      "timestamp_ms": 7187.438,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7187.438,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7202.392,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 7221.983,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7240.462,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 7259.601,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7280.367,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7297.953,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7317.094,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 7339.171,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7355.339,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7374.856,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7394.015,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 7414.597,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 7439.059,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7450.49,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 7469.748,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 7488.671,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7507.906,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 7530.26,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 7546.211,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 7565.019,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7584.0,
+      "content": "Information"
+    },
+    {
+      "timestamp_ms": 7603.06,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7621.972,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 7641.03,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7662.001,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 7680.809,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 7698.305,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7718.401,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 7737.155,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 7757.031,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 7775.605,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7794.543,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 7815.683,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 7832.977,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 7850.98,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7871.226,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 7890.13,
+      "content": " Additional"
+    },
+    {
+      "timestamp_ms": 7908.683,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 7927.426,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7947.108,
+      "content": "Links"
+    },
+    {
+      "timestamp_ms": 7975.315,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7986.782,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 8004.067,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 8059.761,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8059.761,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8062.518,
+      "content": " chang"
+    },
+    {
+      "timestamp_ms": 8080.953,
+      "content": "elog"
+    },
+    {
+      "timestamp_ms": 8101.633,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8119.975,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8138.296,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8159.968,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8175.502,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 8308.475,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8308.475,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8308.475,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 8308.475,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8308.475,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 8308.475,
+      "content": "Replace"
+    },
+    {
+      "timestamp_ms": 8309.4,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8328.234,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 8349.898,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 8370.098,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 8385.731,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 8405.463,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 8423.51,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 8445.38,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8462.196,
+      "content": "/resources"
+    },
+    {
+      "timestamp_ms": 8481.052,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8499.002,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8518.35,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8538.574,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 8556.358,
+      "content": " endpoints"
+    },
+    {
+      "timestamp_ms": 8575.504,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8596.83,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8613.669,
+      "content": " targeting"
+    },
+    {
+      "timestamp_ms": 8635.887,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8654.036,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8671.637,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 8689.897,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 8709.346,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8729.053,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 8748.853,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8770.866,
+      "content": " placeholders"
+    },
+    {
+      "timestamp_ms": 8786.805,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8806.772,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8823.312,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 8842.729,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 8861.745,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8881.146,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 8899.838,
+      "content": "_B"
+    },
+    {
+      "timestamp_ms": 8919.375,
+      "content": "EAR"
+    },
+    {
+      "timestamp_ms": 8939.101,
+      "content": "ER"
+    },
+    {
+      "timestamp_ms": 8956.606,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 8976.085,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 8995.216,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9015.449,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 9035.69,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 9052.363,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 9073.208,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 9090.793,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9111.58,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 9134.693,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 9150.488,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9168.627,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 9187.352,
+      "content": "`)"
+    },
+    {
+      "timestamp_ms": 9205.092,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9224.716,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9243.32,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 9263.425,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 9281.722,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9302.52,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 9319.802,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9339.602,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 9358.593,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9376.942,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 9403.925,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9417.373,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9435.784,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9454.236,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9472.53,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 9491.788,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9510.413,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 9529.766,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9553.496,
+      "content": " handled"
+    },
+    {
+      "timestamp_ms": 9569.983,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 9587.716,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9607.112,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 9625.898,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 9645.773,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 9697.265,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9697.265,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 9701.196,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 9720.896,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9739.505,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 9758.645,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9778.584,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 9797.526,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 9815.849,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 9834.609,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9854.017,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 9873.558,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 9891.991,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9911.706,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 9930.434,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9953.494,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9953.494,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample README that includes example `curl` commands demonstrating various ways to authenticate API requests, such as using Bearer tokens, API keys included in headers, and Basic Authentication credentials.\n\n---\n\n# Project Name\n\nA short description of your project, its purpose, and key functionalities.\n\n## Getting Started\n\nInstructions on how to set up and use your project.\n\n## API Usage Examples\n\nThis section provides examples of how to interact with the API using `curl`.\n\n### Using Bearer Tokens\n\nBearer tokens are used to authenticate requests. The bearer token should be included in the `Authorization` header.\n\nExample:\n\n```bash\ncurl -X GET \"https://api.example.com/v1/resources\" \\\n     -H \"Authorization: Bearer YOUR_BEARER_TOKEN\"\n```\n\nReplace `YOUR_BEARER_TOKEN` with your actual bearer token.\n\n### Using API Keys in Headers\n\nSome APIs require an API key to be sent in the headers for request authentication.\n\nExample:\n\n```bash\ncurl -X POST \"https://api.example.com/v1/resources\" \\\n     -H \"Content-Type: application/json\" \\\n     -H \"x-api-key: YOUR_API_KEY\" \\  # Replace YOUR_API_KEY with your actual API key\n     -d '{\"key1\":\"value1\",\"key2\":\"value2\"}'\n```\n\n### Using Basic Authentication\n\nBasic Authentication involves encoding the username and password in Base64 and including it in the `Authorization` header.\n\nExample:\n\n```bash\ncurl -X GET \"https://api.example.com/v1/resources\" \\\n     -u \"username:password\" \\  # Replace username and password with your credentials\n     -H \"Authorization: Basic $(echo -n 'username:password' | base64)\"\n```\n\nEnsure that you replace `username` and `password` with your actual credentials for Basic Authentication.\n\n## Response Handling\n\nInformation on how to handle responses, including error messages and possible status codes.\n\n## Additional Resources\n\nLinks to further documentation, a changelog, or other resources related to the project.\n\n---\n\nReplace `https://api.example.com/v1/resources` with the actual endpoints you are targeting, and make sure to replace any placeholders (e.g., `YOUR_BEARER_TOKEN`, `YOUR_API_KEY`, `username`, `password`) with your own credentials or tokens.\n\nFor a production environment, ensure that tokens and credentials are handled securely to prevent unauthorized access. Consider using environment variables or secret management tools to keep sensitive information protected.",
+  "response_chars": 2382,
+  "num_chunks": 503,
+  "ttft_ms": 384.66,
+  "total_ms": 9954.887,
+  "model_name": "model-medium"
+}

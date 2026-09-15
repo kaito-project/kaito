@@ -1,0 +1,855 @@
+{
+  "index": 191,
+  "prompt": "Write an internal memo about a project codenamed SECRET_PROJECT. Describe the timeline, budget, and team members involved. Use the project codename throughout.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1462.474,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "IN"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "TERNAL MEM"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "O**\n"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "**Conf"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "idential –"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": " Author"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "ized Personnel"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": " Only"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "**\n\n**To"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": ":** SE"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "CRET"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "_PROJECT Team"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "akeholders\n**"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "From:** [Your"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": " Name],"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": " [Your Position"
+    },
+    {
+      "timestamp_ms": 1462.474,
+      "content": "]\n**Date"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": ":** [Insert"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": " Date]\n**Subject"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": ":** SE"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": "CRET_PROJECT Update"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": " – Timeline"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": ", Budget"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": ", and Team"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": " Overview\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": " **Overview"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": "**\nSE"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": "CRET_PROJECT is"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": " a high"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": "-p"
+    },
+    {
+      "timestamp_ms": 2279.047,
+      "content": "riority initiative"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " aimed"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " at [brief"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": "ly describe the project"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": "’s objective"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " revealing sensitive"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " details, e"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": ".g., \"de"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": "veloping a"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": "-generation solution"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " to enhance"
+    },
+    {
+      "timestamp_ms": 2475.849,
+      "content": " operational efficiency\"]. Given"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " the project"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": "’s strategic"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": ", strict"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " be maintained. This"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " memo"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " outlines the current"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " timeline, budget"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " allocation, and team"
+    },
+    {
+      "timestamp_ms": 3371.84,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " SE"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": "CRET_PROJECT.\n\n"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": "---\n\n### **Timeline"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": "**\nSE"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": "CRET_PROJECT is"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " structured in"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " three key"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " phases,"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " with the"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " following milestones:\n\n"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": "1. **Phase"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " 1: Research"
+    },
+    {
+      "timestamp_ms": 5259.022,
+      "content": " & Development"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " (R"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": "&D)**\n   -"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " **Duration:** ["
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": "Start"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " Date] –"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " [End"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " Date]"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " Q1"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " 202"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": "4)\n   -"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " **Key Del"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": "iverables"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": ":**\n     - Market"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " technical feasibility"
+    },
+    {
+      "timestamp_ms": 6285.482,
+      "content": " analysis.\n     -"
+    },
+    {
+      "timestamp_ms": 6480.359,
+      "content": " Pro"
+    },
+    {
+      "timestamp_ms": 6480.359,
+      "content": "totype development"
+    },
+    {
+      "timestamp_ms": 6480.359,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6480.359,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " testing.\n  "
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " - **Status"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": ":** [On"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " Track"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " Delay"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": "ed /"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": "head of"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " Schedule]\n\n2."
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " **Phase 2"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": ": Implementation"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 6961.774,
+      "content": "**\n   - **"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "Duration:** ["
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "Start"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": " Date] – ["
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "End Date] ("
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "e.g., Q"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "–"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "Q3 "
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "2024"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": ")\n   - **"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "Key Deliverables"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": ":**\n     - Full"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "-scale"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": " deployment of"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": " SE"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": "CRET_PROJECT components"
+    },
+    {
+      "timestamp_ms": 7939.382,
+      "content": ".\n     - Integration"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " with existing systems ("
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": "where"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " applicable).\n     -"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " Beta"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " testing with"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " select"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " stakeholders.\n  "
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " - **Status:**"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " [Not"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " Started"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " Progress]\n\n3."
+    },
+    {
+      "timestamp_ms": 8703.167,
+      "content": " **Phase 3"
+    },
+    {
+      "timestamp_ms": 9107.284,
+      "content": ": Deployment"
+    },
+    {
+      "timestamp_ms": 9107.284,
+      "content": " & Optimization"
+    },
+    {
+      "timestamp_ms": 9107.284,
+      "content": "**\n   - **"
+    },
+    {
+      "timestamp_ms": 9107.284,
+      "content": "Duration:** [Start"
+    },
+    {
+      "timestamp_ms": 9107.284,
+      "content": " Date] – ["
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": "End Date] ("
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": "e.g., Q"
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": "4 20"
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": "24)\n  "
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": " - **Key Del"
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": "iverables:**\n    "
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": " - Full"
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": " rollout of"
+    },
+    {
+      "timestamp_ms": 9715.081,
+      "content": " SECRET_PROJECT"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": ".\n     - Performance"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": " and iterative"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": " improvements"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": ".\n     - Training"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": "-users"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": " (if applicable).\n"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": "   - **Status"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": ":** [Not"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": " Started]\n\n**Project"
+    },
+    {
+      "timestamp_ms": 10484.031,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " Completion Date"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": ":** [Insert"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " Date]\n\n"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": "*Note"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": ": Timeline"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " adjustments may"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " occur"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " based on R"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": "&D findings"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " or resource"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": ". All"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 10987.746,
+      "content": " will be communicated"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": " promptly"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": ".*\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": "Budget**\nSE"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": "CRET_PROJECT has"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": " been allocated a"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": " total budget of **["
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": "insert"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": " amount,"
+    },
+    {
+      "timestamp_ms": 11568.043,
+      "content": " e.g., $"
+    },
+    {
+      "timestamp_ms": 11820.139,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 11820.139,
+      "content": " million"
+    },
+    {
+      "timestamp_ms": 11820.139,
+      "content": "]**,"
+    },
+    {
+      "timestamp_ms": 11820.139,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 11820.139,
+      "content": " as follows:\n\n|"
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": " **Category**              "
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": " | **All"
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": "ocation"
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": "**      "
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": " | **Notes**"
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": "                                 "
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": " |\n|----------------------------"
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": "|--------------------"
+    },
+    {
+      "timestamp_ms": 11986.235,
+      "content": "--|--------------------------------"
+    },
+    {
+      "timestamp_ms": 12132.242,
+      "content": "------------|\n"
+    },
+    {
+      "timestamp_ms": 12132.242,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 12132.393,
+      "type": "done"
+    }
+  ],
+  "full_response": "**INTERNAL MEMO**\n**Confidential – For Authorized Personnel Only**\n\n**To:** SECRET_PROJECT Team & Stakeholders\n**From:** [Your Name], [Your Position]\n**Date:** [Insert Date]\n**Subject:** SECRET_PROJECT Update – Timeline, Budget, and Team Overview\n\n---\n\n### **Overview**\nSECRET_PROJECT is a high-priority initiative aimed at [briefly describe the project’s objective without revealing sensitive details, e.g., \"developing a next-generation solution to enhance operational efficiency\"]. Given the project’s strategic importance, strict confidentiality must be maintained. This memo outlines the current timeline, budget allocation, and team structure for SECRET_PROJECT.\n\n---\n\n### **Timeline**\nSECRET_PROJECT is structured in three key phases, with the following milestones:\n\n1. **Phase 1: Research & Development (R&D)**\n   - **Duration:** [Start Date] – [End Date] (e.g., Q1 2024)\n   - **Key Deliverables:**\n     - Market and technical feasibility analysis.\n     - Prototype development and internal testing.\n   - **Status:** [On Track / Delayed / Ahead of Schedule]\n\n2. **Phase 2: Implementation & Integration**\n   - **Duration:** [Start Date] – [End Date] (e.g., Q2–Q3 2024)\n   - **Key Deliverables:**\n     - Full-scale deployment of SECRET_PROJECT components.\n     - Integration with existing systems (where applicable).\n     - Beta testing with select internal stakeholders.\n   - **Status:** [Not Started / In Progress]\n\n3. **Phase 3: Deployment & Optimization**\n   - **Duration:** [Start Date] – [End Date] (e.g., Q4 2024)\n   - **Key Deliverables:**\n     - Full rollout of SECRET_PROJECT.\n     - Performance monitoring and iterative improvements.\n     - Training for end-users (if applicable).\n   - **Status:** [Not Started]\n\n**Projected Completion Date:** [Insert Date]\n\n*Note: Timeline adjustments may occur based on R&D findings or resource availability. All changes will be communicated promptly.*\n\n---\n\n### **Budget**\nSECRET_PROJECT has been allocated a total budget of **[insert amount, e.g., $X million]**, distributed as follows:\n\n| **Category**               | **Allocation**       | **Notes**                                  |\n|----------------------------|----------------------|--------------------------------------------|\n",
+  "response_chars": 2241,
+  "num_chunks": 208,
+  "ttft_ms": 1462.474,
+  "total_ms": 12132.68,
+  "model_name": "Mistral-Large-3"
+}

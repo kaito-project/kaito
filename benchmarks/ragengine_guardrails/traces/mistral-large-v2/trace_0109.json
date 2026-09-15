@@ -1,0 +1,723 @@
+{
+  "index": 109,
+  "prompt": "What are the key principles of object-oriented programming? Give examples in Python.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 693.304,
+      "content": "Object"
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": "-Oriented Programming ("
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": "OOP) is"
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": " a programming"
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": " paradigm based"
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": " on the concept"
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": " of \""
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": "objects,\""
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": " which can contain data"
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": "attributes) and code"
+    },
+    {
+      "timestamp_ms": 693.304,
+      "content": " (methods). The"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": " principles of OOP"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": " are:\n\n1."
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": " **Encapsulation"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": "**\n2"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": ". **In"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": "heritance**\n3"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": ". **Pol"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": "ymorphism**\n4"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": ". **Abstra"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": "ction**\n\nLet"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": " explore each principle"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": " with Python"
+    },
+    {
+      "timestamp_ms": 734.548,
+      "content": " examples.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " 1. **"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": "Encapsulation**\n"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": "Encapsulation is"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " the bund"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": "ling of data ("
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": "attributes) and methods"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " operate on the"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " data into"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " a single unit"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " (class"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": " It rest"
+    },
+    {
+      "timestamp_ms": 1027.376,
+      "content": "ricts direct"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " access to some"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": "'s components"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " which is"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " a way of"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " preventing"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " accidental"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " modification of"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " data.\n\n####"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": " Example:\n```python"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": "\nclass Bank"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": "Account"
+    },
+    {
+      "timestamp_ms": 1191.795,
+      "content": ":\n    def __"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": "init__(self,"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": "_holder"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": ", balance):\n       "
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": " self.account"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": "_holder = account"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": "_holder  #"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": " Public"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": " attribute\n        self"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": ".__balance = balance"
+    },
+    {
+      "timestamp_ms": 1353.482,
+      "content": "  # Private attribute"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": " (name"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": " mang"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": "ling)\n\n    def"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": " deposit(self, amount"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": "):\n        if"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": " amount > 0"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": ":\n            self.__"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": "balance += amount\n"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": " print(f\"Dep"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": "osited ${"
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": "amount}."
+    },
+    {
+      "timestamp_ms": 1522.552,
+      "content": " New balance:"
+    },
+    {
+      "timestamp_ms": 1577.249,
+      "content": " ${self.__balance"
+    },
+    {
+      "timestamp_ms": 1577.249,
+      "content": "}\")\n"
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": "        else:\n           "
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": " print(\"Invalid"
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": " deposit"
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": " amount.\")\n\n"
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": "    def withdraw"
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": "(self, amount):\n"
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": "        if "
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": "0 < amount <="
+    },
+    {
+      "timestamp_ms": 1829.062,
+      "content": " self.__balance:\n"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": "            self.__balance"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": " -= amount\n           "
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": " print(f\"With"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": "drew"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": " ${amount}. New"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": " balance: ${self"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": ".__balance}\")\n       "
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": " else:\n            print"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": "(\"In"
+    },
+    {
+      "timestamp_ms": 1829.39,
+      "content": "sufficient funds or"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": " invalid amount"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": ".\")\n\n    def get"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "_balance(self):\n       "
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": " return self.__balance"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "\n\n# Usage"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "\naccount = Bank"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "Account(\"Alice"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "\", 1"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "000)\n"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "account.de"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "posit(50"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": "0)  #"
+    },
+    {
+      "timestamp_ms": 2061.742,
+      "content": " Dep"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "osited $"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "500."
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": " New balance: $"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "1500"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "\naccount.with"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "draw(2"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "00) "
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": " # With"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "drew $2"
+    },
+    {
+      "timestamp_ms": 2715.15,
+      "content": "00. New"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": " balance: $1"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": "300\n"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": "print"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": "(account.get"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": "_balance())  #"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": " 130"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": "0\n#"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": "(account.__"
+    },
+    {
+      "timestamp_ms": 2715.471,
+      "content": "balance)  #"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": " Attribute"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": "Error ("
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": "private attribute)\n```\n\n"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": "### 2."
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": " **Inheritance"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": "**\nIn"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": "heritance allows"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": " a class ("
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": "child"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": ") to inherit attributes"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": " and methods"
+    },
+    {
+      "timestamp_ms": 2715.719,
+      "content": " from another"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": " class (parent"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": " class). This promotes"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": " code re"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": "usability.\n\n"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": "#### Example:\n```"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": "python\nclass Animal"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": ":\n    def __"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": "init__(self,"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": " name):\n        self"
+    },
+    {
+      "timestamp_ms": 2715.909,
+      "content": ".name = name\n\n"
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": "    def speak"
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": "(self):\n"
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": "        raise"
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": " NotImplementedError(\""
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": "Subclass must implement"
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": " method\")\n\n"
+    },
+    {
+      "timestamp_ms": 2829.026,
+      "content": "class Dog("
+    },
+    {
+      "timestamp_ms": 2833.804,
+      "content": "Animal):\n    def"
+    },
+    {
+      "timestamp_ms": 2833.804,
+      "content": " speak(self):\n       "
+    },
+    {
+      "timestamp_ms": 2833.804,
+      "content": " return f"
+    },
+    {
+      "timestamp_ms": 2913.447,
+      "content": "\"{self.name}"
+    },
+    {
+      "timestamp_ms": 2913.447,
+      "content": " says Wo"
+    },
+    {
+      "timestamp_ms": 2913.447,
+      "content": "of!\"\n\nclass"
+    },
+    {
+      "timestamp_ms": 2913.447,
+      "content": " Cat"
+    },
+    {
+      "timestamp_ms": 2913.447,
+      "content": "(Animal):\n"
+    },
+    {
+      "timestamp_ms": 2913.447,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3046.019,
+      "type": "done"
+    }
+  ],
+  "full_response": "Object-Oriented Programming (OOP) is a programming paradigm based on the concept of \"objects,\" which can contain data (attributes) and code (methods). The key principles of OOP are:\n\n1. **Encapsulation**\n2. **Inheritance**\n3. **Polymorphism**\n4. **Abstraction**\n\nLet's explore each principle with Python examples.\n\n---\n\n### 1. **Encapsulation**\nEncapsulation is the bundling of data (attributes) and methods that operate on the data into a single unit (class). It restricts direct access to some of the object's components, which is a way of preventing accidental modification of data.\n\n#### Example:\n```python\nclass BankAccount:\n    def __init__(self, account_holder, balance):\n        self.account_holder = account_holder  # Public attribute\n        self.__balance = balance  # Private attribute (name mangling)\n\n    def deposit(self, amount):\n        if amount > 0:\n            self.__balance += amount\n            print(f\"Deposited ${amount}. New balance: ${self.__balance}\")\n        else:\n            print(\"Invalid deposit amount.\")\n\n    def withdraw(self, amount):\n        if 0 < amount <= self.__balance:\n            self.__balance -= amount\n            print(f\"Withdrew ${amount}. New balance: ${self.__balance}\")\n        else:\n            print(\"Insufficient funds or invalid amount.\")\n\n    def get_balance(self):\n        return self.__balance\n\n# Usage\naccount = BankAccount(\"Alice\", 1000)\naccount.deposit(500)  # Deposited $500. New balance: $1500\naccount.withdraw(200)  # Withdrew $200. New balance: $1300\nprint(account.get_balance())  # 1300\n# print(account.__balance)  # AttributeError (private attribute)\n```\n\n---\n\n### 2. **Inheritance**\nInheritance allows a class (child class) to inherit attributes and methods from another class (parent class). This promotes code reusability.\n\n#### Example:\n```python\nclass Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        raise NotImplementedError(\"Subclass must implement abstract method\")\n\nclass Dog(Animal):\n    def speak(self):\n        return f\"{self.name} says Woof!\"\n\nclass Cat(Animal):\n",
+  "response_chars": 2090,
+  "num_chunks": 175,
+  "ttft_ms": 693.304,
+  "total_ms": 3046.548,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,827 @@
+{
+  "index": 129,
+  "prompt": "Write a troubleshooting guide for a developer who accidentally committed their AWS credentials, GitHub personal access token, and database password to a public repository.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 877.42,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": " **Tro"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": "ubleshooting Guide"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": ": Acc"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": "idental"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": " Exposure"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": " of S"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": "ensitive Credentials in"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": " a Public"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": " Repository**\n\nIf"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": "’ve accidentally committed sensitive"
+    },
+    {
+      "timestamp_ms": 877.42,
+      "content": " credentials (AWS"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": ", Git"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": "Hub tokens"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": ", database"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " passwords, etc.)"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " to a public"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " repository, **"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": "act immediately"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": "** to minimize"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " risks. Below"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " is a"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " step-by-step guide"
+    },
+    {
+      "timestamp_ms": 1397.515,
+      "content": " to mitigate the"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " damage.\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": "🚨"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " Im"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": "mediate Actions"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " (Do"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " This First"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": "!)**\n###"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " **1. Rev"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": "oke the"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " Exposed Credentials"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": "**\n#### **AWS"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " Credentials (Access"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " Key &"
+    },
+    {
+      "timestamp_ms": 1889.717,
+      "content": " Secret Key)**\n-"
+    },
+    {
+      "timestamp_ms": 2325.453,
+      "content": " **Go"
+    },
+    {
+      "timestamp_ms": 2325.453,
+      "content": " to the AWS I"
+    },
+    {
+      "timestamp_ms": 2325.453,
+      "content": "AM Console** →"
+    },
+    {
+      "timestamp_ms": 2325.453,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": "Users** →"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " Select"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " your user →"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " **Security"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " Cred"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": "entials**"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " →"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " **Access"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " Keys**.\n"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": "- **Delete the"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " key** (or"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " mark"
+    },
+    {
+      "timestamp_ms": 2325.697,
+      "content": " it as inactive"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": ").\n- **Generate"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " a new key"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": "** (if needed"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": ") and update"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " in your local"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " files.\n"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": "- **Check"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " AWS Cloud"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": "Trail**"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " for any unauthorized API"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " calls"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 2634.976,
+      "content": " with the exposed"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": " key.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": "GitHub Personal"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": " Access Token (P"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": "AT)**\n- **"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": "Go to Git"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": "Hub Settings** →"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": " **Developer"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": " Settings"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": "** → **Personal"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": " Access Tokens**.\n"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": "- **Re"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": "voke the"
+    },
+    {
+      "timestamp_ms": 2952.489,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 2976.857,
+      "content": " token**.\n"
+    },
+    {
+      "timestamp_ms": 2976.857,
+      "content": "- **Generate"
+    },
+    {
+      "timestamp_ms": 2976.857,
+      "content": " a new token**"
+    },
+    {
+      "timestamp_ms": 2976.857,
+      "content": " (with"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " minimal"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " required permissions"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": ") and update it"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " in your local"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " config"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " CI/CD pipelines"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": ".\n\n#### **Database"
+    },
+    {
+      "timestamp_ms": 3295.512,
+      "content": " Passwords"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": "**\n- **Change"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": " the database password"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": " immediately** (My"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": "SQL, PostgreSQL"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": ", Mongo"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": "DB, etc.).\n"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": "- **Update"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": " all applications"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": "** that"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": " use this"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3558.1,
+      "content": "- **Check database"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " logs** for"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " unauthorized access attempts"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": "2. Remove the"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " Credentials from Git"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " History**\nEven"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " if you"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " delete the file,"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " retains"
+    },
+    {
+      "timestamp_ms": 4319.767,
+      "content": " history. You"
+    },
+    {
+      "timestamp_ms": 4610.099,
+      "content": " must **rew"
+    },
+    {
+      "timestamp_ms": 4610.099,
+      "content": "rite Git"
+    },
+    {
+      "timestamp_ms": 4610.099,
+      "content": " history** to remove"
+    },
+    {
+      "timestamp_ms": 4610.099,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4610.099,
+      "content": " data.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 4610.099,
+      "content": "Option A: Use"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": " `git filter"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": "-repo"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": "` (Re"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": "commended)**\n1"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": ". **Install `"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": "git-filter-repo"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": "`** (if"
+    },
+    {
+      "timestamp_ms": 4615.374,
+      "content": " not installed):\n  "
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " ```sh\n  "
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " pip"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " install git-filter-re"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": "po\n   ```\n"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": "2. **Run"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " the following to"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " remove the sensitive"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " file from"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": "**:\n"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": "   ```sh\n"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": "   git filter"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": "-repo --force"
+    },
+    {
+      "timestamp_ms": 4615.78,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "invert"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "-paths"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": " --path <"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "file"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "-containing"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "-se"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "crets>\n   ```\n"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": ". **If"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": " the credentials"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": " in environment"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": " variables or"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "**,"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": ":\n   ```sh"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "\n   git filter"
+    },
+    {
+      "timestamp_ms": 4616.172,
+      "content": "-repo --replace"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "-text"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": " \"SE"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "CRET_KEY=="
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": ">RE"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "DA"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "CTED\")\n  "
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": " ```\n\n#### **Option"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": " B: Use `"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "FG"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": " Repo-C"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": "leaner`"
+    },
+    {
+      "timestamp_ms": 4807.822,
+      "content": " (Alternative)**\n1"
+    },
+    {
+      "timestamp_ms": 4808.289,
+      "content": ". **Download B"
+    },
+    {
+      "timestamp_ms": 4808.289,
+      "content": "FG**:\n"
+    },
+    {
+      "timestamp_ms": 4808.289,
+      "content": "   ```sh\n"
+    },
+    {
+      "timestamp_ms": 4808.289,
+      "content": "   w"
+    },
+    {
+      "timestamp_ms": 4808.289,
+      "content": "get https://repo"
+    },
+    {
+      "timestamp_ms": 4808.289,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4808.634,
+      "content": ".m"
+    },
+    {
+      "timestamp_ms": 4808.634,
+      "content": "aven.org"
+    },
+    {
+      "timestamp_ms": 4808.634,
+      "content": "/maven2"
+    },
+    {
+      "timestamp_ms": 4808.634,
+      "content": "/com"
+    },
+    {
+      "timestamp_ms": 4808.634,
+      "content": "/m"
+    },
+    {
+      "timestamp_ms": 4808.634,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4808.878,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **Troubleshooting Guide: Accidental Exposure of Sensitive Credentials in a Public Repository**\n\nIf you’ve accidentally committed sensitive credentials (AWS keys, GitHub tokens, database passwords, etc.) to a public repository, **act immediately** to minimize security risks. Below is a step-by-step guide to mitigate the damage.\n\n---\n\n## **🚨 Immediate Actions (Do This First!)**\n### **1. Revoke the Exposed Credentials**\n#### **AWS Credentials (Access Key & Secret Key)**\n- **Go to the AWS IAM Console** → **Users** → Select your user → **Security Credentials** → **Access Keys**.\n- **Delete the exposed key** (or mark it as inactive).\n- **Generate a new key** (if needed) and update it in your local/config files.\n- **Check AWS CloudTrail** for any unauthorized API calls made with the exposed key.\n\n#### **GitHub Personal Access Token (PAT)**\n- **Go to GitHub Settings** → **Developer Settings** → **Personal Access Tokens**.\n- **Revoke the exposed token**.\n- **Generate a new token** (with minimal required permissions) and update it in your local Git config or CI/CD pipelines.\n\n#### **Database Passwords**\n- **Change the database password immediately** (MySQL, PostgreSQL, MongoDB, etc.).\n- **Update all applications** that use this password.\n- **Check database logs** for any unauthorized access attempts.\n\n---\n\n### **2. Remove the Credentials from Git History**\nEven if you delete the file, Git retains history. You must **rewrite Git history** to remove sensitive data.\n\n#### **Option A: Use `git filter-repo` (Recommended)**\n1. **Install `git-filter-repo`** (if not installed):\n   ```sh\n   pip install git-filter-repo\n   ```\n2. **Run the following to remove the sensitive file from history**:\n   ```sh\n   git filter-repo --force --invert-paths --path <file-containing-secrets>\n   ```\n3. **If the credentials were in environment variables or logs**, use:\n   ```sh\n   git filter-repo --replace-text <(echo \"SECRET_KEY==>REDACTED\")\n   ```\n\n#### **Option B: Use `BFG Repo-Cleaner` (Alternative)**\n1. **Download BFG**:\n   ```sh\n   wget https://repo1.maven.org/maven2/com/m",
+  "response_chars": 2078,
+  "num_chunks": 201,
+  "ttft_ms": 877.42,
+  "total_ms": 4828.682,
+  "model_name": "Mistral-Large-3"
+}

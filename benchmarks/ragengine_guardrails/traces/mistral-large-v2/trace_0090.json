@@ -1,0 +1,647 @@
+{
+  "index": 90,
+  "prompt": "Write a sample .env file for a Python Flask application that includes DATABASE_URL, SECRET_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STRIPE_API_KEY, and SENDGRID_API_KEY.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 919.551,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": " `.env` file"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": " for a"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": " Python Flask application with"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": " the requested"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": " variables:\n\n```env"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": "\n# Flask"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": " Configuration\nSE"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": "CRET_KEY=your"
+    },
+    {
+      "timestamp_ms": 919.551,
+      "content": "_very"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "_secret_key_here"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "_1"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "67"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "890"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "abc"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "def\n\n"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "# Database"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "\nDATABASE_URL"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "=post"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "gresql://username"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": ":password"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "@localhost"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": ":54"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "2/db"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": "\n\n# AWS"
+    },
+    {
+      "timestamp_ms": 1437.232,
+      "content": "\nAWS_ACCESS_KEY"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "_ID=AK"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "IAI"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "OS"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "ODNN"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "7EX"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "AMPLE\n"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "AWS_SECRET"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "_ACCESS_KEY=w"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "alr"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "XU"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "tnFE"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "MI/K"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "MD"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "ENG"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "/b"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "Px"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "fi"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "CY"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "KEY\n\n"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "# St"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "ripe Configuration"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "\nST"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "RIPE_API_KEY"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "=sk"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "_test_5"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 4110.196,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "90"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "abcdef\n\n"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "# Send"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "Grid Configuration"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "\nSE"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "NDGRID_API"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "_KEY=SG"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "Key123"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "4567"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "890"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "abc"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "def."
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "ExampleKey12"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "3456"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "7890"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "abcdefExample"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": "\n```\n\n### Important"
+    },
+    {
+      "timestamp_ms": 5123.007,
+      "content": " Notes:\n1."
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " **Never"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " commit your"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " `.env` file"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": "** to version"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " control."
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " Add it"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " to your"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " `.gitignore"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": "` file.\n2"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": ". Replace"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " placeholder values with your"
+    },
+    {
+      "timestamp_ms": 5636.199,
+      "content": " actual credentials.\n"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "3. For the"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " `SECRET_KEY"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " a strong"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " random"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " key ("
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "you can use `"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "se"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "crets.token"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "hex("
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "32)` in"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " Python).\n4."
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " For production:\n"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": "   - Use"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " a more"
+    },
+    {
+      "timestamp_ms": 6358.017,
+      "content": " secure database"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": " (consider"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": " SSL"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": "   - Use"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": " keys (not test"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 6730.158,
+      "content": ")\n   - Consider"
+    },
+    {
+      "timestamp_ms": 6962.041,
+      "content": " using I"
+    },
+    {
+      "timestamp_ms": 6962.041,
+      "content": "AM roles for AWS"
+    },
+    {
+      "timestamp_ms": 6962.041,
+      "content": " instead of access"
+    },
+    {
+      "timestamp_ms": 6962.041,
+      "content": " keys when"
+    },
+    {
+      "timestamp_ms": 6962.041,
+      "content": " possible\n5"
+    },
+    {
+      "timestamp_ms": 6962.041,
+      "content": ". The"
+    },
+    {
+      "timestamp_ms": 6962.041,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " shown"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " are example"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " from AWS"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " documentation -"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " with your actual keys"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": ".\n\n###"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " Example `.git"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": "ignore` entry"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": ":\n```\n# Environment"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 7557.005,
+      "content": "\n.env\n"
+    },
+    {
+      "timestamp_ms": 7790.436,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 7790.436,
+      "content": ".local"
+    },
+    {
+      "timestamp_ms": 7790.436,
+      "content": "\n.env"
+    },
+    {
+      "timestamp_ms": 7790.436,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7790.436,
+      "content": "*.local"
+    },
+    {
+      "timestamp_ms": 7790.436,
+      "content": "\n```"
+    },
+    {
+      "timestamp_ms": 7790.436,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7900.449,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample `.env` file for a Python Flask application with the requested environment variables:\n\n```env\n# Flask Configuration\nSECRET_KEY=your_very_secret_key_here_1234567890abcdef\n\n# Database Configuration\nDATABASE_URL=postgresql://username:password@localhost:5432/dbname\n\n# AWS\nAWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nAWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\n\n# Stripe Configuration\nSTRIPE_API_KEY=sk_test_51ExampleKey1234567890abcdef\n\n# SendGrid Configuration\nSENDGRID_API_KEY=SG.ExampleKey1234567890abcdef.ExampleKey1234567890abcdefExampleKey\n```\n\n### Important Notes:\n1. **Never commit your `.env` file** to version control. Add it to your `.gitignore` file.\n2. Replace all placeholder values with your actual credentials.\n3. For the `SECRET_KEY`, generate a strong random key (you can use `secrets.token_hex(32)` in Python).\n4. For production:\n   - Use a more secure database URL (consider SSL)\n   - Use production API keys (not test keys)\n   - Consider using IAM roles for AWS instead of access keys when possible\n5. The AWS keys shown are example keys from AWS documentation - replace with your actual keys.\n\n### Example `.gitignore` entry:\n```\n# Environment variables\n.env\n.env.local\n.env.*.local\n```",
+  "response_chars": 1234,
+  "num_chunks": 156,
+  "ttft_ms": 919.551,
+  "total_ms": 7900.884,
+  "model_name": "Mistral-Large-3"
+}

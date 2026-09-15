@@ -1,0 +1,2071 @@
+{
+  "index": 165,
+  "prompt": "Explain how Docker containers differ from virtual machines.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 421.65,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 421.837,
+      "content": "ocker"
+    },
+    {
+      "timestamp_ms": 421.914,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 421.979,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 422.03,
+      "content": " virtual"
+    },
+    {
+      "timestamp_ms": 422.079,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 434.966,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 435.096,
+      "content": "VM"
+    },
+    {
+      "timestamp_ms": 435.16,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 455.511,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 455.511,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 800.946,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 800.946,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 800.946,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 800.946,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 801.133,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 803.748,
+      "content": " isolated"
+    },
+    {
+      "timestamp_ms": 803.966,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 804.164,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 804.326,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 804.459,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 804.548,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 804.664,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 804.752,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 804.858,
+      "content": " differ"
+    },
+    {
+      "timestamp_ms": 804.935,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 804.995,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 805.047,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 805.096,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 817.295,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 838.712,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 853.404,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 903.287,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 903.424,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 910.966,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 1016.086,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1016.305,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1016.419,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1016.538,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1019.374,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 1028.712,
+      "content": " comparison"
+    },
+    {
+      "timestamp_ms": 1051.352,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1063.91,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1094.397,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1105.996,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1220.71,
+      "content": "Architecture"
+    },
+    {
+      "timestamp_ms": 1220.906,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1220.999,
+      "content": " Over"
+    },
+    {
+      "timestamp_ms": 1221.059,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 1221.111,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1221.158,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1430.834,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1432.123,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1432.286,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1432.396,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 1432.485,
+      "content": "ocker"
+    },
+    {
+      "timestamp_ms": 1432.832,
+      "content": " Containers"
+    },
+    {
+      "timestamp_ms": 1432.946,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1433.039,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1433.169,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 1433.287,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1433.377,
+      "content": " Containers"
+    },
+    {
+      "timestamp_ms": 1443.848,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 1487.198,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 1487.481,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1502.229,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1688.675,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 1688.923,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1689.019,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 1689.113,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1689.243,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 1689.343,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 1689.439,
+      "content": " kernel"
+    },
+    {
+      "timestamp_ms": 1689.58,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1712.961,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 1712.961,
+      "content": " package"
+    },
+    {
+      "timestamp_ms": 1713.305,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 1734.844,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1751.638,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1771.968,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1822.767,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1822.969,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 1831.244,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2148.536,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 2148.773,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2148.903,
+      "content": " Containers"
+    },
+    {
+      "timestamp_ms": 2149.015,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2149.117,
+      "content": " lightweight"
+    },
+    {
+      "timestamp_ms": 2149.231,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 2149.495,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 2149.709,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 2149.809,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2149.886,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 2149.959,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2150.053,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 2150.141,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 2150.3,
+      "content": " per"
+    },
+    {
+      "timestamp_ms": 2150.38,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 2150.437,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 2151.463,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 2336.413,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2336.572,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 2336.642,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 2336.697,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2340.059,
+      "content": " top"
+    },
+    {
+      "timestamp_ms": 2340.205,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2340.294,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2340.384,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 2340.455,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 2352.322,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2387.452,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 2387.667,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2405.48,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2419.475,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 2760.998,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2761.385,
+      "content": " Due"
+    },
+    {
+      "timestamp_ms": 2761.52,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2761.625,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 2761.711,
+      "content": " lightweight"
+    },
+    {
+      "timestamp_ms": 2761.911,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 2761.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2762.026,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 2762.076,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2762.122,
+      "content": " lower"
+    },
+    {
+      "timestamp_ms": 2762.172,
+      "content": " startup"
+    },
+    {
+      "timestamp_ms": 2762.354,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 2762.444,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2762.506,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 2762.559,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 2762.61,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 2762.655,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 2762.697,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2785.506,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 2803.293,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3054.909,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 3055.133,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3055.229,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 3055.299,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 3055.363,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3055.421,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3055.672,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3055.799,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": "Virtual"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": " Machines"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3376.365,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 3376.711,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3376.822,
+      "content": " hyp"
+    },
+    {
+      "timestamp_ms": 3377.005,
+      "content": "erv"
+    },
+    {
+      "timestamp_ms": 3386.872,
+      "content": "isors"
+    },
+    {
+      "timestamp_ms": 3387.024,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3387.099,
+      "content": "such"
+    },
+    {
+      "timestamp_ms": 3387.162,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3387.348,
+      "content": " VMware"
+    },
+    {
+      "timestamp_ms": 3387.578,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3387.685,
+      "content": " Hyper"
+    },
+    {
+      "timestamp_ms": 3387.758,
+      "content": "-V"
+    },
+    {
+      "timestamp_ms": 3387.811,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3395.973,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3419.608,
+      "content": " Virtual"
+    },
+    {
+      "timestamp_ms": 3429.764,
+      "content": "Box"
+    },
+    {
+      "timestamp_ms": 3682.94,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3683.109,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3683.192,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3683.256,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 3683.314,
+      "content": " copy"
+    },
+    {
+      "timestamp_ms": 3683.652,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3683.762,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3685.132,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 3685.222,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3685.285,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 3685.34,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3685.388,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3685.434,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 4075.809,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4075.97,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 4076.052,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 4076.124,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4076.193,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 4076.193,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4076.193,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4076.279,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4081.619,
+      "content": " encaps"
+    },
+    {
+      "timestamp_ms": 4081.828,
+      "content": "ulated"
+    },
+    {
+      "timestamp_ms": 4081.938,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 4082.008,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4082.062,
+      "content": " virtual"
+    },
+    {
+      "timestamp_ms": 4082.111,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 4082.156,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4082.2,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4082.244,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4082.29,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 4082.338,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 4082.379,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 4082.421,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4137.352,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 4137.551,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 4138.071,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4276.393,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4276.653,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 4276.796,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4276.913,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4276.988,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 4277.053,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4277.186,
+      "content": " carries"
+    },
+    {
+      "timestamp_ms": 4283.925,
+      "content": " substantial"
+    },
+    {
+      "timestamp_ms": 4316.752,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 4323.85,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 4385.936,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4386.109,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 4387.152,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 4402.976,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4425.528,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 4437.322,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4487.627,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 4487.775,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4497.725,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4512.895,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 4740.057,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4740.233,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4740.327,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4740.543,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 4747.586,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 4747.737,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4747.911,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 4747.998,
+      "content": " isolated"
+    },
+    {
+      "timestamp_ms": 4748.066,
+      "content": " kernel"
+    },
+    {
+      "timestamp_ms": 4748.129,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4748.184,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 4748.771,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4762.467,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4782.412,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 4799.195,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5168.56,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 5168.8,
+      "content": " longer"
+    },
+    {
+      "timestamp_ms": 5168.911,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5169.012,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 5169.133,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5182.724,
+      "content": " stop"
+    },
+    {
+      "timestamp_ms": 5182.724,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 5182.975,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5183.081,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 5183.181,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 5183.252,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5183.355,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5183.446,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 5183.506,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5183.674,
+      "content": " boot"
+    },
+    {
+      "timestamp_ms": 5183.736,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5183.786,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 5183.833,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 5183.878,
+      "content": " stack"
+    },
+    {
+      "timestamp_ms": 5183.923,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5487.803,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5487.803,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5487.985,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5488.066,
+      "content": "Is"
+    },
+    {
+      "timestamp_ms": 5495.626,
+      "content": "olation"
+    },
+    {
+      "timestamp_ms": 5495.853,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5495.972,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5496.072,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5496.151,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5496.219,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5496.288,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 5496.35,
+      "content": "ocker"
+    },
+    {
+      "timestamp_ms": 5496.42,
+      "content": " Containers"
+    },
+    {
+      "timestamp_ms": 5496.488,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5496.552,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5496.615,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 5503.617,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5885.587,
+      "content": " Containers"
+    },
+    {
+      "timestamp_ms": 5885.804,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 5898.185,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5898.35,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 5898.437,
+      "content": " isolation"
+    },
+    {
+      "timestamp_ms": 5898.502,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5898.563,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5898.621,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5898.678,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 5898.732,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5898.783,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5898.834,
+      "content": " isolated"
+    },
+    {
+      "timestamp_ms": 5898.884,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5898.933,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5898.974,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5899.015,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5899.06,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 5899.113,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5899.161,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 5899.215,
+      "content": " kernel"
+    },
+    {
+      "timestamp_ms": 5903.892,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 6295.484,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6295.637,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6295.704,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6295.756,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 6295.804,
+      "content": " filesystem"
+    },
+    {
+      "timestamp_ms": 6295.851,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6295.895,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6306.109,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6306.299,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6306.375,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 6306.432,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6306.484,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 6306.538,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 6306.538,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6306.596,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6306.642,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6306.798,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6306.858,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 6306.907,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6306.952,
+      "content": " isolation"
+    },
+    {
+      "timestamp_ms": 6306.997,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6602.759,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6602.924,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 6603.012,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 6603.088,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 6603.227,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6603.346,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6603.538,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 6603.6,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6603.652,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6603.7,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 6603.745,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 6603.788,
+      "content": " somewhat"
+    },
+    {
+      "timestamp_ms": 6603.829,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6603.871,
+      "content": " susceptible"
+    },
+    {
+      "timestamp_ms": 6603.93,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6609.481,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 6726.657,
+      "content": " risks"
+    },
+    {
+      "timestamp_ms": 6726.851,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6726.975,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6727.046,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 6727.102,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 6727.154,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7128.005,
+      "content": " compromised"
+    },
+    {
+      "timestamp_ms": 7128.15,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7128.238,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7128.29,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7128.338,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7128.384,
+      "content": "Virtual"
+    },
+    {
+      "timestamp_ms": 7128.43,
+      "content": " Machines"
+    },
+    {
+      "timestamp_ms": 7128.473,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7128.517,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7128.561,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 7131.522,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7131.617,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 7131.681,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7131.754,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 7131.804,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 7131.85,
+      "content": " isolation"
+    },
+    {
+      "timestamp_ms": 7131.985,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7132.043,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 7132.091,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 7132.136,
+      "content": " instances"
+    },
+    {
+      "timestamp_ms": 7132.18,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7354.923,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7355.165,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 7355.243,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7355.304,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 7355.36,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 7355.412,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7355.461,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7355.51,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 7355.556,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 7355.602,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 7355.645,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7357.995,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 7662.294,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 7662.947,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7663.158,
+      "content": " entirely"
+    },
+    {
+      "timestamp_ms": 7663.329,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 7663.446,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7663.76,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 7663.878,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7664.033,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7664.11,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 7664.167,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7664.222,
+      "content": " virtual"
+    },
+    {
+      "timestamp_ms": 7664.382,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 7664.473,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 7664.534,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7664.589,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 7668.1,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 7682.741,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7705.43,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 7740.044,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7747.404,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7755.771,
+      "content": " isolation"
+    },
+    {
+      "timestamp_ms": 7776.665,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7793.653,
+      "content": " beneficial"
+    },
+    {
+      "timestamp_ms": 7815.245,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7829.5,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 7855.262,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 7873.374,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 7895.845,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 7908.084,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7925.281,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 8229.001,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 8229.167,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8229.244,
+      "content": " boundaries"
+    },
+    {
+      "timestamp_ms": 8229.308,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 8229.37,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 8229.427,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8229.482,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8229.645,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8229.787,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8229.999,
+      "content": "Port"
+    },
+    {
+      "timestamp_ms": 8230.082,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": "ocker"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": " Containers"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8481.479,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8481.755,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8481.829,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8481.886,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8481.939,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 8481.988,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 8482.043,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 8505.841,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 8524.477,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8540.036,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8738.48,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 8738.614,
+      "content": " consistently"
+    },
+    {
+      "timestamp_ms": 8738.679,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 8738.735,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8738.788,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 8738.835,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 8738.88,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8741.523,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 8741.701,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 8741.801,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8755.185,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 8767.448,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8785.816,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8933.894,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 8943.763,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8943.978,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8944.088,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8944.172,
+      "content": " Docker"
+    },
+    {
+      "timestamp_ms": 8944.242,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 8944.305,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8944.367,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 8965.524,
+      "content": " define"
+    },
+    {
+      "timestamp_ms": 8987.779,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 9004.881,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9019.655,
+      "content": " facilitate"
+    },
+    {
+      "timestamp_ms": 9038.552,
+      "content": " easy"
+    },
+    {
+      "timestamp_ms": 9055.849,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 9073.105,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 9112.387,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9112.519,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 9133.571,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9470.771,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 9470.944,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 9471.079,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9471.166,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9471.229,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9472.114,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9472.222,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 9472.29,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9472.343,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9472.392,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 9472.486,
+      "content": " setups"
+    },
+    {
+      "timestamp_ms": 9472.652,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9472.73,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9472.797,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 9472.848,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9472.899,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 9472.97,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 9477.849,
+      "content": " providers"
+    },
+    {
+      "timestamp_ms": 9663.847,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9663.983,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9664.046,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9664.098,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9664.148,
+      "content": "Virtual"
+    },
+    {
+      "timestamp_ms": 9664.193,
+      "content": " Machines"
+    },
+    {
+      "timestamp_ms": 9664.236,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9674.079,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9674.207,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9674.282,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9681.094,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 9699.51,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 9719.756,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9915.276,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 9915.512,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9915.685,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 9915.832,
+      "content": " portable"
+    },
+    {
+      "timestamp_ms": 9915.916,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 9915.977,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9916.029,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 9920.465,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9920.677,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 9920.757,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 9936.658,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9948.391,
+      "content": " encaps"
+    },
+    {
+      "timestamp_ms": 10003.042,
+      "content": "ulate"
+    },
+    {
+      "timestamp_ms": 10003.174,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10009.855,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 10009.855,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10009.971,
+      "type": "done"
+    }
+  ],
+  "full_response": "Docker containers and virtual machines (VMs) are both technologies used to create isolated environments to deploy applications, but they differ significantly in their architecture, functionality, and use cases. Here’s a detailed comparison:\n\n1. **Architecture and Overhead:**\n   - **Docker Containers:**\n     - Containers operate at the application layer and share the host OS kernel. They package only the application and its dependencies.\n     - Containers are lightweight because they do not need a full OS per application; instead, they run on top of the host OS and share resources.\n     - Due to their lightweight nature, containers have lower startup times and require significantly less storage and compute resources compared to VMs.\n\n   - **Virtual Machines:**\n     - VMs, managed by hypervisors (such as VMware, Hyper-V, or VirtualBox), include a full copy of an OS as well as the application and libraries needed to run it, all encapsulated within a virtual environment.\n     - Each VM runs a full instance of an OS, which means it carries substantial resource overhead (in terms of storage, memory, and CPU) as each VM needs its own isolated kernel. \n     - VMs take longer to start and stop compared to containers due to the need to boot the entire OS stack.\n\n2. **Isolation:**\n   - **Docker Containers:**\n     - Containers provide process-level isolation for applications. They can be isolated from each other and share the host kernel but can access the host filesystem, network, and other system resources securely.\n     - This level of isolation can be less strict than that of VMs, making containers somewhat more susceptible to security risks if the host OS is compromised.\n\n   - **Virtual Machines:**\n     - VMs offer strong isolation by allowing multiple instances of an OS to run simultaneously on a single physical machine. Each VM is entirely separate from others, as they are virtualized at the hardware level.\n     - This isolation is beneficial for running different operating systems or maintaining strict security boundaries between environments.\n\n3. **Portability and Deployment:**\n   - **Docker Containers:**\n     - The containerization approach ensures that applications run consistently across different environments because the container includes the application and its dependencies.\n     - Docker images, which define containers, facilitate easy version control and distribution of application environments, across development, testing, and production setups, and deployment to different cloud providers.\n\n   - **Virtual Machines:**\n     - VMs can also be made portable through the use of storage images that encapsulate the VM",
+  "response_chars": 2663,
+  "num_chunks": 512,
+  "ttft_ms": 421.65,
+  "total_ms": 10010.239,
+  "model_name": "model-medium"
+}

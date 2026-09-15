@@ -1,0 +1,102 @@
+{
+  "profiles": {
+    "NS0": {
+      "latency_ms": {
+        "p50": 25.319,
+        "p95": 35.18,
+        "p99": 40.967,
+        "mean": 26.633,
+        "count": 100
+      },
+      "ttft_ms": null,
+      "stream": false,
+      "guardrails": false
+    },
+    "NS1": {
+      "latency_ms": {
+        "p50": 26.678,
+        "p95": 36.711,
+        "p99": 41.258,
+        "mean": 27.98,
+        "count": 100
+      },
+      "ttft_ms": null,
+      "stream": false,
+      "guardrails": true
+    },
+    "S0": {
+      "latency_ms": {
+        "p50": 25.704,
+        "p95": 34.782,
+        "p99": 38.779,
+        "mean": 27.103,
+        "count": 100
+      },
+      "ttft_ms": {
+        "p50": 25.464,
+        "p95": 34.515,
+        "p99": 38.429,
+        "mean": 26.823,
+        "count": 100
+      },
+      "stream": true,
+      "guardrails": false
+    },
+    "S1": {
+      "latency_ms": {
+        "p50": 26.341,
+        "p95": 35.839,
+        "p99": 46.684,
+        "mean": 27.477,
+        "count": 100
+      },
+      "ttft_ms": {
+        "p50": 26.002,
+        "p95": 35.583,
+        "p99": 46.198,
+        "mean": 27.219,
+        "count": 100
+      },
+      "stream": true,
+      "guardrails": true
+    },
+    "S2": {
+      "latency_ms": {
+        "p50": 26.861,
+        "p95": 36.355,
+        "p99": 40.131,
+        "mean": 27.913,
+        "count": 100
+      },
+      "ttft_ms": {
+        "p50": 26.615,
+        "p95": 36.071,
+        "p99": 39.934,
+        "mean": 27.666,
+        "count": 100
+      },
+      "stream": true,
+      "guardrails": true
+    }
+  },
+  "overheads": {
+    "NS1_vs_NS0": {
+      "abs_p50": 1.359,
+      "abs_p95": 1.531,
+      "rel_p50_pct": 5.4,
+      "rel_p95_pct": 4.4
+    },
+    "S1_vs_S0": {
+      "abs_p50": 0.637,
+      "abs_p95": 1.057,
+      "rel_p50_pct": 2.5,
+      "rel_p95_pct": 3.0
+    },
+    "S2_vs_S0": {
+      "abs_p50": 1.157,
+      "abs_p95": 1.573,
+      "rel_p50_pct": 4.5,
+      "rel_p95_pct": 4.5
+    }
+  }
+}

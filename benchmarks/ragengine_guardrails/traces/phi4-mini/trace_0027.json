@@ -1,0 +1,2051 @@
+{
+  "index": 27,
+  "prompt": "Write a meeting notes document that mentions attendees by full name and email, includes a conference call dial-in number, and references an internal IP address 192.168.1.50.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1246.049,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1246.049,
+      "content": "Meeting"
+    },
+    {
+      "timestamp_ms": 1246.049,
+      "content": " Notes"
+    },
+    {
+      "timestamp_ms": 1246.049,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1246.049,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 1246.049,
+      "content": " Alpha"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " Meeting"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "Time"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " AM"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " AM"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "Location"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " Conference"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " Call"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": "Internal"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 1246.206,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "Att"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "endees"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "Jane"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 2345.749,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": " john"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "mith"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "Emily"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": " Johnson"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2346.103,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": " em"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "ily"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": ".j"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "ohn"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "son"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3262.281,
+      "content": "Michael"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": " michael"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": ".b"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "rown"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "Agenda"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": " Alpha"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": " Progress"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 3262.531,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": " Discussion"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": " Upcoming"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": " Mil"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "estones"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": " Budget"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "visions"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4033.92,
+      "content": " Q"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " Session"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "Notes"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "Progress"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " highlighted"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 4034.194,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " milestones"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " met"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " mentioned"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " few"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " minor"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 4744.573,
+      "content": " resolved"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " Emily"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " latest"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " promising"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5376.477,
+      "content": " still"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " bugs"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " fixing"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": "Upcoming"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " Mil"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": "estones"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " noted"
+    },
+    {
+      "timestamp_ms": 5376.799,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " begin"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " week"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " involve"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5700.756,
+      "content": " third"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": "-party"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " Michael"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " emphasized"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 5943.498,
+      "content": " assurance"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " advance"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " beyond"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": "Budget"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": "visions"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " Emily"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " brought"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " revised"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " allocations"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " show"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " expenditure"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6720.329,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " mid"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": "-term"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " planned"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " approval"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " expenditures"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " raises"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " concerns"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 7534.409,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " Issues"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " Discuss"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " Michael"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " discussed"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " risks"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7765.379,
+      "content": " downtime"
+    },
+    {
+      "timestamp_ms": 7849.184,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7849.184,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7849.184,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7849.184,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 7849.184,
+      "content": " efforts"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " improved"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": "Next"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " Steps"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " finalize"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " revised"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " today"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " coordinate"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8514.198,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " resolved"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " comm"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": "ences"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " Michael"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " assurance"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " confirm"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " bugs"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9189.697,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " meeting"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " scheduled"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " November"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10168.881,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "Dial"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "-In"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " Conference"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " Call"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "867"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "530"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 10169.119,
+      "content": " Point"
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "192"
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "168"
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "50"
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10411.166,
+      "content": "Internal"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " concludes"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " meeting"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " notes"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " Alpha"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " Meeting"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " attendees"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 10985.444,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " notes"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " await"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " respective"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " departments"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "Best"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " regards"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " Position"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "Department"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": " Coordinator"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 11637.564,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 11654.353,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11654.353,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11827.622,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Meeting Notes - Project Alpha Meeting**\n\n**Date:** October 5, 2023  \n**Time:** 10:00 AM - 11:00 AM  \n**Location:** Conference Call (Internal IP Access)\n\n**Attendees:**\n1. **Jane Doe**  \n   - Email:.doe@company.com  \n2. **John Smith**  \n   - Email: john.smith@company.com  \n3. **Emily Johnson**  \n   - Email: emily.johnson@company.com  \n4. **Michael**  \n   - Email: michael.brown@company.com  \n\n**Agenda:**\n1. Project Alpha Progress Review  \n2. Discussion on Upcoming Milestones  \n3. Budget Revisions  \n4. Q Session\n\n**Notes:**\n\n**Progress Review:**\n- Jane highlighted that the current phase is on track, with significant milestones met on time.\n- John mentioned a few minor issues related to the data processing team which are being resolved.\n- Emily shared the latest test results, which are promising, but there are still bugs that need fixing.\n\n**Upcoming Milestones:**\n- John noted that Phase 2 will begin next week. Key tasks involve additional integration with third-party APIs.\n- Michael emphasized the importance of quality assurance before we advance beyond this point.\n\n**Budget Revisions:**\n- Emily brought up the revised budget allocations which show that the expenditure for the mid-term phase is well within our planned budget.\n- A new budget approval is necessary for any expenditures over $5,000, which raises concerns about additional API integration costs.\n\n**Key Issues Discussed:**\n- Jane and Michael discussed potential risks associated with server downtime and where to direct efforts for improved solutions.\n\n**Next Steps:**\n- Review and finalize the revised budget by the end of today.\n- John will coordinate with the data processing team to ensure all issues are resolved before Phase 2 commences.\n- Michael will follow up with the quality assurance team to confirm the bugs are fixed.\n- The next meeting is scheduled for November 5, 2023, at same time.\n\n**Dial-In Information:**\n- Conference Call Number: 1-867-5309\n- Access Point: 192.168.1.50 (Internal IP Address)\n\nThis concludes the meeting notes for Project Alpha Meeting on October 5, 2023. All attendees should review these notes and await further communication from their respective departments.\n\nBest regards,  \n[Your Name]  \n[Your Position]  \nDepartment Coordinator\n\n---\n\n**",
+  "response_chars": 2262,
+  "num_chunks": 507,
+  "ttft_ms": 1246.049,
+  "total_ms": 11828.056,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,2051 @@
+{
+  "index": 21,
+  "prompt": "How do convolutional neural networks process image data?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1038.656,
+      "content": "Con"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": "volution"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " Neural"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " Networks"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": "CNN"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " deep"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " neural"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 1038.656,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": "uited"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 1039.021,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " kind"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": "Input"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " multi"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": "-dimensional"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " array"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1715.949,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " array"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " dimensions"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " corresponding"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2574.319,
+      "content": " width"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " height"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " color"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " RGB"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": "Con"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": "volution"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " Layers"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2574.557,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " series"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " filters"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": "also"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " kernels"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 3332.235,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " filter"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " slides"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " convol"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": "ves"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " performing"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": " element"
+    },
+    {
+      "timestamp_ms": 3332.419,
+      "content": "-wise"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " multiplication"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " pixel"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " underneath"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " summ"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " extracting"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " Filters"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3917.279,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " edges"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " textures"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": "Activation"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": "LU"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " convolution"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " passed"
+    },
+    {
+      "timestamp_ms": 4633.458,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " activation"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " Rect"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": "ified"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " Linear"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " Unit"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": "LU"
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 5010.542,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": "LU"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " introduces"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": "-line"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": "arity"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5332.692,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": "Pooling"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " Layers"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " spatial"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " dimensions"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": "width"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " height"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " feature"
+    },
+    {
+      "timestamp_ms": 6014.328,
+      "content": " maps"
+    },
+    {
+      "timestamp_ms": 6014.638,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6014.638,
+      "content": " thereby"
+    },
+    {
+      "timestamp_ms": 6014.638,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " computations"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " Max"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " pooling"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "often"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " performing"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " max"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " pooling"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": "Fully"
+    },
+    {
+      "timestamp_ms": 6721.949,
+      "content": " Connected"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " Layers"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": "Dense"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " Layers"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " After"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " convolution"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " pooling"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " flattened"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7299.488,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 7408.415,
+      "content": " array"
+    },
+    {
+      "timestamp_ms": 7408.415,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7408.415,
+      "content": " passed"
+    },
+    {
+      "timestamp_ms": 7408.415,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 7408.415,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " fully"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": "dense"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " responsible"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " regression"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " task"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8176.206,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " produces"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " prediction"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " probability"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " multic"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": "lass"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8903.067,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " regression"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " CNN"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " summarized"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9524.505,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "volution"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "LU"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " Max"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " Pool"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 9524.763,
+      "content": "volution"
+    },
+    {
+      "timestamp_ms": 9681.011,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 9681.011,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 9681.011,
+      "content": "LU"
+    },
+    {
+      "timestamp_ms": 9681.011,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 9681.011,
+      "content": " Max"
+    },
+    {
+      "timestamp_ms": 9681.011,
+      "content": " Pool"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "volution"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "LU"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": " Max"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": " Pool"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10506.127,
+      "content": " ..."
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": "re"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": "peating"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " Flatten"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " Fully"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " Connected"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": "(s"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 10506.38,
+      "content": " Output"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": "By"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " applying"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " CNN"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " able"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " hier"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": "arch"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": "ically"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " extract"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " raw"
+    },
+    {
+      "timestamp_ms": 11134.17,
+      "content": " pixel"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " effective"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " recognition"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " vision"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " combination"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " convolution"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " pooling"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 11711.04,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " chance"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": "itting"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 11993.428,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 12036.622,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 12036.622,
+      "content": " representations"
+    },
+    {
+      "timestamp_ms": 12036.622,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 12167.743,
+      "type": "done"
+    }
+  ],
+  "full_response": "Convolutional Neural Networks (CNNs) are a class of deep neural networks that particularly well-suited for processing image data. Here is a high-level overview of how they typically process this kind of data:\n\n1. **Input Layer**: The input layer takes a multi-dimensional array representing the image. Commonly, this is a 3D array with dimensions corresponding to the width height, and color channels (e.g., RGB).\n\n2. **Convolutional Layers**: These layers apply a series of filters (also known as kernels) to the input image. filter slides (or convolves) over the image, performing an element-wise multiplication with the pixel values underneath and summing the result. This operation helps in extracting features from the image. Filters can detect patterns such as edges, textures, and more complex structures.\n\n3. **Activation Function (ReLU)**: The result of the convolution operation is passed through an activation function, most commonly the Rectified Linear Unit (ReLU). The ReLU function introduces non-linearity into the model, which is essential for learning complex patterns.\n\n4. **Pooling Layers**: These layers reduce the spatial dimensions (width and height) of the feature maps, thereby reducing the number of parameters and computations in the network. Max pooling (often performing 2x2 max pooling) is a common operation.\n\n5. **Fully Connected Layers (Dense Layers)**: After several convolutional and pooling layers, the high-level features are flattened into a 1D array and passed through one or more fully connected (dense) layers. These layers are responsible for the final classification or regression task.\n\n6. **Output Layer**: The output layer produces the final prediction. This could be a probability distribution over different classes (in cases of multiclass classification) or a single value (in cases of regression).\n\nThe process of a CNN can be summarized in the steps:\n\n1. Convolution -> ReLU -> Max Pooling\n2. Convolution -> ReLU -> Max Pooling\n3. Convolution -> ReLU -> Max Pooling\n4. ...repeating certain layers as needed)\n5. Flatten -> Fully Connected Layer(s) -> Output Layer\n\nBy applying this sequence of operations, CNNs are able to automatically and hierarchically extract and learn important features from the raw pixel data, making them highly effective for image recognition and other computer vision tasks. The combination of convolutional and pooling layers reduces the chance of overfitting and allows the network to learn more abstract representations",
+  "response_chars": 2499,
+  "num_chunks": 507,
+  "ttft_ms": 1038.656,
+  "total_ms": 12181.317,
+  "model_name": "Phi-4-mini-instruct"
+}

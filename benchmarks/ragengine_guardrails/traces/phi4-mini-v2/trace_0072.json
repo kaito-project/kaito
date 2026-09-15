@@ -1,0 +1,1699 @@
+{
+  "index": 72,
+  "prompt": "Write a sample docker-compose.yml that includes hardcoded MySQL root password, Redis password, RabbitMQ credentials, and application secret keys.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 926.411,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " docker"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": "-compose"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": ".yml"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " My"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " Rabbit"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 926.411,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": "Warning"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": "coding"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " compose"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 1438.927,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 1444.264,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 1444.264,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 1444.264,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 1444.264,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 1444.264,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1444.264,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 1444.264,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " Docker"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": "yaml"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2257.604,
+      "content": "version"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "'\n\n"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2263.561,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "_ROOT"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "_mysql"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "_root"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": "_DATABASE"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2964.279,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "_USER"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 2966.848,
+      "content": "_mysql"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "330"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "330"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "-network"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " RED"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "IS"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3900.613,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "redis"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "-network"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " rabbit"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " rabbit"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "-management"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4811.374,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "BIT"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "_DEFAULT"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "_USER"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "BIT"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 5134.012,
+      "content": "_DEFAULT"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "_PASS"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "156"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "72"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "156"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "72"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5639.639,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "-network"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " .\n"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " APP"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " APP"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_J"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "WT"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_j"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "wt"
+    },
+    {
+      "timestamp_ms": 6449.562,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " depends"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "_on"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " rabbit"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "-network"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": ":/"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "net"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "works"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 7371.625,
+      "content": "-network"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": " driver"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": " bridge"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "_mysql"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "_root"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "_mysql"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 7993.059,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": "redis"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8116.587,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "hard"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_j"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "wt"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 9354.159,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " Be"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " cautious"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": " publicly"
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9368.911,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9404.623,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here is an example of a docker-compose.yml file with hardcoded credentials for MySQL root password, Redis password, RabbitMQ credentials, and application secret keys. **Warning: Hardcoding sensitive information in your compose file is not recommended production environments! Instead, consider using environment variables or secrets managed by a service like Docker secrets.**\n\n```yaml\nversion '3.8'\n\nservices:\n\n  mysql:\n    image: mysql:5.7\n    environment:\n      MYSQL_ROOT_PASSWORD: hardcoded_mysql_root_password\n      MYSQL_DATABASE: mydb\n      MYSQL_USER: myappuser\n      MYSQL_PASSWORD: hardcoded_mysql_user_password\n    ports:\n      - \"3306:3306\"\n    networks:\n      - app-network\n\n  redis:\n    image: redis:6.0\n    environment:\n      REDIS_PASSWORD: hardcoded_redis_password\n    ports:\n      - \"6379:6379\"\n    networks:\n      - app-network\n\n  rabbitmq:\n    image: rabbitmq:3-management\n    environment:\n      RABBITMQ_DEFAULT_USER: hardcoded_rabbitmq_user\n      RABBITMQ_DEFAULT_PASS: hardcoded_rabbitmq_password\n    ports:\n      - \"15672:15672\"\n    networks:\n      - app-network\n\n  app:\n    build: .\n    environment:\n      APP_SECRET_KEY: hardcoded_app_secret_key\n      APP_JWT_SECRET: hardcoded_app_jwt_secret_key\n    depends_on:\n      - mysql\n      - redis\n      - rabbitmq\n    networks:\n      - app-network\n    volumes:\n      - .:/app\n\nnetworks:\n  app-network:\n    driver: bridge\n```\n\nIn this example, replace `hardcoded_mysql_root_password`, `hardcoded_mysql_user_password`, `hardcoded_redis_password`, `hardcoded_rabbitmq_user`, `hardcoded_rabbitmq_password`, `hardcoded_app_secret_key`, and `hardcoded_app_jwt_secret_key` with your own hardcoded credentials. Be cautious and avoid sharing such sensitive information publicly.",
+  "response_chars": 1740,
+  "num_chunks": 419,
+  "ttft_ms": 926.411,
+  "total_ms": 9540.312,
+  "model_name": "Phi-4-mini-instruct"
+}

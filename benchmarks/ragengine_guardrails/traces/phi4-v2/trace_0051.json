@@ -1,0 +1,2071 @@
+{
+  "index": 51,
+  "prompt": "Explain how HTTPS works, including the TLS handshake process.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 407.471,
+      "content": "HTTPS"
+    },
+    {
+      "timestamp_ms": 407.763,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 408.074,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 429.097,
+      "content": "yp"
+    },
+    {
+      "timestamp_ms": 445.39,
+      "content": "ertext"
+    },
+    {
+      "timestamp_ms": 463.364,
+      "content": " Transfer"
+    },
+    {
+      "timestamp_ms": 488.208,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 500.239,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 517.703,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 543.196,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 560.145,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 573.498,
+      "content": " extension"
+    },
+    {
+      "timestamp_ms": 592.837,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 650.571,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 650.723,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 651.701,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 669.192,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 688.098,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 707.104,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 727.072,
+      "content": " communications"
+    },
+    {
+      "timestamp_ms": 796.887,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 797.045,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 797.122,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 814.328,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 831.78,
+      "content": "such"
+    },
+    {
+      "timestamp_ms": 839.802,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 858.697,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 879.868,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 901.041,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 916.899,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 943.483,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 959.716,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 973.449,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 993.508,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1015.832,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1032.823,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1053.225,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1249.418,
+      "content": " primarily"
+    },
+    {
+      "timestamp_ms": 1249.65,
+      "content": " achieved"
+    },
+    {
+      "timestamp_ms": 1249.716,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1249.771,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 1249.821,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1259.688,
+      "content": "Transport"
+    },
+    {
+      "timestamp_ms": 1259.915,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 1260.006,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 1260.081,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1260.15,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1260.272,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1336.12,
+      "content": " predecessor"
+    },
+    {
+      "timestamp_ms": 1336.355,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1336.44,
+      "content": " SSL"
+    },
+    {
+      "timestamp_ms": 1337.205,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1359.111,
+      "content": "Secure"
+    },
+    {
+      "timestamp_ms": 1373.729,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 1393.847,
+      "content": "ockets"
+    },
+    {
+      "timestamp_ms": 1412.094,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 1432.194,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 1476.544,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1476.696,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1488.091,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1506.723,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 1552.992,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1567.249,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1567.249,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 1583.689,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1845.477,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1845.708,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 1845.815,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 1845.898,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1845.969,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 1846.032,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1846.123,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1846.226,
+      "content": " Overview"
+    },
+    {
+      "timestamp_ms": 1846.305,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1846.372,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 1846.435,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1846.497,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1846.565,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1861.367,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1872.853,
+      "content": "Encryption"
+    },
+    {
+      "timestamp_ms": 1892.957,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1906.853,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 1930.675,
+      "content": " encrypt"
+    },
+    {
+      "timestamp_ms": 1947.008,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1965.1,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1984.016,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2011.008,
+      "content": " transmitted"
+    },
+    {
+      "timestamp_ms": 2026.493,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 2045.105,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2061.965,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 2080.307,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2097.411,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2117.868,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2135.87,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2156.984,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 2379.433,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2379.675,
+      "content": " difficult"
+    },
+    {
+      "timestamp_ms": 2379.741,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2379.796,
+      "content": " attackers"
+    },
+    {
+      "timestamp_ms": 2379.846,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2379.892,
+      "content": " intercept"
+    },
+    {
+      "timestamp_ms": 2379.94,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2384.308,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 2384.483,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2384.622,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2384.74,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2384.85,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2403.603,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2428.859,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2445.787,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 2458.97,
+      "content": " Integrity"
+    },
+    {
+      "timestamp_ms": 2700.743,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2701.049,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2709.091,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 2709.272,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2709.394,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2709.484,
+      "content": " hasn"
+    },
+    {
+      "timestamp_ms": 2709.549,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 2709.599,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 2709.788,
+      "content": " tam"
+    },
+    {
+      "timestamp_ms": 2709.881,
+      "content": "pered"
+    },
+    {
+      "timestamp_ms": 2709.937,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2709.985,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 2722.816,
+      "content": " transfer"
+    },
+    {
+      "timestamp_ms": 2733.689,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2744.329,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2763.638,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2784.196,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2803.756,
+      "content": "Authentication"
+    },
+    {
+      "timestamp_ms": 2824.734,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2840.151,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3084.42,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 3084.591,
+      "content": " clients"
+    },
+    {
+      "timestamp_ms": 3084.656,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3084.709,
+      "content": " verify"
+    },
+    {
+      "timestamp_ms": 3084.758,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3084.805,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3084.851,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3088.489,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 3088.707,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 3088.792,
+      "content": " certificates"
+    },
+    {
+      "timestamp_ms": 3088.872,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3088.945,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 3089.012,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 3109.965,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3127.415,
+      "content": " communicating"
+    },
+    {
+      "timestamp_ms": 3145.504,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3164.66,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3209.695,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 3209.876,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3241.325,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3244.417,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3578.616,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 3585.61,
+      "content": " Hand"
+    },
+    {
+      "timestamp_ms": 3585.851,
+      "content": "shake"
+    },
+    {
+      "timestamp_ms": 3585.991,
+      "content": " Process"
+    },
+    {
+      "timestamp_ms": 3586.128,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3586.225,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3586.297,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 3586.352,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 3586.836,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3586.953,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3587.031,
+      "content": " series"
+    },
+    {
+      "timestamp_ms": 3587.117,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3587.205,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 3587.272,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3587.331,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 3587.402,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3587.512,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 3587.598,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 3660.944,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 3661.117,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3661.181,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 3661.239,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3693.147,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3705.471,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3719.339,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3739.982,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 3759.529,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3779.708,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 3801.134,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3815.522,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 3834.152,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 3859.037,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3870.543,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3908.019,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3930.217,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3930.458,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 3951.971,
+      "content": "Hello"
+    },
+    {
+      "timestamp_ms": 3965.252,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4252.726,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4252.897,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4252.96,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4253.013,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4253.064,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 4253.11,
+      "content": " begins"
+    },
+    {
+      "timestamp_ms": 4254.142,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4254.302,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 4254.472,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4264.929,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 4265.165,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4265.32,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4265.477,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 4265.757,
+      "content": "Hello"
+    },
+    {
+      "timestamp_ms": 4265.868,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4274.002,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 4289.149,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4312.375,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4327.477,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4350.036,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4491.178,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4492.77,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 4493.017,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 4493.134,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4493.218,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4493.355,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4493.506,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4504.536,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 4518.103,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4538.126,
+      "content": " supported"
+    },
+    {
+      "timestamp_ms": 4558.347,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 4810.806,
+      "content": " versions"
+    },
+    {
+      "timestamp_ms": 4810.989,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4811.089,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 4811.222,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4811.342,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4811.425,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 4811.495,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4811.564,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4811.783,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4811.93,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4812.009,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4812.066,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4812.117,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4825.851,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4869.506,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4869.765,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 4879.947,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4997.389,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4997.587,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4997.692,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 4997.831,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4997.947,
+      "content": " cipher"
+    },
+    {
+      "timestamp_ms": 4998.025,
+      "content": " suites"
+    },
+    {
+      "timestamp_ms": 5320.357,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5320.659,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 5320.659,
+      "content": "gorithms"
+    },
+    {
+      "timestamp_ms": 5320.659,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5320.659,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 5320.659,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5320.659,
+      "content": " hashing"
+    },
+    {
+      "timestamp_ms": 5320.874,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5320.964,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5321.035,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5321.132,
+      "content": " exchange"
+    },
+    {
+      "timestamp_ms": 5321.226,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5321.298,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5321.364,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5321.504,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 5321.703,
+      "content": " supports"
+    },
+    {
+      "timestamp_ms": 5367.965,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5368.159,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 5368.251,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5626.834,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 5626.834,
+      "content": " randomly"
+    },
+    {
+      "timestamp_ms": 5627.063,
+      "content": " generated"
+    },
+    {
+      "timestamp_ms": 5637.615,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 5637.932,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 5638.142,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5638.288,
+      "content": "client"
+    },
+    {
+      "timestamp_ms": 5638.607,
+      "content": " random"
+    },
+    {
+      "timestamp_ms": 5638.73,
+      "content": ".\"\n\n"
+    },
+    {
+      "timestamp_ms": 5638.835,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5638.95,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5639.046,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5639.156,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 5639.281,
+      "content": "Hello"
+    },
+    {
+      "timestamp_ms": 5642.863,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5696.31,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5696.455,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5704.424,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5721.497,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5816.843,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 5817.844,
+      "content": " responds"
+    },
+    {
+      "timestamp_ms": 5818.052,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5818.169,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5818.275,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6138.784,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 6138.784,
+      "content": "Hello"
+    },
+    {
+      "timestamp_ms": 6138.985,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6139.056,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 6139.111,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6139.159,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6139.204,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 6139.455,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6139.545,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6139.6,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6139.655,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6139.754,
+      "content": " agreed"
+    },
+    {
+      "timestamp_ms": 6139.876,
+      "content": "-up"
+    },
+    {
+      "timestamp_ms": 6140.02,
+      "content": "on"
+    },
+    {
+      "timestamp_ms": 6140.164,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 6140.233,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 6140.293,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6157.773,
+      "content": " cipher"
+    },
+    {
+      "timestamp_ms": 6280.546,
+      "content": " suite"
+    },
+    {
+      "timestamp_ms": 6280.752,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6280.822,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6280.878,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6280.928,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 6280.973,
+      "content": " randomly"
+    },
+    {
+      "timestamp_ms": 6292.775,
+      "content": " generated"
+    },
+    {
+      "timestamp_ms": 6309.466,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6328.971,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 6401.208,
+      "content": " random"
+    },
+    {
+      "timestamp_ms": 6401.416,
+      "content": ".\"\n\n"
+    },
+    {
+      "timestamp_ms": 6401.53,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6408.663,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6423.933,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6445.73,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 6462.929,
+      "content": " Certificate"
+    },
+    {
+      "timestamp_ms": 6496.505,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6500.283,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6522.47,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6538.391,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6773.882,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6774.201,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6774.339,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 6774.418,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6774.482,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 6774.537,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 6774.732,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6774.794,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6774.845,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 6774.899,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6774.952,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6775.137,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 6788.418,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6855.867,
+      "content": " signed"
+    },
+    {
+      "timestamp_ms": 6863.104,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6863.373,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6863.514,
+      "content": " trusted"
+    },
+    {
+      "timestamp_ms": 6892.955,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 6900.179,
+      "content": " authority"
+    },
+    {
+      "timestamp_ms": 6919.879,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6939.087,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 7265.957,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 7266.246,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 7266.37,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7266.482,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7266.596,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7266.701,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 7266.924,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7267.043,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7267.163,
+      "content": " identifies"
+    },
+    {
+      "timestamp_ms": 7267.282,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7267.415,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7267.508,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7267.85,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 7267.976,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7268.079,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7268.153,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 7268.22,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 7284.727,
+      "content": " Exchange"
+    },
+    {
+      "timestamp_ms": 7301.121,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7563.801,
+      "content": "if"
+    },
+    {
+      "timestamp_ms": 7564.033,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 7564.162,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 7564.266,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7564.342,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7564.41,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7564.505,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 7564.599,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 7564.666,
+      "content": " cipher"
+    },
+    {
+      "timestamp_ms": 7564.719,
+      "content": " suites"
+    },
+    {
+      "timestamp_ms": 7564.768,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7564.815,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7564.861,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7567.671,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 7659.65,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 7659.824,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7659.889,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 7659.944,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 7667.749,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7982.407,
+      "content": " exchange"
+    },
+    {
+      "timestamp_ms": 7982.577,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7982.647,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7982.707,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7982.757,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7982.804,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7982.848,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 7982.893,
+      "content": " Hello"
+    },
+    {
+      "timestamp_ms": 7982.936,
+      "content": " Done"
+    },
+    {
+      "timestamp_ms": 7982.979,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7983.021,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7983.381,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7983.489,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7983.567,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7983.631,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7983.688,
+      "content": " signals"
+    },
+    {
+      "timestamp_ms": 7989.113,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8091.949,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8092.189,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 8092.314,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 8092.423,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8092.505,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8102.743,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 8130.768,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8145.412,
+      "content": " complete"
+    },
+    {
+      "timestamp_ms": 8181.215,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8181.435,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 8274.681,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8274.902,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8274.982,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 8275.039,
+      "content": "Hello"
+    },
+    {
+      "timestamp_ms": 8275.089,
+      "content": "Done"
+    },
+    {
+      "timestamp_ms": 8376.232,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8376.432,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 8376.507,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8376.575,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8376.637,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8390.332,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8414.552,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 8427.898,
+      "content": " Certificate"
+    },
+    {
+      "timestamp_ms": 8698.32,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 8698.512,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8698.577,
+      "content": "optional"
+    },
+    {
+      "timestamp_ms": 8698.634,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 8698.683,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8698.731,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8698.781,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8706.166,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 8706.341,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 8706.662,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 8706.73,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8706.787,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 8991.091,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8991.233,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8991.309,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 8991.365,
+      "content": " asks"
+    },
+    {
+      "timestamp_ms": 8991.419,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8991.466,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 8991.511,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8991.554,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8991.693,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 8991.838,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 8991.918,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8991.976,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8992.031,
+      "content": "Certificate"
+    },
+    {
+      "timestamp_ms": 8992.079,
+      "content": "Request"
+    },
+    {
+      "timestamp_ms": 8992.125,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8992.17,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 8992.215,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9001.502,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 9054.728,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9054.861,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9064.968,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 9082.888,
+      "content": " Certificate"
+    },
+    {
+      "timestamp_ms": 9467.408,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9467.656,
+      "content": "if"
+    },
+    {
+      "timestamp_ms": 9467.759,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 9467.829,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 9467.885,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9467.938,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9467.986,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9468.031,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9468.077,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 9468.123,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 9468.166,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 9468.209,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9468.25,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 9468.292,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 9468.335,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9468.423,
+      "content": " prove"
+    },
+    {
+      "timestamp_ms": 9468.512,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9468.575,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 9468.628,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9468.682,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 9476.16,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9604.51,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9604.711,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 9604.804,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 9604.874,
+      "content": " Exchange"
+    },
+    {
+      "timestamp_ms": 9604.938,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9604.997,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9617.709,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9630.312,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9711.438,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9711.664,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 9711.787,
+      "content": " generates"
+    },
+    {
+      "timestamp_ms": 9718.859,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9731.454,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 9909.556,
+      "content": "-master"
+    },
+    {
+      "timestamp_ms": 9914.112,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 9914.307,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9914.586,
+      "content": " encrypt"
+    },
+    {
+      "timestamp_ms": 9927.265,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 9927.265,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9927.265,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9927.265,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9927.265,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 9927.265,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9932.382,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 9963.994,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 9972.486,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10286.693,
+      "content": "from"
+    },
+    {
+      "timestamp_ms": 10286.93,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 10287.033,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 10287.115,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 10287.182,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10287.236,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 10287.289,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 10287.289,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10287.289,
+      "type": "done"
+    }
+  ],
+  "full_response": "HTTPS (Hypertext Transfer Protocol Secure) is an extension of HTTP that includes measures to secure communications between a client (such as a web browser) and a server. This security is primarily achieved using TLS (Transport Layer Security) or its predecessor, SSL (Secure Sockets Layer). Here's an overview of how HTTPS and the TLS handshake process work:\n\n### Overview of HTTPS\n\n1. **Encryption**: HTTPS encrypts the data transmitted between the client and the server, making it difficult for attackers to intercept and read the data.\n2. **Data Integrity**: It ensures that data hasn't been tampered with during transfer.\n3. **Authentication**: It allows clients to verify the server's identity via certificates, ensuring they are communicating with the intended server.\n\n### TLS Handshake Process\n\nThe TLS handshake is a series of steps that establish a secure connection between a client and a server. Here's how it typically works:\n\n1. **ClientHello**:\n   - The client begins the handshake by sending a `ClientHello` message to the server. This message includes:\n     - A list of supported TLS versions (e.g., TLS 1.2, 1.3).\n     - A list of cipher suites (algorithms for encryption, hashing, and key exchange) that the client supports.\n     - A randomly generated number called \"client random.\"\n\n2. **ServerHello**:\n   - The server responds with a `ServerHello` message, which includes:\n     - The agreed-upon TLS version and cipher suite.\n     - A randomly generated \"server random.\"\n\n3. **Server Certificate**:\n   - The server sends its digital certificate to the client. This certificate, signed by a trusted certificate authority (CA), contains the server's public key and identifies the server.\n\n4. **Server Key Exchange (if necessary)**:\n   - For certain cipher suites, the server may need to send additional key exchange information.\n\n5. **Server Hello Done**:\n   - The server signals that the initial part of the handshake is complete by sending a `ServerHelloDone` message.\n\n6. **Client Certificate Request (optional)**:\n   - If client authentication is required, the server asks the client for a certificate using a `CertificateRequest` message.\n\n7. **Client Certificate (if required)**:\n   - The client sends back a digital certificate to prove its identity.\n\n8. **Client Key Exchange**:\n   - The client generates a pre-master secret, encrypts it with the server's public key (from its certificate), and sends it",
+  "response_chars": 2431,
+  "num_chunks": 512,
+  "ttft_ms": 407.471,
+  "total_ms": 10287.826,
+  "model_name": "model-medium"
+}

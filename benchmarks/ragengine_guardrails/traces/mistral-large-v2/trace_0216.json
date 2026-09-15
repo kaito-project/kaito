@@ -1,0 +1,855 @@
+{
+  "index": 216,
+  "prompt": "What is graph-based data modeling and when should you use a graph database?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 817.058,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": " **Graph-Based"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": " Data Modeling**\nGraph"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": "-based data modeling is"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": " a way"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": " representing data as"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": "nodes ("
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": "entities)**, **"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": "edges (relationship"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": "s)**, and **"
+    },
+    {
+      "timestamp_ms": 817.058,
+      "content": "properties ("
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": "attributes)**."
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " Unlike"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " traditional relational"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": ", graph"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " on the **"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": "connections** between"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " data points"
+    },
+    {
+      "timestamp_ms": 1225.602,
+      "content": " rather than just the"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": " data itself.\n\n####"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": " **Key Concept"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": "s:**\n1."
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": " **Nodes**"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": " – Represent entities"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": " people"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": ", products"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": ", places"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": ").\n2. **"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": "Edges** – Represent"
+    },
+    {
+      "timestamp_ms": 1534.796,
+      "content": " relationships between"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " \"kn"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "ows,\" \"b"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "ought,\" \"loc"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "ated in"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "\").\n3. **"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "Properties** – Key"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "-value pairs"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " attached"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " to nodes"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " or edges"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": " `name: \""
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "Alice\"`, `"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "since"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": ": "
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "2020"
+    },
+    {
+      "timestamp_ms": 1840.249,
+      "content": "`).\n4."
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " **Labels"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "** – Categories"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " nodes (e.g"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "., `Person"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " `Product"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "`).\n\n"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "#### **Example:**\n"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "Nodes:**"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " `User"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "Alice)`, `Product"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " (L"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "aptop)`\n- **"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": "Edge:** `Alice"
+    },
+    {
+      "timestamp_ms": 2249.889,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "BO"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "UG"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "HT]->"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "aptop`"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": " (with properties"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": " like `date"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": ": \""
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "2023"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "-1"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "0-0"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "1\"`)\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "### **When"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": " to Use a"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": " Graph Database**\n"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": "Graph databases"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": " excel in scenarios"
+    },
+    {
+      "timestamp_ms": 2557.001,
+      "content": " where **relationship"
+    },
+    {
+      "timestamp_ms": 2659.512,
+      "content": "s are as"
+    },
+    {
+      "timestamp_ms": 2659.512,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 2659.512,
+      "content": " as the"
+    },
+    {
+      "timestamp_ms": 2659.512,
+      "content": " data itself**. Here"
+    },
+    {
+      "timestamp_ms": 2659.512,
+      "content": " are key"
+    },
+    {
+      "timestamp_ms": 2659.512,
+      "content": " use cases:\n\n####"
+    },
+    {
+      "timestamp_ms": 2761.83,
+      "content": " **1. High"
+    },
+    {
+      "timestamp_ms": 2761.83,
+      "content": "ly Connected Data"
+    },
+    {
+      "timestamp_ms": 2761.83,
+      "content": "**\n- **Social"
+    },
+    {
+      "timestamp_ms": 2761.83,
+      "content": " Networks"
+    },
+    {
+      "timestamp_ms": 2761.83,
+      "content": "** (friend"
+    },
+    {
+      "timestamp_ms": 2761.83,
+      "content": "ships, recommendations"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "- **Fra"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "ud Detection"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "** (un"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "usual transaction"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": " patterns)\n- **"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "Recommend"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "ation Eng"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "ines** (e"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": ".g., \"People"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": " who bought"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": " X"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": " also bought"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": " Y\")\n\n#### **"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": "2. Complex"
+    },
+    {
+      "timestamp_ms": 2968.586,
+      "content": " Quer"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "ies Invol"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "ving Relationships**\n"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "- **Path"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "inding** (e"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": ".g., shortest"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": " route in logistics"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "- **Hier"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "archical Data"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": "., organizational"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": " charts"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": ", taxonomy"
+    },
+    {
+      "timestamp_ms": 3171.38,
+      "content": ")\n- **Dependency"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": " Analysis** (e"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": ".g., IT"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": " infrastructure,"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": " supply"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": " chains)\n\n#### **"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": "3. Real"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": "-Time Tra"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": "versal of"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": " Relationship"
+    },
+    {
+      "timestamp_ms": 3384.238,
+      "content": "s**\n- **"
+    },
+    {
+      "timestamp_ms": 3483.652,
+      "content": "Know"
+    },
+    {
+      "timestamp_ms": 3483.652,
+      "content": "ledge Graphs**"
+    },
+    {
+      "timestamp_ms": 3483.652,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3483.652,
+      "content": " Wikipedia, semantic"
+    },
+    {
+      "timestamp_ms": 3687.881,
+      "content": " search)\n- **"
+    },
+    {
+      "timestamp_ms": 3687.881,
+      "content": "Network &"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": " Operations"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": "., tracking"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": " dependencies in"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": " micros"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": "ervices)\n\n#### **"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": "4. When Jo"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": "ins Be"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": "come Too"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": " Expensive**\n-"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": " In relational"
+    },
+    {
+      "timestamp_ms": 3688.048,
+      "content": " databases, complex"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": " joins slow"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": " down queries.\n"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": "- Graph"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": " databases **n"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": "atively traverse"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": " relationships**"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": " without expensive"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": " joins.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": "5. Dynamic"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": " Sche"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": "mas & Evol"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": "ving Data"
+    },
+    {
+      "timestamp_ms": 3858.09,
+      "content": "**\n- Unlike"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " rigid"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " relational"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " schemas, graph"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": "---\n\n### **When"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " NOT"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " to Use a"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " Graph Database**\n-"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": "Simple,"
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " tab"
+    },
+    {
+      "timestamp_ms": 4093.357,
+      "content": "ular data** ("
+    },
+    {
+      "timestamp_ms": 4093.357,
+      "content": "rel"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": "ational databases"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": " are better).\n"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": "- **High"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": "-write"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": ", low"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": "-rel"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": "ationship"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": " workload"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": "s**"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "content": " logging"
+    },
+    {
+      "timestamp_ms": 4209.726,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4299.235,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Graph-Based Data Modeling**\nGraph-based data modeling is a way of representing data as **nodes (entities)**, **edges (relationships)**, and **properties (attributes)**. Unlike traditional relational or document databases, graph databases focus on the **connections** between data points rather than just the data itself.\n\n#### **Key Concepts:**\n1. **Nodes** – Represent entities (e.g., people, products, places).\n2. **Edges** – Represent relationships between nodes (e.g., \"knows,\" \"bought,\" \"located in\").\n3. **Properties** – Key-value pairs attached to nodes or edges (e.g., `name: \"Alice\"`, `since: 2020`).\n4. **Labels** – Categories for nodes (e.g., `Person`, `Product`).\n\n#### **Example:**\n- **Nodes:** `User (Alice)`, `Product (Laptop)`\n- **Edge:** `Alice -[BOUGHT]-> Laptop` (with properties like `date: \"2023-10-01\"`)\n\n---\n\n### **When to Use a Graph Database**\nGraph databases excel in scenarios where **relationships are as important as the data itself**. Here are key use cases:\n\n#### **1. Highly Connected Data**\n- **Social Networks** (friendships, recommendations)\n- **Fraud Detection** (unusual transaction patterns)\n- **Recommendation Engines** (e.g., \"People who bought X also bought Y\")\n\n#### **2. Complex Queries Involving Relationships**\n- **Pathfinding** (e.g., shortest route in logistics)\n- **Hierarchical Data** (e.g., organizational charts, taxonomy)\n- **Dependency Analysis** (e.g., IT infrastructure, supply chains)\n\n#### **3. Real-Time Traversal of Relationships**\n- **Knowledge Graphs** (e.g., Wikipedia, semantic search)\n- **Network & IT Operations** (e.g., tracking dependencies in microservices)\n\n#### **4. When Joins Become Too Expensive**\n- In relational databases, complex joins slow down queries.\n- Graph databases **natively traverse relationships** without expensive joins.\n\n#### **5. Dynamic Schemas & Evolving Data**\n- Unlike rigid relational schemas, graph databases allow flexible relationships.\n\n---\n\n### **When NOT to Use a Graph Database**\n- **Simple, tabular data** (relational databases are better).\n- **High-write, low-relationship workloads** (e.g., logging",
+  "response_chars": 2110,
+  "num_chunks": 208,
+  "ttft_ms": 817.058,
+  "total_ms": 4503.896,
+  "model_name": "Mistral-Large-3"
+}

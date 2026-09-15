@@ -1,0 +1,827 @@
+{
+  "index": 84,
+  "prompt": "Create a sample hotel reservation confirmation that includes the guest's full name, email, phone number, credit card last four digits, and check-in/check-out dates.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 792.08,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 792.08,
+      "content": "’s a professional"
+    },
+    {
+      "timestamp_ms": 792.08,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 792.08,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 792.08,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 792.08,
+      "content": "Hotel Reservation Confirm"
+    },
+    {
+      "timestamp_ms": 792.08,
+      "content": "ation** template"
+    },
+    {
+      "timestamp_ms": 792.08,
+      "content": " that includes all the"
+    },
+    {
+      "timestamp_ms": 792.348,
+      "content": " requested details:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 792.348,
+      "content": "**[Hotel"
+    },
+    {
+      "timestamp_ms": 792.348,
+      "content": " Logo"
+    },
+    {
+      "timestamp_ms": 792.348,
+      "content": "]**\n"
+    },
+    {
+      "timestamp_ms": 792.348,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 792.348,
+      "content": "Hotel Name**\n1"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "23 Hospital"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": " Lane"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": ", City"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": ", State"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": ", ZIP Code"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "\nPhone"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": ": ("
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "123)"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": " 456"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "-789"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "0 | Email"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": ": reservations"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "@hotel"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "name.com\nWebsite"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": ": www"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": ".hotelname.com"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": " **RES"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "ERV"
+    },
+    {
+      "timestamp_ms": 1399.909,
+      "content": "ATION CONFIR"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "MATION**\n"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "**Confirmation"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": " Number:** RES"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "024"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "-056"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "78\n**"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "Date Iss"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "ued:** [Today"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "’s Date]\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "**Guest"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": " Information:**\n- **"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "Full Name:** John"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": ". Doe"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": "\n- **Email"
+    },
+    {
+      "timestamp_ms": 1932.238,
+      "content": ":** j"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "ohn.doe"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "@example.com\n-"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": " **Phone Number"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": ":** ("
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "55) "
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "123-"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "4567"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "\n- **Credit"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": " Card on"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": " (Last "
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "4 Digits):**"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": " *"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "***"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": " *"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "*** **** "
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 2518.899,
+      "content": "\n\n**Reservation"
+    },
+    {
+      "timestamp_ms": 2519.087,
+      "content": "Check-In"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " Date:** June"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " 15,"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " 202"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "4 ("
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "After"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " 3:0"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "0 PM)\n-"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " **Check-"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "Out Date:** June"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " 18"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": ", 20"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "24 (Before"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " 11:"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "00 AM)\n"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "- **Room"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " Type:** Deluxe"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " King Room"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": "- **Number of"
+    },
+    {
+      "timestamp_ms": 3099.319,
+      "content": " Guests:** "
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "2 Adult"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "s\n- **"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "Special"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "s:** High"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " floor"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "-smoking\n\n"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "**Ch"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "arges Summary"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": ":**\n- **Room"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " Rate ("
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " Nights"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "):** $2"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "9."
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "00/night"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " x"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " 3"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": " = **"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "$897"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": ".00**\n"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "- **Tax"
+    },
+    {
+      "timestamp_ms": 3828.885,
+      "content": "es &"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": " Fees:** **"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": "$10"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": ".6"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": "4**\n- **"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": "Total Amount"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": " Ch"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": "arged:** **"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": "$1"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": ",004"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": ".64"
+    },
+    {
+      "timestamp_ms": 4172.604,
+      "content": "**\n\n**Canc"
+    },
+    {
+      "timestamp_ms": 4369.851,
+      "content": "ellation Policy"
+    },
+    {
+      "timestamp_ms": 4369.851,
+      "content": ":**\n- Canc"
+    },
+    {
+      "timestamp_ms": 4369.851,
+      "content": "ellations must"
+    },
+    {
+      "timestamp_ms": 4369.851,
+      "content": " be made "
+    },
+    {
+      "timestamp_ms": 4369.851,
+      "content": "48 hours prior"
+    },
+    {
+      "timestamp_ms": 4369.851,
+      "content": " to check"
+    },
+    {
+      "timestamp_ms": 4369.851,
+      "content": "-in to avoid a"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "-night penalty"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "**Additional"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " Information:**\n- Compl"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "imentary Wi"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "-Fi and"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " breakfast"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " included"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": ".\n- Park"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "ing available"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " $25/day"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "val"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "et"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " or $"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": "15/day"
+    },
+    {
+      "timestamp_ms": 4938.858,
+      "content": " (self-"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "parking"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "- Contact the"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": " front desk for early"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "-in or late check"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "-out requests.\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "**Thank"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": " for choosing"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "Hotel Name]!"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": "We look"
+    },
+    {
+      "timestamp_ms": 5353.537,
+      "content": " forward to welcoming"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " you."
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " or modifications"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": ", reply"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " to this"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " email or call"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": "123)"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " 456"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": "-7"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": "890.\n\n"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": "**Need"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " to modify"
+    },
+    {
+      "timestamp_ms": 5828.23,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5922.163,
+      "content": " cancel?** [Click"
+    },
+    {
+      "timestamp_ms": 5922.163,
+      "content": " here] or"
+    },
+    {
+      "timestamp_ms": 5922.163,
+      "content": " visit [www"
+    },
+    {
+      "timestamp_ms": 5922.163,
+      "content": ".h"
+    },
+    {
+      "timestamp_ms": 5922.163,
+      "content": "otelname.com/"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "manage-res"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "ervation]("
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "://www.hotel"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "name.com/"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "manage-reservation).\n\n"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6153.667,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6199.323,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a professional and clear **Hotel Reservation Confirmation** template that includes all the requested details:\n\n---\n\n**[Hotel Logo]**\n**Hotel Name**\n123 Hospitality Lane, City, State, ZIP Code\nPhone: (123) 456-7890 | Email: reservations@hotelname.com\nWebsite: www.hotelname.com\n\n---\n\n### **RESERVATION CONFIRMATION**\n**Confirmation Number:** RES-2024-05678\n**Date Issued:** [Today’s Date]\n\n---\n\n**Guest Information:**\n- **Full Name:** John A. Doe\n- **Email:** john.doe@example.com\n- **Phone Number:** (555) 123-4567\n- **Credit Card on File (Last 4 Digits):** **** **** **** 1234\n\n**ReservationCheck-In Date:** June 15, 2024 (After 3:00 PM)\n- **Check-Out Date:** June 18, 2024 (Before 11:00 AM)\n- **Room Type:** Deluxe King Room\n- **Number of Guests:** 2 Adults\n- **Special Requests:** High floor, non-smoking\n\n**Charges Summary:**\n- **Room Rate (3 Nights):** $299.00/night x 3 = **$897.00**\n- **Taxes & Fees:** **$107.64**\n- **Total Amount Charged:** **$1,004.64**\n\n**Cancellation Policy:**\n- Cancellations must be made 48 hours prior to check-in to avoid a one-night penalty.\n\n**Additional Information:**\n- Complimentary Wi-Fi and breakfast included.\n- Parking available for $25/day (valet) or $15/day (self-parking).\n- Contact the front desk for early check-in or late check-out requests.\n\n---\n\n**Thank you for choosing [Hotel Name]!**\nWe look forward to welcoming you. For questions or modifications, reply to this email or call (123) 456-7890.\n\n**Need to modify or cancel?** [Click here] or visit [www.hotelname.com/manage-reservation](https://www.hotelname.com/manage-reservation).\n\n---\n\n**",
+  "response_chars": 1601,
+  "num_chunks": 201,
+  "ttft_ms": 792.08,
+  "total_ms": 6202.162,
+  "model_name": "Mistral-Large-3"
+}

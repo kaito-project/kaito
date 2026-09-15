@@ -1,0 +1,2027 @@
+{
+  "index": 63,
+  "prompt": "What is CI/CD and why is it important for modern software development?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 246.904,
+      "content": "CI"
+    },
+    {
+      "timestamp_ms": 263.242,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 282.414,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 303.127,
+      "content": " stands"
+    },
+    {
+      "timestamp_ms": 320.68,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 340.494,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 358.625,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 378.557,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 397.048,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 420.527,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 434.491,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 454.01,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 474.721,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 492.34,
+      "content": " Delivery"
+    },
+    {
+      "timestamp_ms": 510.987,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 530.003,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 548.901,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 568.104,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 588.518,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 606.446,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 628.627,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 644.402,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 667.196,
+      "content": " automate"
+    },
+    {
+      "timestamp_ms": 683.194,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 701.192,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 720.068,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 743.844,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 758.324,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 780.92,
+      "content": " helping"
+    },
+    {
+      "timestamp_ms": 795.93,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 818.413,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 835.154,
+      "content": " reliably"
+    },
+    {
+      "timestamp_ms": 854.159,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 872.566,
+      "content": " frequently"
+    },
+    {
+      "timestamp_ms": 891.352,
+      "content": " release"
+    },
+    {
+      "timestamp_ms": 910.81,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 929.467,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 948.715,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 968.194,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 986.516,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1008.199,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1025.625,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 1062.335,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 1065.067,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1084.879,
+      "content": "CI"
+    },
+    {
+      "timestamp_ms": 1102.145,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 1120.859,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 1139.364,
+      "content": " Components"
+    },
+    {
+      "timestamp_ms": 1158.336,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1177.315,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1197.15,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1215.812,
+      "content": "Autom"
+    },
+    {
+      "timestamp_ms": 1234.843,
+      "content": "ated"
+    },
+    {
+      "timestamp_ms": 1253.601,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 1272.666,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1291.975,
+      "content": " Tests"
+    },
+    {
+      "timestamp_ms": 1310.779,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1330.126,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 1349.004,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 1371.072,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 1387.569,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1406.364,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1424.841,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 1445.518,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1463.128,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1482.668,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 1501.434,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 1520.173,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1539.335,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1558.09,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1577.238,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1597.691,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 1615.57,
+      "content": "requent"
+    },
+    {
+      "timestamp_ms": 1634.689,
+      "content": " Comm"
+    },
+    {
+      "timestamp_ms": 1653.613,
+      "content": "its"
+    },
+    {
+      "timestamp_ms": 1677.214,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1694.504,
+      "content": " Developers"
+    },
+    {
+      "timestamp_ms": 1711.881,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 1730.174,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 1749.183,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1768.276,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1786.702,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 1806.234,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1824.863,
+      "content": "line"
+    },
+    {
+      "timestamp_ms": 1844.703,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 1864.453,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 1882.758,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 1902.159,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1922.957,
+      "content": " day"
+    },
+    {
+      "timestamp_ms": 1939.192,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1966.798,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1984.086,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1996.183,
+      "content": "Build"
+    },
+    {
+      "timestamp_ms": 2015.705,
+      "content": " Automation"
+    },
+    {
+      "timestamp_ms": 2034.94,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2054.859,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2072.696,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 2091.925,
+      "content": " triggers"
+    },
+    {
+      "timestamp_ms": 2110.676,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2130.241,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 2149.438,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2169.181,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2187.41,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 2205.975,
+      "content": " accompanied"
+    },
+    {
+      "timestamp_ms": 2226.276,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2246.553,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 2262.966,
+      "content": " automated"
+    },
+    {
+      "timestamp_ms": 2282.96,
+      "content": " tests"
+    },
+    {
+      "timestamp_ms": 2301.471,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2320.037,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 2338.899,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2358.636,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 2377.245,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2397.344,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 2415.55,
+      "content": " Importance"
+    },
+    {
+      "timestamp_ms": 2434.774,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2453.179,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2473.402,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2491.64,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2510.931,
+      "content": "Early"
+    },
+    {
+      "timestamp_ms": 2530.09,
+      "content": " Bug"
+    },
+    {
+      "timestamp_ms": 2548.681,
+      "content": " Detection"
+    },
+    {
+      "timestamp_ms": 2567.742,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2587.246,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 2606.192,
+      "content": " integrating"
+    },
+    {
+      "timestamp_ms": 2625.435,
+      "content": " frequently"
+    },
+    {
+      "timestamp_ms": 2647.441,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2663.579,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2713.498,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 2713.498,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2720.134,
+      "content": " identified"
+    },
+    {
+      "timestamp_ms": 2743.032,
+      "content": " early"
+    },
+    {
+      "timestamp_ms": 2760.133,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2911.43,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2911.43,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 2911.43,
+      "content": " cycle"
+    },
+    {
+      "timestamp_ms": 2911.43,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2911.43,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2911.43,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2911.594,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2912.811,
+      "content": "Improved"
+    },
+    {
+      "timestamp_ms": 2931.093,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 2948.708,
+      "content": " Quality"
+    },
+    {
+      "timestamp_ms": 2968.307,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2986.906,
+      "content": " Automated"
+    },
+    {
+      "timestamp_ms": 3006.222,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3026.306,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 3044.427,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3062.995,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3082.124,
+      "content": " adher"
+    },
+    {
+      "timestamp_ms": 3112.434,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 3120.724,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3140.229,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 3161.082,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 3177.937,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 3197.245,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3224.649,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3235.212,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3254.406,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3272.885,
+      "content": "Increased"
+    },
+    {
+      "timestamp_ms": 3292.471,
+      "content": " Collaboration"
+    },
+    {
+      "timestamp_ms": 3311.357,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3329.787,
+      "content": " Fre"
+    },
+    {
+      "timestamp_ms": 3354.056,
+      "content": "quent"
+    },
+    {
+      "timestamp_ms": 3369.185,
+      "content": " commits"
+    },
+    {
+      "timestamp_ms": 3387.368,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3406.276,
+      "content": " feedback"
+    },
+    {
+      "timestamp_ms": 3425.337,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 3443.841,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 3463.503,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3482.184,
+      "content": " collaborate"
+    },
+    {
+      "timestamp_ms": 3502.335,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 3523.0,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 3540.201,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3562.929,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3578.218,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 3596.388,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 3615.778,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 3634.604,
+      "content": " Delivery"
+    },
+    {
+      "timestamp_ms": 3656.473,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3673.358,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 3693.888,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 3710.648,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 3731.061,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 3749.208,
+      "content": " Delivery"
+    },
+    {
+      "timestamp_ms": 3768.686,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3795.66,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3806.055,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3826.551,
+      "content": "Autom"
+    },
+    {
+      "timestamp_ms": 3844.459,
+      "content": "ated"
+    },
+    {
+      "timestamp_ms": 3897.18,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 3897.18,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 3901.817,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3921.966,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 3940.099,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 3959.825,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3980.292,
+      "content": " pass"
+    },
+    {
+      "timestamp_ms": 3997.3,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4015.915,
+      "content": " stages"
+    },
+    {
+      "timestamp_ms": 4037.221,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4055.436,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4074.981,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 4092.187,
+      "content": " pipeline"
+    },
+    {
+      "timestamp_ms": 4116.261,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4133.535,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 4149.551,
+      "content": " prepared"
+    },
+    {
+      "timestamp_ms": 4168.765,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4187.77,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4207.918,
+      "content": " release"
+    },
+    {
+      "timestamp_ms": 4228.512,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4255.4,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 4263.963,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4282.781,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4301.786,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4321.34,
+      "content": "Manual"
+    },
+    {
+      "timestamp_ms": 4341.604,
+      "content": " Approval"
+    },
+    {
+      "timestamp_ms": 4359.025,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4379.796,
+      "content": " While"
+    },
+    {
+      "timestamp_ms": 4399.139,
+      "content": " automation"
+    },
+    {
+      "timestamp_ms": 4416.247,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 4434.875,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4455.696,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 4473.351,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4493.675,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 4511.475,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 4531.546,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 4549.495,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4568.611,
+      "content": " manual"
+    },
+    {
+      "timestamp_ms": 4587.935,
+      "content": " approval"
+    },
+    {
+      "timestamp_ms": 4611.051,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4625.697,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 4646.521,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 4664.028,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 4687.462,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 4704.125,
+      "content": " reach"
+    },
+    {
+      "timestamp_ms": 4723.56,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 4740.939,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4759.257,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 4795.037,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 4797.107,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 4816.039,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4835.978,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4854.706,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4873.546,
+      "content": "No"
+    },
+    {
+      "timestamp_ms": 4892.496,
+      "content": " Manual"
+    },
+    {
+      "timestamp_ms": 4911.377,
+      "content": " Intervention"
+    },
+    {
+      "timestamp_ms": 4931.666,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4950.008,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 4969.062,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4988.049,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 5007.086,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5026.24,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 5045.914,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 5078.708,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5083.203,
+      "content": " soon"
+    },
+    {
+      "timestamp_ms": 5102.701,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5122.346,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5142.785,
+      "content": " passes"
+    },
+    {
+      "timestamp_ms": 5163.665,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5178.843,
+      "content": " stages"
+    },
+    {
+      "timestamp_ms": 5197.762,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5217.112,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5236.613,
+      "content": " pipeline"
+    },
+    {
+      "timestamp_ms": 5254.717,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5291.569,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 5293.154,
+      "content": " Importance"
+    },
+    {
+      "timestamp_ms": 5312.317,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5331.02,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5351.059,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5371.294,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5388.35,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 5416.392,
+      "content": "apid"
+    },
+    {
+      "timestamp_ms": 5426.494,
+      "content": " Delivery"
+    },
+    {
+      "timestamp_ms": 5445.136,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5464.745,
+      "content": " Autom"
+    },
+    {
+      "timestamp_ms": 5483.713,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 5502.654,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5521.924,
+      "content": " release"
+    },
+    {
+      "timestamp_ms": 5540.972,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5561.104,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 5579.356,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5599.562,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 5619.111,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 5636.037,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5656.686,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5675.615,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5693.465,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5714.023,
+      "content": " delivered"
+    },
+    {
+      "timestamp_ms": 5733.388,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5751.487,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 5769.347,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5788.737,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 5807.812,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5829.337,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5845.927,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5865.864,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5884.673,
+      "content": "Reduc"
+    },
+    {
+      "timestamp_ms": 5902.901,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 5922.708,
+      "content": " Risk"
+    },
+    {
+      "timestamp_ms": 5975.78,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5975.78,
+      "content": " Small"
+    },
+    {
+      "timestamp_ms": 5979.307,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6016.699,
+      "content": " incremental"
+    },
+    {
+      "timestamp_ms": 6016.832,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 6036.797,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 6055.547,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6074.232,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 6093.955,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 6112.744,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6132.485,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6153.035,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6170.084,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6190.038,
+      "content": " opposed"
+    },
+    {
+      "timestamp_ms": 6208.336,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6227.486,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 6247.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6266.153,
+      "content": " risky"
+    },
+    {
+      "timestamp_ms": 6292.106,
+      "content": " deployments"
+    },
+    {
+      "timestamp_ms": 6305.759,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6322.244,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6341.391,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6361.253,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6379.905,
+      "content": "Market"
+    },
+    {
+      "timestamp_ms": 6398.903,
+      "content": " Respons"
+    },
+    {
+      "timestamp_ms": 6417.933,
+      "content": "iveness"
+    },
+    {
+      "timestamp_ms": 6436.316,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6456.842,
+      "content": " Enables"
+    },
+    {
+      "timestamp_ms": 6475.313,
+      "content": " companies"
+    },
+    {
+      "timestamp_ms": 6496.711,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6513.192,
+      "content": " respond"
+    },
+    {
+      "timestamp_ms": 6532.34,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 6551.504,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6570.747,
+      "content": " customer"
+    },
+    {
+      "timestamp_ms": 6589.667,
+      "content": " feedback"
+    },
+    {
+      "timestamp_ms": 6625.882,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6627.607,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 6659.006,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6667.461,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6690.032,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6725.857,
+      "content": " Why"
+    },
+    {
+      "timestamp_ms": 6725.857,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 6742.76,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 6761.768,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 6780.668,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6799.718,
+      "content": " Important"
+    },
+    {
+      "timestamp_ms": 6843.239,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6843.239,
+      "content": " Modern"
+    },
+    {
+      "timestamp_ms": 6857.027,
+      "content": " Software"
+    },
+    {
+      "timestamp_ms": 6876.655,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 6913.838,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6914.032,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6933.042,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6952.588,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6972.344,
+      "content": "Eff"
+    },
+    {
+      "timestamp_ms": 6989.945,
+      "content": "iciency"
+    },
+    {
+      "timestamp_ms": 7009.008,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7028.166,
+      "content": " Speed"
+    },
+    {
+      "timestamp_ms": 7047.21,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7103.728,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 7103.728,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7103.962,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 7124.565,
+      "content": " acceler"
+    },
+    {
+      "timestamp_ms": 7143.262,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 7161.662,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7181.303,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 7298.508,
+      "content": " lifecycle"
+    },
+    {
+      "timestamp_ms": 7298.508,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7298.508,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 7298.508,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 7298.508,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7298.508,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 7314.142,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 7333.156,
+      "content": "-quality"
+    },
+    {
+      "timestamp_ms": 7353.455,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 7371.165,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 7401.798,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7409.888,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7428.619,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7447.855,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7476.339,
+      "content": "Rel"
+    },
+    {
+      "timestamp_ms": 7486.403,
+      "content": "iability"
+    },
+    {
+      "timestamp_ms": 7505.067,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7524.08,
+      "content": " Automated"
+    },
+    {
+      "timestamp_ms": 7562.45,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 7562.566,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 7581.659,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 7600.719,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 7619.37,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7646.1,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 7657.347,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7678.813,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 7696.866,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7714.751,
+      "content": " consistently"
+    },
+    {
+      "timestamp_ms": 7733.814,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 7753.02,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7772.026,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7790.965,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 7812.709,
+      "content": " manner"
+    },
+    {
+      "timestamp_ms": 7830.223,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 7851.977,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 7869.62,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7886.487,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7905.877,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7925.017,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7947.843,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 7963.362,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 7981.736,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 8002.742,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8053.028,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 8053.028,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 8060.691,
+      "content": " grow"
+    },
+    {
+      "timestamp_ms": 8081.876,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8097.671,
+      "content": " projects"
+    },
+    {
+      "timestamp_ms": 8115.976,
+      "content": " expand"
+    },
+    {
+      "timestamp_ms": 8134.868,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8154.838,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 8173.938,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 8192.377,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 8211.327,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 8231.892,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 8249.292,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 8268.275,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 8288.154,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8315.108,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 8325.991,
+      "content": " streamlined"
+    },
+    {
+      "timestamp_ms": 8349.457,
+      "content": " workflows"
+    },
+    {
+      "timestamp_ms": 8364.802,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8382.915,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8401.306,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8421.259,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8439.711,
+      "content": "Compet"
+    },
+    {
+      "timestamp_ms": 8479.082,
+      "content": "it"
+    },
+    {
+      "timestamp_ms": 8479.082,
+      "content": "iveness"
+    },
+    {
+      "timestamp_ms": 8498.085,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8540.742,
+      "content": " Many"
+    },
+    {
+      "timestamp_ms": 8540.742,
+      "content": " industries"
+    },
+    {
+      "timestamp_ms": 8568.649,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 8573.077,
+      "content": " constant"
+    },
+    {
+      "timestamp_ms": 8592.713,
+      "content": " innovation"
+    },
+    {
+      "timestamp_ms": 8612.592,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 8635.477,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 8652.692,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 8668.93,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 8690.639,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 8706.643,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 8725.59,
+      "content": " stay"
+    },
+    {
+      "timestamp_ms": 8803.696,
+      "content": " competitive"
+    },
+    {
+      "timestamp_ms": 8803.878,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8803.929,
+      "content": " improving"
+    },
+    {
+      "timestamp_ms": 8803.967,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 8821.599,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 8842.314,
+      "content": "-market"
+    },
+    {
+      "timestamp_ms": 8869.608,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8879.273,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8897.577,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8917.185,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8951.814,
+      "content": "Customer"
+    },
+    {
+      "timestamp_ms": 8954.431,
+      "content": " Satisfaction"
+    },
+    {
+      "timestamp_ms": 8975.621,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9004.264,
+      "content": " Faster"
+    },
+    {
+      "timestamp_ms": 9012.037,
+      "content": " deployments"
+    },
+    {
+      "timestamp_ms": 9031.39,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9055.871,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 9072.92,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 9090.619,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 9107.426,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9126.541,
+      "content": " improved"
+    },
+    {
+      "timestamp_ms": 9145.857,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 9164.919,
+      "content": " experiences"
+    },
+    {
+      "timestamp_ms": 9184.193,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9203.106,
+      "content": " satisfaction"
+    },
+    {
+      "timestamp_ms": 9223.128,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9241.854,
+      "content": "Overall"
+    },
+    {
+      "timestamp_ms": 9266.684,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9280.762,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 9299.062,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 9317.46,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 9336.356,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9355.645,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9376.25,
+      "content": " cornerstone"
+    },
+    {
+      "timestamp_ms": 9394.049,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9412.461,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 9432.259,
+      "content": " Dev"
+    },
+    {
+      "timestamp_ms": 9450.98,
+      "content": "Ops"
+    },
+    {
+      "timestamp_ms": 9469.986,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 9489.159,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9509.054,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 9526.826,
+      "content": " agile"
+    },
+    {
+      "timestamp_ms": 9546.251,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9565.153,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 9585.482,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9604.752,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 9623.783,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 9641.544,
+      "content": " lif"
+    },
+    {
+      "timestamp_ms": 9694.925,
+      "content": "ec"
+    },
+    {
+      "timestamp_ms": 9694.925,
+      "content": "ycles"
+    },
+    {
+      "timestamp_ms": 9697.946,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9718.701,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 9736.586,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9757.645,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 9780.687,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9794.495,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9794.495,
+      "type": "done"
+    }
+  ],
+  "full_response": "CI/CD stands for Continuous Integration and Continuous Deployment (or Continuous Delivery). It's a set of practices that automate the software delivery process, helping teams to reliably and frequently release code updates to production.\n\n### Continuous Integration (CI)\n\n#### Components:\n- **Automated Testing**: Tests are run automatically when code is committed to the version control system.\n- **Frequent Commits**: Developers commit changes to the shared mainline repository several times a day.\n- **Build Automation**: Each commit triggers a build process, often accompanied by running automated tests to ensure code quality.\n\n#### Importance:\n1. **Early Bug Detection**: By integrating frequently, any issues are identified early in the development cycle.\n2. **Improved Code Quality**: Automated testing ensures that code adheres to standards before integration.\n3. **Increased Collaboration**: Frequent commits and feedback enable developers to collaborate more effectively.\n\n### Continuous Deployment / Delivery (CD)\n\n#### Continuous Delivery:\n- **Automated Code Deployment**: Code changes that pass all stages of the production pipeline are automatically prepared for a release to production.\n- **Manual Approval**: While automation handles all but the final deployment step, manual approval is often required before changes reach production.\n\n#### Continuous Deployment:\n- **No Manual Intervention**: Code is deployed to production automatically as soon as it passes all stages of the pipeline.\n\n#### Importance:\n1. **Rapid Delivery**: Automating the release process means that new features and changes can be delivered to users more quickly.\n2. **Reduced Risk**: Small, incremental updates reduce the risk associated with changes, as opposed to large, risky deployments.\n3. **Market Responsiveness**: Enables companies to respond faster to customer feedback and market changes.\n\n### Why CI/CD is Important for Modern Software Development\n\n1. **Efficiency and Speed**: CI/CD accelerates the development lifecycle, allowing teams to deliver high-quality software faster.\n2. **Reliability**: Automated processes reduce human error and ensure that software is consistently deployed in the same manner each time.\n3. **Scalability**: As teams grow and projects expand, CI/CD practices help manage complexity by maintaining streamlined workflows.\n4. **Competitiveness**: Many industries require constant innovation; CI/CD helps organizations stay competitive by improving time-to-market.\n5. **Customer Satisfaction**: Faster deployments and reliable updates lead to improved user experiences and satisfaction.\n\nOverall, CI/CD is a cornerstone of modern DevOps practices that enable agile development teams to manage software lifecycles more efficiently and effectively.",
+  "response_chars": 2774,
+  "num_chunks": 501,
+  "ttft_ms": 246.904,
+  "total_ms": 9799.176,
+  "model_name": "model-medium"
+}

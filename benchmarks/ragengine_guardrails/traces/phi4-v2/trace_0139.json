@@ -1,0 +1,2071 @@
+{
+  "index": 139,
+  "prompt": "Write a sample serverless function that retrieves secrets from environment variables but also has fallback hardcoded values for local development including database passwords and API keys.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 307.17,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 307.309,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 307.468,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 322.095,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 459.276,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 459.444,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 459.562,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 459.668,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 459.789,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 462.906,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 465.91,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 479.327,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 500.128,
+      "content": " retrieves"
+    },
+    {
+      "timestamp_ms": 512.516,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 556.902,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 557.116,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 569.756,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 704.303,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 704.461,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 704.53,
+      "content": " fallback"
+    },
+    {
+      "timestamp_ms": 704.586,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 704.636,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 704.682,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 704.837,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 723.281,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 744.933,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 760.773,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 897.475,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 897.662,
+      "content": " assumes"
+    },
+    {
+      "timestamp_ms": 897.743,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 897.805,
+      "content": "'re"
+    },
+    {
+      "timestamp_ms": 897.905,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 898.019,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 898.096,
+      "content": " Lambda"
+    },
+    {
+      "timestamp_ms": 1001.868,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1002.036,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1002.1,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 1002.173,
+      "content": " SDK"
+    },
+    {
+      "timestamp_ms": 1002.241,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1018.42,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 1035.091,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 1045.819,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 1171.532,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 1171.776,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1171.871,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 1171.965,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1172.075,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 1172.205,
+      "content": " platforms"
+    },
+    {
+      "timestamp_ms": 1179.578,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1197.815,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 1288.161,
+      "content": "times"
+    },
+    {
+      "timestamp_ms": 1294.678,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1294.852,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 1294.944,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 1295.213,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 1312.581,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1331.73,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 1446.249,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 1446.433,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1446.52,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1446.574,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 1446.621,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 1458.044,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 1467.264,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 1485.266,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1572.824,
+      "content": "Node"
+    },
+    {
+      "timestamp_ms": 1573.033,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 1576.466,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 1576.656,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1580.134,
+      "content": "javascript"
+    },
+    {
+      "timestamp_ms": 1603.281,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1618.675,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 1662.42,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 1662.6,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 1677.599,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 1694.774,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 1713.332,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 1790.286,
+      "content": "-sdk"
+    },
+    {
+      "timestamp_ms": 1790.587,
+      "content": "');\n"
+    },
+    {
+      "timestamp_ms": 1790.687,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 1790.752,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 1809.983,
+      "content": "Manager"
+    },
+    {
+      "timestamp_ms": 1832.844,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 1846.526,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1901.884,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 1902.074,
+      "content": ".Secret"
+    },
+    {
+      "timestamp_ms": 1905.787,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1928.091,
+      "content": "Manager"
+    },
+    {
+      "timestamp_ms": 1942.332,
+      "content": "();\n\n"
+    },
+    {
+      "timestamp_ms": 2029.902,
+      "content": "async"
+    },
+    {
+      "timestamp_ms": 2030.119,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 2030.299,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 2036.368,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 2041.232,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 2057.231,
+      "content": "(secret"
+    },
+    {
+      "timestamp_ms": 2076.108,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 2136.791,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2136.947,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2137.024,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2152.951,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 2170.031,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2194.622,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2297.517,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2302.448,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2302.589,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 2302.773,
+      "content": "Id"
+    },
+    {
+      "timestamp_ms": 2302.865,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2302.943,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 2321.301,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 2345.327,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2405.505,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2405.76,
+      "content": " };\n\n"
+    },
+    {
+      "timestamp_ms": 2414.557,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2418.047,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 2441.365,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2563.306,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2564.445,
+      "content": " await"
+    },
+    {
+      "timestamp_ms": 2564.603,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2564.676,
+      "content": "Manager"
+    },
+    {
+      "timestamp_ms": 2564.732,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 2564.791,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 2575.286,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 2595.563,
+      "content": "(input"
+    },
+    {
+      "timestamp_ms": 2611.709,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 2749.779,
+      "content": "promise"
+    },
+    {
+      "timestamp_ms": 2749.919,
+      "content": "();\n"
+    },
+    {
+      "timestamp_ms": 2749.986,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2750.042,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 2750.092,
+      "content": " ('"
+    },
+    {
+      "timestamp_ms": 2750.143,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 2750.193,
+      "content": "String"
+    },
+    {
+      "timestamp_ms": 2761.764,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 2825.309,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2825.472,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2825.558,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2841.736,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2856.843,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2923.005,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 2923.198,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 3022.959,
+      "content": ".parse"
+    },
+    {
+      "timestamp_ms": 3022.959,
+      "content": "(data"
+    },
+    {
+      "timestamp_ms": 3022.959,
+      "content": ".Secret"
+    },
+    {
+      "timestamp_ms": 3022.959,
+      "content": "String"
+    },
+    {
+      "timestamp_ms": 3022.959,
+      "content": ");\n"
+    },
+    {
+      "timestamp_ms": 3023.228,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3026.909,
+      "content": " }"
+    },
+    {
+      "timestamp_ms": 3052.483,
+      "content": " else"
+    },
+    {
+      "timestamp_ms": 3065.737,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3167.74,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3167.938,
+      "content": " let"
+    },
+    {
+      "timestamp_ms": 3168.01,
+      "content": " buff"
+    },
+    {
+      "timestamp_ms": 3174.975,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3175.15,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3179.593,
+      "content": " Buffer"
+    },
+    {
+      "timestamp_ms": 3202.883,
+      "content": "(data"
+    },
+    {
+      "timestamp_ms": 3325.85,
+      "content": ".Secret"
+    },
+    {
+      "timestamp_ms": 3326.029,
+      "content": "Binary"
+    },
+    {
+      "timestamp_ms": 3326.112,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3326.182,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3326.302,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 3326.417,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 3337.04,
+      "content": "');\n"
+    },
+    {
+      "timestamp_ms": 3355.881,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3372.851,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 3426.492,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 3426.656,
+      "content": ".parse"
+    },
+    {
+      "timestamp_ms": 3430.915,
+      "content": "(buff"
+    },
+    {
+      "timestamp_ms": 3451.307,
+      "content": ".toString"
+    },
+    {
+      "timestamp_ms": 3464.828,
+      "content": "());\n"
+    },
+    {
+      "timestamp_ms": 3485.917,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3586.752,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 3586.911,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 3586.997,
+      "content": "exports"
+    },
+    {
+      "timestamp_ms": 3587.067,
+      "content": ".handler"
+    },
+    {
+      "timestamp_ms": 3587.127,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3599.51,
+      "content": " async"
+    },
+    {
+      "timestamp_ms": 3619.146,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3639.818,
+      "content": "event"
+    },
+    {
+      "timestamp_ms": 3699.981,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3700.138,
+      "content": " =>"
+    },
+    {
+      "timestamp_ms": 3700.214,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3715.103,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3732.441,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 3787.32,
+      "content": " Retrieve"
+    },
+    {
+      "timestamp_ms": 3787.47,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 3789.16,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3809.935,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 3827.701,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 3888.027,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3888.253,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3888.34,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 3907.006,
+      "content": " apiKey"
+    },
+    {
+      "timestamp_ms": 3922.508,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3983.173,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3983.35,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 3983.419,
+      "content": ".API"
+    },
+    {
+      "timestamp_ms": 4006.473,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4019.459,
+      "content": " ||"
+    },
+    {
+      "timestamp_ms": 4074.4,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 4074.587,
+      "content": "DEFAULT"
+    },
+    {
+      "timestamp_ms": 4079.418,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 4110.606,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4114.703,
+      "content": "_FOR"
+    },
+    {
+      "timestamp_ms": 4137.175,
+      "content": "_LOCAL"
+    },
+    {
+      "timestamp_ms": 4243.036,
+      "content": "';\n"
+    },
+    {
+      "timestamp_ms": 4243.248,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4243.329,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 4243.392,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4243.532,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 4246.735,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4266.227,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4285.102,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 4346.375,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 4346.578,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 4346.721,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 4364.856,
+      "content": " ||"
+    },
+    {
+      "timestamp_ms": 4379.655,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 4436.681,
+      "content": "default"
+    },
+    {
+      "timestamp_ms": 4436.831,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 4442.698,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 4456.506,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 4475.26,
+      "content": "Local"
+    },
+    {
+      "timestamp_ms": 4529.424,
+      "content": "';\n\n"
+    },
+    {
+      "timestamp_ms": 4529.578,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4531.495,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 4561.351,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 4571.377,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 4624.949,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4625.262,
+      "content": " retrieve"
+    },
+    {
+      "timestamp_ms": 4629.212,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 4647.305,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 4670.264,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4723.172,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 4723.42,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 4726.15,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 4757.054,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4769.747,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4816.924,
+      "content": " try"
+    },
+    {
+      "timestamp_ms": 4817.123,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4819.105,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4839.399,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 4865.649,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 4882.43,
+      "content": "ApiKey"
+    },
+    {
+      "timestamp_ms": 4898.729,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4927.692,
+      "content": " await"
+    },
+    {
+      "timestamp_ms": 4936.493,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 4952.478,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 4974.851,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 4996.05,
+      "content": "(process"
+    },
+    {
+      "timestamp_ms": 5017.592,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 5036.35,
+      "content": ".S"
+    },
+    {
+      "timestamp_ms": 5056.802,
+      "content": "EC"
+    },
+    {
+      "timestamp_ms": 5066.61,
+      "content": "RET"
+    },
+    {
+      "timestamp_ms": 5359.824,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 5359.969,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 5360.072,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 5360.171,
+      "content": " ||"
+    },
+    {
+      "timestamp_ms": 5360.497,
+      "content": " '');\n"
+    },
+    {
+      "timestamp_ms": 5360.663,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5360.758,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 5371.284,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 5371.442,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 5371.531,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 5371.602,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5371.668,
+      "content": " await"
+    },
+    {
+      "timestamp_ms": 5371.773,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 5371.853,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 5371.912,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 5371.976,
+      "content": "(process"
+    },
+    {
+      "timestamp_ms": 5621.037,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 5621.276,
+      "content": ".S"
+    },
+    {
+      "timestamp_ms": 5621.372,
+      "content": "EC"
+    },
+    {
+      "timestamp_ms": 5621.435,
+      "content": "RET"
+    },
+    {
+      "timestamp_ms": 5621.487,
+      "content": "_DATABASE"
+    },
+    {
+      "timestamp_ms": 5621.533,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 5621.577,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 5621.62,
+      "content": " ||"
+    },
+    {
+      "timestamp_ms": 5621.663,
+      "content": " '');\n\n"
+    },
+    {
+      "timestamp_ms": 5621.707,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5621.748,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 5621.789,
+      "content": " Update"
+    },
+    {
+      "timestamp_ms": 5621.832,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5643.72,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 5658.383,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5676.428,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5809.931,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 5810.241,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5810.342,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5810.543,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5810.631,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5810.7,
+      "content": "secret"
+    },
+    {
+      "timestamp_ms": 5813.439,
+      "content": "ApiKey"
+    },
+    {
+      "timestamp_ms": 5829.62,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5989.114,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5989.312,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5989.491,
+      "content": " apiKey"
+    },
+    {
+      "timestamp_ms": 5989.672,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5989.819,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 5989.962,
+      "content": "ApiKey"
+    },
+    {
+      "timestamp_ms": 5990.082,
+      "content": ".API"
+    },
+    {
+      "timestamp_ms": 5990.165,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 6000.432,
+      "content": ";\n"
+    },
+    {
+      "timestamp_ms": 6046.443,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6046.617,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6059.357,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6078.248,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6398.815,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6399.005,
+      "content": "secret"
+    },
+    {
+      "timestamp_ms": 6399.108,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 6399.192,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 6399.264,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6405.166,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6405.401,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6405.532,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 6405.688,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 6405.832,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6405.98,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 6406.128,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 6406.272,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 6406.41,
+      "content": ".D"
+    },
+    {
+      "timestamp_ms": 6406.41,
+      "content": "ATABASE"
+    },
+    {
+      "timestamp_ms": 6406.586,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 6406.722,
+      "content": ";\n"
+    },
+    {
+      "timestamp_ms": 6437.421,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6441.325,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6459.832,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6483.049,
+      "content": " }"
+    },
+    {
+      "timestamp_ms": 6495.65,
+      "content": " catch"
+    },
+    {
+      "timestamp_ms": 6546.674,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6546.812,
+      "content": "error"
+    },
+    {
+      "timestamp_ms": 6554.568,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6575.331,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6910.069,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6910.217,
+      "content": " console"
+    },
+    {
+      "timestamp_ms": 6910.293,
+      "content": ".error"
+    },
+    {
+      "timestamp_ms": 6910.38,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 6910.456,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 6910.526,
+      "content": " retrieving"
+    },
+    {
+      "timestamp_ms": 6910.589,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 6919.626,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6919.781,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 6920.044,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 6920.186,
+      "content": ":',"
+    },
+    {
+      "timestamp_ms": 6920.334,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 6920.524,
+      "content": ");\n"
+    },
+    {
+      "timestamp_ms": 6920.651,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6920.788,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 6920.893,
+      "content": " F"
+    },
+    {
+      "timestamp_ms": 6921.008,
+      "content": "allback"
+    },
+    {
+      "timestamp_ms": 6921.121,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7102.128,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 7102.764,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 7102.885,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7102.956,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 7103.012,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7103.096,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 7103.26,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7103.399,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7103.517,
+      "content": " }\n\n"
+    },
+    {
+      "timestamp_ms": 7109.895,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7135.295,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 7150.431,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 7165.148,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7422.561,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7422.808,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7422.944,
+      "content": " statusCode"
+    },
+    {
+      "timestamp_ms": 7423.03,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7423.151,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7423.452,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 7423.553,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 7423.66,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7423.745,
+      "content": " body"
+    },
+    {
+      "timestamp_ms": 7423.816,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7423.934,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 7424.046,
+      "content": ".stringify"
+    },
+    {
+      "timestamp_ms": 7424.14,
+      "content": "({\n"
+    },
+    {
+      "timestamp_ms": 7430.0,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7453.688,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 7481.723,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7491.268,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7801.453,
+      "content": "Environment"
+    },
+    {
+      "timestamp_ms": 7813.579,
+      "content": " Variables"
+    },
+    {
+      "timestamp_ms": 7813.832,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 7813.944,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 7813.999,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7814.047,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 7814.094,
+      "content": " successfully"
+    },
+    {
+      "timestamp_ms": 7814.141,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 7814.188,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7814.234,
+      "content": " apiKey"
+    },
+    {
+      "timestamp_ms": 7814.277,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7814.322,
+      "content": " apiKey"
+    },
+    {
+      "timestamp_ms": 7814.367,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 7814.412,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7814.453,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 7814.494,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 7814.537,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7833.679,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 7878.666,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 7878.898,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 7888.145,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7921.012,
+      "content": " }),\n"
+    },
+    {
+      "timestamp_ms": 7926.559,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8065.546,
+      "content": " };\n\n"
+    },
+    {
+      "timestamp_ms": 8074.428,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8079.094,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 8079.094,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 8079.094,
+      "content": ";\n"
+    },
+    {
+      "timestamp_ms": 8079.094,
+      "content": "};\n\n"
+    },
+    {
+      "timestamp_ms": 8079.094,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 8081.71,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8241.65,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 8246.359,
+      "content": " Explanation"
+    },
+    {
+      "timestamp_ms": 8246.518,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8246.615,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8246.685,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8246.791,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8246.874,
+      "content": "Fallback"
+    },
+    {
+      "timestamp_ms": 8246.941,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8463.364,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 8463.519,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 8463.597,
+      "content": " Values"
+    },
+    {
+      "timestamp_ms": 8463.663,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8463.725,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 8463.782,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8463.835,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8463.889,
+      "content": " Local"
+    },
+    {
+      "timestamp_ms": 8463.941,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8463.991,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 8464.042,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 8466.091,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8481.61,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 8497.622,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8543.94,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8544.077,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8557.646,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 8739.785,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8739.934,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 8740.014,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 8740.078,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8740.136,
+      "content": " fallback"
+    },
+    {
+      "timestamp_ms": 8740.191,
+      "content": " defaults"
+    },
+    {
+      "timestamp_ms": 8740.248,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8740.299,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 8740.429,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8747.258,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8849.691,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8850.029,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8850.195,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 8850.585,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 8850.795,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 8861.829,
+      "content": " never"
+    },
+    {
+      "timestamp_ms": 9164.09,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9164.29,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 9164.376,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 9164.439,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 9164.49,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9164.648,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 9164.709,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 9164.825,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9164.911,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9164.973,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9165.027,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9165.074,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 9165.119,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 9165.165,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 9165.21,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 9166.344,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9472.272,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9472.43,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9472.522,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9472.601,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 9472.697,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 9472.789,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 9472.892,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9473.03,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 9473.16,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 9473.261,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 9473.325,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9473.379,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9473.428,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9473.477,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 9473.522,
+      "content": " retrieve"
+    },
+    {
+      "timestamp_ms": 9473.565,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 9576.548,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 9576.724,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9576.841,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9576.919,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 9576.98,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9589.684,
+      "content": "get"
+    },
+    {
+      "timestamp_ms": 9613.944,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 9627.358,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 9650.16,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9661.624,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 9685.539,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9700.726,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 9988.754,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9988.925,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 9989.002,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9989.072,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 9989.131,
+      "content": " conditional"
+    },
+    {
+      "timestamp_ms": 9989.186,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 9989.242,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 9989.615,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9989.736,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 9989.793,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 9989.847,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 9989.904,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9989.953,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9990.0,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9990.167,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10005.054,
+      "content": "Environment"
+    },
+    {
+      "timestamp_ms": 10005.054,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10022.372,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is an example of a serverless function that retrieves secrets from environment variables but includes fallback hardcoded values for local development. This example assumes you're using AWS Lambda and the AWS SDK, but similar patterns apply to other serverless platforms and runtimes like Google Cloud Functions or Azure Functions.\n\n### Sample Serverless Function (Node.js)\n\n```javascript\nconst AWS = require('aws-sdk');\nconst secretsManager = new AWS.SecretsManager();\n\nasync function getSecretValue(secretName) {\n  const input = {\n    SecretId: secretName,\n  };\n\n  const data = await secretsManager.getSecretValue(input).promise();\n  if ('SecretString' in data) {\n    return JSON.parse(data.SecretString);\n  } else {\n    let buff = new Buffer(data.SecretBinary, 'base64');\n    return JSON.parse(buff.toString());\n  }\n}\n\nexports.handler = async (event) => {\n  // Retrieve secrets from environment variables\n  const apiKey = process.env.API_KEY || 'DEFAULT_API_KEY_FOR_LOCAL';\n  const databasePassword = process.env.DATABASE_PASSWORD || 'defaultDatabasePasswordForLocal';\n\n  // For production, retrieve secret values from AWS Secrets Manager\n  try {\n    const secretApiKey = await getSecretValue(process.env.SECRET_API_KEY_NAME || '');\n    const secretDatabasePassword = await getSecretValue(process.env.SECRET_DATABASE_PASSWORD_NAME || '');\n\n    // Update with production values if available\n    if (secretApiKey) {\n      apiKey = secretApiKey.API_KEY;\n    }\n    if (secretDatabasePassword) {\n      databasePassword = secretDatabasePassword.DATABASE_PASSWORD;\n    }\n  } catch (error) {\n    console.error('Error retrieving secrets from Secrets Manager:', error);\n    // Fallback to hardcoded values in case of error\n  }\n\n  const response = {\n    statusCode: 200,\n    body: JSON.stringify({\n      message: \"Environment Variables & Secrets are set successfully.\",\n      apiKey: apiKey,\n      databasePassword: databasePassword,\n    }),\n  };\n\n  return response;\n};\n\n```\n\n### Explanation\n\n1. **Fallback to Hardcoded Values**: \n   - Local development environment variables are used, and if they are not found, fallback defaults are provided in the code. It’s critical never to commit hardcoded secrets to version control.\n\n2. **Secrets Manager Integration**:\n   - For production use, AWS Secrets Manager is used to securely retrieve secret values. The function `getSecretValue` handles the retrieval of secrets. This conditional retrieval updates development variables if available.\n\n3. **Environment",
+  "response_chars": 2511,
+  "num_chunks": 512,
+  "ttft_ms": 307.17,
+  "total_ms": 10022.692,
+  "model_name": "model-medium"
+}

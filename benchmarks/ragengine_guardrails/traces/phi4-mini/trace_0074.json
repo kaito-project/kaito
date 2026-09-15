@@ -1,0 +1,1779 @@
+{
+  "index": 74,
+  "prompt": "Explain how a hash table works and analyze its time complexity.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 959.481,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " fast"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " insertion"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " deletion"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 959.481,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": "hash"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " determines"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " location"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1702.913,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " array"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": "often"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 1703.13,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " defining"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " initializing"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " hashing"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " inserting"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2422.755,
+      "content": " retrieving"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " deleting"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " pair"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": "Hash"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " supports"
+    },
+    {
+      "timestamp_ms": 3133.169,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " average"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " worst"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": "-case"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3133.414,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": "(n"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " collisions"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3783.098,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " Some"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " chaining"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " addressing"
+    },
+    {
+      "timestamp_ms": 3783.377,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " collisions"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " average"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": "-case"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " constant"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": "Insertion"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " average"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " worst"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": "(n"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 4926.327,
+      "content": " collide"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " proportional"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 5214.61,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " chaining"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": "link"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " collided"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " linked"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " addressing"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": "finding"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5839.917,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " slot"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " stays"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " absent"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " collision"
+    },
+    {
+      "timestamp_ms": 6479.257,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " constant"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " occasional"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " traversal"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 6479.477,
+      "content": " collisions"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": "Deletion"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " average"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " reasoning"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " insert"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": "ions"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " Worst"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": "-case"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": "(n"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " locating"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " element"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7127.599,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 7279.624,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 7279.624,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 7279.624,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 7279.624,
+      "content": " equal"
+    },
+    {
+      "timestamp_ms": 7279.624,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7279.624,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7279.624,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " linked"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": "Search"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " average"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " degrade"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": "(n"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " worst"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": "-case"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " scenarios"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " collisions"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " causing"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8103.927,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " traverse"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " encompassing"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " target"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " tables"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " powerful"
+    },
+    {
+      "timestamp_ms": 8758.058,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " average"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": "-case"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " complexities"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 8758.286,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " insert"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " delete"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " Optimization"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " chaining"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " addressing"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " worst"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": "-case"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " scenarios"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9343.07,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 9366.085,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " ideal"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " rapid"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": "-memory"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10003.067,
+      "content": " caches"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " vital"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " field"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10263.775,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10361.019,
+      "type": "done"
+    }
+  ],
+  "full_response": "A hash table is a data structure that allows for fast insertion, deletion, and retrieval of key-value pairs. It works by using a hash function to compute an index (hash code) for each key, which determines the location of the value an array (often called a bucket) within the hash table. The basic steps of a hash table include defining the hash table, initializing the table, hashing the key to get an index, inserting the value into the table, retrieving a value using a key, and deleting a key-value pair.\n\nHash table supports operations O(1) average time complexity. However, worst-case time complexity can be O(n) due to collisions, when two or more keys produce the same table index. Some techniques such as separate chaining or open addressing can manage collisions to ensure average-case constant time complexity.\n\nThe time complexity analysis of each operation in a hash table is as follows:\n\nInsertion: O(1) on average. In the worst case, it can be O(n) if many keys collide in the same bucket, making it take time proportional to the number of keys in that bucket. With separate chaining (linking collided keys together through a linked list or a similar structure) or open addressing (finding an open slot for a new key), time complexity generally stays O(1) absent collision due its constant-time operations and occasional traversal due to hash collisions.\n\nDeletion: O(1) on average, similar reasoning as insertions. Worst-case is O(n) since locating the element to remove could take time equal to the size of the bucket if it were a linked list.\n\nSearch: O(1) on average, but can degrade to O(n) in worst-case scenarios due to collisions causing the search to traverse all keys encompassing the target key.\n\nIn summary, hash tables are powerful due their speed with average-case time complexities of O(1) for search, insert, and delete operations. Optimization techniques like separate chaining or open addressing help manage worst-case scenarios and maintain efficient functionality. These structures are ideal when rapid access to key-value pairs is critical, such as in the case of in-memory databases and caches, making them vital components in the field of computing.",
+  "response_chars": 2187,
+  "num_chunks": 439,
+  "ttft_ms": 959.481,
+  "total_ms": 10452.25,
+  "model_name": "Phi-4-mini-instruct"
+}

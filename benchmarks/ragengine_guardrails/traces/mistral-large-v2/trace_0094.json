@@ -1,0 +1,867 @@
+{
+  "index": 94,
+  "prompt": "Write a sample insurance claim form with the policyholder's name, policy number, SSN, phone number, email, and description of the incident.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1100.322,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": "’s a **sample"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " insurance"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " claim"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": "** with"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " the requested"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": ". This"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " is a general"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " template and"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " can be adapted based"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " on the type"
+    },
+    {
+      "timestamp_ms": 1100.322,
+      "content": " of insurance (auto"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": ", home, health"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": ", etc.).\n\n"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "---\n\n#"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": " **INS"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "URANCE C"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "LAIM FORM"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "**\n**Policy"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "holder"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": " Information**\n\n"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "| **Field"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "**              "
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": " | **Details"
+    },
+    {
+      "timestamp_ms": 1538.028,
+      "content": "**                         "
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": " |\n|------------------------"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": "-|------------------------------------"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": "--|\n| **"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": "Policy"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": "holder"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": " Name**  "
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": " | John"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": ". Doe"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": "                         "
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": " |\n| **Policy"
+    },
+    {
+      "timestamp_ms": 2329.747,
+      "content": " Number**       |"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " POL"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "-2"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "023"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "-4"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "9                     "
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " |\n| **Social"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " Security No"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": ".** |"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " XXX"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "-XX"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "-1"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "234 ("
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "last"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " 4"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " digits for"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": ") |\n"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "| **Phone"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " Number**       "
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " | ("
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "555)"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": " 123"
+    },
+    {
+      "timestamp_ms": 3174.281,
+      "content": "-456"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "7                      "
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": " |\n| **Email"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": " Address**       |"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": " j"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "ohn.doe@"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "email.com                  "
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": " |\n| **Date"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": " of Birth"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "**       | "
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "05"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "/15"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "/1"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "980"
+    },
+    {
+      "timestamp_ms": 3761.223,
+      "content": "                          "
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": " |\n| **Mail"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "ing Address"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "**    "
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": " | 12"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "3 Maple"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": " Street"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": ", An"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "ytown, ST"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": " 1"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "  |\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": " **Inc"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "ident Details**\n\n"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": " **Field"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "**                    "
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": " | **Details"
+    },
+    {
+      "timestamp_ms": 4480.29,
+      "content": "**                         "
+    },
+    {
+      "timestamp_ms": 4572.998,
+      "content": " |\n|----------------------------"
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": "---|--------------------------------"
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": "------|\n|"
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": " **Date"
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": " of Incident**         "
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": " | 1"
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": "0/1"
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": "5/20"
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": "23                          "
+    },
+    {
+      "timestamp_ms": 5283.653,
+      "content": " |\n| **Time"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " of Incident**         "
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " | 3"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": ":3"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": "0 PM                             "
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " |\n| **Location"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " of Incident**     "
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " | Inter"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": "section of"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " Oak"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " St."
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " & Pine"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " Ave"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " Anytown,"
+    },
+    {
+      "timestamp_ms": 5876.141,
+      "content": " ST |\n| **"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "Type of Claim"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "**            "
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " ☑"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " Auto"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " Acc"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "ident "
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " ☐ Home"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " Damage"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "  ☐ Health"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " ☐ Other ("
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "spec"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "ify):"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " _______ |\n"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "| **Was"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " Police Report F"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": "iled?**|"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " ☑"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " Yes (Report"
+    },
+    {
+      "timestamp_ms": 7456.145,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": ": 2"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "023-"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "567)"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": " ☐ No |\n"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "| **W"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "ere"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": " There"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": " Inj"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "uries?**      |"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": " ☑ Yes ("
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "Des"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": "cribe below"
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": ") "
+    },
+    {
+      "timestamp_ms": 8376.25,
+      "content": " ☐ No        "
+    },
+    {
+      "timestamp_ms": 8682.035,
+      "content": " |\n| **Other"
+    },
+    {
+      "timestamp_ms": 8682.035,
+      "content": " Parties Invol"
+    },
+    {
+      "timestamp_ms": 8682.035,
+      "content": "ved**   "
+    },
+    {
+      "timestamp_ms": 8682.035,
+      "content": " | Jane"
+    },
+    {
+      "timestamp_ms": 8682.035,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 8682.035,
+      "content": ", License"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " Plate"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": ": ABC"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "23,"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " Insurance"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": ": XY"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "Z Co"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": ". (Policy"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " DEF-7"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "89) |\n\n"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "---\n\n### **Description"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " of Incident"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "**\n*("
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "Prov"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": "ide a"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " of what"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " happened,"
+    },
+    {
+      "timestamp_ms": 9621.242,
+      "content": " including weather"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " conditions"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": ", actions"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " taken"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": ", and any witnesses"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": ".)*\n\nOn"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " **October"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " 15"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": ", 20"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "23**, at"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " approximately"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " **3:3"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "0 PM**, I"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " was driving my"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " **2"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "8 Honda"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " Acc"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "ord ("
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "IN:"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "content": "1H"
+    },
+    {
+      "timestamp_ms": 10687.025,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10829.277,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a **sample insurance claim form** with the requested details. This is a general template and can be adapted based on the type of insurance (auto, home, health, etc.).\n\n---\n\n# **INSURANCE CLAIM FORM**\n**Policyholder Information**\n\n| **Field**               | **Details**                          |\n|-------------------------|--------------------------------------|\n| **Policyholder Name**   | John A. Doe                          |\n| **Policy Number**       | POL-2023-456789                      |\n| **Social Security No.** | XXX-XX-1234 (last 4 digits for security) |\n| **Phone Number**        | (555) 123-4567                       |\n| **Email Address**       | john.doe@email.com                   |\n| **Date of Birth**       | 05/15/1980                           |\n| **Mailing Address**     | 123 Maple Street, Anytown, ST 12345  |\n\n---\n\n### **Incident Details**\n\n| **Field**                     | **Details**                          |\n|-------------------------------|--------------------------------------|\n| **Date of Incident**          | 10/15/2023                           |\n| **Time of Incident**          | 3:30 PM                              |\n| **Location of Incident**      | Intersection of Oak St. & Pine Ave., Anytown, ST |\n| **Type of Claim**             | ☑ Auto Accident  ☐ Home Damage  ☐ Health  ☐ Other (specify): _______ |\n| **Was a Police Report Filed?**| ☑ Yes (Report #: 2023-10-4567)  ☐ No |\n| **Were There Injuries?**      | ☑ Yes (Describe below)  ☐ No         |\n| **Other Parties Involved**    | Jane Smith, License Plate: ABC123, Insurance: XYZ Co. (Policy #: DEF-789) |\n\n---\n\n### **Description of Incident**\n*(Provide a detailed account of what happened, including weather conditions, actions taken, and any witnesses.)*\n\nOn **October 15, 2023**, at approximately **3:30 PM**, I was driving my **2018 Honda Accord (VIN: 1H",
+  "response_chars": 1866,
+  "num_chunks": 211,
+  "ttft_ms": 1100.322,
+  "total_ms": 10930.865,
+  "model_name": "Mistral-Large-3"
+}

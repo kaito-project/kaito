@@ -1,0 +1,827 @@
+{
+  "index": 66,
+  "prompt": "Create a sample configuration file for a web application that includes database connection strings with username and password, API keys for Stripe and SendGrid, and an AWS secret access key.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 797.993,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " file for a web"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " application in"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": "YAML** format"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " (commonly used"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " frameworks like Django"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": ", Flask"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": ", or Node"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": ".js). For"
+    },
+    {
+      "timestamp_ms": 797.993,
+      "content": " security best"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " practices, **"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": "never commit"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " file directly to version"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " control** (e"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": ".g., Git"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": ", use environment variables"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " or a secrets"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " manager"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " (like"
+    },
+    {
+      "timestamp_ms": 1169.599,
+      "content": " AWS Secrets Manager,"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": " HashiCor"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": "p Vault, or"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": " Kubernetes Secrets).\n\n"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": "---\n\n### **`"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": "config.yml"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": "`**"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": " (Example"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": ")\n```yaml\n"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": "# Web"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": " Application Configuration\napp"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": ":\n  name"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": ": \"My"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": " Awesome"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 1430.688,
+      "content": "\"\n  environment"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": ": \"development"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "\"  # or"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": " \"production"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "\", \"staging"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "\"\n  debug"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": ": true"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "\n  host"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": ": \"0"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": ".0.0"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": ".0\"\n"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "  port: "
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "000\n\n"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "# Database Configuration"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "database:\n"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": "  default"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": ":\n    engine"
+    },
+    {
+      "timestamp_ms": 1892.751,
+      "content": ": \"postgresql"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "\"  # or"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": " \"mysql\","
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": " \"sqlite"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "\", etc"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": ".\n    host"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": ": \"localhost"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "\"\n    port"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": ": 5"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "43"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "2\n    name"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": ": \"my"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "_db\"\n    user"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": ": \"db"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": "_user\"  #"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": " Replace with a"
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": " secure username\n   "
+    },
+    {
+      "timestamp_ms": 2265.653,
+      "content": " password: \"db"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "_123"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "!\""
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "  # Replace with"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": " a strong"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": " password\n    ssl"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "_mode"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": ": \"require"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "\"  # For"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": " production\n\n"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": " API Keys"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "Third"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "-P"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": "arty Services"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": ")\napi_keys"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": ":\n  stripe"
+    },
+    {
+      "timestamp_ms": 2577.07,
+      "content": ":\n    secret"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": ": \"sk"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "_test_"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "51"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "Ab"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "Cd"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "fG"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "hI"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 2738.352,
+      "content": "KlMn"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "Op"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "rSt"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "UvW"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "xYz1"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "6789"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "0\""
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "  # Test"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "replace with live"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": " in production"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": ")\n   "
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": " publish"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "able_key"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": ": \"pk"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "_test_5"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "1AbCd"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "EfGh"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "IjKl"
+    },
+    {
+      "timestamp_ms": 3069.813,
+      "content": "MnOpQr"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "StUvW"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "xYz0"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "87"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "1\"\n"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": " webhook_secret"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": ": \"wh"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "sec"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "_x"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "yz123"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "...\"  # St"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "ripe web"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "hook signing"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": " secret\n"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "  send"
+    },
+    {
+      "timestamp_ms": 3478.032,
+      "content": "grid:\n    api"
+    },
+    {
+      "timestamp_ms": 3478.274,
+      "content": ".x"
+    },
+    {
+      "timestamp_ms": 3478.274,
+      "content": "yz123"
+    },
+    {
+      "timestamp_ms": 3478.274,
+      "content": "4567"
+    },
+    {
+      "timestamp_ms": 3478.274,
+      "content": "890"
+    },
+    {
+      "timestamp_ms": 3478.274,
+      "content": "abc"
+    },
+    {
+      "timestamp_ms": 3478.274,
+      "content": "def...\""
+    },
+    {
+      "timestamp_ms": 3478.274,
+      "content": "  # Replace with"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": " SendGrid"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": " API key"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "\n\n#"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": " AWS Configuration"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "\naws:\n"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "  region"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": ": \"us"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "-east-1\"\n"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "  access"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "_key_id"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": ": \"AK"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "AXY"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "Z1"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "6789"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "0ABC"
+    },
+    {
+      "timestamp_ms": 3805.545,
+      "content": "\"  # Replace"
+    },
+    {
+      "timestamp_ms": 3805.824,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 3805.824,
+      "content": " access key\n"
+    },
+    {
+      "timestamp_ms": 3805.824,
+      "content": "  secret"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "_access_key: \""
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "abc"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "90"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "xyzABCDE"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "FGHI"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "JKLMN"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "OPQRST"
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 3990.462,
+      "content": "  # Replace"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": " with your AWS"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": " secret key"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": "\n  s"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": "3:\n"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": "    bucket_name"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": ": \"my"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "content": "assets\"\n"
+    },
+    {
+      "timestamp_ms": 4119.332,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4159.71,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample configuration file for a web application in **YAML** format (commonly used with frameworks like Django, Flask, or Node.js). For security best practices, **never commit this file directly to version control** (e.g., Git). Instead, use environment variables or a secrets manager (like AWS Secrets Manager, HashiCorp Vault, or Kubernetes Secrets).\n\n---\n\n### **`config.yml`** (Example)\n```yaml\n# Web Application Configuration\napp:\n  name: \"My Awesome App\"\n  environment: \"development\"  # or \"production\", \"staging\"\n  debug: true\n  host: \"0.0.0.0\"\n  port: 3000\n\n# Database Configuration\ndatabase:\n  default:\n    engine: \"postgresql\"  # or \"mysql\", \"sqlite\", etc.\n    host: \"localhost\"\n    port: 5432\n    name: \"myapp_db\"\n    user: \"db_user\"  # Replace with a secure username\n    password: \"db_password_123!\"  # Replace with a strong password\n    ssl_mode: \"require\"  # For production\n\n# API Keys (Third-Party Services)\napi_keys:\n  stripe:\n    secret_key: \"sk_test_51AbCdEfGhIjKlMnOpQrStUvWxYz1234567890\"  # Test key (replace with live key in production)\n    publishable_key: \"pk_test_51AbCdEfGhIjKlMnOpQrStUvWxYz0987654321\"\n    webhook_secret: \"whsec_xyz123...\"  # Stripe webhook signing secret\n  sendgrid:\n    api.xyz1234567890abcdef...\"  # Replace with your SendGrid API key\n\n# AWS Configuration\naws:\n  region: \"us-east-1\"\n  access_key_id: \"AKIAXYZ1234567890ABC\"  # Replace AWS access key\n  secret_access_key: \"abcdef1234567890xyzABCDEFGHIJKLMNOPQRST\"  # Replace with your AWS secret key\n  s3:\n    bucket_name: \"myapp-assets\"\n",
+  "response_chars": 1539,
+  "num_chunks": 201,
+  "ttft_ms": 797.993,
+  "total_ms": 4177.983,
+  "model_name": "Mistral-Large-3"
+}

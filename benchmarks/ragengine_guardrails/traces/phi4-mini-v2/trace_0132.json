@@ -1,0 +1,2043 @@
+{
+  "index": 132,
+  "prompt": "Create an exhaustive guide to Linux system administration covering users, permissions, networking, storage, services, security, monitoring, backup, and troubleshooting.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 802.909,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " Linux"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " Administration"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " Guide"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": "Linux"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " Administration"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " multif"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": "aceted"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " field"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " encompasses"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " aspects"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 802.909,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " Linux"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " del"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": "ves"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " areas"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 1419.652,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": " networking"
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1419.978,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " backup"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " troubleshooting"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " Users"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " Permissions"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": "Managing"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " fundamental"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " Linux"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " administration"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2063.291,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " Users"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " Users"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "add"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " followed"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " options"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "add"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 2979.863,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": "Deleting"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " Users"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": "del"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4079.372,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "del"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "r"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " Groups"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " Groups"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4084.256,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": "group"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": "add"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " groups"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 5013.495,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "Adding"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " Users"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " Groups"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "us"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "erm"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "od"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 5013.761,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " groups"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "mod"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": " Permissions"
+    },
+    {
+      "timestamp_ms": 5552.426,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": "Understanding"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " Permissions"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " Permissions"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " assigned"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5822.655,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " directories"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": "r"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " execute"
+    },
+    {
+      "timestamp_ms": 6946.83,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": "`)"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " owner"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " ls"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " filename"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 6947.14,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": "Mod"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": "ifying"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " Permissions"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": "chmod"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " modify"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7634.224,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " chmod"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " u"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "+r"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "wx"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " filename"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "Change"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " Ownership"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "ch"
+    },
+    {
+      "timestamp_ms": 7646.166,
+      "content": "own"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " ch"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": "own"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8383.288,
+      "content": "group"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " filename"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " Lists"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": "ACL"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8394.995,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 8432.446,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8432.446,
+      "content": " granular"
+    },
+    {
+      "timestamp_ms": 8432.446,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " ACL"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": "set"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": "fac"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": "get"
+    },
+    {
+      "timestamp_ms": 9615.067,
+      "content": "fac"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " commands"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "fac"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " filename"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "fac"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " u"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": ":r"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "wx"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " filename"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9615.562,
+      "content": " Networking"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "Networking"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " Linux"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " configuring"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " interfaces"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " routing"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " securing"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " Network"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": "Configure"
+    },
+    {
+      "timestamp_ms": 10233.927,
+      "content": " Network"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " Interfaces"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "if"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "config"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "ip"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " configure"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "config"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " eth"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " sudo"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "config"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " eth"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "192"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "168"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " net"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "mask"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "255"
+    },
+    {
+      "timestamp_ms": 11256.506,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": "255"
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": "255"
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11454.508,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 11667.648,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 11667.648,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 11667.648,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11667.648,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 11667.648,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11667.648,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 11667.648,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11674.088,
+      "type": "done"
+    }
+  ],
+  "full_response": "# Linux System Administration Guide\n\nLinux System Administration is a multifaceted field that encompasses various aspects of managing computer systems running the Linux operating system. This guide delves into key areas such as users and, networking, storage, services, security, monitoring, backup, and troubleshooting.\n\n## 1. Users and Permissions\nManaging users and permissions is fundamental to Linux system administration. Here are some key concepts:\n\n### 1.1 Users\n- **Creating Users**: The `useradd` command followed by options can create new users.\n  ```sh\n  sudo useradd -m username\n  ```\n- **Deleting Users**: The `userdel` command can remove.\n  ```sh\n  sudo userdel -r username\n  ```\n\n### 1.2 Groups\n- **Creating Groups**: The `groupadd` command can create new groups.\n  ```sh\n  sudo group groupname\n  ```\n- **Adding Users to Groups**: The `usermod` command can add users to groups.\n  ```sh\n  sudo usermod -a -G groupname username\n  ```\n\n### 1.3 Permissions\n- **Understanding File Permissions**: Permissions are assigned to files and directories and include read (`r`), write (`w`), and execute (``) permissions for the owner, group, and others.\n\n  ```sh\n  ls -l filename\n  ```\n\n- **Modifying Permissions**: The `chmod` command can modify permissions.\n sh\n  sudo chmod u+rwx filename\n  ```\n\n- **Change Ownership**: The `chown` command changes file ownership.\n  ```sh\n  sudo chown ownership:group filename\n  ```\n\n- **Access Control Lists (ACLs)**: For more granular permissions, ACLs can be used with the `setfacl` and `getfac` commands.\n\n  ```sh\n  getfacl filename\n  setfacl -m u:username:rwx filename\n  ```\n\n## 2. Networking\nNetworking in Linux includes configuring network interfaces, routing, and securing network connections.\n\n### 2.1 Network Configuration\n- **Configure Network Interfaces**: The `ifconfig` or `ip` command can configure networks.\n  ```sh\n  sudo ifconfig eth0 down\n  sudo ifconfig eth0 192.168.1.10 netmask 255.255.255.0 up\n  ```\n\n### 2.2",
+  "response_chars": 1970,
+  "num_chunks": 505,
+  "ttft_ms": 802.909,
+  "total_ms": 11674.581,
+  "model_name": "Phi-4-mini-instruct"
+}

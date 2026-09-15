@@ -1,0 +1,1571 @@
+{
+  "index": 158,
+  "prompt": "Show example curl commands for authenticating with various APIs: 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', 'X-API-Key: ak_live_1234567890', and basic auth with 'admin:password123'.",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 334.251,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 334.396,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 334.46,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 349.78,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 396.595,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 396.751,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 396.932,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 410.094,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 640.397,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 640.611,
+      "content": " commands"
+    },
+    {
+      "timestamp_ms": 640.701,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 640.772,
+      "content": " authentic"
+    },
+    {
+      "timestamp_ms": 640.831,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 640.882,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 652.468,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 652.612,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 652.758,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 652.868,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 653.012,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 655.446,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 662.348,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": "earer"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 984.719,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 985.128,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 985.339,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 1005.372,
+      "content": "earer"
+    },
+    {
+      "timestamp_ms": 1013.033,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 1023.513,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 1037.465,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1060.765,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 1078.519,
+      "content": " authenticate"
+    },
+    {
+      "timestamp_ms": 1096.742,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1117.053,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1146.132,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 1157.035,
+      "content": "earer"
+    },
+    {
+      "timestamp_ms": 1172.496,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 1194.1,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1210.059,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1257.227,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 1257.387,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 1267.479,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1294.85,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 1306.428,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1328.752,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1344.487,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1367.517,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 1381.028,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1405.034,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 1421.261,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1457.155,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1460.453,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 1482.932,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1495.174,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 1518.418,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1533.585,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 1869.631,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 1869.781,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1869.848,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 1869.901,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 1875.771,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 1875.899,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 1875.993,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1876.125,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1876.228,
+      "content": "endpoint"
+    },
+    {
+      "timestamp_ms": 1876.34,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 1876.411,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 1876.468,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 1876.518,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1876.567,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 1876.614,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1876.661,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 1876.706,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1879.774,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 1895.02,
+      "content": "earer"
+    },
+    {
+      "timestamp_ms": 1915.547,
+      "content": " ey"
+    },
+    {
+      "timestamp_ms": 1957.257,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 1957.443,
+      "content": "hb"
+    },
+    {
+      "timestamp_ms": 1972.247,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 2278.891,
+      "content": "ci"
+    },
+    {
+      "timestamp_ms": 2279.054,
+      "content": "Oi"
+    },
+    {
+      "timestamp_ms": 2279.122,
+      "content": "JI"
+    },
+    {
+      "timestamp_ms": 2279.192,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 2279.328,
+      "content": "z"
+    },
+    {
+      "timestamp_ms": 2281.881,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 2282.05,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2282.167,
+      "content": "Ni"
+    },
+    {
+      "timestamp_ms": 2282.267,
+      "content": "Is"
+    },
+    {
+      "timestamp_ms": 2282.333,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 2282.387,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 2282.47,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2282.595,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 2284.922,
+      "content": "CI"
+    },
+    {
+      "timestamp_ms": 2285.056,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 2285.147,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 2300.504,
+      "content": "kp"
+    },
+    {
+      "timestamp_ms": 2316.444,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 2398.579,
+      "content": "VC"
+    },
+    {
+      "timestamp_ms": 2398.72,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 2398.785,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 2410.029,
+      "content": "...\"\n"
+    },
+    {
+      "timestamp_ms": 2410.175,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 2543.529,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 2543.675,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2543.77,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2543.84,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2543.898,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2543.945,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2543.99,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2790.595,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 2790.959,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2790.959,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 2791.062,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2791.124,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2791.177,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 2791.233,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2791.483,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2791.565,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 2791.628,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 2791.679,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2791.727,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2791.772,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2925.426,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2925.609,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 2925.686,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 2925.746,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2925.799,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 2925.849,
+      "content": " named"
+    },
+    {
+      "timestamp_ms": 2925.896,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3082.694,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 3083.054,
+      "content": "-API"
+    },
+    {
+      "timestamp_ms": 3083.175,
+      "content": "-Key"
+    },
+    {
+      "timestamp_ms": 3083.356,
+      "content": "`.\n\n"
+    },
+    {
+      "timestamp_ms": 3083.53,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3096.289,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 3096.497,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3096.627,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 3096.714,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3164.251,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 3164.402,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 3164.484,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3171.083,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 3303.37,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 3303.519,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 3303.601,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 3303.678,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3303.736,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3303.791,
+      "content": "endpoint"
+    },
+    {
+      "timestamp_ms": 3304.49,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 3610.538,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 3610.884,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 3611.129,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3619.704,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 3619.859,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3619.95,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 3620.012,
+      "content": "-API"
+    },
+    {
+      "timestamp_ms": 3620.067,
+      "content": "-Key"
+    },
+    {
+      "timestamp_ms": 3620.117,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3620.165,
+      "content": " ak"
+    },
+    {
+      "timestamp_ms": 3620.213,
+      "content": "_live"
+    },
+    {
+      "timestamp_ms": 3620.257,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 3620.31,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3620.359,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 3620.404,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 3630.088,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3630.312,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3777.261,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3777.409,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3777.475,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3777.547,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3777.636,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3777.688,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3777.734,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 3781.239,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 3960.347,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3960.491,
+      "content": "Basic"
+    },
+    {
+      "timestamp_ms": 3960.567,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 3960.642,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 3960.7,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3960.751,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 3960.8,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3960.843,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 3960.886,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3971.722,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4015.608,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 4015.84,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4030.055,
+      "content": " included"
+    },
+    {
+      "timestamp_ms": 4143.003,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4143.173,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4143.295,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4143.371,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 4143.429,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4143.48,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 4162.688,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4238.075,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 4238.31,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4238.448,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 4251.867,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4276.843,
+      "content": " encoding"
+    },
+    {
+      "timestamp_ms": 4277.042,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4577.639,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 4577.804,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 4577.88,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4577.945,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 4578.003,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4578.057,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 4578.113,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 4578.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4578.215,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 4578.266,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 4582.204,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 4582.549,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 4582.739,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4582.866,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4582.979,
+      "content": "endpoint"
+    },
+    {
+      "timestamp_ms": 4583.087,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 4612.946,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 4621.979,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4642.982,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4659.947,
+      "content": "u"
+    },
+    {
+      "timestamp_ms": 4681.409,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4790.493,
+      "content": "admin"
+    },
+    {
+      "timestamp_ms": 4790.789,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4791.499,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 4791.644,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 4791.801,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4791.886,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4815.931,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4881.112,
+      "content": "Alternatively"
+    },
+    {
+      "timestamp_ms": 4881.328,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4881.466,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4890.989,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4987.301,
+      "content": " manually"
+    },
+    {
+      "timestamp_ms": 4987.527,
+      "content": " encode"
+    },
+    {
+      "timestamp_ms": 4987.66,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4987.783,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 4987.895,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 5001.676,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 5032.563,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 5040.331,
+      "content": " encoding"
+    },
+    {
+      "timestamp_ms": 5067.183,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5090.575,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 5101.728,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 5115.445,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5135.292,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5288.258,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 5288.258,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 5288.258,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 5288.258,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 5288.258,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5288.258,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 5288.787,
+      "content": " Encode"
+    },
+    {
+      "timestamp_ms": 5288.995,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 5306.038,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5326.09,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 5350.913,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5374.319,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 5382.769,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5489.158,
+      "content": "admin"
+    },
+    {
+      "timestamp_ms": 5489.387,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5489.55,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 5489.692,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 5489.771,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 5496.945,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5517.719,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 5596.784,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 5597.004,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5597.147,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 5597.305,
+      "content": " Include"
+    },
+    {
+      "timestamp_ms": 5611.345,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5695.014,
+      "content": " Authorization"
+    },
+    {
+      "timestamp_ms": 5695.244,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 5695.346,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5695.436,
+      "content": "let"
+    },
+    {
+      "timestamp_ms": 6068.338,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6068.802,
+      "content": " say"
+    },
+    {
+      "timestamp_ms": 6068.949,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6069.069,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 6069.148,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 6069.227,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6069.3,
+      "content": " Y"
+    },
+    {
+      "timestamp_ms": 6069.374,
+      "content": "WR"
+    },
+    {
+      "timestamp_ms": 6069.455,
+      "content": "ta"
+    },
+    {
+      "timestamp_ms": 6069.613,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 6069.733,
+      "content": "46"
+    },
+    {
+      "timestamp_ms": 6069.819,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 6069.894,
+      "content": "GF"
+    },
+    {
+      "timestamp_ms": 6069.962,
+      "content": "zc"
+    },
+    {
+      "timestamp_ms": 6070.026,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6070.094,
+      "content": "dv"
+    },
+    {
+      "timestamp_ms": 6077.052,
+      "content": "cm"
+    },
+    {
+      "timestamp_ms": 6077.052,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 6077.22,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 6077.296,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 6090.585,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 6108.347,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 6127.437,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 6145.237,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6165.21,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 6410.853,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6411.05,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 6411.153,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 6411.384,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6411.484,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 6411.555,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 6411.619,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 6411.685,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 6411.77,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 6411.872,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 6411.974,
+      "content": "endpoint"
+    },
+    {
+      "timestamp_ms": 6412.08,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6412.87,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 6431.246,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6452.688,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6514.271,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 6514.446,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6514.521,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 6530.275,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6545.268,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 6820.233,
+      "content": " Y"
+    },
+    {
+      "timestamp_ms": 6820.393,
+      "content": "WR"
+    },
+    {
+      "timestamp_ms": 6820.485,
+      "content": "ta"
+    },
+    {
+      "timestamp_ms": 6820.599,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 6820.712,
+      "content": "46"
+    },
+    {
+      "timestamp_ms": 6820.817,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 6820.898,
+      "content": "GF"
+    },
+    {
+      "timestamp_ms": 6820.977,
+      "content": "zc"
+    },
+    {
+      "timestamp_ms": 6821.119,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6821.229,
+      "content": "dv"
+    },
+    {
+      "timestamp_ms": 6821.312,
+      "content": "cm"
+    },
+    {
+      "timestamp_ms": 6821.487,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 6877.49,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 6877.765,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 6877.894,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 6877.968,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 6878.027,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 6890.306,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 7194.161,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7194.476,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7194.681,
+      "content": "These"
+    },
+    {
+      "timestamp_ms": 7194.8,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 7194.914,
+      "content": " demonstrate"
+    },
+    {
+      "timestamp_ms": 7195.028,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 7196.411,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7196.583,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7196.722,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7196.811,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7196.88,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 7196.938,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7196.996,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7197.054,
+      "content": " authenticate"
+    },
+    {
+      "timestamp_ms": 7197.109,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7197.213,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 7239.865,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7240.017,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 7251.49,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 7501.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7501.76,
+      "content": " Always"
+    },
+    {
+      "timestamp_ms": 7501.842,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 7501.91,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7503.895,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7504.04,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 7504.211,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 7504.301,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7520.398,
+      "content": " kept"
+    },
+    {
+      "timestamp_ms": 7520.647,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 7520.735,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7520.8,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 7520.855,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 7527.611,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7537.797,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7574.978,
+      "content": " scripts"
+    },
+    {
+      "timestamp_ms": 7580.946,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7596.74,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 7848.073,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 7848.327,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7848.475,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7848.475,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below are examples of `curl` commands for authenticating with various APIs using different authentication methods: Bearer token, API key, and Basic Authentication.\n\n### 1. Bearer Token Authentication\nTo authenticate using a Bearer token, you typically include the token in the `Authorization` header.\n\n```bash\ncurl -X GET \"https://api.example.com/endpoint\" \\\n     -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n```\n\n### 2. API Key Authentication\nFor API key authentication, you generally add the key in a specific header, often named `X-API-Key`.\n\n```bash\ncurl -X GET \"https://api.example.com/endpoint\" \\\n     -H \"X-API-Key: ak_live_1234567890\"\n```\n\n### 3. Basic Authentication\nBasic authentication requires the username and password to be encoded and included in the `Authorization` header, typically using Base64 encoding.\n\n```bash\ncurl -X GET \"https://api.example.com/endpoint\" \\\n     -u \"admin:password123\"\n```\n\nAlternatively, you can manually encode the credentials using base64 encoding and include them in the header:\n\n```bash\n# Encode credentials\necho -n \"admin:password123\" | base64\n\n# Include in Authorization header (let's say the encoded result is YWRtaW46cGFzc3dvcmQxMjM0)\ncurl -X GET \"https://api.example.com/endpoint\" \\\n     -H \"Authorization: Basic YWRtaW46cGFzc3dvcmQxMjM0\"\n```\n\nThese examples demonstrate how you can use `curl` to authenticate with APIs using different methods. Always ensure that your authentication credentials are kept secure and not exposed in your scripts or version control.",
+  "response_chars": 1546,
+  "num_chunks": 387,
+  "ttft_ms": 334.251,
+  "total_ms": 7848.844,
+  "model_name": "model-medium"
+}

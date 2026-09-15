@@ -1,0 +1,2063 @@
+{
+  "index": 27,
+  "prompt": "Generate a sample Kubernetes deployment YAML that includes environment variables with hardcoded API tokens, database passwords, and JWT signing secrets.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 858.728,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " note"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " passwords"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 858.728,
+      "content": " YAML"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": "Below"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1377.02,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " YAML"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " demonstrates"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1855.873,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": "Create"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " piece"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2481.745,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "-token"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": ".yaml"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "yaml"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": " v"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": "kind"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2482.117,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "metadata"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "-token"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "paque"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " Y"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "dl"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "IG"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "cm"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "_SIGN"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "ING"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 3732.038,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3732.691,
+      "content": " cm"
+    },
+    {
+      "timestamp_ms": 3732.691,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 3732.691,
+      "content": "ka"
+    },
+    {
+      "timestamp_ms": 3732.691,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 3732.691,
+      "content": "Ig"
+    },
+    {
+      "timestamp_ms": 4706.049,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "WR"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "ka"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "dm"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "yc"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "lv"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "bj"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "JWT"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " DB"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "HJ"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "pb"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "24"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 4714.595,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": ".yaml"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "yaml"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": " v"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "kind"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "metadata"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 5292.422,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "paque"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " DB"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "HJ"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "pb"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "24"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 5843.133,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 6730.124,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "jwt"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "-sign"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": ".yaml"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "yaml"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": " v"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "kind"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "metadata"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": " jwt"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "-sign"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 6737.583,
+      "content": "paque"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "_SIGN"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "ING"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": " cm"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "ka"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "Ig"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "WR"
+    },
+    {
+      "timestamp_ms": 7848.747,
+      "content": "ka"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "dm"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "yc"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "lv"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "bj"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "JWT"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "Deploy"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "kub"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "ectl"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 7849.185,
+      "content": "-token"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": ".yaml"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "kub"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "ectl"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": ".yaml"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "kub"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "ectl"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": " jwt"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "-sign"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": ".yaml"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": "Now"
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8407.107,
+      "content": " here's"
+    },
+    {
+      "timestamp_ms": 8679.084,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8679.084,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 8679.084,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 8679.084,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " YAML"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " references"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "deployment"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": ".yaml"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "yaml"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " apps"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "kind"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": "metadata"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9195.404,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "spec"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " selector"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " match"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "Labels"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " template"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": " metadata"
+    },
+    {
+      "timestamp_ms": 10105.13,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " spec"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "image"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "/image"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10990.043,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10990.569,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10990.569,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 10990.569,
+      "content": "Port"
+    },
+    {
+      "timestamp_ms": 10990.759,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10990.759,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10990.759,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10990.899,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Please note, storing sensitive information like API tokens, database passwords, and JWT secrets directly in your Kubernetes deployment YAML is not recommended for production environments. These values should be stored securely using Kubernetes secrets.\n\nBelow is an example of a Kubernetes deployment YAML including environment variables for these sensitive values. This example also demonstrates how to reference the secrets from Kubernetes in the deployment.\n\nCreate a Kubernetes Secret for each sensitive piece of information:\n\n1.api-token-secret.yaml`\n```yaml\napiVersion: v1\nkind: Secret\nmetadata:\n  name: api-token-secret\ntype: Opaque\ndata:\n  API_TOKEN: YWdlIG1wcmVhZ2U=  # Base64 encoded \"exampleAPIToken\"\n  JWT_SIGNING_SECRET: cmVkaXIgYWRkaW5NdmVyc2lvbjE=  # Base64 encoded \"exampleJWTSecret\"\n  DB_PASSWORD: VHJhY3Rpb24=  # Base64 encoded \"exampleDBPassword\"\n```\n\n2. `database-password-secret.yaml`\n```yaml\napiVersion: v1\nkind: Secret\nmetadata:\n  name: database-password-secret\ntype: Opaque\ndata:\n  DB_PASSWORD: VHJhY3Rpb24=  # Base64 encoded \"exampleDBPassword\"\n```\n\n3. `jwt-signing-secret-secret.yaml`\n```yaml\napiVersion: v1\nkind: Secret\nmetadata:\n  name: jwt-signing-secret-secret\ntype: Opaque\ndata:\n  JWT_SIGNING_SECRET: cmVkaXIgYWRka5NdmVyc2lvbjE=  # Base64 encoded \"exampleJWTSecret\"\n```\n\nDeploy these secrets:\n\n```sh\nkubectl apply -f api-token-secret.yaml\nkubectl apply -f database-password-secret.yaml\nkubectl apply -f jwt-signing-secret-secret.yaml\n```\n\nNow, here's a sample Kubernetes deployment YAML that references these secrets as environment variables:\n\n4. `deployment.yaml`\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: api-application\n  labels:\n    app: api-application\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: api-application\n  template:\n    metadata:\n      labels:\n        app: api-application\n    spec:\n      containers:\n      - name: api-application\n        image: yourimage/image\n        ports:\n        - containerPort: ",
+  "response_chars": 1995,
+  "num_chunks": 510,
+  "ttft_ms": 858.728,
+  "total_ms": 10991.203,
+  "model_name": "Phi-4-mini-instruct"
+}

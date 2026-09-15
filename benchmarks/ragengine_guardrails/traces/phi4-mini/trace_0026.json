@@ -1,0 +1,2051 @@
+{
+  "index": 26,
+  "prompt": "Explain how consensus algorithms like Raft work in distributed systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 857.293,
+      "content": "Consensus"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " agree"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " truth"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 857.293,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " presence"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " Ra"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " consensus"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1450.452,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " still"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " extremely"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 1450.691,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " Here's"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " Ra"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " Leader"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " Ra"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " divides"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " elected"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " term"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " length"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " term"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2249.194,
+      "content": " el"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": "apses"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": ".e"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " considering"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": "term"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " round"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": "-ro"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": "bin"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " fairness"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " among"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3005.014,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 3753.205,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3753.205,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 3753.205,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3753.205,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " chaos"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " ens"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "ues"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " peers"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " continuously"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "re"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "-)"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "lection"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " Term"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "inal"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " queued"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " ignored"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " Leader"
+    },
+    {
+      "timestamp_ms": 3753.557,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " elected"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " term"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " snapshots"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 4456.353,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": "avo"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": "iding"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " shortcuts"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " voting"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " newly"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " elected"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": " replic"
+    },
+    {
+      "timestamp_ms": 4456.794,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " ordered"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " boot"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": "str"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": "apping"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " peers"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " yet"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " initialized"
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4929.66,
+      "content": " Assuming"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " elected"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " properly"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 5120.394,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " authoritative"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " Log"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " Entries"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " Log"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " replication"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " prop"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": "og"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 5782.732,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": "of"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " Occ"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": "urring"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " split"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " n"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " dividing"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " evenly"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6654.424,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " Crit"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": "ically"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " act"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": " replic"
+    },
+    {
+      "timestamp_ms": 6654.656,
+      "content": "ators"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " recently"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": "-re"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": "plic"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": "ated"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": "peer"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " come"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " recursively"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " prior"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " ones"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " stops"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 7186.849,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 7247.859,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7247.859,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7247.859,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " moment"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": "arily"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " dem"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": "oted"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " peers"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " see"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " boot"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": "str"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": "apped"
+    },
+    {
+      "timestamp_ms": 8083.777,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": "):\n\n"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " Read"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": "/R"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": "oll"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": "backs"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " healed"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 8084.011,
+      "content": " misses"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " replication"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " commits"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " Read"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": "/R"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": "oll"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": "back"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": "-conf"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": "lict"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " adding"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " missing"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " subset"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " Action"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " Upon"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " completion"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9293.927,
+      "content": " replication"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " Nodes"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " confirm"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " minorities"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " essentially"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " Safety"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " correctness"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " Ra"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": "according"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " CAP"
+    },
+    {
+      "timestamp_ms": 9411.781,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 9580.95,
+      "content": ".)"
+    },
+    {
+      "timestamp_ms": 9580.95,
+      "content": " Log"
+    },
+    {
+      "timestamp_ms": 9580.95,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 9580.95,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9580.95,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9580.95,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 9580.95,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " acknowledged"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " binary"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "-safe"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " i"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ".e"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "/set"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 10403.998,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " Ra"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " reach"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " agreement"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " mistakes"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " eventual"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " robustness"
+    },
+    {
+      "timestamp_ms": 10988.433,
+      "content": " going"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": "-hand"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " Typically"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": "ast"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": "ores"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 11813.525,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": "Keeper"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " rapid"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " consensus"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " P"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11813.693,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 11892.738,
+      "content": " coordination"
+    },
+    {
+      "timestamp_ms": 11892.738,
+      "content": " groups"
+    },
+    {
+      "timestamp_ms": 11892.738,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11892.738,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 11892.738,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 11892.738,
+      "content": " decentralized"
+    },
+    {
+      "timestamp_ms": 11892.738,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11934.858,
+      "type": "done"
+    }
+  ],
+  "full_response": "Consensus algorithms are crucial components of distributed systems that ensure all the nodes in the network agree on a single source of truth, even in the presence of failures or network partitions. Raft is a consensus algorithm designed to be to understand while still being extremely robust and efficient. Here's how Raft works:\n\n1. Leader election: Raft divides time into elected terms, where each term is a fixed length in case a term's time elapses (i.e., considering node failures). The first (term 0) election is just a basic round-robin election to ensure fairness among the nodes to become a leader. As chaos ensues, the peers continuously (re-)election new leader. Terminal terms are not queued and ignored automatically.\n\n2. Leader election: Once a leader is elected in a term, it takes snapshots of the current stateavoiding shortcuts to voting). The newly elected leader then replicates the entire ordered log, bootstrapping future peers that are not yet initialized. Assuming the elected node is running properly, it not only becomes a leader but also an authoritative source (the leader) to store any required Log Entries.\n\n3. Log replication: The leader process propogates log entries (of the order Occurring before the split) n, dividing them evenly in all. Critically here, the nodes that the leader sends to act as replicators are the most recently-replicated log entries (peer logs that come just before or recursively for prior ones). If a node stops sending entries, it must be momentarily demoted (e.g., if other peers see bootstrapped log, the leader becomes a follower):\n\na) Read/Rollbacks: If a healed leader misses replication steps, it commits a Read/Rollback without log-conflict, adding the only missing subset number.\n\nb) Node's Action: Upon completion of replication, Nodes confirm primary or handle minorities essentially.\n\n4. Safety and correctness: Raft guarantees Partition Tolerance (according to the CAP theorem.) Log entries by a leader are acknowledged to be binary-safe, i.e., just self/set entries (e.g. leader: 1, follower: 0, committed status = 1).\n\nIn summary, Raft ensures that nodes reach an agreement on log entries, even in case of failures like loss or mistakes with eventual consistency and robustness going hand-in-hand. Typically used in distributed systems like Datastores like etcd andKeeper, ensuring rapid and reliable consensus in P2P networks, distributed coordination groups, or any decentralized",
+  "response_chars": 2456,
+  "num_chunks": 507,
+  "ttft_ms": 857.293,
+  "total_ms": 12003.537,
+  "model_name": "Phi-4-mini-instruct"
+}

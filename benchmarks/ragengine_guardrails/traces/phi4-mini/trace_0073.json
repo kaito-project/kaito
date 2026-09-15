@@ -1,0 +1,2051 @@
+{
+  "index": 73,
+  "prompt": "Write a troubleshooting guide for a developer who accidentally committed their AWS credentials, GitHub personal access token, and database password to a public repository.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 926.232,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Troubles"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "hooting"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Guide"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Un"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "int"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "entionally"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Com"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "mitted"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Sensitive"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Immediate"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Steps"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "Perform"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " Check"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 926.232,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " histories"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " pull"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " w"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": "ikis"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 1589.477,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": "Generate"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": " Credentials"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1589.763,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " Credentials"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " IAM"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": " Console"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": "]("
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 2356.704,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": ".aws"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": ".amazon"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": "iam"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " IAM"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": "avoid"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 2356.891,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": "Git"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " Visit"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": "Git"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 3151.278,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "docs"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": ".github"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "/en"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "/auth"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "entication"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "keeping"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "-your"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "-and"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "-data"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "-sec"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "ure"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3151.553,
+      "content": "creating"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": "-a"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": "-person"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": "-access"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": "-token"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 3805.108,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " Follow"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " credential"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": "managed"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3805.296,
+      "content": " IAM"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " manager"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": ".)"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": "Remove"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " Sensitive"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " Run"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4514.979,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": "replace"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": "ash"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " Power"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": "Shell"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 4890.157,
+      "content": " commands"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " regex"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " Necessary"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " you've"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " pushed"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " remote"
+    },
+    {
+      "timestamp_ms": 5321.541,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " removing"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " re"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": "Force"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " Push"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " Remote"
+    },
+    {
+      "timestamp_ms": 6049.574,
+      "content": " Repository"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "Warning"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": " rew"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "rites"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "):\n\n"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": " git"
+    },
+    {
+      "timestamp_ms": 7033.832,
+      "content": " push"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " HEAD"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "force"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "Generate"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " G"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "PG"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "/G"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "it"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " Certificate"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7034.118,
+      "content": " repo"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " G"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "PG"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " compromised"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "Verify"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " Repository"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " Status"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " Scr"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": "ub"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 7609.632,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 7760.919,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7760.919,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 7760.919,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7760.919,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7760.919,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 7760.919,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 7760.919,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " inadvertently"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " accessible"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " anywhere"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " Check"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "-prem"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "ise"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " linked"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "Enable"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " Two"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "-F"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": "actor"
+    },
+    {
+      "timestamp_ms": 8415.36,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "FA"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " accounts"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " compromised"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "FA"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " extra"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "Delete"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " Comp"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "rom"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "ised"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9252.636,
+      "content": " Remove"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " disabling"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " sessions"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": "Notify"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": "ffected"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " Parties"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " compromised"
+    },
+    {
+      "timestamp_ms": 9872.958,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 9946.18,
+      "content": " posed"
+    },
+    {
+      "timestamp_ms": 9946.18,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9946.18,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " inform"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " soon"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": "Limit"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " Privacy"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " Measure"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " Tempor"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": "arily"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " permanently"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " revoke"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 10555.37,
+      "content": " privileges"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " audit"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": "Conduct"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " Audit"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " Look"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " repositories"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " clones"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 11245.218,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": " git"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "all"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "-only"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 11621.169,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11668.205,
+      "type": "done"
+    }
+  ],
+  "full_response": "# Troubleshooting Guide: Unintentionally Committed Sensitive Information\n\n## Immediate Steps\n1. **Perform a Full Code Review**: Check the entire repository, including branch histories, pull requests, project wikis, API settings, etc., any other sensitive information.\n\n2. **Generate New Credentials**:\n   - **AWS Credentials**: Go to the [AWS IAM Console](https://.aws.amazon.com/iam/), create new IAM policies (avoid using root credentials), and new users.\n   - **GitHub Token**: Visit the [GitHub documentationhttps://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) to generate a new token.\n   - **Database Password: Follow your database's credential management practices (managed with IAM roles, encrypted with a password manager, etc.) to generate a new password.\n\n3. **Remove Sensitive Information**: Run your version control system to search and remove/replace the committed secrets (Bash, PowerShell, Git commands due to regex).\n\n4. **Rebase if Necessary**: If you've pushed to remote before removing the sensitive data, use the rebase operation to remove the secret from history or create a new commit after it.\n\n5. **Force Push to Remote Repository** (Warning: This rewrites history!):\n\n   ```bash\n   git push HEAD --force\n   ```\n\n6. **Generate a New GPG Key/GitHub App Certificate** if the repo’s existing GPG key or GitHub app certificate was compromised.\n\n7. **Verify Repository Status**: Scrub any instance of sensitive data to make sure they are not inadvertently accessible anywhere. Check for any on-premise or cloud storage linked to the repository.\n\n8. **Enable Two-Factor Authentication (2FA)**: For all accounts that were compromised, set up 2FA immediately to ensure an extra layer of security.\n\n9. **Delete the Compromised Token**: Remove the token from any services, disabling sessions that may have been created using it.\n\n10. **Notify Affected Parties**: If the compromised credentials posed a risk to other parties, inform them as soon as possible.\n\n11. **Limit Access as a Privacy Measure**: Temporarily or permanently revoke user privileges if necessary, after an audit.\n\n12. **Conduct a Security Audit**: Look at current repositories, clones, and branches that could use the exposed credentials:\n\n    ```bash\n    git log --all --name-only\n    ```\n\n",
+  "response_chars": 2334,
+  "num_chunks": 507,
+  "ttft_ms": 926.232,
+  "total_ms": 11809.567,
+  "model_name": "Phi-4-mini-instruct"
+}

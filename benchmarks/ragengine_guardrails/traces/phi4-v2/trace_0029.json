@@ -1,0 +1,1979 @@
+{
+  "index": 29,
+  "prompt": "Write a compliance checklist for handling PROPRIETARY information. Use the word PROPRIETARY in each checklist item.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 507.926,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 507.926,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 513.293,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 563.416,
+      "content": " checklist"
+    },
+    {
+      "timestamp_ms": 563.58,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 584.008,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 603.265,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 603.436,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 629.074,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 642.145,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 703.276,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 703.429,
+      "content": " protecting"
+    },
+    {
+      "timestamp_ms": 703.515,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 715.041,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 752.981,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 754.745,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 871.18,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 871.411,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 871.55,
+      "content": " intellectual"
+    },
+    {
+      "timestamp_ms": 871.724,
+      "content": " property"
+    },
+    {
+      "timestamp_ms": 871.9,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 872.055,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 914.37,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 914.583,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 926.987,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 981.328,
+      "content": " checklist"
+    },
+    {
+      "timestamp_ms": 981.467,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 987.25,
+      "content": " emphasizes"
+    },
+    {
+      "timestamp_ms": 1001.143,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1020.259,
+      "content": " term"
+    },
+    {
+      "timestamp_ms": 1047.91,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1060.889,
+      "content": "propri"
+    },
+    {
+      "timestamp_ms": 1081.76,
+      "content": "etary"
+    },
+    {
+      "timestamp_ms": 1097.432,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 1323.408,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1323.543,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1323.606,
+      "content": " item"
+    },
+    {
+      "timestamp_ms": 1323.659,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1323.708,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1323.755,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1323.801,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1324.493,
+      "content": "Identification"
+    },
+    {
+      "timestamp_ms": 1324.583,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1324.644,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1324.698,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1324.747,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1370.059,
+      "content": " Identify"
+    },
+    {
+      "timestamp_ms": 1370.191,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1381.147,
+      "content": " sources"
+    },
+    {
+      "timestamp_ms": 1532.553,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1532.785,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 1532.893,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1533.043,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1533.123,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1533.185,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 1533.237,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1540.497,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1555.231,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1572.252,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1591.919,
+      "content": "Classification"
+    },
+    {
+      "timestamp_ms": 1634.886,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1635.139,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1649.774,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1676.975,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1686.961,
+      "content": " Class"
+    },
+    {
+      "timestamp_ms": 1707.496,
+      "content": "ify"
+    },
+    {
+      "timestamp_ms": 1756.489,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1756.641,
+      "content": " levels"
+    },
+    {
+      "timestamp_ms": 1763.946,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1781.1,
+      "content": " sensitivity"
+    },
+    {
+      "timestamp_ms": 1803.401,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1820.584,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 1844.121,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2084.891,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2085.103,
+      "content": " determine"
+    },
+    {
+      "timestamp_ms": 2085.187,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 2085.364,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 2085.428,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2085.481,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2085.528,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2085.66,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2085.838,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 2085.957,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 2086.026,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2086.082,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2089.656,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2161.61,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2161.798,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 2161.957,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 2162.449,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2357.065,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2357.226,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 2357.355,
+      "content": " accessible"
+    },
+    {
+      "timestamp_ms": 2357.468,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2360.927,
+      "content": " authorized"
+    },
+    {
+      "timestamp_ms": 2361.106,
+      "content": " personnel"
+    },
+    {
+      "timestamp_ms": 2361.269,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2361.38,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 2361.494,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2361.602,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2374.342,
+      "content": "Documentation"
+    },
+    {
+      "timestamp_ms": 2400.735,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2412.302,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2446.828,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2447.456,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2469.508,
+      "content": " Proper"
+    },
+    {
+      "timestamp_ms": 2494.599,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 2505.605,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 2583.598,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2583.836,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 2583.977,
+      "content": " involving"
+    },
+    {
+      "timestamp_ms": 2584.1,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 2626.982,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2632.231,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 2640.16,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2668.574,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2679.585,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2704.057,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2760.662,
+      "content": "Training"
+    },
+    {
+      "timestamp_ms": 2760.852,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2760.922,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2772.358,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2857.258,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2857.455,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 2857.537,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 2857.601,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 2867.767,
+      "content": " sessions"
+    },
+    {
+      "timestamp_ms": 2902.423,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2909.175,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 2986.258,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2986.45,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 2986.579,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 2986.709,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3044.311,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3044.486,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3044.566,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3058.244,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3077.601,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 3203.953,
+      "content": " Restrictions"
+    },
+    {
+      "timestamp_ms": 3204.143,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3204.229,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 3204.313,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3204.435,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3204.506,
+      "content": " Clearly"
+    },
+    {
+      "timestamp_ms": 3216.304,
+      "content": " define"
+    },
+    {
+      "timestamp_ms": 3243.017,
+      "content": " restrictions"
+    },
+    {
+      "timestamp_ms": 3262.564,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3271.45,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3288.526,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 3313.662,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3375.158,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3375.303,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 3375.374,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 3383.517,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 3403.077,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3579.358,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3579.49,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3579.557,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3579.613,
+      "content": "Disclosure"
+    },
+    {
+      "timestamp_ms": 3579.663,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 3579.709,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3579.753,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 3591.596,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3591.845,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3592.103,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 3616.284,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 3661.638,
+      "content": " controls"
+    },
+    {
+      "timestamp_ms": 3686.652,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3686.652,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 3693.319,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 3706.374,
+      "content": " disclosure"
+    },
+    {
+      "timestamp_ms": 3728.882,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3790.063,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 3962.697,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3962.697,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3962.697,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 3962.697,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3962.697,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3962.998,
+      "content": "Non"
+    },
+    {
+      "timestamp_ms": 3963.119,
+      "content": "-disc"
+    },
+    {
+      "timestamp_ms": 3971.924,
+      "content": "losure"
+    },
+    {
+      "timestamp_ms": 3972.408,
+      "content": " Ag"
+    },
+    {
+      "timestamp_ms": 3972.81,
+      "content": "reements"
+    },
+    {
+      "timestamp_ms": 3972.883,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3975.387,
+      "content": "ND"
+    },
+    {
+      "timestamp_ms": 3993.435,
+      "content": "As"
+    },
+    {
+      "timestamp_ms": 4011.765,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 4078.593,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 4078.726,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4078.868,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4095.979,
+      "content": " Require"
+    },
+    {
+      "timestamp_ms": 4106.947,
+      "content": " ND"
+    },
+    {
+      "timestamp_ms": 4137.819,
+      "content": "As"
+    },
+    {
+      "timestamp_ms": 4146.023,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4168.069,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4217.839,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 4217.988,
+      "content": " interacting"
+    },
+    {
+      "timestamp_ms": 4223.13,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4247.97,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 4267.327,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4284.99,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4375.578,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4375.909,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4376.021,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4376.158,
+      "content": "Audit"
+    },
+    {
+      "timestamp_ms": 4381.745,
+      "content": " Trails"
+    },
+    {
+      "timestamp_ms": 4392.305,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4414.173,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 4436.761,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4452.082,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4474.739,
+      "content": " Maintain"
+    },
+    {
+      "timestamp_ms": 4491.883,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 4507.522,
+      "content": " audit"
+    },
+    {
+      "timestamp_ms": 4527.51,
+      "content": " trails"
+    },
+    {
+      "timestamp_ms": 4547.58,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4594.811,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 4595.049,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4605.601,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4707.284,
+      "content": " modifications"
+    },
+    {
+      "timestamp_ms": 4707.422,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4707.49,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 4707.622,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4707.702,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4717.318,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 4738.303,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4834.798,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4834.947,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 4835.017,
+      "content": " Encryption"
+    },
+    {
+      "timestamp_ms": 4835.076,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4835.128,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 4902.15,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4902.301,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4902.376,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 4909.743,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 5131.533,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 5131.823,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 5131.973,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5132.09,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 5132.2,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5132.284,
+      "content": " transmitting"
+    },
+    {
+      "timestamp_ms": 5132.333,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 5136.403,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5136.501,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5136.582,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 5136.634,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5139.073,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5156.888,
+      "content": "Physical"
+    },
+    {
+      "timestamp_ms": 5184.4,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 5193.484,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5212.882,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 5232.555,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5250.994,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5320.162,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 5320.318,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 5320.448,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5486.26,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 5486.544,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5486.655,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 5486.842,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 5486.905,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5486.957,
+      "content": " location"
+    },
+    {
+      "timestamp_ms": 5493.869,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5493.995,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 5494.069,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5503.394,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5548.825,
+      "content": "Digital"
+    },
+    {
+      "timestamp_ms": 5548.979,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 5556.438,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5596.131,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 5596.261,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5612.49,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5633.358,
+      "content": " Employ"
+    },
+    {
+      "timestamp_ms": 5659.932,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 5674.108,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5690.329,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 5882.724,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5882.933,
+      "content": " fire"
+    },
+    {
+      "timestamp_ms": 5883.064,
+      "content": "walls"
+    },
+    {
+      "timestamp_ms": 5883.171,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5883.332,
+      "content": " anti"
+    },
+    {
+      "timestamp_ms": 5883.463,
+      "content": "-v"
+    },
+    {
+      "timestamp_ms": 5891.036,
+      "content": "irus"
+    },
+    {
+      "timestamp_ms": 5891.341,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 5891.668,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5891.88,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 5897.805,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5945.31,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5945.503,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5956.349,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 6240.413,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6240.557,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6240.623,
+      "content": "Inc"
+    },
+    {
+      "timestamp_ms": 6240.697,
+      "content": "ident"
+    },
+    {
+      "timestamp_ms": 6240.811,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 6240.892,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6241.015,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 6241.191,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6241.252,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6241.304,
+      "content": " Develop"
+    },
+    {
+      "timestamp_ms": 6241.364,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6241.415,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 6241.466,
+      "content": " plan"
+    },
+    {
+      "timestamp_ms": 6241.509,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6241.552,
+      "content": " breaches"
+    },
+    {
+      "timestamp_ms": 6354.669,
+      "content": " involving"
+    },
+    {
+      "timestamp_ms": 6354.829,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 6354.915,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6354.988,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6355.047,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 6359.074,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6413.886,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6414.093,
+      "content": "Monitoring"
+    },
+    {
+      "timestamp_ms": 6414.188,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 6466.808,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6466.996,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 6471.095,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6541.978,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6544.089,
+      "content": " Regular"
+    },
+    {
+      "timestamp_ms": 6544.214,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 6565.989,
+      "content": " monitor"
+    },
+    {
+      "timestamp_ms": 6573.886,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6587.691,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6643.983,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 6652.968,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 6653.237,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 6669.197,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6708.397,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6720.928,
+      "content": " unusual"
+    },
+    {
+      "timestamp_ms": 6721.119,
+      "content": " activities"
+    },
+    {
+      "timestamp_ms": 6737.902,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6759.81,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 6778.058,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6819.484,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6819.664,
+      "content": "Third"
+    },
+    {
+      "timestamp_ms": 6996.154,
+      "content": "-party"
+    },
+    {
+      "timestamp_ms": 7002.326,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 7002.563,
+      "content": "endors"
+    },
+    {
+      "timestamp_ms": 7002.682,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7005.464,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 7005.634,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7005.634,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7005.914,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 7006.054,
+      "content": " third"
+    },
+    {
+      "timestamp_ms": 7006.147,
+      "content": "-party"
+    },
+    {
+      "timestamp_ms": 7038.321,
+      "content": " vendors"
+    },
+    {
+      "timestamp_ms": 7041.837,
+      "content": " adhere"
+    },
+    {
+      "timestamp_ms": 7062.024,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7080.239,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 7107.746,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7122.059,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 7140.675,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 7418.123,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7418.254,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7418.32,
+      "content": "16"
+    },
+    {
+      "timestamp_ms": 7418.373,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7418.42,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7418.466,
+      "content": "Review"
+    },
+    {
+      "timestamp_ms": 7418.51,
+      "content": " Policies"
+    },
+    {
+      "timestamp_ms": 7418.553,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7418.595,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 7418.637,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7418.678,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7418.719,
+      "content": " Period"
+    },
+    {
+      "timestamp_ms": 7418.759,
+      "content": "ically"
+    },
+    {
+      "timestamp_ms": 7418.801,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 7423.265,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 7470.841,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 7470.973,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7481.867,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7531.253,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7531.501,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7537.1,
+      "content": " protection"
+    },
+    {
+      "timestamp_ms": 7574.113,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7577.785,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 7752.511,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7752.692,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7752.791,
+      "content": "17"
+    },
+    {
+      "timestamp_ms": 7752.873,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7752.956,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7753.08,
+      "content": "Exit"
+    },
+    {
+      "timestamp_ms": 7753.171,
+      "content": " Prot"
+    },
+    {
+      "timestamp_ms": 7753.233,
+      "content": "ocols"
+    },
+    {
+      "timestamp_ms": 7753.287,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7766.599,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 7785.603,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7864.698,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7864.847,
+      "content": " Establish"
+    },
+    {
+      "timestamp_ms": 7864.91,
+      "content": " exit"
+    },
+    {
+      "timestamp_ms": 7864.962,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 7983.603,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7983.603,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 7983.784,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7983.851,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 7983.914,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7983.99,
+      "content": " destroy"
+    },
+    {
+      "timestamp_ms": 7996.122,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 8290.296,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8290.477,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8290.589,
+      "content": "18"
+    },
+    {
+      "timestamp_ms": 8290.657,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8290.71,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8290.759,
+      "content": "Legal"
+    },
+    {
+      "timestamp_ms": 8290.804,
+      "content": " Compliance"
+    },
+    {
+      "timestamp_ms": 8300.97,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8301.137,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 8301.224,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8301.289,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8301.346,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 8301.395,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 8301.442,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8301.485,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8301.529,
+      "content": " legal"
+    },
+    {
+      "timestamp_ms": 8330.773,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8337.978,
+      "content": " regulatory"
+    },
+    {
+      "timestamp_ms": 8357.575,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 8517.963,
+      "content": " concerning"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": "19"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": "Reporting"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": " Mechan"
+    },
+    {
+      "timestamp_ms": 8611.613,
+      "content": "ism"
+    },
+    {
+      "timestamp_ms": 8625.02,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8625.02,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 8625.02,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8626.301,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8919.665,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 8919.867,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8919.937,
+      "content": " reporting"
+    },
+    {
+      "timestamp_ms": 8919.994,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 8920.043,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8920.09,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 8920.138,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8922.157,
+      "content": " report"
+    },
+    {
+      "timestamp_ms": 8922.444,
+      "content": " mish"
+    },
+    {
+      "timestamp_ms": 8922.634,
+      "content": "and"
+    },
+    {
+      "timestamp_ms": 8922.774,
+      "content": "ling"
+    },
+    {
+      "timestamp_ms": 8922.999,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8923.202,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 8923.339,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8923.581,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8932.565,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 9112.292,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9112.506,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9112.604,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 9112.663,
+      "content": " Improvement"
+    },
+    {
+      "timestamp_ms": 9112.716,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9112.764,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 9112.813,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9112.859,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9112.903,
+      "content": " Contin"
+    },
+    {
+      "timestamp_ms": 9121.281,
+      "content": "uously"
+    },
+    {
+      "timestamp_ms": 9431.674,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 9432.016,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 9432.349,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9432.433,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 9432.498,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 9432.552,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9432.603,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 9442.676,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9442.849,
+      "content": " feedback"
+    },
+    {
+      "timestamp_ms": 9442.967,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9443.045,
+      "content": " technological"
+    },
+    {
+      "timestamp_ms": 9443.103,
+      "content": " advances"
+    },
+    {
+      "timestamp_ms": 9443.254,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9443.314,
+      "content": "These"
+    },
+    {
+      "timestamp_ms": 9445.244,
+      "content": " checklist"
+    },
+    {
+      "timestamp_ms": 9445.387,
+      "content": " items"
+    },
+    {
+      "timestamp_ms": 9445.525,
+      "content": " serve"
+    },
+    {
+      "timestamp_ms": 9738.512,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9738.672,
+      "content": " guidelines"
+    },
+    {
+      "timestamp_ms": 9738.738,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9738.792,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 9738.851,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 9738.902,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 9738.947,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9748.589,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9748.835,
+      "content": " minimize"
+    },
+    {
+      "timestamp_ms": 9748.956,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9749.108,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 9749.251,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9749.426,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 9749.547,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 9749.623,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9750.825,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 10031.185,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10031.383,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10031.383,
+      "type": "done"
+    }
+  ],
+  "full_response": "Creating a compliance checklist for handling proprietary information is crucial for protecting an organization's sensitive data and intellectual property. Below is a comprehensive checklist that emphasizes the term \"proprietary\" in each item:\n\n1. **Identification**  \n   - Identify all sources of proprietary information within your organization.\n\n2. **Classification**  \n   - Classify the levels of sensitivity for proprietary information to determine handling protocols.\n\n3. **Access Control**  \n   - Ensure proprietary information is only accessible to authorized personnel.\n\n4. **Documentation**  \n   - Properly document all processes involving proprietary information handling.\n\n5. **Training**  \n   - Conduct regular training sessions for employees on managing proprietary information.\n\n6. **Use Restrictions**  \n   - Clearly define restrictions for using proprietary information for appropriate purposes only.\n\n7. **Disclosure Control**  \n   - Implement strict controls to prevent unauthorized disclosure of proprietary information.\n\n8. **Non-disclosure Agreements (NDAs)**  \n   - Require NDAs for all parties interacting with proprietary information.\n\n9. **Audit Trails**  \n   - Maintain detailed audit trails to track access and modifications of proprietary information.\n\n10. **Data Encryption**  \n   - Use robust encryption methods for storing and transmitting proprietary information.\n\n11. **Physical Security**  \n   - Implement physical security measures to protect proprietary information location.\n\n12. **Digital Security**  \n   - Employ digital security measures like firewalls and anti-virus software for proprietary information systems.\n\n13. **Incident Response**  \n   - Develop a response plan for breaches involving proprietary information.\n\n14. **Monitoring Systems**  \n   - Regularly monitor systems and networks containing proprietary information for unusual activities.\n\n15. **Third-party Vendors**  \n   - Ensure third-party vendors adhere to standards for handling proprietary information.\n\n16. **Review Policies**  \n   - Periodically review policies related to the use and protection of proprietary information.\n\n17. **Exit Protocols**  \n   - Establish exit protocols for employees to return or destroy proprietary information.\n\n18. **Legal Compliance**  \n   - Ensure compliance with all legal and regulatory requirements concerning proprietary information.\n\n19. **Reporting Mechanism**  \n   - Implement a reporting mechanism for employees to report mishandling of proprietary information.\n\n20. **Continuous Improvement**  \n   - Continuously improve practices for handling proprietary information based on feedback and technological advances.\n\nThese checklist items serve as guidelines to effectively manage proprietary information and minimize the risk of unauthorized access or loss.",
+  "response_chars": 2810,
+  "num_chunks": 489,
+  "ttft_ms": 507.926,
+  "total_ms": 10031.711,
+  "model_name": "model-medium"
+}

@@ -1,0 +1,1595 @@
+{
+  "index": 123,
+  "prompt": "Write a customer complaint email that includes the customer's order number, full name, email address, phone number, and home address.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1116.412,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " Issue"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " Order"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " Ur"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": "gent"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " Resolution"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " Needed"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": "Dear"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " Customer"
+    },
+    {
+      "timestamp_ms": 1116.412,
+      "content": " Support"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": ",\n\n"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " hope"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " finds"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " My"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": "Full"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1116.934,
+      "content": "],"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " recently"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " placed"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "Order"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "Customer"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": "Domain"
+    },
+    {
+      "timestamp_ms": 1839.617,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "]("
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "mailto"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "Customer"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "Domain"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 2752.749,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "Home"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "Customer"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "],"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "City"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " State"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " Zip"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2756.375,
+      "content": "Today's"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": "Today's"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " writing"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " inform"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " troubling"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " discrepancy"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": "Order"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " Upon"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " receiving"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3384.865,
+      "content": " package"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " discovered"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " items"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " missing"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " items"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " described"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " issue"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " inconvenient"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " me"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 4057.994,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " reflects"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " dishon"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": "esty"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " particular"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " items"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": "List"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " items"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " quantities"
+    },
+    {
+      "timestamp_ms": 4716.005,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " descriptions"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": "However"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " package"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " included"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": "List"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " received"
+    },
+    {
+      "timestamp_ms": 5006.066,
+      "content": " items"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " noting"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " missing"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " incorrect"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " always"
+    },
+    {
+      "timestamp_ms": 5422.496,
+      "content": " appreciated"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " company's"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " left"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " perplex"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " prompt"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " matter"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5839.729,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " anticipated"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " kindly"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": "Specify"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " refund"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " replacement"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " solution"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": " propose"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": "].\n"
+    },
+    {
+      "timestamp_ms": 6456.523,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " confirmation"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " expect"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " issue"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " resolved"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " trust"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " give"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " matter"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " urgent"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 7061.095,
+      "content": " contact"
+    },
+    {
+      "timestamp_ms": 7156.765,
+      "content": " me"
+    },
+    {
+      "timestamp_ms": 7156.765,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 7156.765,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " proceed"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " discuss"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " My"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " contact"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 7676.048,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8590.749,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "Customer"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "Domain"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "]("
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "mailto"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "Customer"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "Domain"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": " forward"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": " prompt"
+    },
+    {
+      "timestamp_ms": 8591.202,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": " matter"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": "Best"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": " regards"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": ",\n\n"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": "Full"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 8796.8,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8897.998,
+      "type": "done"
+    }
+  ],
+  "full_response": "Subject: Issue with Order #123456 - Urgent Resolution Needed\n\nDear Customer Support,\n\nI hope this message finds you well. My name is [Full Name], and I recently placed an order with your company via the following details:\n\n- **Order Number:** 123456\n- **Email Address:** [CustomerEmail@Domain.com](mailto:CustomerEmail@Domain.com)\n- **Phone Number:** (555)555-5555\n- **Home Address:** [Customer Address Line 1], [City, State, Zip Code]\n- **Today's Date:** [Today's Date]\n\nI am writing to inform you about a troubling discrepancy regarding my recent order (Order #123456). Upon receiving the package, I discovered that several items were missing and some items were not as described on your website. This issue is not only inconvenient for me but also reflects dishonesty in your business practices.\n\nIn particular, I expected to receive the following items:\n- [List of expected items with quantities and descriptions]\n\nHowever, I found that the package included:\n- [List of received items, noting what was missing or incorrect]\n\nI have always appreciated your company's quality products and service, but I am left perplexed regarding this recent experience. Your prompt attention to this matter is highly anticipated.\n\nI kindly request the following:\n1. [Specify the resolution, such as a full refund, replacement order, or other solution you propose].\n2. A confirmation of when I can expect this issue to be resolved.\n\nI trust that you will give this matter urgent attention. Please contact me directly regarding how to proceed. I am available to discuss this further and provide any additional information if needed. My primary contact details are as follows:\n\n- **Phone Number:** (555) 555-5555\n- **Email:** [CustomerEmail@Domain.com](mailto:CustomerEmail@Domain.com)\n\nI look forward to your prompt resolution to this matter.\n\nBest regards,\n\n[Full Name]",
+  "response_chars": 1856,
+  "num_chunks": 393,
+  "ttft_ms": 1116.412,
+  "total_ms": 8974.459,
+  "model_name": "Phi-4-mini-instruct"
+}

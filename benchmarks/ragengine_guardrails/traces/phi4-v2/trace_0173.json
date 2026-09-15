@@ -1,0 +1,1283 @@
+{
+  "index": 173,
+  "prompt": "Create a JSON API response for a product catalog with 3 products, each having: id, name, price, description, category, and tags array.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 302.219,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 303.183,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 404.242,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 404.444,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 404.585,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 404.711,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 404.803,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 414.634,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 478.185,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 478.331,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 478.397,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 580.304,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 580.304,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 580.304,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 580.539,
+      "content": " catalog"
+    },
+    {
+      "timestamp_ms": 580.779,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 590.691,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 619.386,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 624.523,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 711.955,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 712.167,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 712.286,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 712.364,
+      "content": " having"
+    },
+    {
+      "timestamp_ms": 720.43,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 815.774,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 815.945,
+      "content": " attributes"
+    },
+    {
+      "timestamp_ms": 816.07,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 816.17,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 816.234,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 923.619,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 923.778,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 923.87,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 923.948,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 924.004,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 928.54,
+      "content": "price"
+    },
+    {
+      "timestamp_ms": 947.674,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 990.26,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 990.47,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 1004.748,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 1025.239,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1093.694,
+      "content": "category"
+    },
+    {
+      "timestamp_ms": 1093.881,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 1093.968,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1105.96,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1125.415,
+      "content": "tags"
+    },
+    {
+      "timestamp_ms": 1143.037,
+      "content": "`.\n\n"
+    },
+    {
+      "timestamp_ms": 1158.54,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1223.918,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1224.058,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1224.125,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1237.701,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1253.895,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1334.579,
+      "content": "products"
+    },
+    {
+      "timestamp_ms": 1334.778,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1334.853,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 1334.91,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1349.08,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1428.371,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1428.608,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1428.761,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 1428.884,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1534.174,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1534.355,
+      "content": "101"
+    },
+    {
+      "timestamp_ms": 1534.44,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 1534.51,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1539.492,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1539.603,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1633.251,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1633.391,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1633.456,
+      "content": "Wire"
+    },
+    {
+      "timestamp_ms": 1633.513,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 1637.824,
+      "content": " Head"
+    },
+    {
+      "timestamp_ms": 1735.418,
+      "content": "phones"
+    },
+    {
+      "timestamp_ms": 1735.604,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1735.709,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1735.78,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1940.657,
+      "content": "price"
+    },
+    {
+      "timestamp_ms": 1940.828,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1940.828,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1940.828,
+      "content": "149"
+    },
+    {
+      "timestamp_ms": 1940.828,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1940.828,
+      "content": "99"
+    },
+    {
+      "timestamp_ms": 1940.828,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 1940.828,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1940.955,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1941.009,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 1941.065,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1941.126,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2045.83,
+      "content": "Experience"
+    },
+    {
+      "timestamp_ms": 2046.018,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 2046.185,
+      "content": "-quality"
+    },
+    {
+      "timestamp_ms": 2046.276,
+      "content": " sound"
+    },
+    {
+      "timestamp_ms": 2046.342,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2052.992,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 2074.831,
+      "content": " wireless"
+    },
+    {
+      "timestamp_ms": 2108.564,
+      "content": " headphones"
+    },
+    {
+      "timestamp_ms": 2113.385,
+      "content": " featuring"
+    },
+    {
+      "timestamp_ms": 2145.089,
+      "content": " noise"
+    },
+    {
+      "timestamp_ms": 2148.603,
+      "content": " cancellation"
+    },
+    {
+      "timestamp_ms": 2247.293,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 2247.452,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2247.521,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2247.6,
+      "content": "category"
+    },
+    {
+      "timestamp_ms": 2247.65,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2349.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2350.215,
+      "content": "Elect"
+    },
+    {
+      "timestamp_ms": 2350.309,
+      "content": "ronics"
+    },
+    {
+      "timestamp_ms": 2350.377,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2358.411,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2362.657,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2377.583,
+      "content": "tags"
+    },
+    {
+      "timestamp_ms": 2399.956,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2452.93,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 2453.205,
+      "content": "audio"
+    },
+    {
+      "timestamp_ms": 2455.213,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 2559.589,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2559.773,
+      "content": "wire"
+    },
+    {
+      "timestamp_ms": 2559.85,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 2559.91,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 2559.965,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2568.231,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 2657.378,
+      "content": "phones"
+    },
+    {
+      "timestamp_ms": 2657.543,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 2657.618,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2657.673,
+      "content": "noise"
+    },
+    {
+      "timestamp_ms": 2663.184,
+      "content": " cancellation"
+    },
+    {
+      "timestamp_ms": 2759.482,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 2759.616,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2759.682,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2759.757,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2759.863,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2872.967,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2873.174,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2873.319,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 2873.418,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2873.489,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2873.545,
+      "content": "102"
+    },
+    {
+      "timestamp_ms": 2969.557,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2969.772,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2969.897,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2970.001,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2970.073,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3025.141,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3025.291,
+      "content": "Organ"
+    },
+    {
+      "timestamp_ms": 3028.595,
+      "content": "ic"
+    },
+    {
+      "timestamp_ms": 3049.075,
+      "content": " Lav"
+    },
+    {
+      "timestamp_ms": 3169.594,
+      "content": "ender"
+    },
+    {
+      "timestamp_ms": 3169.789,
+      "content": " Soap"
+    },
+    {
+      "timestamp_ms": 3173.924,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3174.067,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3174.177,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3174.256,
+      "content": "price"
+    },
+    {
+      "timestamp_ms": 3178.04,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3203.303,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3218.76,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 3271.477,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3273.359,
+      "content": "50"
+    },
+    {
+      "timestamp_ms": 3273.704,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3299.789,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3376.827,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3376.959,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 3377.037,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3377.119,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3388.34,
+      "content": "Craft"
+    },
+    {
+      "timestamp_ms": 3479.734,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 3479.931,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3480.058,
+      "content": " natural"
+    },
+    {
+      "timestamp_ms": 3480.139,
+      "content": " ingredients"
+    },
+    {
+      "timestamp_ms": 3486.578,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3578.776,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3578.982,
+      "content": " organic"
+    },
+    {
+      "timestamp_ms": 3579.116,
+      "content": " soap"
+    },
+    {
+      "timestamp_ms": 3579.322,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 3579.431,
+      "content": " soothing"
+    },
+    {
+      "timestamp_ms": 3635.973,
+      "content": " lavender"
+    },
+    {
+      "timestamp_ms": 3636.234,
+      "content": " sc"
+    },
+    {
+      "timestamp_ms": 3636.339,
+      "content": "ents"
+    },
+    {
+      "timestamp_ms": 3681.491,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 3681.702,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3692.647,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3784.015,
+      "content": "category"
+    },
+    {
+      "timestamp_ms": 3784.146,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3784.21,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3784.262,
+      "content": "Beauty"
+    },
+    {
+      "timestamp_ms": 3787.514,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 3886.226,
+      "content": " Health"
+    },
+    {
+      "timestamp_ms": 3886.372,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3886.438,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3886.492,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3886.54,
+      "content": "tags"
+    },
+    {
+      "timestamp_ms": 3903.886,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3988.685,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 3988.831,
+      "content": "soap"
+    },
+    {
+      "timestamp_ms": 3988.902,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 3988.958,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3997.932,
+      "content": "organic"
+    },
+    {
+      "timestamp_ms": 4091.063,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 4091.28,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4091.437,
+      "content": "natural"
+    },
+    {
+      "timestamp_ms": 4091.593,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 4093.216,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4117.518,
+      "content": "lav"
+    },
+    {
+      "timestamp_ms": 4130.985,
+      "content": "ender"
+    },
+    {
+      "timestamp_ms": 4193.481,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 4193.623,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4193.688,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4207.771,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4296.163,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4296.314,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4296.41,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4296.479,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 4379.79,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4380.046,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4380.153,
+      "content": "103"
+    },
+    {
+      "timestamp_ms": 4380.222,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4380.277,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4397.802,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4500.739,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 4500.904,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4500.992,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4501.067,
+      "content": "Smart"
+    },
+    {
+      "timestamp_ms": 4501.142,
+      "content": " LED"
+    },
+    {
+      "timestamp_ms": 4512.527,
+      "content": " Bul"
+    },
+    {
+      "timestamp_ms": 4560.36,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 4560.534,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4572.757,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4590.382,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4608.295,
+      "content": "price"
+    },
+    {
+      "timestamp_ms": 4705.367,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4705.633,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4705.776,
+      "content": "24"
+    },
+    {
+      "timestamp_ms": 4705.868,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4705.933,
+      "content": "99"
+    },
+    {
+      "timestamp_ms": 4721.493,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 4808.615,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4808.769,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4809.879,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 4810.137,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4817.783,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4910.525,
+      "content": "Control"
+    },
+    {
+      "timestamp_ms": 4910.667,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4910.775,
+      "content": " lighting"
+    },
+    {
+      "timestamp_ms": 4910.865,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4912.334,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5014.815,
+      "content": " smart"
+    },
+    {
+      "timestamp_ms": 5015.086,
+      "content": " LED"
+    },
+    {
+      "timestamp_ms": 5015.283,
+      "content": " bulb"
+    },
+    {
+      "timestamp_ms": 5015.427,
+      "content": " compatible"
+    },
+    {
+      "timestamp_ms": 5015.549,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5029.249,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 5116.282,
+      "content": " smart"
+    },
+    {
+      "timestamp_ms": 5116.415,
+      "content": " home"
+    },
+    {
+      "timestamp_ms": 5116.481,
+      "content": " device"
+    },
+    {
+      "timestamp_ms": 5116.536,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 5124.011,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5141.31,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5218.729,
+      "content": "category"
+    },
+    {
+      "timestamp_ms": 5218.932,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5219.067,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5219.206,
+      "content": "Home"
+    },
+    {
+      "timestamp_ms": 5324.557,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 5324.687,
+      "content": " Garden"
+    },
+    {
+      "timestamp_ms": 5324.752,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5324.806,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5324.853,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5338.921,
+      "content": "tags"
+    },
+    {
+      "timestamp_ms": 5350.472,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5380.736,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 5392.036,
+      "content": "smart"
+    },
+    {
+      "timestamp_ms": 5421.876,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5428.573,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5524.832,
+      "content": "light"
+    },
+    {
+      "timestamp_ms": 5525.056,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 5525.154,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5525.221,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5525.276,
+      "content": "LED"
+    },
+    {
+      "timestamp_ms": 5540.506,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5627.432,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5627.578,
+      "content": "home"
+    },
+    {
+      "timestamp_ms": 5627.644,
+      "content": " automation"
+    },
+    {
+      "timestamp_ms": 5627.703,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 5635.163,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5730.864,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 5731.128,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5731.274,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 5731.37,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 5934.082,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 5934.082,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5934.082,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 5934.082,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5934.082,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 5934.082,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5934.082,
+      "content": " array"
+    },
+    {
+      "timestamp_ms": 5934.343,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5934.423,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 5934.484,
+      "content": " objects"
+    },
+    {
+      "timestamp_ms": 5934.537,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5945.465,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5960.789,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6037.321,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6037.53,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 6037.613,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 6037.676,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6056.541,
+      "content": " Adjust"
+    },
+    {
+      "timestamp_ms": 6142.663,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6142.852,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 6142.933,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6142.999,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 6153.853,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6241.252,
+      "content": " fit"
+    },
+    {
+      "timestamp_ms": 6241.488,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6241.573,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 6241.636,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 6249.613,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 6265.33,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6343.526,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 6343.526,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is an example of a JSON API response for a product catalog containing three products, with each product having the specified attributes: `id`, `name`, `price`, `description`, `category`, and `tags`.\n\n```json\n{\n  \"products\": [\n    {\n      \"id\": 101,\n      \"name\": \"Wireless Headphones\",\n      \"price\": 149.99,\n      \"description\": \"Experience high-quality sound with these wireless headphones featuring noise cancellation.\",\n      \"category\": \"Electronics\",\n      \"tags\": [\"audio\", \"wireless\", \"headphones\", \"noise cancellation\"]\n    },\n    {\n      \"id\": 102,\n      \"name\": \"Organic Lavender Soap\",\n      \"price\": 8.50,\n      \"description\": \"Crafted with natural ingredients, this organic soap offers soothing lavender scents.\",\n      \"category\": \"Beauty & Health\",\n      \"tags\": [\"soap\", \"organic\", \"natural\", \"lavender\"]\n    },\n    {\n      \"id\": \"103\",\n      \"name\": \"Smart LED Bulb\",\n      \"price\": 24.99,\n      \"description\": \"Control your lighting with this smart LED bulb compatible with any smart home device.\",\n      \"category\": \"Home & Garden\",\n      \"tags\": [\"smart\", \"lighting\", \"LED\", \"home automation\"]\n    }\n  ]\n}\n```\n\nThis response includes an array of product objects, each with the required fields. Adjust the values as necessary to fit your specific use case.",
+  "response_chars": 1293,
+  "num_chunks": 315,
+  "ttft_ms": 302.219,
+  "total_ms": 6343.969,
+  "model_name": "model-medium"
+}

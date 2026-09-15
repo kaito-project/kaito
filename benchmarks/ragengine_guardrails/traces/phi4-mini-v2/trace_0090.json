@@ -1,0 +1,303 @@
+{
+  "index": 90,
+  "prompt": "Write a sample .env file for a Python Flask application that includes DATABASE_URL, SECRET_KEY, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, STRIPE_API_KEY, and SENDGRID_API_KEY.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1124.067,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "env"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": " Flask"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "DATABASE"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "_URL"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-d"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "atabase"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-url"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "SECRET"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-access"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1124.067,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "-access"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "STR"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "IPE"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 1899.5,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "ipe"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "-api"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "SEND"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "GRID"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "-send"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "-api"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 1912.974,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 1913.296,
+      "type": "done"
+    }
+  ],
+  "full_response": "# .env file for a Python Flask application\n\nDATABASE_URL=\"your-database-url\"\nSECRET_KEY=\"your-secret-key\"\nAWS_ACCESS_KEY_ID=\"your-aws-access-key-id\"\nAWS_SECRET_ACCESS_KEY=\"your-aws-secret-access-key\"\nSTRIPE_API_KEY=\"youripe-api-key\"\nSENDGRID_API_KEY=\"your-sendgrid-api-key\"",
+  "response_chars": 273,
+  "num_chunks": 70,
+  "ttft_ms": 1124.067,
+  "total_ms": 2060.09,
+  "model_name": "Phi-4-mini-instruct"
+}

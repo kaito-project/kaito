@@ -1,0 +1,743 @@
+{
+  "index": 170,
+  "prompt": "Generate a sample Terraform variables file that includes Azure subscription ID, client secret, tenant ID, and storage account access key.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 527.356,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " Terraform variables"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " file (`variables"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": ".tf`) that"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " includes the"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " Azure credentials you"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " requested"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " file defines"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " the input"
+    },
+    {
+      "timestamp_ms": 527.356,
+      "content": " variables that"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " use in your Terra"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": "form configuration:\n\n```"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": "hcl\n#"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": ".tf\n\n"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " \"azure"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": "_sub"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": "scription_id"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": "\" {\n  description"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " = \"The Azure"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " Subscription"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": " ID\"\n"
+    },
+    {
+      "timestamp_ms": 784.341,
+      "content": "  type"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": "        = string"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": "\n  sensitive"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": " = true\n}\n\n"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": "variable \"azure"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": "_client_secret"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": "\" {\n  description"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": " = \"The Azure"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": " Client Secret ("
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": "Service Principal"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 990.246,
+      "content": ")\"\n  type       "
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": " = string\n "
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": " sensitive   = true"
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": "\n}\n\n"
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": "variable \"azure_"
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": "tenant_id\" {\n"
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": "  description = \""
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": "The Azure Ten"
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": "ant ID"
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": "Directory ID"
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": ")\"\n  type       "
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": " = string\n "
+    },
+    {
+      "timestamp_ms": 1193.98,
+      "content": " sensitive   = true"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": "\n}\n\nvariable \""
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": "azure_client"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": "_id\" {\n "
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": " description = \"The"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": " Azure Client ID"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": " (Service"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": " Principal ID)\"\n "
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": " type        = string"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": "\n  sensitive"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": "   = true\n"
+    },
+    {
+      "timestamp_ms": 1296.161,
+      "content": "}\n\nvariable \"storage"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": "_account_access"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": "_key\" {\n "
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": " description = \"The"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": " Key for the Azure"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": " Storage Account\"\n "
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": " type        = string"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": "\n  sensitive  "
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": " = true\n}\n\n"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 1501.423,
+      "content": " \"resource"
+    },
+    {
+      "timestamp_ms": 1610.441,
+      "content": "_group_name"
+    },
+    {
+      "timestamp_ms": 1610.441,
+      "content": "\" {\n  description"
+    },
+    {
+      "timestamp_ms": 1610.441,
+      "content": " = \"The name"
+    },
+    {
+      "timestamp_ms": 1610.441,
+      "content": " of the Azure Resource"
+    },
+    {
+      "timestamp_ms": 1793.977,
+      "content": " Group\"\n  type"
+    },
+    {
+      "timestamp_ms": 1793.977,
+      "content": "        = string\n"
+    },
+    {
+      "timestamp_ms": 1793.977,
+      "content": "  default    "
+    },
+    {
+      "timestamp_ms": 1793.977,
+      "content": " = \"my"
+    },
+    {
+      "timestamp_ms": 1793.977,
+      "content": "-res"
+    },
+    {
+      "timestamp_ms": 1793.977,
+      "content": "ource-group\"\n}\n\n"
+    },
+    {
+      "timestamp_ms": 1793.977,
+      "content": "variable \"location"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": "\" {\n  description"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": " = \"The Azure"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": " region where resources"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": " will be created\"\n"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": "  type        ="
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": " string\n  default"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": "     = \"e"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": "astus"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": "\"\n}\n"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": "```\n\n### Correspond"
+    },
+    {
+      "timestamp_ms": 2013.078,
+      "content": "ing Terraform Variables"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " File (`"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": ".tfvars"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": "`)\n\n"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": "You would"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " typically provide the"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " values in"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " a `"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": "terraform.tfvars"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": "` file (which"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " should be added to"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " `.gitignore`"
+    },
+    {
+      "timestamp_ms": 2369.826,
+      "content": " for security):\n\n```"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "hcl\n#"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": " terra"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "form.tfvars"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "_subscription_id    "
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": " = \"1"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "67"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "8-1"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "234-"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "-1"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "234-"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 2729.625,
+      "content": "678\"\n"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "azure_client"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "_id          "
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": " = \"8"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "65"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "1-4"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "1-8"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "65"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "-432"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "1-2"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "98"
+    },
+    {
+      "timestamp_ms": 3114.03,
+      "content": "765"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "1\"\nazure_client"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "_secret      "
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": " = \"very"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "-client"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "azure_tenant_id"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": " = \"12"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "3456"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "78-1"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "234-"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "-123"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "4-5"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "6781"
+    },
+    {
+      "timestamp_ms": 3604.166,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 3604.588,
+      "content": "storage"
+    },
+    {
+      "timestamp_ms": 3604.588,
+      "content": "_account_access_key ="
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": " \"storage"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "-access"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "-key-here\"\n"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "resource"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "_group_name      "
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": " = \"my-production"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "-r"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "g\"\nlocation"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": " = \"w"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "este"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": "urope\"\n```\n\n###"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "content": " Important Security"
+    },
+    {
+      "timestamp_ms": 3888.547,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4061.442,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample Terraform variables file (`variables.tf`) that includes the Azure credentials you requested. This file defines the input variables that you can use in your Terraform configuration:\n\n```hcl\n# variables.tf\n\nvariable \"azure_subscription_id\" {\n  description = \"The Azure Subscription ID\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"azure_client_secret\" {\n  description = \"The Azure Client Secret (Service Principal password)\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"azure_tenant_id\" {\n  description = \"The Azure Tenant ID (Directory ID)\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"azure_client_id\" {\n  description = \"The Azure Client ID (Service Principal ID)\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"storage_account_access_key\" {\n  description = \"The Access Key for the Azure Storage Account\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"resource_group_name\" {\n  description = \"The name of the Azure Resource Group\"\n  type        = string\n  default     = \"my-resource-group\"\n}\n\nvariable \"location\" {\n  description = \"The Azure region where resources will be created\"\n  type        = string\n  default     = \"eastus\"\n}\n```\n\n### Corresponding Terraform Variables File (`terraform.tfvars`)\n\nYou would typically provide the actual values in a `terraform.tfvars` file (which should be added to `.gitignore` for security):\n\n```hcl\n# terraform.tfvars\n\nazure_subscription_id     = \"12345678-1234-5678-1234-567812345678\"\nazure_client_id           = \"87654321-4321-8765-4321-210987654321\"\nazure_client_secret       = \"very-secret-client-secret\"\nazure_tenant_id           = \"12345678-1234-5678-1234-567812345storage_account_access_key = \"storage-access-key-here\"\nresource_group_name       = \"my-production-rg\"\nlocation                  = \"westeurope\"\n```\n\n### Important Security",
+  "response_chars": 1852,
+  "num_chunks": 180,
+  "ttft_ms": 527.356,
+  "total_ms": 4073.925,
+  "model_name": "Mistral-Large-3"
+}

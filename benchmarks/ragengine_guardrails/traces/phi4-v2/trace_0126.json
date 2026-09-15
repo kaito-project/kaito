@@ -1,0 +1,2071 @@
+{
+  "index": 126,
+  "prompt": "Write a detailed 2000-word essay about the evolution of programming languages from Assembly to modern languages, covering at least 15 different languages.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 380.777,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 380.926,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 381.034,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 381.118,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 381.238,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 381.373,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 416.525,
+      "content": " outline"
+    },
+    {
+      "timestamp_ms": 464.642,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 464.821,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 464.915,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 483.177,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 505.668,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 517.571,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 600.175,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 609.637,
+      "content": "-word"
+    },
+    {
+      "timestamp_ms": 609.637,
+      "content": " essay"
+    },
+    {
+      "timestamp_ms": 610.757,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 610.878,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 701.437,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 701.599,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 701.683,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 701.756,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 710.996,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 723.905,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 803.807,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 804.05,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 804.157,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 804.233,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 818.231,
+      "content": " covering"
+    },
+    {
+      "timestamp_ms": 886.298,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 886.473,
+      "content": " variety"
+    },
+    {
+      "timestamp_ms": 886.567,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 896.095,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 924.31,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 937.3,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 972.836,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 973.055,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 1012.23,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1012.446,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1028.411,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 1110.394,
+      "content": " Evolution"
+    },
+    {
+      "timestamp_ms": 1110.606,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1110.751,
+      "content": " Programming"
+    },
+    {
+      "timestamp_ms": 1110.834,
+      "content": " Languages"
+    },
+    {
+      "timestamp_ms": 1147.789,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1147.922,
+      "content": " From"
+    },
+    {
+      "timestamp_ms": 1163.759,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 1213.457,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1213.63,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1223.495,
+      "content": " Modern"
+    },
+    {
+      "timestamp_ms": 1279.338,
+      "content": " Era"
+    },
+    {
+      "timestamp_ms": 1279.556,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1279.639,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1316.219,
+      "content": " Introduction"
+    },
+    {
+      "timestamp_ms": 1317.929,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1418.369,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 1418.524,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 1418.602,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1528.953,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 1529.102,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 1529.177,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1529.23,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1529.281,
+      "content": " fascinating"
+    },
+    {
+      "timestamp_ms": 1529.328,
+      "content": " journey"
+    },
+    {
+      "timestamp_ms": 1529.374,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1529.42,
+      "content": " mirrors"
+    },
+    {
+      "timestamp_ms": 1542.441,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1562.922,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 1584.991,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1608.776,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1620.441,
+      "content": " technology"
+    },
+    {
+      "timestamp_ms": 1641.744,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 1658.132,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1696.449,
+      "content": " From"
+    },
+    {
+      "timestamp_ms": 1696.641,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1828.562,
+      "content": " early"
+    },
+    {
+      "timestamp_ms": 1828.975,
+      "content": " days"
+    },
+    {
+      "timestamp_ms": 1829.341,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1829.436,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 1829.508,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 1829.575,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1829.639,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 1914.101,
+      "content": "-specific"
+    },
+    {
+      "timestamp_ms": 1914.443,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 1914.443,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1914.542,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1991.813,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 1991.967,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 1992.044,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1992.11,
+      "content": " versatile"
+    },
+    {
+      "timestamp_ms": 2001.202,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 2037.725,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 2051.5,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 2058.552,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2109.166,
+      "content": " today"
+    },
+    {
+      "timestamp_ms": 2109.3,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2113.425,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2239.434,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 2239.605,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2239.68,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 2239.742,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2239.798,
+      "content": " brought"
+    },
+    {
+      "timestamp_ms": 2239.854,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2248.278,
+      "content": " possibilities"
+    },
+    {
+      "timestamp_ms": 2440.262,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2440.262,
+      "content": " parad"
+    },
+    {
+      "timestamp_ms": 2440.262,
+      "content": "ig"
+    },
+    {
+      "timestamp_ms": 2440.262,
+      "content": "ms"
+    },
+    {
+      "timestamp_ms": 2440.49,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2440.726,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2440.88,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 2440.962,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2441.024,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 2441.206,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2459.819,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2552.856,
+      "content": " essay"
+    },
+    {
+      "timestamp_ms": 2553.001,
+      "content": " explores"
+    },
+    {
+      "timestamp_ms": 2553.067,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2553.121,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 2553.49,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2647.752,
+      "content": " highlighting"
+    },
+    {
+      "timestamp_ms": 2647.923,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 2648.014,
+      "content": " fifteen"
+    },
+    {
+      "timestamp_ms": 2648.09,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 2648.16,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 2749.588,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 2749.819,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2749.934,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2750.009,
+      "content": " shaped"
+    },
+    {
+      "timestamp_ms": 2750.096,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2763.012,
+      "content": " landscape"
+    },
+    {
+      "timestamp_ms": 2852.118,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2852.309,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 2852.405,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 2852.465,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2856.611,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2876.913,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2901.02,
+      "content": " Dawn"
+    },
+    {
+      "timestamp_ms": 2916.059,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2946.939,
+      "content": " Programming"
+    },
+    {
+      "timestamp_ms": 2952.12,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3057.199,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 3057.395,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 3057.544,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3057.636,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3057.702,
+      "content": " earliest"
+    },
+    {
+      "timestamp_ms": 3066.528,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 3162.113,
+      "content": " efforts"
+    },
+    {
+      "timestamp_ms": 3162.316,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 3162.412,
+      "content": " conducted"
+    },
+    {
+      "timestamp_ms": 3162.477,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3162.53,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 3193.975,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3202.337,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3219.942,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3261.956,
+      "content": " binary"
+    },
+    {
+      "timestamp_ms": 3279.578,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 3279.776,
+      "content": " consisting"
+    },
+    {
+      "timestamp_ms": 3342.579,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3342.751,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3342.874,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3351.924,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 3372.362,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3472.895,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3473.034,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3473.101,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 3473.156,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3473.207,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 3573.89,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3588.786,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3588.94,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 3589.003,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 3589.056,
+      "content": " inefficient"
+    },
+    {
+      "timestamp_ms": 3595.775,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3677.309,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 3677.484,
+      "content": "-pr"
+    },
+    {
+      "timestamp_ms": 3677.567,
+      "content": "one"
+    },
+    {
+      "timestamp_ms": 3778.911,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3779.296,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 3779.468,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 3779.573,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3779.657,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3780.014,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 3780.111,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 3798.013,
+      "content": " emerged"
+    },
+    {
+      "timestamp_ms": 3813.016,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3829.503,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3877.707,
+      "content": " symbolic"
+    },
+    {
+      "timestamp_ms": 3877.893,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 3890.349,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3907.177,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 3932.278,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3962.1,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 3967.514,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3988.6,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 4001.479,
+      "content": " assembly"
+    },
+    {
+      "timestamp_ms": 4084.672,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 4084.842,
+      "content": " instruction"
+    },
+    {
+      "timestamp_ms": 4084.927,
+      "content": " corresponds"
+    },
+    {
+      "timestamp_ms": 4084.996,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4095.7,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4183.078,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 4183.254,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4192.351,
+      "content": " instruction"
+    },
+    {
+      "timestamp_ms": 4192.529,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4192.64,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 4285.473,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4285.697,
+      "content": " slightly"
+    },
+    {
+      "timestamp_ms": 4285.85,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 4285.93,
+      "content": " readable"
+    },
+    {
+      "timestamp_ms": 4294.032,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4307.295,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4326.19,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 4345.643,
+      "content": " Characteristics"
+    },
+    {
+      "timestamp_ms": 4362.776,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4389.69,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4401.519,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4443.876,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4444.049,
+      "content": "Low"
+    },
+    {
+      "timestamp_ms": 4459.086,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 4504.92,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4504.92,
+      "content": " Close"
+    },
+    {
+      "timestamp_ms": 4523.953,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4542.78,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 4616.949,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4617.169,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 4617.232,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 4617.284,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4632.234,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4648.929,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4669.057,
+      "content": "Platform"
+    },
+    {
+      "timestamp_ms": 4686.771,
+      "content": "-specific"
+    },
+    {
+      "timestamp_ms": 4712.175,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4727.334,
+      "content": " Generally"
+    },
+    {
+      "timestamp_ms": 4799.873,
+      "content": " tied"
+    },
+    {
+      "timestamp_ms": 4800.028,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4800.113,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4806.957,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 4821.332,
+      "content": " processor"
+    },
+    {
+      "timestamp_ms": 4846.053,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 4859.687,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4900.685,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4900.869,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5002.772,
+      "content": "Developer"
+    },
+    {
+      "timestamp_ms": 5002.957,
+      "content": " Usage"
+    },
+    {
+      "timestamp_ms": 5003.043,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5003.105,
+      "content": " Prim"
+    },
+    {
+      "timestamp_ms": 5003.158,
+      "content": "arily"
+    },
+    {
+      "timestamp_ms": 5018.575,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 5032.541,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5106.12,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5106.283,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 5106.367,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 5108.834,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5207.224,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 5207.385,
+      "content": "-c"
+    },
+    {
+      "timestamp_ms": 5207.47,
+      "content": "ritical"
+    },
+    {
+      "timestamp_ms": 5207.542,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5207.616,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5269.995,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5270.185,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5270.265,
+      "content": " Birth"
+    },
+    {
+      "timestamp_ms": 5280.157,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5419.491,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 5419.635,
+      "content": "-Level"
+    },
+    {
+      "timestamp_ms": 5419.705,
+      "content": " Languages"
+    },
+    {
+      "timestamp_ms": 5419.76,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5419.81,
+      "content": " FOR"
+    },
+    {
+      "timestamp_ms": 5419.859,
+      "content": "TRAN"
+    },
+    {
+      "timestamp_ms": 5419.999,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5430.931,
+      "content": " CO"
+    },
+    {
+      "timestamp_ms": 5463.513,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 5519.368,
+      "content": "OL"
+    },
+    {
+      "timestamp_ms": 5527.307,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5527.426,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 5527.49,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5561.186,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 5570.916,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5592.379,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5607.043,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5720.545,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5736.361,
+      "content": "196"
+    },
+    {
+      "timestamp_ms": 5736.67,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5736.908,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5737.014,
+      "content": " marked"
+    },
+    {
+      "timestamp_ms": 5737.111,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5737.196,
+      "content": " introduction"
+    },
+    {
+      "timestamp_ms": 5772.235,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5783.716,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5802.568,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 5812.502,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 5925.826,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 5926.054,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 5926.156,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 5926.231,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5926.297,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 5926.37,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6027.162,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 6027.327,
+      "content": " away"
+    },
+    {
+      "timestamp_ms": 6027.399,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 6027.399,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 6027.462,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6043.301,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 6130.47,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 6130.712,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6130.802,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 6130.865,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6135.607,
+      "content": " problem"
+    },
+    {
+      "timestamp_ms": 6183.048,
+      "content": "-solving"
+    },
+    {
+      "timestamp_ms": 6199.321,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6199.58,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 6252.929,
+      "content": " FOR"
+    },
+    {
+      "timestamp_ms": 6253.078,
+      "content": "TRAN"
+    },
+    {
+      "timestamp_ms": 6253.145,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6337.199,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 6337.375,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6337.449,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6337.638,
+      "content": "Develop"
+    },
+    {
+      "timestamp_ms": 6350.955,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 6436.833,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6436.999,
+      "content": " IBM"
+    },
+    {
+      "timestamp_ms": 6437.131,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6437.245,
+      "content": " FOR"
+    },
+    {
+      "timestamp_ms": 6443.204,
+      "content": "TRAN"
+    },
+    {
+      "timestamp_ms": 6459.221,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6525.555,
+      "content": "Formula"
+    },
+    {
+      "timestamp_ms": 6525.731,
+      "content": " Translation"
+    },
+    {
+      "timestamp_ms": 6525.822,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6538.863,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 6561.068,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6580.317,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 6595.634,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 6744.296,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 6744.296,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 6744.296,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6744.296,
+      "content": " aimed"
+    },
+    {
+      "timestamp_ms": 6744.296,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 6744.296,
+      "content": " scientific"
+    },
+    {
+      "timestamp_ms": 6744.484,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6746.824,
+      "content": " engineering"
+    },
+    {
+      "timestamp_ms": 6845.798,
+      "content": " computations"
+    },
+    {
+      "timestamp_ms": 6845.945,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6846.014,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6846.069,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 6846.119,
+      "content": " Characteristics"
+    },
+    {
+      "timestamp_ms": 6861.183,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6949.433,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6949.594,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6949.672,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6949.741,
+      "content": "Math"
+    },
+    {
+      "timestamp_ms": 6962.175,
+      "content": "ematic"
+    },
+    {
+      "timestamp_ms": 7050.706,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 7050.91,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 7051.008,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7051.116,
+      "content": " Excellent"
+    },
+    {
+      "timestamp_ms": 7051.192,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7152.85,
+      "content": " numerical"
+    },
+    {
+      "timestamp_ms": 7152.988,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7153.054,
+      "content": " scientific"
+    },
+    {
+      "timestamp_ms": 7153.109,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 7153.158,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7166.373,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7260.627,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7260.86,
+      "content": "Eff"
+    },
+    {
+      "timestamp_ms": 7260.993,
+      "content": "iciency"
+    },
+    {
+      "timestamp_ms": 7261.073,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7261.497,
+      "content": " Compiler"
+    },
+    {
+      "timestamp_ms": 7282.361,
+      "content": " technology"
+    },
+    {
+      "timestamp_ms": 7315.582,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 7319.203,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 7358.322,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7358.746,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7460.244,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 7460.426,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7460.509,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 7460.844,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 7460.948,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7473.346,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7563.024,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7563.946,
+      "content": "Legacy"
+    },
+    {
+      "timestamp_ms": 7564.19,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7564.19,
+      "content": " Influ"
+    },
+    {
+      "timestamp_ms": 7575.418,
+      "content": "enced"
+    },
+    {
+      "timestamp_ms": 7601.857,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 7614.888,
+      "content": " subsequent"
+    },
+    {
+      "timestamp_ms": 7624.05,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 7663.906,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7664.059,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7767.409,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 7767.716,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7767.802,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 7767.865,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7767.934,
+      "content": " computation"
+    },
+    {
+      "timestamp_ms": 7775.822,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7870.251,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 7870.501,
+      "content": " CO"
+    },
+    {
+      "timestamp_ms": 7870.791,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 7870.949,
+      "content": "OL"
+    },
+    {
+      "timestamp_ms": 7872.915,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7944.509,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 7944.658,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7944.738,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7948.165,
+      "content": "CO"
+    },
+    {
+      "timestamp_ms": 7973.592,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 7987.058,
+      "content": "OL"
+    },
+    {
+      "timestamp_ms": 8028.212,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8028.446,
+      "content": "Common"
+    },
+    {
+      "timestamp_ms": 8043.841,
+      "content": " Business"
+    },
+    {
+      "timestamp_ms": 8081.851,
+      "content": "-O"
+    },
+    {
+      "timestamp_ms": 8082.049,
+      "content": "rient"
+    },
+    {
+      "timestamp_ms": 8180.968,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 8181.158,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 8181.158,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8181.261,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 8181.332,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 8197.566,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8280.04,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 8282.955,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8283.073,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 8283.151,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8292.37,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8381.24,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 8381.457,
+      "content": " Characteristics"
+    },
+    {
+      "timestamp_ms": 8381.594,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8381.684,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8385.165,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8448.852,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8449.05,
+      "content": "English"
+    },
+    {
+      "timestamp_ms": 8449.115,
+      "content": "-like"
+    },
+    {
+      "timestamp_ms": 8464.498,
+      "content": " syntax"
+    },
+    {
+      "timestamp_ms": 8511.712,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8511.859,
+      "content": " Improved"
+    },
+    {
+      "timestamp_ms": 8518.66,
+      "content": " readability"
+    },
+    {
+      "timestamp_ms": 8587.76,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8588.018,
+      "content": " ease"
+    },
+    {
+      "timestamp_ms": 8588.124,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8597.319,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 8619.338,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8638.368,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 8696.734,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8696.734,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8696.734,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8711.622,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8752.203,
+      "content": "Port"
+    },
+    {
+      "timestamp_ms": 8752.366,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 8791.161,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8791.425,
+      "content": " Em"
+    },
+    {
+      "timestamp_ms": 8851.643,
+      "content": "phas"
+    },
+    {
+      "timestamp_ms": 8851.797,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 8851.894,
+      "content": " cross"
+    },
+    {
+      "timestamp_ms": 8865.828,
+      "content": "-platform"
+    },
+    {
+      "timestamp_ms": 8997.781,
+      "content": " compatibility"
+    },
+    {
+      "timestamp_ms": 8998.001,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8998.169,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8998.438,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8998.55,
+      "content": "Long"
+    },
+    {
+      "timestamp_ms": 8998.617,
+      "content": "evity"
+    },
+    {
+      "timestamp_ms": 8998.669,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9102.765,
+      "content": " Contin"
+    },
+    {
+      "timestamp_ms": 9102.983,
+      "content": "ues"
+    },
+    {
+      "timestamp_ms": 9103.134,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9103.218,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9103.28,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9111.615,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9201.075,
+      "content": " legacy"
+    },
+    {
+      "timestamp_ms": 9201.364,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 9201.519,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9201.598,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 9212.088,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9228.383,
+      "content": " finance"
+    },
+    {
+      "timestamp_ms": 9413.532,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9417.432,
+      "content": " government"
+    },
+    {
+      "timestamp_ms": 9417.573,
+      "content": " sectors"
+    },
+    {
+      "timestamp_ms": 9417.702,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9417.829,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9418.1,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9418.243,
+      "content": " Rise"
+    },
+    {
+      "timestamp_ms": 9418.42,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9418.535,
+      "content": " Struct"
+    },
+    {
+      "timestamp_ms": 9418.673,
+      "content": "ured"
+    },
+    {
+      "timestamp_ms": 9479.32,
+      "content": " Programming"
+    },
+    {
+      "timestamp_ms": 9479.824,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9479.999,
+      "content": " AL"
+    },
+    {
+      "timestamp_ms": 9601.85,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 9602.031,
+      "content": "OL"
+    },
+    {
+      "timestamp_ms": 9602.113,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9602.169,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 9602.219,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9602.275,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 9610.529,
+      "content": " mid"
+    },
+    {
+      "timestamp_ms": 9625.676,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9713.234,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 9713.407,
+      "content": "th"
+    },
+    {
+      "timestamp_ms": 9713.491,
+      "content": " century"
+    },
+    {
+      "timestamp_ms": 9713.558,
+      "content": " saw"
+    },
+    {
+      "timestamp_ms": 9721.394,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9823.712,
+      "content": " shift"
+    },
+    {
+      "timestamp_ms": 9823.847,
+      "content": " towards"
+    },
+    {
+      "timestamp_ms": 9823.911,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 9823.964,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 9836.864,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9837.244,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 9857.157,
+      "content": " emphasized"
+    },
+    {
+      "timestamp_ms": 9876.426,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 9896.24,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10022.601,
+      "content": " logical"
+    },
+    {
+      "timestamp_ms": 10022.743,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 10022.824,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10022.924,
+      "content": " mod"
+    },
+    {
+      "timestamp_ms": 10022.993,
+      "content": "ularity"
+    },
+    {
+      "timestamp_ms": 10023.06,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10027.245,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 10027.245,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10027.245,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Here's a structured outline and content for a 2000-word essay on the evolution of programming languages from Assembly to modern languages, covering a variety of key languages along the way.\n\n---\n\n## Evolution of Programming Languages: From Assembly to the Modern Era\n\n### Introduction\n\nThe evolution of programming languages is a fascinating journey that mirrors the development of computing technology itself. From the early days of low-level, machine-specific languages to the high-level, versatile modern languages we use today, each generation of languages has brought new possibilities and paradigms to the world of programming. This essay explores this evolution, highlighting over fifteen significant programming languages that have shaped the landscape of software development.\n\n### The Dawn of Programming: Assembly Language\n\nThe earliest programming efforts were conducted in machine code, a binary language consisting of 0s and 1s. However, this was highly inefficient and error-prone. To address this, Assembly language emerged as a symbolic representation of machine code instructions. Each assembly language instruction corresponds to a machine code instruction, making it slightly more readable.\n\n**Key Characteristics:**\n- **Low-level:** Close to hardware, highly efficient.\n- **Platform-specific:** Generally tied to a specific processor architecture.\n- **Developer Usage:** Primarily used for system-level programming and performance-critical applications.\n\n### The Birth of High-Level Languages: FORTRAN and COBOL\n\nThe 1950s and 1960s marked the introduction of the first high-level programming languages, designed to abstract away hardware details and allow developers to focus on problem-solving.\n\n#### FORTRAN (1957)\nDeveloped by IBM, FORTRAN (Formula Translation) was the first high-level language, aimed at scientific and engineering computations.\n\n**Key Characteristics:**\n- **Mathematical focus:** Excellent for numerical and scientific computing.\n- **Efficiency:** Compiler technology was advanced for its time, maintaining performance.\n- **Legacy:** Influenced many subsequent languages with its structure and approach to computation.\n\n#### COBOL (1959)\nCOBOL (Common Business-Oriented Language) was designed for business data processing.\n\n**Key Characteristics:**\n- **English-like syntax:** Improved readability and ease of use for business applications.\n- **Portability:** Emphasized cross-platform compatibility.\n- **Longevity:** Continues to be used in legacy systems, particularly in finance and government sectors.\n\n### The Rise of Structured Programming: ALGOL and C\n\nThe mid-20th century saw a shift towards structured programming, which emphasized clear, logical flow and modularity.\n\n####",
+  "response_chars": 2737,
+  "num_chunks": 512,
+  "ttft_ms": 380.777,
+  "total_ms": 10032.519,
+  "model_name": "model-medium"
+}

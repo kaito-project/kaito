@@ -1,0 +1,747 @@
+{
+  "index": 8,
+  "prompt": "Write a sample API response that returns user profile data including name, email, phone, date_of_birth, and billing_address in JSON format.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 924.245,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": " response in"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": " JSON format that includes"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": " user profile data with"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": " you requested"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": "```json"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": "\n{\n  \""
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": "status\": \"success"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": "\",\n  \"code"
+    },
+    {
+      "timestamp_ms": 924.245,
+      "content": "\": 20"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "0,\n  \""
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "message\": \"User"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": " profile retrieved"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": " successfully\",\n"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "  \"data\":"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": " {\n    \"user"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "\": \""
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "usr"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "5abc"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "de"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "\",\n    \"name"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "\": {\n"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "      \"first"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "\": \"John"
+    },
+    {
+      "timestamp_ms": 1748.384,
+      "content": "\",\n      \"middle"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "\": \"Q"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "\",\n      \"last"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "\": \"Do"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "e\",\n      \""
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "full\":"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": " \"John Q"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "\"\n    },\n   "
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": " \"email\": \""
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "john.d"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "oe@example.com\",\n"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "    \"phone"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "\": {\n"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "      \"number"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "\": \"+"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "90\",\n"
+    },
+    {
+      "timestamp_ms": 2068.615,
+      "content": "      \"type"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "\": \"mobile"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "\",\n      \"verified"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "\": true"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "    },\n    \""
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "date_of_b"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "irth\": \"1"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "985-"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "07"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "-15\",\n"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "    \"age"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "\": "
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "38"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": ",\n    \"b"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "illing_address"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "\": {\n      \""
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "_address\": \"1"
+    },
+    {
+      "timestamp_ms": 2678.326,
+      "content": "23 Main"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": " St\",\n      \""
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "_address_line"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "2\": \"A"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "pt 4"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "B\",\n      \""
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "city\": \"New"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": " York\",\n      \""
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "state\": \"NY"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "\",\n      \"post"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "al_code"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "\": \"1"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "0001"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "\",\n      \"country"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "\": \"US"
+    },
+    {
+      "timestamp_ms": 3218.564,
+      "content": "\",\n      \"country"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "\": \"USA"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "\"\n    },\n   "
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": " \"created"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "_at\": \"2"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "020"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "-05"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "-10"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "T0"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "8:30"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": ":00Z"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "\",\n    \"updated"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "_at\": \"2"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "023-"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "08-2"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "T1"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "4:1"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "5:00"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "Z\",\n    \""
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "metadata\": {\n     "
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": " \"pre"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "ferred"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "_language"
+    },
+    {
+      "timestamp_ms": 4098.73,
+      "content": "\": \"en"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "-US"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "\",\n      \"time"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "zone\": \"America"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "/New_Y"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "ork\"\n    }\n"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "  },\n"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "  \"links"
+    },
+    {
+      "timestamp_ms": 4527.766,
+      "content": "\": {\n    \""
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "self\": \"/"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "/usr"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "5abcde\",\n"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "    \"avatar"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "\": \"https"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "://example"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": ".com/avat"
+    },
+    {
+      "timestamp_ms": 4645.847,
+      "content": "ars/usr"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "_123"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "45abcde"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": ".jpg\"\n  }\n"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "}\n```\n\n### Key"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": " Features of"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": " this Response"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": ":\n1. **"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "Standard"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": " Structure"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "**: Includes `"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "status`, `code"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "`, `"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "message`, and `"
+    },
+    {
+      "timestamp_ms": 5091.08,
+      "content": "data` for clarity"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": ".\n2. **"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": "Nested Objects"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": "**: Fields"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": " like `name"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": "`, `phone`,"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": " and `billing"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": "_address` are structured"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": " better readability and"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": " extensibility.\n3"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": ". **Additional"
+    },
+    {
+      "timestamp_ms": 5483.952,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": "ful Fields**: Includes"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": "age`"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": " (derived"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": " from `date"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": "_of_birth`),"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": " timestamps"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": "created_at`, `"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": "updated_at`), and"
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": " metadata.\n4."
+    },
+    {
+      "timestamp_ms": 5875.425,
+      "content": " **Links"
+    },
+    {
+      "timestamp_ms": 6050.119,
+      "content": "**: Prov"
+    },
+    {
+      "timestamp_ms": 6050.119,
+      "content": "ides H"
+    },
+    {
+      "timestamp_ms": 6050.119,
+      "content": "ATE"
+    },
+    {
+      "timestamp_ms": 6050.119,
+      "content": "OAS"
+    },
+    {
+      "timestamp_ms": 6050.119,
+      "content": "-style"
+    },
+    {
+      "timestamp_ms": 6268.673,
+      "content": " links for"
+    },
+    {
+      "timestamp_ms": 6268.673,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 6268.673,
+      "content": " navigation (e.g"
+    },
+    {
+      "timestamp_ms": 6268.673,
+      "content": "., `self"
+    },
+    {
+      "timestamp_ms": 6268.673,
+      "content": "` or"
+    },
+    {
+      "timestamp_ms": 6268.673,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6268.673,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6325.929,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample API response in JSON format that includes user profile data with the fields you requested:\n\n```json\n{\n  \"status\": \"success\",\n  \"code\": 200,\n  \"message\": \"User profile retrieved successfully\",\n  \"data\": {\n    \"user_id\": \"usr_12345abcde\",\n    \"name\": {\n      \"first\": \"John\",\n      \"middle\": \"Q\",\n      \"last\": \"Doe\",\n      \"full\": \"John Q Doe\"\n    },\n    \"email\": \"john.doe@example.com\",\n    \"phone\": {\n      \"number\": \"+1234567890\",\n      \"type\": \"mobile\",\n      \"verified\": true\n    },\n    \"date_of_birth\": \"1985-07-15\",\n    \"age\": 38,\n    \"billing_address\": {\n      \"street_address\": \"123 Main St\",\n      \"street_address_line_2\": \"Apt 4B\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"postal_code\": \"10001\",\n      \"country\": \"US\",\n      \"country_code\": \"USA\"\n    },\n    \"created_at\": \"2020-05-10T08:30:00Z\",\n    \"updated_at\": \"2023-08-25T14:15:00Z\",\n    \"metadata\": {\n      \"preferred_language\": \"en-US\",\n      \"timezone\": \"America/New_York\"\n    }\n  },\n  \"links\": {\n    \"self\": \"/users/usr_12345abcde\",\n    \"avatar\": \"https://example.com/avatars/usr_12345abcde.jpg\"\n  }\n}\n```\n\n### Key Features of this Response:\n1. **Standard Structure**: Includes `status`, `code`, `message`, and `data` for clarity.\n2. **Nested Objects**: Fields like `name`, `phone`, and `billing_address` are structured for better readability and extensibility.\n3. **Additional Useful Fields**: Includes `age` (derived from `date_of_birth`), timestamps (`created_at`, `updated_at`), and metadata.\n4. **Links**: Provides HATEOAS-style links for further navigation (e.g., `self` or `",
+  "response_chars": 1578,
+  "num_chunks": 181,
+  "ttft_ms": 924.245,
+  "total_ms": 6328.822,
+  "model_name": "Mistral-Large-3"
+}

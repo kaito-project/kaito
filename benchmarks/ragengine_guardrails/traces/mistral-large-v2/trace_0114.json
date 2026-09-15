@@ -1,0 +1,727 @@
+{
+  "index": 114,
+  "prompt": "Write a sample API response that returns user profile data including name, email, phone, date_of_birth, and billing_address in JSON format.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 876.544,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": " response in"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": " JSON format that includes"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": " user profile data with"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": " you requested"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": "```json"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": "\n{\n  \""
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": "status\": \"success"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": "\",\n  \"code"
+    },
+    {
+      "timestamp_ms": 876.544,
+      "content": "\": 20"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "0,\n  \""
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "message\": \"User"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": " profile retrieved"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": " successfully\",\n"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "  \"data\":"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": " {\n    \"user"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "\": \""
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "usr"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "5abc"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "de"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "\",\n    \"name"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "\": {\n"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "      \"first"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "\": \"John"
+    },
+    {
+      "timestamp_ms": 1454.979,
+      "content": "\",\n      \"middle"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "\": \"Q"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "\",\n      \"last"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "\": \"Do"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "e\",\n      \""
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "full\":"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": " \"John Q"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "\"\n    },\n   "
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": " \"email\": \""
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "john.d"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "oe@example.com\",\n"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "    \"phone"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "\": {\n"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "      \"number"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "\": \"+"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "551"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 1669.24,
+      "content": "67\",\n     "
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": " \"type"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "\": \"mobile"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "\",\n      \"primary"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "\": true"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "\n    },\n   "
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": " \"date_of_b"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "irth\": \"1"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "985-"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "07-1"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "5\",\n    \""
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "illing_address"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "\": {\n      \""
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "_address"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "\": \"12"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": "3 Main"
+    },
+    {
+      "timestamp_ms": 2019.291,
+      "content": " St\",\n      \""
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "_address2"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "\": \"A"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "pt 4"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "B\",\n      \""
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "city\": \"New"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": " York\",\n      \""
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "state\": \"NY"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "\",\n      \"post"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "al_code"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "\": \"1"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "0001"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "\",\n      \"country"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "\": \"US"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "\",\n      \"is"
+    },
+    {
+      "timestamp_ms": 2268.646,
+      "content": "_primary\": true"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "\n    },\n   "
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": " \"created"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "_at\": \"2"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "020"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "-05"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "-10"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "T08"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": ":30:"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "00Z\",\n"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "    \"updated_at"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "\": \"2"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "023-"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "04-1"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "5T1"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "4:4"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "5:00"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "Z\"\n"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "  },\n  \""
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "metadata"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "\": {\n    \""
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "version"
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "\": \"1."
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "0\",\n    \""
+    },
+    {
+      "timestamp_ms": 2660.914,
+      "content": "timestamp\": \"2"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": "023-"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": "11-1"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": "5T1"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": ":1"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": "5:3"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": "0Z\"\n "
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": " }\n}\n```\n\n###"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": " Features of"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": " Response:\n1."
+    },
+    {
+      "timestamp_ms": 2948.394,
+      "content": " **Standard"
+    },
+    {
+      "timestamp_ms": 3010.38,
+      "content": " Structure"
+    },
+    {
+      "timestamp_ms": 3010.38,
+      "content": "**: Includes `"
+    },
+    {
+      "timestamp_ms": 3010.38,
+      "content": "status`, `code"
+    },
+    {
+      "timestamp_ms": 3010.38,
+      "content": "`, `message"
+    },
+    {
+      "timestamp_ms": 3010.38,
+      "content": "`, `"
+    },
+    {
+      "timestamp_ms": 3010.38,
+      "content": "data`, and `"
+    },
+    {
+      "timestamp_ms": 3010.38,
+      "content": "metadata` for clarity"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": ".\n2. **"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": "Nested Fields**:\n"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": "   - `name"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": "` is broken"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": " down into first"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": ", middle"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": ", last, and"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": " full names"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": ".\n   - `"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": "phone` includes"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": " primary status"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": ".\n   - `"
+    },
+    {
+      "timestamp_ms": 3339.809,
+      "content": "billing_address`"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": " all standard"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": " address fields"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": ".\n3. **"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": "ISO 86"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": "01 Dates"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": "**: `"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": "date_of_birth"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": " `created_at`,"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": " and `updated_at"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": "` use"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": " standard format.\n4"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": ". **Metadata"
+    },
+    {
+      "timestamp_ms": 3580.547,
+      "content": "**: Prov"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": "ides version"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": " and timestamp"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": " for debugging"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": ".\n\n### Min"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": "imalist Alternative"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": ":\nIf you prefer"
+    },
+    {
+      "timestamp_ms": 3692.833,
+      "content": " a fl"
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "content": "atter structure"
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "content": ":\n```json\n"
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "content": "{\n  \"success"
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "content": "\": true"
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "content": ",\n  \"user"
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "content": " {\n    \""
+    },
+    {
+      "timestamp_ms": 3800.206,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4092.682,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample API response in JSON format that includes user profile data with the fields you requested:\n\n```json\n{\n  \"status\": \"success\",\n  \"code\": 200,\n  \"message\": \"User profile retrieved successfully\",\n  \"data\": {\n    \"user_id\": \"usr_12345abcde\",\n    \"name\": {\n      \"first\": \"John\",\n      \"middle\": \"Q\",\n      \"last\": \"Doe\",\n      \"full\": \"John Q Doe\"\n    },\n    \"email\": \"john.doe@example.com\",\n    \"phone\": {\n      \"number\": \"+15551234567\",\n      \"type\": \"mobile\",\n      \"primary\": true\n    },\n    \"date_of_birth\": \"1985-07-15\",\n    \"billing_address\": {\n      \"street_address\": \"123 Main St\",\n      \"street_address2\": \"Apt 4B\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"postal_code\": \"10001\",\n      \"country\": \"US\",\n      \"is_primary\": true\n    },\n    \"created_at\": \"2020-05-10T08:30:00Z\",\n    \"updated_at\": \"2023-04-15T14:45:00Z\"\n  },\n  \"metadata\": {\n    \"version\": \"1.0\",\n    \"timestamp\": \"2023-11-15T10:15:30Z\"\n  }\n}\n```\n\n### Key Features of This Response:\n1. **Standard Structure**: Includes `status`, `code`, `message`, `data`, and `metadata` for clarity.\n2. **Nested Fields**:\n   - `name` is broken down into first, middle, last, and full names.\n   - `phone` includes type and primary status.\n   - `billing_address` contains all standard address fields.\n3. **ISO 8601 Dates**: `date_of_birth`, `created_at`, and `updated_at` use the standard format.\n4. **Metadata**: Provides versioning and timestamp for debugging.\n\n### Minimalist Alternative:\nIf you prefer a flatter structure:\n```json\n{\n  \"success\": true,\n  \"user\": {\n    \"",
+  "response_chars": 1553,
+  "num_chunks": 176,
+  "ttft_ms": 876.544,
+  "total_ms": 4093.015,
+  "model_name": "Mistral-Large-3"
+}

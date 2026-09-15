@@ -1,0 +1,2055 @@
+{
+  "index": 170,
+  "prompt": "Generate a sample Terraform variables file that includes Azure subscription ID, client secret, tenant ID, and storage account access key.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 966.269,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " named"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": "variables"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " subscription"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " tenant"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 966.269,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " variable"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " organized"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " manner"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": "coding"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1496.663,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "Filename"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "variables"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "cl"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " subscription"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " provider"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2222.146,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2922.506,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "_t"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "enant"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 3772.853,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " tenant"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3773.304,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "_account"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4441.128,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4452.025,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": "Please"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " note"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4663.256,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " plaintext"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5044.697,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " Hash"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": "Corp"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5558.481,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " exposing"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6289.91,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "main"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "):\n\n"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "cl"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "provider"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "az"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "ur"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "erm"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " {}\n"
+    },
+    {
+      "timestamp_ms": 6795.139,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7154.752,
+      "content": " subscription"
+    },
+    {
+      "timestamp_ms": 7154.752,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 7154.752,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7154.752,
+      "content": " var"
+    },
+    {
+      "timestamp_ms": 7154.752,
+      "content": ".azure"
+    },
+    {
+      "timestamp_ms": 7154.752,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " showing"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " variable"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 7584.673,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "resource"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "az"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "ur"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "erm"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "_resource"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "_group"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 7586.66,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "-res"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "ources"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " location"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "East"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " US"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " omitted"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " reasons"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8322.469,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " respective"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " terminal"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " pass"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": "-line"
+    },
+    {
+      "timestamp_ms": 9006.281,
+      "content": " flags"
+    },
+    {
+      "timestamp_ms": 9006.953,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9006.953,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": "tf"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": "If"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": "tf"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 10185.325,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "):\n\n"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "cl"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10185.582,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-sub"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "scription"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-client"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "_t"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "enant"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "tenant"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "_account"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 10496.998,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": "Before"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " commands"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " you've"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 10887.385,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10946.669,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample Terraform variables file named `variables.tf` that includes the Azure subscription ID, client secret, tenant ID, and storage account access key. This variable file allows you to store sensitive data in a secure and organized manner, without hardcoding these values into Terraform files.\n\nFilename: `variables.tf`\n\n```hcl\nvariable \"azure_subscription_id\" {\n  description = \"The Azure subscription ID of the resource provider.\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"azure_client_secret\" {\n  description = \"The Azure client secret for authentication.\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"azure_tenant_id\" {\n description = \"The Azure tenant ID for user authentication.\"\n  type        = string\n  sensitive   = true\n}\n\nvariable \"azure_storage_account_key\" {\n  description = \" Azure storage account access key.\"\n  type        = string\n  sensitive   = true\n}\n```\n\nPlease note that storing sensitive information even in a variables file is a security risk if the file includes plaintext values. It is highly recommended to use a secrets management tool (like HashiCorp Vault, AWS Secrets Manager, or Azure Key Vault) for handling secrets instead of including them directly in Terraform files. As you add the actual values, make sure to avoid exposing them. Here is how you would reference these variables in your configuration:\n\nExample usage in a Terraform configuration (`main.tf`):\n\n```hcl\nprovider \"azurerm\" {\n  features {}\n  subscription_id = var.azure_subscription_id\n}\n\n# Example showing the use of the variable; replace with actual resource configurationresource \"azurerm_resource_group\" \"example\" {\n  name     = \"example-resources\"\n  location = \"East US\"\n  # client_id and client_secret are omitted for security reasons\n  // use a managed identity or other authentication methods for actual usage\n}\n```\n\nIn your respective environment (e.g., terminal), you would then pass the actual values to Terraform via command-line flags or a `.tfvars` file.\n\nIf using a `.tfvars` file, you would it like this (example: `terraform.tfvars`):\n\n```hcl\nazure_subscription_id = \"your-subscription-id\"\nazure_client_secret = \"your-client-secret\"\nazure_tenant_id      = \"your-tenant-id\"\nazure_storage_account_key = \"your-storage-account-key\"\n```\n\nBefore running any Terraform commands, ensure that you've securely stored these values in your `",
+  "response_chars": 2393,
+  "num_chunks": 508,
+  "ttft_ms": 966.269,
+  "total_ms": 11082.295,
+  "model_name": "Phi-4-mini-instruct"
+}

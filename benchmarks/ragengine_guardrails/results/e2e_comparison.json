@@ -1,0 +1,99 @@
+{
+  "runs": {
+    "mistral-raw": {
+      "model_url": "https://yiqiwang-7081-resource.services.ai.azure.com/openai/v1/chat/completions",
+      "model_name": "Mistral-Large-3",
+      "label": "mistral-raw",
+      "num_prompts": 95,
+      "iterations": 1
+    },
+    "phi4-raw": {
+      "model_url": "https://yiqiwang-7081-resource.services.ai.azure.com/openai/v1/chat/completions",
+      "model_name": "model-medium",
+      "label": "phi4-raw",
+      "num_prompts": 95,
+      "iterations": 1
+    },
+    "phi4mini-raw": {
+      "model_url": "https://yiqiwang-7081-resource.services.ai.azure.com/openai/v1/chat/completions",
+      "model_name": "Phi-4-mini-instruct",
+      "label": "phi4mini-raw",
+      "num_prompts": 95,
+      "iterations": 1
+    }
+  },
+  "rows": [
+    {
+      "label": "mistral-raw",
+      "model": "Mistral-Large-3",
+      "policy": "block_only",
+      "baseline_p50_ms": 6035.031,
+      "baseline_ttft_ms": 6035.023,
+      "guarded_p50_ms": 6445.149,
+      "guarded_ttft_ms": 6441.495,
+      "overhead_ms": 410.12,
+      "overhead_pct": 6.8,
+      "ttft_overhead_ms": 406.47
+    },
+    {
+      "label": "mistral-raw",
+      "model": "Mistral-Large-3",
+      "policy": "redact_block",
+      "baseline_p50_ms": 6035.031,
+      "baseline_ttft_ms": 6035.023,
+      "guarded_p50_ms": 6027.913,
+      "guarded_ttft_ms": 6000.475,
+      "overhead_ms": -7.12,
+      "overhead_pct": -0.12,
+      "ttft_overhead_ms": -34.55
+    },
+    {
+      "label": "phi4-raw",
+      "model": "model-medium",
+      "policy": "block_only",
+      "baseline_p50_ms": 9988.628,
+      "baseline_ttft_ms": 9988.412,
+      "guarded_p50_ms": 10006.946,
+      "guarded_ttft_ms": 9993.663,
+      "overhead_ms": 18.32,
+      "overhead_pct": 0.18,
+      "ttft_overhead_ms": 5.25
+    },
+    {
+      "label": "phi4-raw",
+      "model": "model-medium",
+      "policy": "redact_block",
+      "baseline_p50_ms": 9988.628,
+      "baseline_ttft_ms": 9988.412,
+      "guarded_p50_ms": 10050.384,
+      "guarded_ttft_ms": 9991.053,
+      "overhead_ms": 61.76,
+      "overhead_pct": 0.62,
+      "ttft_overhead_ms": 2.64
+    },
+    {
+      "label": "phi4mini-raw",
+      "model": "Phi-4-mini-instruct",
+      "policy": "block_only",
+      "baseline_p50_ms": 10253.009,
+      "baseline_ttft_ms": 10252.993,
+      "guarded_p50_ms": 10043.446,
+      "guarded_ttft_ms": 10032.381,
+      "overhead_ms": -209.56,
+      "overhead_pct": -2.04,
+      "ttft_overhead_ms": -220.61
+    },
+    {
+      "label": "phi4mini-raw",
+      "model": "Phi-4-mini-instruct",
+      "policy": "redact_block",
+      "baseline_p50_ms": 10253.009,
+      "baseline_ttft_ms": 10252.993,
+      "guarded_p50_ms": 9856.712,
+      "guarded_ttft_ms": 9812.187,
+      "overhead_ms": -396.3,
+      "overhead_pct": -3.87,
+      "ttft_overhead_ms": -440.81
+    }
+  ]
+}

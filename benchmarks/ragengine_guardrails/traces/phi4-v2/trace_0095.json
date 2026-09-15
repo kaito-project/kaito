@@ -1,0 +1,2071 @@
+{
+  "index": 95,
+  "prompt": "Write an extremely detailed tutorial on building a full-stack web application from scratch. Cover frontend, backend, database, authentication, deployment, testing, monitoring, and security in depth.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 407.197,
+      "content": "Building"
+    },
+    {
+      "timestamp_ms": 407.463,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 407.636,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 407.749,
+      "content": "-stack"
+    },
+    {
+      "timestamp_ms": 407.834,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 407.964,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 408.197,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 408.359,
+      "content": " scratch"
+    },
+    {
+      "timestamp_ms": 423.19,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 481.927,
+      "content": " integrating"
+    },
+    {
+      "timestamp_ms": 482.076,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 482.146,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 497.614,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 610.61,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 610.905,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 611.07,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 611.169,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 611.235,
+      "content": " seamless"
+    },
+    {
+      "timestamp_ms": 611.411,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 688.268,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 688.446,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 688.571,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 689.679,
+      "content": " tutorial"
+    },
+    {
+      "timestamp_ms": 815.803,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 815.962,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 816.032,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 816.09,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 816.141,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 816.188,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 821.864,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 917.357,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 917.571,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 917.706,
+      "content": "-stack"
+    },
+    {
+      "timestamp_ms": 917.78,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 917.839,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1019.431,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1019.671,
+      "content": " covering"
+    },
+    {
+      "timestamp_ms": 1019.799,
+      "content": " frontend"
+    },
+    {
+      "timestamp_ms": 1019.88,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1019.979,
+      "content": " backend"
+    },
+    {
+      "timestamp_ms": 1032.239,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1055.138,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 1101.813,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1101.945,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 1105.848,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1134.48,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1147.194,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1225.596,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 1225.743,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1225.811,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 1225.871,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1243.157,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1326.244,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1326.244,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1326.428,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1326.502,
+      "content": " Overview"
+    },
+    {
+      "timestamp_ms": 1334.809,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1428.79,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1428.975,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1429.102,
+      "content": "Front"
+    },
+    {
+      "timestamp_ms": 1429.182,
+      "content": "end"
+    },
+    {
+      "timestamp_ms": 1437.607,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1532.141,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 1532.379,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1532.494,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1532.565,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 1535.552,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1546.678,
+      "content": " HTML"
+    },
+    {
+      "timestamp_ms": 1634.603,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1634.766,
+      "content": " CSS"
+    },
+    {
+      "timestamp_ms": 1634.833,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1634.886,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1647.451,
+      "content": " JavaScript"
+    },
+    {
+      "timestamp_ms": 1736.327,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 1736.459,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1736.523,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1736.576,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1736.634,
+      "content": "Backend"
+    },
+    {
+      "timestamp_ms": 1846.102,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1846.232,
+      "content": " Develop"
+    },
+    {
+      "timestamp_ms": 1846.294,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1846.346,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1846.394,
+      "content": "-side"
+    },
+    {
+      "timestamp_ms": 1850.305,
+      "content": " logic"
+    },
+    {
+      "timestamp_ms": 1940.762,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1947.04,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1947.199,
+      "content": " backend"
+    },
+    {
+      "timestamp_ms": 1947.282,
+      "content": " framework"
+    },
+    {
+      "timestamp_ms": 1947.347,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2045.514,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2045.673,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2045.781,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 2045.896,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2045.977,
+      "content": " Store"
+    },
+    {
+      "timestamp_ms": 2059.897,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2148.526,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 2148.721,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 2148.869,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2149.243,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2157.672,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2200.077,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2200.306,
+      "content": "Authentication"
+    },
+    {
+      "timestamp_ms": 2249.36,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2266.041,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 2266.31,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 2273.398,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 2350.699,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 2350.857,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 2350.934,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2351.0,
+      "content": " authorization"
+    },
+    {
+      "timestamp_ms": 2366.539,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2456.388,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2456.573,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2456.666,
+      "content": "Deployment"
+    },
+    {
+      "timestamp_ms": 2458.82,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2458.936,
+      "content": " Deploy"
+    },
+    {
+      "timestamp_ms": 2563.215,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2563.372,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 2563.44,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2563.502,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2563.553,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2582.379,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2595.771,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 2657.26,
+      "content": " provider"
+    },
+    {
+      "timestamp_ms": 2670.352,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2670.532,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2670.639,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2763.773,
+      "content": "Testing"
+    },
+    {
+      "timestamp_ms": 2764.016,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2764.117,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 2764.215,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2764.885,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 2862.952,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2863.216,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 2863.372,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2863.477,
+      "content": " bug"
+    },
+    {
+      "timestamp_ms": 2863.527,
+      "content": "-free"
+    },
+    {
+      "timestamp_ms": 2956.786,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2956.936,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2957.013,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2957.079,
+      "content": "Monitoring"
+    },
+    {
+      "timestamp_ms": 2960.989,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3072.764,
+      "content": " Track"
+    },
+    {
+      "timestamp_ms": 3072.901,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 3072.97,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3073.027,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3073.079,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 3073.411,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3088.599,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3120.846,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3132.184,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 3147.507,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3273.111,
+      "content": " Protect"
+    },
+    {
+      "timestamp_ms": 3273.369,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3273.569,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 3273.692,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3273.79,
+      "content": " vulnerabilities"
+    },
+    {
+      "timestamp_ms": 3384.633,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3384.633,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3384.633,
+      "content": " Step"
+    },
+    {
+      "timestamp_ms": 3384.633,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3384.633,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3384.633,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3384.983,
+      "content": " Define"
+    },
+    {
+      "timestamp_ms": 3393.563,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3480.012,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 3480.337,
+      "content": " Requirements"
+    },
+    {
+      "timestamp_ms": 3480.419,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3480.482,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3489.311,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3536.326,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3536.45,
+      "content": "Ident"
+    },
+    {
+      "timestamp_ms": 3548.981,
+      "content": "ify"
+    },
+    {
+      "timestamp_ms": 3582.271,
+      "content": " Features"
+    },
+    {
+      "timestamp_ms": 3585.786,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3682.096,
+      "content": " List"
+    },
+    {
+      "timestamp_ms": 3682.263,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3682.372,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3682.455,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3685.632,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 3706.023,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 3718.19,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3786.051,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3786.199,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 3786.268,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 3794.031,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3875.954,
+      "content": " registration"
+    },
+    {
+      "timestamp_ms": 3875.954,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3876.113,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3876.189,
+      "content": " display"
+    },
+    {
+      "timestamp_ms": 3892.232,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3989.294,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 3989.438,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3989.509,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 3989.567,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3989.623,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4003.86,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4023.223,
+      "content": "Choose"
+    },
+    {
+      "timestamp_ms": 4107.562,
+      "content": " Technology"
+    },
+    {
+      "timestamp_ms": 4107.931,
+      "content": " Stack"
+    },
+    {
+      "timestamp_ms": 4108.075,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4108.144,
+      "content": " Based"
+    },
+    {
+      "timestamp_ms": 4118.571,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4193.238,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 4193.377,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4209.236,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 4210.001,
+      "content": " preference"
+    },
+    {
+      "timestamp_ms": 4215.821,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4295.658,
+      "content": " choose"
+    },
+    {
+      "timestamp_ms": 4304.106,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4304.249,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 4304.469,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4309.152,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4401.361,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 4401.528,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4401.528,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4401.64,
+      "content": " stack"
+    },
+    {
+      "timestamp_ms": 4409.477,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4423.33,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4472.147,
+      "content": " Step"
+    },
+    {
+      "timestamp_ms": 4482.199,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4482.467,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4501.328,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4604.571,
+      "content": " Setting"
+    },
+    {
+      "timestamp_ms": 4611.652,
+      "content": " Up"
+    },
+    {
+      "timestamp_ms": 4612.146,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4612.309,
+      "content": " Front"
+    },
+    {
+      "timestamp_ms": 4612.411,
+      "content": "end"
+    },
+    {
+      "timestamp_ms": 4616.385,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4647.468,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4675.586,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4675.827,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4690.254,
+      "content": "HTML"
+    },
+    {
+      "timestamp_ms": 4709.96,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4808.035,
+      "content": " CSS"
+    },
+    {
+      "timestamp_ms": 4808.205,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4808.276,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4808.333,
+      "content": " JavaScript"
+    },
+    {
+      "timestamp_ms": 4808.385,
+      "content": " Basics"
+    },
+    {
+      "timestamp_ms": 4826.357,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4842.201,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4910.51,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4910.738,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4910.867,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 4924.825,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4937.723,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 5015.634,
+      "content": " HTML"
+    },
+    {
+      "timestamp_ms": 5015.821,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 5015.95,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5016.086,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5116.09,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 5116.294,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5116.375,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5116.435,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 5116.486,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5127.507,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5218.212,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5218.467,
+      "content": " Style"
+    },
+    {
+      "timestamp_ms": 5218.588,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5218.675,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 5231.073,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 5245.716,
+      "content": " CSS"
+    },
+    {
+      "timestamp_ms": 5271.796,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5281.284,
+      "content": " layout"
+    },
+    {
+      "timestamp_ms": 5325.382,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5325.655,
+      "content": " aesthetics"
+    },
+    {
+      "timestamp_ms": 5336.572,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5408.418,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5408.573,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5408.654,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 5425.643,
+      "content": " JavaScript"
+    },
+    {
+      "timestamp_ms": 5438.571,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5463.54,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 5475.969,
+      "content": " inter"
+    },
+    {
+      "timestamp_ms": 5528.069,
+      "content": "activity"
+    },
+    {
+      "timestamp_ms": 5528.287,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5528.406,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5549.232,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5581.85,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5590.31,
+      "content": "JavaScript"
+    },
+    {
+      "timestamp_ms": 5619.803,
+      "content": " Framework"
+    },
+    {
+      "timestamp_ms": 5628.758,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5646.7,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5681.919,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5682.316,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5731.981,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5732.135,
+      "content": " Choose"
+    },
+    {
+      "timestamp_ms": 5736.863,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5817.936,
+      "content": " framework"
+    },
+    {
+      "timestamp_ms": 5818.249,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5818.333,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 5818.403,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5833.835,
+      "content": " Angular"
+    },
+    {
+      "timestamp_ms": 5943.898,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5944.129,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5944.241,
+      "content": " Vue"
+    },
+    {
+      "timestamp_ms": 5944.399,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 5944.478,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5948.011,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5992.435,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5992.632,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6037.916,
+      "content": "React"
+    },
+    {
+      "timestamp_ms": 6038.116,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 6044.189,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6139.342,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6139.487,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6139.557,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6139.614,
+      "content": " Initialize"
+    },
+    {
+      "timestamp_ms": 6139.667,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6271.745,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6271.876,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 6271.94,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 6271.995,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 6272.043,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 6272.087,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 6278.494,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 6301.402,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6319.025,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6403.828,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 6409.966,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 6410.156,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6410.241,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6425.685,
+      "content": " n"
+    },
+    {
+      "timestamp_ms": 6425.837,
+      "content": "px"
+    },
+    {
+      "timestamp_ms": 6446.216,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 6466.863,
+      "content": "-react"
+    },
+    {
+      "timestamp_ms": 6482.347,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 6549.353,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 6549.491,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 6549.569,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6558.088,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6652.286,
+      "content": " cd"
+    },
+    {
+      "timestamp_ms": 6652.493,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 6652.654,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 6652.747,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6652.945,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6752.206,
+      "content": " npm"
+    },
+    {
+      "timestamp_ms": 6752.418,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 6752.539,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6752.624,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6756.559,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 6772.711,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6786.289,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6857.265,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 6857.475,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 6857.568,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6874.342,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 6881.739,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 6922.04,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6922.233,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6946.48,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6965.889,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6977.769,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7064.775,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7064.991,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7065.103,
+      "content": "Responsive"
+    },
+    {
+      "timestamp_ms": 7065.178,
+      "content": " Design"
+    },
+    {
+      "timestamp_ms": 7079.599,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7092.793,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7163.999,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7164.158,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7164.232,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 7176.177,
+      "content": " CSS"
+    },
+    {
+      "timestamp_ms": 7192.958,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 7248.14,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7248.35,
+      "content": " Bootstrap"
+    },
+    {
+      "timestamp_ms": 7248.477,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7302.866,
+      "content": " Tail"
+    },
+    {
+      "timestamp_ms": 7318.291,
+      "content": "wind"
+    },
+    {
+      "timestamp_ms": 7318.291,
+      "content": " CSS"
+    },
+    {
+      "timestamp_ms": 7321.084,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7368.266,
+      "content": " responsive"
+    },
+    {
+      "timestamp_ms": 7368.504,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 7377.187,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7471.126,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 7471.126,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7471.393,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7471.531,
+      "content": "State"
+    },
+    {
+      "timestamp_ms": 7475.876,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 7502.177,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7511.526,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7579.963,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7580.158,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7580.225,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 7591.541,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 7607.489,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 7675.361,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 7675.49,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7675.556,
+      "content": " Redux"
+    },
+    {
+      "timestamp_ms": 7682.807,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7783.112,
+      "content": " Context"
+    },
+    {
+      "timestamp_ms": 7783.329,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7783.435,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7783.517,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 7783.59,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7797.764,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7817.034,
+      "content": " Step"
+    },
+    {
+      "timestamp_ms": 7880.269,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7880.453,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7880.59,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7893.051,
+      "content": " Setting"
+    },
+    {
+      "timestamp_ms": 7922.217,
+      "content": " Up"
+    },
+    {
+      "timestamp_ms": 7934.594,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7985.173,
+      "content": " Backend"
+    },
+    {
+      "timestamp_ms": 7985.34,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7986.633,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8008.042,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8086.715,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8086.951,
+      "content": "Choose"
+    },
+    {
+      "timestamp_ms": 8087.193,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": " Backend"
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": " Framework"
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": " Popular"
+    },
+    {
+      "timestamp_ms": 8261.954,
+      "content": " options"
+    },
+    {
+      "timestamp_ms": 8262.158,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 8269.252,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 8276.571,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 8296.023,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8396.017,
+      "content": " Express"
+    },
+    {
+      "timestamp_ms": 8396.2,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8396.272,
+      "content": " Django"
+    },
+    {
+      "timestamp_ms": 8396.337,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8396.451,
+      "content": " Ruby"
+    },
+    {
+      "timestamp_ms": 8407.973,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8448.619,
+      "content": " Rails"
+    },
+    {
+      "timestamp_ms": 8448.776,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8465.148,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8597.545,
+      "content": " Flask"
+    },
+    {
+      "timestamp_ms": 8597.719,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8597.785,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8597.839,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8597.886,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8597.933,
+      "content": "Node"
+    },
+    {
+      "timestamp_ms": 8598.934,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 8701.22,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8701.395,
+      "content": " Express"
+    },
+    {
+      "timestamp_ms": 8701.487,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 8701.574,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8701.655,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8714.756,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8764.053,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8764.202,
+      "content": " Initialize"
+    },
+    {
+      "timestamp_ms": 8776.923,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8792.114,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8812.647,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 8828.566,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 8847.184,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 8865.918,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8904.979,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 8906.713,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 9009.665,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 9009.897,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9010.104,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9010.195,
+      "content": " mkdir"
+    },
+    {
+      "timestamp_ms": 9010.374,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 9019.615,
+      "content": "-backend"
+    },
+    {
+      "timestamp_ms": 9112.819,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9112.971,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9113.13,
+      "content": " cd"
+    },
+    {
+      "timestamp_ms": 9113.223,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 9113.297,
+      "content": "-backend"
+    },
+    {
+      "timestamp_ms": 9211.631,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9211.853,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9211.946,
+      "content": " npm"
+    },
+    {
+      "timestamp_ms": 9212.024,
+      "content": " init"
+    },
+    {
+      "timestamp_ms": 9212.09,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9315.69,
+      "content": "y"
+    },
+    {
+      "timestamp_ms": 9315.927,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9316.089,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9316.212,
+      "content": " npm"
+    },
+    {
+      "timestamp_ms": 9316.212,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 9325.5,
+      "content": " express"
+    },
+    {
+      "timestamp_ms": 9416.929,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9417.139,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9417.229,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 9417.325,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9419.635,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9526.659,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9526.832,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9526.91,
+      "content": "Create"
+    },
+    {
+      "timestamp_ms": 9526.979,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 9527.041,
+      "content": " End"
+    },
+    {
+      "timestamp_ms": 9532.319,
+      "content": "points"
+    },
+    {
+      "timestamp_ms": 9624.368,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9624.642,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9624.739,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9624.804,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9630.602,
+      "content": " Define"
+    },
+    {
+      "timestamp_ms": 9723.749,
+      "content": " routes"
+    },
+    {
+      "timestamp_ms": 9723.954,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9724.066,
+      "content": " CRUD"
+    },
+    {
+      "timestamp_ms": 9724.167,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 9730.335,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9745.71,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9762.629,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9825.682,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 9825.881,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9826.001,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9837.218,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 9928.78,
+      "content": "javascript"
+    },
+    {
+      "timestamp_ms": 9929.005,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9929.102,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9929.187,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 9941.084,
+      "content": " express"
+    },
+    {
+      "timestamp_ms": 9955.331,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9993.377,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 10133.349,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 10133.519,
+      "content": "express"
+    },
+    {
+      "timestamp_ms": 10133.519,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10133.607,
+      "type": "done"
+    }
+  ],
+  "full_response": "Building a full-stack web application from scratch involves integrating various technologies and frameworks to create a seamless user experience. This tutorial will provide a comprehensive guide to creating a full-stack web application, covering frontend, backend, database, authentication, deployment, testing, monitoring, and security.\n\n### Overview\n\n- **Frontend**: Create the user interface using HTML, CSS, and JavaScript frameworks.\n- **Backend**: Develop the server-side logic using a backend framework.\n- **Database**: Store and manage application data.\n- **Authentication**: Securely manage user authentication and authorization.\n- **Deployment**: Deploy the application to a server or cloud provider.\n- **Testing**: Ensure the application is reliable and bug-free.\n- **Monitoring**: Track application performance and errors.\n- **Security**: Protect the application from vulnerabilities.\n\n### Step 1: Define the Project Requirements\n\n1. **Identify Features**: List all features the application needs (e.g., user registration, data display, etc.).\n2. **Choose Technology Stack**: Based on requirements and personal preference, choose the technologies for each part of the stack.\n\n### Step 2: Setting Up the Frontend\n\n1. **HTML, CSS, and JavaScript Basics**:\n   - Create a basic HTML file with a structure for your application.\n   - Style the application using CSS for layout and aesthetics.\n   - Use JavaScript to add interactivity.\n\n2. **JavaScript Frameworks**:\n   - Choose a framework like React, Angular, or Vue.js.\n   - **React Example**:\n     - Initialize a new React app using Create React App:\n       ```bash\n       npx create-react-app my-app\n       cd my-app\n       npm start\n       ```\n     - Create components for different parts of your application.\n\n3. **Responsive Design**:\n   - Use CSS frameworks like Bootstrap or Tailwind CSS for responsive design.\n\n4. **State Management**:\n   - Use state management libraries like Redux or Context API in React.\n\n### Step 3: Setting Up the Backend\n\n1. **Choose a Backend Framework**:\n   - Popular options include Node.js with Express, Django, Ruby on Rails, and Flask.\n   - **Node.js with Express Example**:\n     - Initialize a new Node.js project:\n       ```bash\n       mkdir my-backend\n       cd my-backend\n       npm init -y\n       npm install express\n       ```\n\n2. **Create API Endpoints**:\n   - Define routes for CRUD operations.\n   - Example:\n     ```javascript\n     const express = require('express",
+  "response_chars": 2468,
+  "num_chunks": 512,
+  "ttft_ms": 407.197,
+  "total_ms": 10134.0,
+  "model_name": "model-medium"
+}

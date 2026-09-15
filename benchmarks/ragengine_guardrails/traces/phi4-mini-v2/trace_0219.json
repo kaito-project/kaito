@@ -1,0 +1,1271 @@
+{
+  "index": 219,
+  "prompt": "Describe the MapReduce programming model and its use in big data processing.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 946.278,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " elegant"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": "-defined"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " fashion"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " simplifying"
+    },
+    {
+      "timestamp_ms": 946.278,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " eliminating"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " hassle"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " programmers"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " vast"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 1461.136,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " platforms"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " Hadoop"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " consists"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1988.966,
+      "content": " phases"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " processed"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " During"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " divided"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " chunks"
+    },
+    {
+      "timestamp_ms": 2601.915,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " mapper"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " chunk"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " mapper"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 3164.146,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": " emits"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3164.517,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " huge"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " amount"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3882.608,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " produced"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " grouped"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4219.302,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " reducers"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " reducer"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " grouped"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 4434.145,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " aggregation"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " computation"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " grouped"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 5082.839,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " scalability"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " framework"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " dealing"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5657.25,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " simpler"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " simple"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6169.552,
+      "content": " analyzing"
+    },
+    {
+      "timestamp_ms": 6266.327,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 6266.327,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 6266.327,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6266.327,
+      "content": " dividing"
+    },
+    {
+      "timestamp_ms": 6266.327,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6266.327,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": "izing"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " Understanding"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " people"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " sets"
+    },
+    {
+      "timestamp_ms": 6785.524,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " popular"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7086.351,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7188.509,
+      "type": "done"
+    }
+  ],
+  "full_response": "The MapReduce programming model is an elegant, well-defined way to process large amounts of data in parallel, distributed fashion, simplifying parallelization and eliminating much of the hassle of concurrent execution. MapReduce allows programmers to create applications that can process vast amounts of data efficiently. It is commonly used in big data processing and cloud computing platforms such as Hadoop.\n\nThe MapReduce model consists of two main phases - Map and Reduce. In the Map phase, each input dataset is processed independently. During this phase, the input data is divided into smaller chunks and the mapper function is applied to each chunk. The mapper function takes key-value pairs as and emits multiple intermediate key-value pairs, where the keys can be used to group the input data. In this phase, the goal is to generate a huge amount of intermediate data.\n\nIn the Reduce phase, the intermediate data produced by the Map phase is grouped together by key in the local reducers. The reducer function is then applied to these grouped intermediate data to generate the final output. The goal of the Reduce phase is to perform aggregation or computation on the grouped data.\n\nThe MapReduce model allows for fault tolerance and scalability in the processing of large amounts of data. The distributed nature of the framework helps in dealing with the challenges of big data processing. In simpler terms, MapReduce provides a simple programming model for processing and analyzing large datasets by dividing the work into smaller tasks and parallelizing them. Understanding of the MapReduce model and its principles can help people work with big data sets effectively, making it a popular choice in big data processing.",
+  "response_chars": 1732,
+  "num_chunks": 312,
+  "ttft_ms": 946.278,
+  "total_ms": 7291.288,
+  "model_name": "Phi-4-mini-instruct"
+}

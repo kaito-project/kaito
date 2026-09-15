@@ -1,0 +1,2043 @@
+{
+  "index": 134,
+  "prompt": "How does a neural network learn through backpropagation?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 915.007,
+      "content": "Ne"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": "ural"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": "prop"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": "agation"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " actually"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " combination"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": "prop"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": "agation"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 915.007,
+      "content": " gradient"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " descent"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " simplified"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": "Forward"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " Pass"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " Ne"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": "urons"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " pass"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 1622.248,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " neurons"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": "neur"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": "ons"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " subsequent"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " activation"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " prediction"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2247.732,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " neural"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " predictions"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " close"
+    },
+    {
+      "timestamp_ms": 2946.458,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " targets"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": "Compute"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " Loss"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2949.022,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " prediction"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " target"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3524.61,
+      "content": "also"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " Mean"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " Squ"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": "ared"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " Error"
+    },
+    {
+      "timestamp_ms": 3545.455,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": "SE"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " regression"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " Cross"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": "Entropy"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " Loss"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4290.602,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " quant"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": "ifies"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " prediction"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4291.126,
+      "content": " lower"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": "Back"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": "prop"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": "agation"
+    },
+    {
+      "timestamp_ms": 4623.366,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": "prop"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": "agation"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " calculating"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " gradient"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 4957.836,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " respect"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " weight"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " chain"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " rule"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5610.955,
+      "content": " calculus"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " gradients"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " tell"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " us"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " slight"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5611.331,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " weight"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " contributes"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": "Update"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": "ights"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " gradients"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " computed"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6277.456,
+      "content": " neurons"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " aiming"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " optimization"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " performed"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " gradient"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " descent"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " variants"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": "ochastic"
+    },
+    {
+      "timestamp_ms": 7043.928,
+      "content": " Gradient"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " Des"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": "cent"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " Mini"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": "-B"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": "atch"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " Gradient"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " Des"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": "cent"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " Adam"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " Optim"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": "izer"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7865.918,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " updated"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " formula"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "[\n"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "New"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " Weight"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": "Old"
+    },
+    {
+      "timestamp_ms": 7866.355,
+      "content": " Weight"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "Learning"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": " Rate"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "times"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "Gradient"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8783.763,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " hyper"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": "parameter"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " determines"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " taken"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8784.083,
+      "content": " optimization"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": "Iter"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": "ate"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " Steps"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9516.582,
+      "content": " repeated"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " iterations"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": "epochs"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " stops"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " decreasing"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": "con"
+    },
+    {
+      "timestamp_ms": 9516.883,
+      "content": "vergence"
+    },
+    {
+      "timestamp_ms": 9517.056,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " epoch"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " Modern"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " neural"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " mini"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": "-b"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": "atches"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " whole"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10219.278,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " general"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": "ize"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": "By"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " adjusting"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " epochs"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " neural"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " adjusts"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10732.809,
+      "content": " minimize"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " predictions"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " Over"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " learns"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " underlying"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " general"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": "izes"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 11347.617,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 11536.662,
+      "content": " predictions"
+    },
+    {
+      "timestamp_ms": 11536.662,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 11536.662,
+      "content": " unseen"
+    },
+    {
+      "timestamp_ms": 11536.662,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 11536.662,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11536.662,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 11536.662,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "content": "prop"
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "content": "agation"
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11651.581,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11856.129,
+      "type": "done"
+    }
+  ],
+  "full_response": "Neural networks learn through a technique called backpropagation, which is actually the combination of two concepts: backpropagation of errors and gradient descent. Here’s a simplified overview of the process:\n\n1. **Forward Pass**: Neurons in the input layer receive input data and pass this data through layers of neurons (neurons in each subsequent layer) via weights and activation functions. The output of the final layer represents the prediction made by the neural network. The goal of the network is to make predictions that are as close to actual labels or targets as possible.\n\n2. **Compute Loss**: The prediction of the network is compared to the actual target values using a loss function (also as a cost function), such as Mean Squared Error (MSE) for regression tasks or Cross-Entropy Loss for classification tasks. This results the loss, which quantifies the error of the prediction. The lower the loss, the better the model's performance.\n\n3. **Backpropagation**: The key step of backpropagation involves calculating the gradient of the loss function with respect to each weight in the network through a process called the chain rule of calculus The gradients tell us how much a slight change in each weight contributes to the overall loss.\n\n4. **Update the Weights**: Once the gradients are computed, they are used to update the weights of the neurons, aiming to reduce the loss. This optimization process is typically performed using gradient descent (or one of its variants, such as Stochastic Gradient Descent, Mini-Batch Gradient Descent, or Adam Optimizer), where the are updated using the formula:\n   \\[\n   \\text{New Weight} = \\text{Old Weight} - \\text{Learning Rate} \\times \\text{Gradient}\n   \\   The learning rate is a hyperparameter that determines the size of the steps taken during the optimization process.\n\n5. **Iterate**: Steps 1 through 4 are repeated many iterations (epochs) or until the loss stops decreasing significantly (convergence). In each epoch, the network processes the entire dataset. Modern neural networks often use mini-batches instead of the whole dataset to make the training process more efficient and generalize better.\n\nBy adjusting the weights in multiple epochs, the neural network adjusts its internal parameters to minimize the loss, resulting in better predictions. Over time, the network learns the underlying patterns in the input data and generalizes it to make accurate predictions on unseen data.\n\nIn summary, backpropagation involves:\n-",
+  "response_chars": 2499,
+  "num_chunks": 505,
+  "ttft_ms": 915.007,
+  "total_ms": 11856.584,
+  "model_name": "Phi-4-mini-instruct"
+}

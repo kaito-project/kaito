@@ -1,0 +1,2071 @@
+{
+  "index": 35,
+  "prompt": "What are the best practices for designing RESTful APIs?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 399.969,
+      "content": "Design"
+    },
+    {
+      "timestamp_ms": 400.092,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 416.338,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 436.143,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 456.644,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 473.262,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 492.413,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 511.31,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 531.358,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 550.745,
+      "content": " facilitating"
+    },
+    {
+      "timestamp_ms": 579.441,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 590.256,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 605.615,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 626.136,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 647.616,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 664.355,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 684.646,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 703.479,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 721.036,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 740.5,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 759.874,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 778.329,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 797.599,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 816.64,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 835.447,
+      "content": " designing"
+    },
+    {
+      "timestamp_ms": 939.656,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 939.656,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 939.656,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 939.656,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 939.656,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 949.664,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 968.815,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 988.261,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 1007.021,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 1025.593,
+      "content": " Methods"
+    },
+    {
+      "timestamp_ms": 1045.933,
+      "content": " Appropri"
+    },
+    {
+      "timestamp_ms": 1064.055,
+      "content": "ately"
+    },
+    {
+      "timestamp_ms": 1084.716,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1102.488,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1121.16,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1140.184,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1159.699,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1178.494,
+      "content": "GET"
+    },
+    {
+      "timestamp_ms": 1197.756,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1216.532,
+      "content": " Retrieve"
+    },
+    {
+      "timestamp_ms": 1246.623,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1255.38,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1273.766,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1292.541,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1311.646,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1347.932,
+      "content": " id"
+    },
+    {
+      "timestamp_ms": 1349.475,
+      "content": "emp"
+    },
+    {
+      "timestamp_ms": 1369.03,
+      "content": "otent"
+    },
+    {
+      "timestamp_ms": 1388.143,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1407.211,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 1427.282,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1446.343,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1464.02,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1484.132,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1502.998,
+      "content": "POST"
+    },
+    {
+      "timestamp_ms": 1521.352,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1540.431,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 1559.474,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1578.285,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1597.728,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1616.669,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 1655.361,
+      "content": " id"
+    },
+    {
+      "timestamp_ms": 1655.361,
+      "content": "emp"
+    },
+    {
+      "timestamp_ms": 1673.775,
+      "content": "otent"
+    },
+    {
+      "timestamp_ms": 1692.584,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1711.756,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1730.116,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1749.65,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1769.945,
+      "content": "PUT"
+    },
+    {
+      "timestamp_ms": 1789.073,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1806.613,
+      "content": " Update"
+    },
+    {
+      "timestamp_ms": 1825.771,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1845.153,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 1863.892,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1882.838,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1902.579,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 1921.08,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1940.612,
+      "content": " Id"
+    },
+    {
+      "timestamp_ms": 1959.585,
+      "content": "emp"
+    },
+    {
+      "timestamp_ms": 1978.527,
+      "content": "otent"
+    },
+    {
+      "timestamp_ms": 1996.862,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2017.858,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2036.154,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2054.913,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2077.778,
+      "content": "PATCH"
+    },
+    {
+      "timestamp_ms": 2093.327,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2113.307,
+      "content": " Partial"
+    },
+    {
+      "timestamp_ms": 2132.124,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 2149.836,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 2171.929,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2188.197,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 2207.968,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2226.09,
+      "content": " Id"
+    },
+    {
+      "timestamp_ms": 2245.036,
+      "content": "emp"
+    },
+    {
+      "timestamp_ms": 2264.559,
+      "content": "otent"
+    },
+    {
+      "timestamp_ms": 2283.079,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2302.384,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2321.999,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2340.534,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2359.541,
+      "content": "DELETE"
+    },
+    {
+      "timestamp_ms": 2378.569,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2397.46,
+      "content": " Remove"
+    },
+    {
+      "timestamp_ms": 2416.328,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2435.665,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2454.852,
+      "content": " Id"
+    },
+    {
+      "timestamp_ms": 2474.409,
+      "content": "emp"
+    },
+    {
+      "timestamp_ms": 2492.645,
+      "content": "otent"
+    },
+    {
+      "timestamp_ms": 2512.985,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2532.91,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2549.934,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2569.222,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2587.954,
+      "content": "Resource"
+    },
+    {
+      "timestamp_ms": 2607.004,
+      "content": "-Based"
+    },
+    {
+      "timestamp_ms": 2626.614,
+      "content": " URLs"
+    },
+    {
+      "timestamp_ms": 2645.096,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2664.322,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2683.261,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2725.101,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2725.205,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 2785.101,
+      "content": " URLs"
+    },
+    {
+      "timestamp_ms": 2785.101,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2827.835,
+      "content": " represent"
+    },
+    {
+      "timestamp_ms": 2827.835,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2827.835,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2843.312,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2855.753,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2874.784,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2893.033,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 2912.284,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 2931.499,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 2950.044,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 2970.266,
+      "content": "orders"
+    },
+    {
+      "timestamp_ms": 2988.163,
+      "content": "/{"
+    },
+    {
+      "timestamp_ms": 3013.506,
+      "content": "orderId"
+    },
+    {
+      "timestamp_ms": 3029.673,
+      "content": "}`"
+    },
+    {
+      "timestamp_ms": 3045.775,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 3064.337,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3083.24,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3102.798,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3122.216,
+      "content": " noun"
+    },
+    {
+      "timestamp_ms": 3140.627,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 3159.566,
+      "content": " URLs"
+    },
+    {
+      "timestamp_ms": 3179.513,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 3197.69,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 3216.534,
+      "content": " verbs"
+    },
+    {
+      "timestamp_ms": 3235.747,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3254.784,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3274.461,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 3295.017,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 3312.153,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 3333.531,
+      "content": "employees"
+    },
+    {
+      "timestamp_ms": 3350.206,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3369.258,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 3388.343,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3407.426,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 3426.374,
+      "content": "create"
+    },
+    {
+      "timestamp_ms": 3445.189,
+      "content": "Employee"
+    },
+    {
+      "timestamp_ms": 3464.279,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3483.715,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 3503.149,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3521.682,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3540.785,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3559.939,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 3579.023,
+      "content": " N"
+    },
+    {
+      "timestamp_ms": 3597.809,
+      "content": "ouns"
+    },
+    {
+      "timestamp_ms": 3617.671,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3636.497,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 3654.748,
+      "content": " Ver"
+    },
+    {
+      "timestamp_ms": 3674.359,
+      "content": "bs"
+    },
+    {
+      "timestamp_ms": 3696.371,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3713.259,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3731.172,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3751.604,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3769.589,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 3788.284,
+      "content": " mentioned"
+    },
+    {
+      "timestamp_ms": 3807.307,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3838.882,
+      "content": " URLs"
+    },
+    {
+      "timestamp_ms": 3845.505,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3867.944,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 3883.767,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3904.374,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3921.828,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3941.29,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3960.185,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 3978.822,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3998.171,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4016.884,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4036.3,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4055.831,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 4074.454,
+      "content": "istent"
+    },
+    {
+      "timestamp_ms": 4093.85,
+      "content": " Naming"
+    },
+    {
+      "timestamp_ms": 4112.83,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 4132.953,
+      "content": "ventions"
+    },
+    {
+      "timestamp_ms": 4150.502,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4169.423,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4188.854,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4208.823,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4226.928,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 4245.927,
+      "content": " plural"
+    },
+    {
+      "timestamp_ms": 4264.61,
+      "content": " nouns"
+    },
+    {
+      "timestamp_ms": 4283.972,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4302.847,
+      "content": " collections"
+    },
+    {
+      "timestamp_ms": 4321.808,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4341.864,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 4360.095,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4380.343,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4399.19,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 4417.079,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 4438.348,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4456.252,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 4474.847,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4493.95,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4513.137,
+      "content": " Maintain"
+    },
+    {
+      "timestamp_ms": 4534.123,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 4553.059,
+      "content": " endpoint"
+    },
+    {
+      "timestamp_ms": 4570.321,
+      "content": " naming"
+    },
+    {
+      "timestamp_ms": 4588.651,
+      "content": " throughout"
+    },
+    {
+      "timestamp_ms": 4608.104,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4626.588,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4646.137,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4665.309,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 4684.464,
+      "content": " predict"
+    },
+    {
+      "timestamp_ms": 4703.325,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 4722.666,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4740.876,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4760.22,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4779.158,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4797.287,
+      "content": "State"
+    },
+    {
+      "timestamp_ms": 4817.42,
+      "content": "lessness"
+    },
+    {
+      "timestamp_ms": 4841.628,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4857.064,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4874.656,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4893.677,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4912.363,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 4931.745,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 4950.587,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 4969.635,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 4988.74,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 5007.886,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5027.365,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5046.376,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5068.162,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 5086.056,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5102.929,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 5122.483,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5143.096,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 5160.59,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 5179.578,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5199.051,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 5217.765,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 5243.462,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 5255.567,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 5274.658,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 5295.479,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 5312.621,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 5332.201,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5351.762,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5442.808,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5442.808,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5442.808,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 5442.808,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 5448.944,
+      "content": " Status"
+    },
+    {
+      "timestamp_ms": 5469.469,
+      "content": " Codes"
+    },
+    {
+      "timestamp_ms": 5484.491,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5503.377,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5522.634,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5541.544,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5561.246,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 5580.1,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 5601.441,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 5621.176,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 5639.724,
+      "content": " properly"
+    },
+    {
+      "timestamp_ms": 5656.013,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5674.676,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 5694.431,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 5713.086,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5732.405,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5751.581,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5770.125,
+      "content": " OK"
+    },
+    {
+      "timestamp_ms": 5789.146,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 5808.316,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5827.478,
+      "content": "201"
+    },
+    {
+      "timestamp_ms": 5847.593,
+      "content": " Created"
+    },
+    {
+      "timestamp_ms": 5866.562,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 5901.553,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5909.161,
+      "content": "400"
+    },
+    {
+      "timestamp_ms": 5925.419,
+      "content": " Bad"
+    },
+    {
+      "timestamp_ms": 5941.64,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 5960.795,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 5980.545,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5999.799,
+      "content": "404"
+    },
+    {
+      "timestamp_ms": 6018.484,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 6037.217,
+      "content": " Found"
+    },
+    {
+      "timestamp_ms": 6055.887,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 6075.197,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6112.362,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 6113.487,
+      "content": " Internal"
+    },
+    {
+      "timestamp_ms": 6132.636,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 6152.049,
+      "content": " Error"
+    },
+    {
+      "timestamp_ms": 6170.651,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6191.484,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 6209.624,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6228.721,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6247.073,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6265.749,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 6285.207,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6303.918,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6326.22,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6342.089,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6364.791,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6380.424,
+      "content": " Plan"
+    },
+    {
+      "timestamp_ms": 6399.558,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6418.354,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6445.012,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 6456.707,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6478.885,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6494.806,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 6608.023,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 6608.023,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 6608.023,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 6608.023,
+      "content": "v"
+    },
+    {
+      "timestamp_ms": 6608.023,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6681.532,
+      "content": "/users"
+    },
+    {
+      "timestamp_ms": 6681.532,
+      "content": "`)"
+    },
+    {
+      "timestamp_ms": 6681.532,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6681.532,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 6686.691,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6704.198,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6723.268,
+      "content": " backward"
+    },
+    {
+      "timestamp_ms": 6742.585,
+      "content": " compatibility"
+    },
+    {
+      "timestamp_ms": 6760.765,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6918.817,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 6919.057,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6919.155,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6919.226,
+      "content": "Provide"
+    },
+    {
+      "timestamp_ms": 6919.728,
+      "content": " Proper"
+    },
+    {
+      "timestamp_ms": 6919.81,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6919.849,
+      "content": " Documentation"
+    },
+    {
+      "timestamp_ms": 6919.925,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6932.946,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6959.088,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6972.096,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6990.844,
+      "content": " Util"
+    },
+    {
+      "timestamp_ms": 7011.185,
+      "content": "ize"
+    },
+    {
+      "timestamp_ms": 7028.79,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 7048.333,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7068.381,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 7086.747,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 7111.087,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7125.932,
+      "content": "Swagger"
+    },
+    {
+      "timestamp_ms": 7147.684,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7161.978,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7198.385,
+      "content": " RAM"
+    },
+    {
+      "timestamp_ms": 7202.314,
+      "content": "L"
+    },
+    {
+      "timestamp_ms": 7225.9,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7240.285,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 7260.062,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7276.688,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7296.557,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7315.463,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 7333.311,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7352.851,
+      "content": " accessible"
+    },
+    {
+      "timestamp_ms": 7371.492,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7390.843,
+      "content": " understandable"
+    },
+    {
+      "timestamp_ms": 7411.282,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7429.48,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 7447.984,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7469.655,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7486.262,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7504.044,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7524.041,
+      "content": "Pagination"
+    },
+    {
+      "timestamp_ms": 7549.466,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7562.645,
+      "content": " Sorting"
+    },
+    {
+      "timestamp_ms": 7580.994,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7600.286,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7619.989,
+      "content": " Filtering"
+    },
+    {
+      "timestamp_ms": 7638.377,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7657.865,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7676.947,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7696.646,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7714.961,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 7733.574,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 7753.61,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7772.051,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 7791.178,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 7809.803,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7830.221,
+      "content": " sets"
+    },
+    {
+      "timestamp_ms": 7848.244,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7867.277,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 7886.229,
+      "content": " clients"
+    },
+    {
+      "timestamp_ms": 7905.582,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7924.252,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 7943.334,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 7962.281,
+      "content": " subsets"
+    },
+    {
+      "timestamp_ms": 7981.411,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8006.828,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8023.715,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8038.856,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8057.952,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 8076.977,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 8095.937,
+      "content": " pag"
+    },
+    {
+      "timestamp_ms": 8116.716,
+      "content": "inated"
+    },
+    {
+      "timestamp_ms": 8135.148,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 8153.158,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 8176.306,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 8191.567,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8221.495,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8249.523,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 8249.523,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 8289.899,
+      "content": " Parameters"
+    },
+    {
+      "timestamp_ms": 8289.899,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8305.859,
+      "content": " Mod"
+    },
+    {
+      "timestamp_ms": 8325.142,
+      "content": "ifiable"
+    },
+    {
+      "timestamp_ms": 8344.101,
+      "content": " Behavior"
+    },
+    {
+      "timestamp_ms": 8363.659,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8383.379,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8401.029,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8420.906,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8439.908,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 8459.167,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8477.23,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 8496.656,
+      "content": " filtering"
+    },
+    {
+      "timestamp_ms": 8516.151,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8534.547,
+      "content": " sorting"
+    },
+    {
+      "timestamp_ms": 8553.818,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8574.179,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8592.375,
+      "content": " field"
+    },
+    {
+      "timestamp_ms": 8616.285,
+      "content": " selection"
+    },
+    {
+      "timestamp_ms": 8630.851,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 8649.33,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 8668.278,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 8687.434,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8706.44,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8726.686,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 8745.121,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 8763.523,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 8782.674,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 8801.696,
+      "content": "?"
+    },
+    {
+      "timestamp_ms": 8820.767,
+      "content": "created"
+    },
+    {
+      "timestamp_ms": 8840.596,
+      "content": "After"
+    },
+    {
+      "timestamp_ms": 8859.169,
+      "content": "=t"
+    },
+    {
+      "timestamp_ms": 8879.148,
+      "content": "oday"
+    },
+    {
+      "timestamp_ms": 8898.526,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8916.342,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 8935.103,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 8955.926,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8975.368,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8993.522,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 9011.808,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 9030.771,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9049.566,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9069.723,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9087.896,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9107.66,
+      "content": " Provide"
+    },
+    {
+      "timestamp_ms": 9126.193,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 9146.06,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9164.133,
+      "content": " concise"
+    },
+    {
+      "timestamp_ms": 9186.565,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 9202.669,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 9221.858,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9241.487,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 9264.567,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 9278.026,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 9298.55,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 9316.817,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9335.866,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9354.679,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9373.697,
+      "content": " Include"
+    },
+    {
+      "timestamp_ms": 9395.652,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 9449.298,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 9449.298,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9450.949,
+      "content": " customizable"
+    },
+    {
+      "timestamp_ms": 9469.338,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 9488.448,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 9508.456,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9529.993,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 9552.079,
+      "content": "-side"
+    },
+    {
+      "timestamp_ms": 9565.684,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 9584.159,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9603.461,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 9622.096,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9642.224,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9661.448,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 9681.322,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9699.587,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9719.957,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9738.358,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9756.923,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 9776.121,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 9793.88,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9894.296,
+      "content": " authorization"
+    },
+    {
+      "timestamp_ms": 9894.296,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9894.296,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9894.296,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9894.296,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 9908.099,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 9927.101,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9947.198,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 9965.53,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 9984.798,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10005.499,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10022.47,
+      "content": " Util"
+    },
+    {
+      "timestamp_ms": 10042.914,
+      "content": "ize"
+    },
+    {
+      "timestamp_ms": 10062.08,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 10126.227,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10126.227,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 10126.227,
+      "content": " communications"
+    },
+    {
+      "timestamp_ms": 10126.227,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10126.227,
+      "type": "done"
+    }
+  ],
+  "full_response": "Designing RESTful APIs effectively is crucial for facilitating communication between different software components. Here are some best practices to consider when designing RESTful APIs:\n\n1. **Use HTTP Methods Appropriately**:\n   - **GET**: Retrieve resources. It should be idempotent and safe.\n   - **POST**: Create new resources. Not idempotent.\n   - **PUT**: Update or replace an existing resource. Idempotent.\n   - **PATCH**: Partially update a resource. Idempotent.\n   - **DELETE**: Remove resources. Idempotent.\n\n2. **Resource-Based URLs**:\n   - Use URLs that represent resources (e.g., `/users`, `/orders/{orderId}`).\n   - Use noun-based URLs rather than verbs (e.g., `/employees` instead of `/createEmployee`).\n\n3. **Use Nouns, Not Verbs**:\n   - As mentioned, URLs should focus on resources, not actions.\n\n4. **Consistent Naming Conventions**:\n   - Use plural nouns for collections (e.g., `/users`).\n   - Maintain consistent endpoint naming throughout your API to enhance predictability.\n\n5. **Statelessness**:\n   - Each client request must contain all the information needed to understand the request since the server doesn't store any client context.\n\n6. **Use HTTP Status Codes**:\n   - Use common status codes properly (e.g., `200 OK`, `201 Created`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error`).\n\n7. **Versioning**:\n   - Plan for API versioning (e.g., `/v1/users`) to manage changes and backward compatibility.\n\n8. **Provide Proper API Documentation**:\n   - Utilize tools like OpenAPI (Swagger) or RAML to document your API, making it accessible and understandable for developers.\n\n9. **Pagination, Sorting, and Filtering**:\n   - Implement mechanisms for handling large data sets, allowing clients to request specific subsets of data (e.g., paginated results).\n\n10. **Use Query Parameters for Modifiable Behavior**:\n   - Implement and document filtering, sorting, and field selection using query parameters (e.g., `/users?createdAfter=today`).\n\n11. **Error Handling**:\n   - Provide clear, concise error messages with appropriate HTTP status codes.\n   - Include error codes and customizable error messages for client-side handling.\n\n12. **Security**:\n   - Implement authentication and authorization (e.g., OAuth, JWT).\n   - Utilize HTTPS to secure communications",
+  "response_chars": 2292,
+  "num_chunks": 512,
+  "ttft_ms": 399.969,
+  "total_ms": 10133.607,
+  "model_name": "model-medium"
+}

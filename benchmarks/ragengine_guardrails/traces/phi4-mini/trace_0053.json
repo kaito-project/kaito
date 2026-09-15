@@ -1,0 +1,2067 @@
+{
+  "index": 53,
+  "prompt": "What are design patterns? Describe the Observer, Factory, and Singleton patterns.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 840.1,
+      "content": "Design"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " reusable"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " template"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " preset"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " solution"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 840.1,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " helping"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " understandable"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " Design"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " divided"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " categories"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " Cre"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": "ational"
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1446.672,
+      "content": " Structural"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " Behavioral"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " we'll"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " discuss"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " Observer"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " Factory"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " Singleton"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": "Observer"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " Pattern"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " Observer"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2179.619,
+      "content": " behavioral"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " subject"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " observable"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " maintains"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": "ents"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": "ob"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": "servers"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": "ifies"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2840.216,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " calling"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " establishes"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": "-many"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " dependency"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " objects"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " objects"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " dec"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": "ouple"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " loosely"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": " coupled"
+    },
+    {
+      "timestamp_ms": 3502.28,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " Observer"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " subjects"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " observers"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " lists"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " counterparts"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " notify"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4015.162,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": "Observable"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " Holds"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " question"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4398.666,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": "ents"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": "ifies"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4810.595,
+      "content": "Observer"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " defining"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " subject"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5387.038,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " implementations"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " subject"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5387.28,
+      "content": " observers"
+    },
+    {
+      "timestamp_ms": 6191.274,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " Subject"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "ob"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": "servers"
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6191.385,
+      "content": " []\n\n"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "_ob"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": " observer"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "ob"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "servers"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": ".append"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "(observer"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 6632.333,
+      "content": "_ob"
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": " observer"
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 6821.628,
+      "content": "ob"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "servers"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": ".remove"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "(observer"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " notify"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "_ob"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "servers"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " observer"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "ob"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "servers"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "              "
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " observer"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": ".update"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "()\n\n"
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7403.633,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " Observer"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " raise"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "Implemented"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " overridden"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": ".\")\n\n"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " Concrete"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "Observer"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "Observer"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 7986.49,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "Observer"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "ifies"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " changed"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": ".\")\n"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "Factory"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " Pattern"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " Factory"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": " cre"
+    },
+    {
+      "timestamp_ms": 8716.351,
+      "content": "ational"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " objects"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " specifying"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " exact"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " defines"
+    },
+    {
+      "timestamp_ms": 9273.249,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " inst"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": "antiation"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " deferred"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " subclasses"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " useful"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " dependent"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9896.637,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " concrete"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " objects"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " promoting"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " loose"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " coupling"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " scalability"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": "Product"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " defines"
+    },
+    {
+      "timestamp_ms": 10536.554,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10716.479,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 10716.479,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10716.479,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 10716.479,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 10716.479,
+      "content": " implemented"
+    },
+    {
+      "timestamp_ms": 10716.479,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10716.479,
+      "content": " concrete"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " factory"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " produces"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": "Concrete"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " Product"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " concrete"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " implementations"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11114.449,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": "Creator"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " declares"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " factory"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 11520.27,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11585.142,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11585.142,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11585.142,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11585.142,
+      "type": "done"
+    }
+  ],
+  "full_response": "Design patterns are reusable solutions to common problems in software design. They provide a template or preset solution that can be applied to specific problems, helping to make code more understandable, flexible, and maintainable. Design patterns are divided into three main categories: Creational, Structural, and Behavioral patterns. Here, we'll discuss the Observer, Factory, and Singleton patterns.\n\n1. **Observer Pattern**:\n   The Observer pattern is a behavioral design pattern where an object (the subject or observable) maintains a list of dependents (observers) and notifies them of any state changes, usually by calling one of their methods. It establishes a one-to-many dependency between objects, allowing for objects to decouple and to be loosely coupled. This pattern is called an Observer pattern because the subjects and observers maintain lists of their counterparts and notify them about changes.\n\n   - **Subject (Observable)**: Holds the state in question, along with a list of its dependents, and notifies them when its state changes.\n   - **Observer**: An interface defining the methods that get called when the subject's state changes. implementations of a subject can maintain a list of observers and call them when the state changes.\n\n   Example in Python:\n   ```python\n   class Subject:\n       def __init__(self):\n           self._observers = []\n\n       def add_observer(self, observer):\n           self._observers.append(observer)\n\n       def remove_observer(self, observer):\n           self._observers.remove(observer)\n\n       def notify_observers(self):\n           for observer in self._observers:\n               observer.update()\n\n   class Observer:\n       def update(self):\n           raise NotImplementedError(\"This method should be overridden.\")\n\n   class ConcreteObserver(Observer):\n       def update(self):\n           print(\"Observer notifies that the state has changed.\")\n   ```\n\n2. **Factory Pattern**:\n   The Factory pattern is a creational design pattern that provides an interface for creating objects without specifying the exact class of object that will be created. It defines an interface for creating an object, but allows the instantiation to be deferred to subclasses. This pattern is useful when a system should not be dependent on the concrete classes of objects that it needs to work with, promoting loose coupling and better scalability.\n\n   - **Product**: The interface that defines the method that must be implemented by concrete products which the factory produces.\n   - **Concrete Product**: The concrete implementations of the product interface.\n   - **Creator**: An interface that declares the factory method.\n   - **",
+  "response_chars": 2675,
+  "num_chunks": 511,
+  "ttft_ms": 840.1,
+  "total_ms": 11708.278,
+  "model_name": "Phi-4-mini-instruct"
+}

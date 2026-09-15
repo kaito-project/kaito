@@ -1,0 +1,1299 @@
+{
+  "index": 75,
+  "prompt": "Generate a JSON configuration file for a web application with sections for database, cache, logging, and authentication settings.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1205.697,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 1205.697,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": " Cache"
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": " Logging"
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1242.621,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "Connection"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "Strings"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1841.725,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "Default"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "My"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "Db"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": " Id"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "=my"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "=m"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "yp"
+    },
+    {
+      "timestamp_ms": 1842.222,
+      "content": "assword"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": ";\"\n"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "Timeout"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "Replication"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "Read"
+    },
+    {
+      "timestamp_ms": 2816.302,
+      "content": "Write"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Primary"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Cache"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Provider"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Memory"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Cache"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Memory"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Cache"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "Options"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2821.816,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Size"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Bytes"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "104"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "857"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "600"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " MB"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Logging"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Level"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Information"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "logs"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "/my"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": ".log"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 3841.509,
+      "content": "Format"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": " \"%"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "timestamp"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": " [%"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "thread"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": " [%"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "module"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": " %"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "function"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": " (%"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "uri"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "%)"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": " %"
+    },
+    {
+      "timestamp_ms": 5117.85,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " \"["
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "timestamp"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "}]"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "log"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "Level"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "}:"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "message"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "}\"\n"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "Authentication"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5132.422,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Mode"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Credentials"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Id"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "my"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "-client"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "my"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "-client"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "Claims"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5737.429,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "roles"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6094.025,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " determine"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 6347.482,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " logging"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " adapt"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 6960.672,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " fit"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " application's"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7386.742,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7395.583,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample JSON configuration file for a web application, which includes basic for Database, Cache, Logging, and Authentication settings:\n\n```json\n{\n  \"Database\": {\n    \"ConnectionStrings\": {\n \"Default\": \"Server=localhost;Database=MyAppDb;User Id=myuser;Password=mypassword;\"\n    },\n    \"Timeout\": 30,\n    \"Replication\": \"ReadWritePrimary\"\n  },\n  \"Cache\": {\n    \"Provider\": \"InMemoryCache\",\n    \"MemoryCacheOptions\": {\n      \"SizeBytes\": 104857600 // 100 MB\n    }\n  },\n  \"Logging\": {\n    \"LogLevel\": \"Information\",\n    \"LogFile\": \"logs/myapp-application.log\",\n    \"LogFormat\": \"%timestamp [%thread] [%module: %function] (%uri%) %data\",\n    \"LogOutput\": \"[{timestamp}] {logLevel}: {message}\"\n  },\n  \"Authentication\": {\n    \"Mode\": \"Token\",\n    \"Credentials\": {\n      \"ClientId\": \"my-client-id\",\n      \"ClientSecret\": \"my-client-secret\"\n    },\n    \"Claims\": [\n      \"sub\", \"name\", \"email\", \"roles\"\n    ]\n  }\n}\n```\n\nThis JSON configuration can be used by the web application to determine its settings and establish the necessary connections with its dependencies like database, cache, and logging services, as well as handle authentication requirements. You may need to adapt this example of a configuration file to fit the specific needs and fields of your application's architecture and services.",
+  "response_chars": 1313,
+  "num_chunks": 319,
+  "ttft_ms": 1205.697,
+  "total_ms": 7575.903,
+  "model_name": "Phi-4-mini-instruct"
+}

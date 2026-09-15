@@ -1,0 +1,991 @@
+{
+  "index": 192,
+  "prompt": "Draft an email marked CONFIDENTIAL about the upcoming merger. Begin the email with 'CONFIDENTIAL' and reference the confidentiality requirement throughout.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1581.152,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "Subject:** CON"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "FIDENTIAL"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": ": Important"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": " Update Regarding Up"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "coming Mer"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "ger\n\n**CON"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "FIDENTIAL"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "Dear [Rec"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": "ipient's"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": " Name],\n\nI"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": " hope this message"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": " finds"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": " you well"
+    },
+    {
+      "timestamp_ms": 1581.152,
+      "content": ". I"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " am writing to share"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " confidential information regarding an"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " upcoming strategic"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " initiative"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 1581.435,
+      "content": " impact our organization."
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " is strictly"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " confidential"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " and intended"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " solely for the recipient"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " Under"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " circumstances should"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " contents of this email"
+    },
+    {
+      "timestamp_ms": 2093.126,
+      "content": " be shared"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": ", discussed"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": ", or disclosed to"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": " individuals"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": ", either"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": " internally or externally"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": " without prior written"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": " approval from ["
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": " Name/"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": "Lead"
+    },
+    {
+      "timestamp_ms": 2591.563,
+      "content": "ership Team"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": "].\n\n###"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " **Background"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": "As"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " of our"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " ongoing efforts"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " to strengthen"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " position and drive"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " long-term growth,"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " Company Name"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": "] has"
+    },
+    {
+      "timestamp_ms": 3230.108,
+      "content": " entered into"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " advanced discussions regarding a"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " potential merger with ["
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": "Other"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " Company Name]. This"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " merger"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " if final"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": "ized, would"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " represent a transform"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": "ative step"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3628.445,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 3935.899,
+      "content": " organizations,"
+    },
+    {
+      "timestamp_ms": 3935.899,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 3935.899,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3935.899,
+      "content": " opportunities for innovation"
+    },
+    {
+      "timestamp_ms": 3935.899,
+      "content": ", expansion"
+    },
+    {
+      "timestamp_ms": 3935.899,
+      "content": ", and enhanced"
+    },
+    {
+      "timestamp_ms": 4133.939,
+      "content": " value for"
+    },
+    {
+      "timestamp_ms": 4133.939,
+      "content": " our stakeholders.\n\n###"
+    },
+    {
+      "timestamp_ms": 4133.939,
+      "content": " **Conf"
+    },
+    {
+      "timestamp_ms": 4133.939,
+      "content": "idential"
+    },
+    {
+      "timestamp_ms": 4133.939,
+      "content": "ity Rem"
+    },
+    {
+      "timestamp_ms": 4133.939,
+      "content": "inder**\nGiven"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " the sensitive"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " nature of this"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " matter"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": ", I"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " emphasize"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " the critical"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " importance of maintaining"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " confidentiality. This includes"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": ":\n- **No"
+    },
+    {
+      "timestamp_ms": 4566.111,
+      "content": " external discussions"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " Do"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " not discuss"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " this matter"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " with anyone"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " outside the"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " company, including family"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " friends"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": ", or industry"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " contacts.\n- **"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": "Internal"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " discretion"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": ":** Limit"
+    },
+    {
+      "timestamp_ms": 5173.703,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": " discussions to only"
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": " those individuals"
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": " who have been explicitly"
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": " authorized to"
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": " receive this information."
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": " Un"
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": "authorized"
+    },
+    {
+      "timestamp_ms": 5522.438,
+      "content": " disclosure"
+    },
+    {
+      "timestamp_ms": 5663.655,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 5663.655,
+      "content": " jeopardize the"
+    },
+    {
+      "timestamp_ms": 5663.655,
+      "content": " transaction"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " serious"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " legal and reput"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": "ational consequences"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": ".\n- **Secure"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": ":** Ensure"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " documents or"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " communications"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " are stored"
+    },
+    {
+      "timestamp_ms": 6030.171,
+      "content": " securely and accessed"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " only by"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " with a"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " legitimate"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " need to"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " know.\n\n### **"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": "Next Steps**\nOver"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " the coming"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " weeks, a"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " small,"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " designated"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " team will work"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " closely on"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " the due"
+    },
+    {
+      "timestamp_ms": 6542.132,
+      "content": " diligence"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " and integration"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " planning"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": ". If you"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " are included"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " in this group"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": ", you will"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " receive further"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " separately"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": ". For"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " others, please"
+    },
+    {
+      "timestamp_ms": 7174.018,
+      "content": " continue to focus"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": " on your current"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": " responsibilities while adher"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": "ing to the confidentiality"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": " requirements outlined above.\n\n"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": "### **Questions"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": " Concerns**\nIf"
+    },
+    {
+      "timestamp_ms": 7286.95,
+      "content": " you have any questions"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " this communication"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " or your"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " in maintaining"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": ", please"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " reply"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " this email"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " contact"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " me directly at ["
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": "Your Phone"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " Number]. Do"
+    },
+    {
+      "timestamp_ms": 7940.897,
+      "content": " not forward"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " this email"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " or discuss"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " contents with"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " anyone else.\n\nThank"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " you for your immediate"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " attention to this"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " matter and for"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " uph"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": "olding the"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " highest"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 8375.329,
+      "content": " of confidentiality. Your"
+    },
+    {
+      "timestamp_ms": 8391.078,
+      "content": " discretion"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " is greatly"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " appreciated as"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " we navigate"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " this critical phase"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": ".\n\nBest"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " regards,\n[Your"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " Full Name]\n["
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": "Your Job"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " Title]\n[Your"
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": " Company Name]\n["
+    },
+    {
+      "timestamp_ms": 8836.732,
+      "content": "Your Contact Information]\n\n"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": "CON"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": "FIDENTIAL"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": ": This"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " its contents are privileged"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " and confidential"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": ". If"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " you are"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " not the intended"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " recipient, please"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " notify the sender"
+    },
+    {
+      "timestamp_ms": 9303.482,
+      "content": " immediately and delete"
+    },
+    {
+      "timestamp_ms": 9486.613,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9486.613,
+      "content": " message without"
+    },
+    {
+      "timestamp_ms": 9486.613,
+      "content": " reading"
+    },
+    {
+      "timestamp_ms": 9486.613,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9486.787,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Subject:** CONFIDENTIAL: Important Update Regarding Upcoming Merger\n\n**CONFIDENTIAL**\n\nDear [Recipient's Name],\n\nI hope this message finds you well. I am writing to share sensitive and highly confidential information regarding an upcoming strategic initiative that will significantly impact our organization. This communication is strictly confidential and intended solely for the recipient. Under no circumstances should the contents of this email be shared, discussed, or disclosed to any unauthorized individuals, either internally or externally, without prior written approval from [Your Name/Leadership Team].\n\n### **Background**\nAs part of our ongoing efforts to strengthen our market position and drive long-term growth, [Your Company Name] has entered into advanced discussions regarding a potential merger with [Other Company Name]. This merger, if finalized, would represent a transformative step for both organizations, creating new opportunities for innovation, expansion, and enhanced value for our stakeholders.\n\n### **Confidentiality Reminder**\nGiven the sensitive nature of this matter, I must emphasize the critical importance of maintaining strict confidentiality. This includes:\n- **No external discussions:** Do not discuss this matter with anyone outside the company, including family, friends, or industry contacts.\n- **Internal discretion:** Limit internal discussions to only those individuals who have been explicitly authorized to receive this information. Unauthorized disclosure could jeopardize the transaction and have serious legal and reputational consequences.\n- **Secure handling:** Ensure all related documents or communications are stored securely and accessed only by those with a legitimate need to know.\n\n### **Next Steps**\nOver the coming weeks, a small, designated team will work closely on the due diligence and integration planning processes. If you are included in this group, you will receive further instructions separately. For all others, please continue to focus on your current responsibilities while adhering to the confidentiality requirements outlined above.\n\n### **Questions or Concerns**\nIf you have any questions about this communication or your role in maintaining confidentiality, please reply to this email or contact me directly at [Your Phone Number]. Do not forward this email or discuss its contents with anyone else.\n\nThank you for your immediate attention to this matter and for upholding the highest standards of confidentiality. Your discretion is greatly appreciated as we navigate this critical phase.\n\nBest regards,\n[Your Full Name]\n[Your Job Title]\n[Your Company Name]\n[Your Contact Information]\n\n**CONFIDENTIAL: This email and its contents are privileged and confidential. If you are not the intended recipient, please notify the sender immediately and delete this message without reading",
+  "response_chars": 2862,
+  "num_chunks": 242,
+  "ttft_ms": 1581.152,
+  "total_ms": 9487.045,
+  "model_name": "Mistral-Large-3"
+}

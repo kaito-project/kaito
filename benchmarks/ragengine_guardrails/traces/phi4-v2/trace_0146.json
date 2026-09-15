@@ -1,0 +1,1123 @@
+{
+  "index": 146,
+  "prompt": "Create a sample hotel reservation confirmation that includes the guest's full name, email, phone number, credit card last four digits, and check-in/check-out dates.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 269.086,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 284.5,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 371.674,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 371.907,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 372.106,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 372.21,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 374.8,
+      "content": " hotel"
+    },
+    {
+      "timestamp_ms": 417.202,
+      "content": " reservation"
+    },
+    {
+      "timestamp_ms": 417.438,
+      "content": " confirmation"
+    },
+    {
+      "timestamp_ms": 596.909,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 597.113,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 597.209,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 599.971,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 600.193,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 600.325,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 600.419,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 600.499,
+      "content": " handled"
+    },
+    {
+      "timestamp_ms": 600.568,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 609.284,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 626.753,
+      "content": " compl"
+    },
+    {
+      "timestamp_ms": 752.486,
+      "content": "ies"
+    },
+    {
+      "timestamp_ms": 752.785,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 753.027,
+      "content": " privacy"
+    },
+    {
+      "timestamp_ms": 753.128,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 753.226,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 753.296,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 757.971,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 776.024,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 796.503,
+      "content": " Reservation"
+    },
+    {
+      "timestamp_ms": 822.446,
+      "content": " Confirmation"
+    },
+    {
+      "timestamp_ms": 835.779,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 880.769,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 880.987,
+      "content": "Guest"
+    },
+    {
+      "timestamp_ms": 890.229,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 1122.981,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1123.247,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1123.389,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1123.553,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1123.701,
+      "content": "Full"
+    },
+    {
+      "timestamp_ms": 1123.878,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1124.002,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1125.433,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 1125.578,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1125.67,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1125.741,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1125.803,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1139.671,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 1162.021,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1176.411,
+      "content": " jane"
+    },
+    {
+      "timestamp_ms": 1514.079,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 1514.303,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1514.432,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1514.514,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1514.579,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1520.356,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1520.554,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1520.677,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 1520.8,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 1520.871,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1520.931,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 1520.981,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1521.027,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1521.073,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 1521.116,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1521.158,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1521.201,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1521.243,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1564.494,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1564.703,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1577.206,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1596.579,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1884.309,
+      "content": "Reservation"
+    },
+    {
+      "timestamp_ms": 1884.476,
+      "content": " Details"
+    },
+    {
+      "timestamp_ms": 1884.552,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1884.613,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1884.668,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1890.206,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1890.396,
+      "content": "Check"
+    },
+    {
+      "timestamp_ms": 1890.533,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 1890.656,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 1890.656,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1890.656,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 1890.656,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1890.656,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 1890.839,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1890.902,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1900.274,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1979.728,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1993.355,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1993.548,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1993.618,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1995.89,
+      "content": "Check"
+    },
+    {
+      "timestamp_ms": 2016.748,
+      "content": "-out"
+    },
+    {
+      "timestamp_ms": 2074.434,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 2074.578,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2074.721,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 2092.61,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2109.64,
+      "content": "18"
+    },
+    {
+      "timestamp_ms": 2282.275,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2282.499,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2282.599,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 2282.767,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2282.896,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2283.153,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2283.262,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2283.347,
+      "content": "Room"
+    },
+    {
+      "timestamp_ms": 2299.881,
+      "content": " Type"
+    },
+    {
+      "timestamp_ms": 2302.64,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2321.945,
+      "content": " Deluxe"
+    },
+    {
+      "timestamp_ms": 2339.331,
+      "content": " King"
+    },
+    {
+      "timestamp_ms": 2471.415,
+      "content": " Room"
+    },
+    {
+      "timestamp_ms": 2471.743,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2471.923,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2472.003,
+      "content": "Payment"
+    },
+    {
+      "timestamp_ms": 2472.167,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 2472.292,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2472.531,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2510.8,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2520.089,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2532.009,
+      "content": "Credit"
+    },
+    {
+      "timestamp_ms": 2556.345,
+      "content": " Card"
+    },
+    {
+      "timestamp_ms": 2568.039,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2621.178,
+      "content": " ****"
+    },
+    {
+      "timestamp_ms": 2621.371,
+      "content": " ****"
+    },
+    {
+      "timestamp_ms": 2633.15,
+      "content": " ****"
+    },
+    {
+      "timestamp_ms": 2648.439,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2666.524,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 2681.921,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2701.966,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2739.238,
+      "content": "Confirmation"
+    },
+    {
+      "timestamp_ms": 2760.362,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 2827.584,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2828.258,
+      "content": " H"
+    },
+    {
+      "timestamp_ms": 2828.442,
+      "content": "LR"
+    },
+    {
+      "timestamp_ms": 2836.306,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3032.428,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 3033.064,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 3033.195,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3041.4,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3041.561,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 3041.561,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 3041.646,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3041.704,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3041.757,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3041.805,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3046.307,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 3062.667,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 3081.758,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3362.913,
+      "content": " Grand"
+    },
+    {
+      "timestamp_ms": 3363.091,
+      "content": "eur"
+    },
+    {
+      "timestamp_ms": 3363.161,
+      "content": " Hotel"
+    },
+    {
+      "timestamp_ms": 3363.229,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3370.18,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3370.365,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3370.45,
+      "content": "Address"
+    },
+    {
+      "timestamp_ms": 3370.518,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3370.578,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3370.649,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3370.704,
+      "content": " Luxury"
+    },
+    {
+      "timestamp_ms": 3370.757,
+      "content": " Lane"
+    },
+    {
+      "timestamp_ms": 3370.809,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3370.86,
+      "content": " Paradise"
+    },
+    {
+      "timestamp_ms": 3370.91,
+      "content": " City"
+    },
+    {
+      "timestamp_ms": 3392.107,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3406.918,
+      "content": " PA"
+    },
+    {
+      "timestamp_ms": 3429.717,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3444.6,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3766.466,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 3766.646,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3766.766,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3775.943,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3776.191,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 3776.36,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3776.504,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 3776.599,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3776.669,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3776.73,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 3776.784,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3776.831,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3776.873,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 3776.914,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3776.955,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 3777.001,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3777.154,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3789.598,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3805.532,
+      "content": "Special"
+    },
+    {
+      "timestamp_ms": 4070.772,
+      "content": " Requests"
+    },
+    {
+      "timestamp_ms": 4070.95,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4071.03,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4071.091,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4071.144,
+      "content": " Non"
+    },
+    {
+      "timestamp_ms": 4071.192,
+      "content": "-sm"
+    },
+    {
+      "timestamp_ms": 4071.238,
+      "content": "oking"
+    },
+    {
+      "timestamp_ms": 4071.282,
+      "content": " room"
+    },
+    {
+      "timestamp_ms": 4071.325,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4071.369,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4071.412,
+      "content": " Late"
+    },
+    {
+      "timestamp_ms": 4071.456,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 4071.63,
+      "content": "-out"
+    },
+    {
+      "timestamp_ms": 4079.971,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4094.904,
+      "content": "if"
+    },
+    {
+      "timestamp_ms": 4189.141,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 4189.334,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 4189.471,
+      "content": "Thank"
+    },
+    {
+      "timestamp_ms": 4189.574,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4190.155,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4453.754,
+      "content": " choosing"
+    },
+    {
+      "timestamp_ms": 4453.901,
+      "content": " Grand"
+    },
+    {
+      "timestamp_ms": 4453.978,
+      "content": "eur"
+    },
+    {
+      "timestamp_ms": 4454.043,
+      "content": " Hotel"
+    },
+    {
+      "timestamp_ms": 4454.105,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4454.166,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 4454.221,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 4469.142,
+      "content": " forward"
+    },
+    {
+      "timestamp_ms": 4469.335,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4469.444,
+      "content": " welcoming"
+    },
+    {
+      "timestamp_ms": 4469.532,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " modify"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " reservation"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " please"
+    },
+    {
+      "timestamp_ms": 4697.526,
+      "content": " contact"
+    },
+    {
+      "timestamp_ms": 4705.312,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 4723.892,
+      "content": " reservations"
+    },
+    {
+      "timestamp_ms": 4739.912,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 4957.559,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4957.808,
+      "content": " reservations"
+    },
+    {
+      "timestamp_ms": 4957.91,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 4957.978,
+      "content": "grand"
+    },
+    {
+      "timestamp_ms": 4958.036,
+      "content": "eur"
+    },
+    {
+      "timestamp_ms": 4958.12,
+      "content": "hotel"
+    },
+    {
+      "timestamp_ms": 4958.209,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4958.311,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4962.427,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 4962.573,
+      "content": " us"
+    },
+    {
+      "timestamp_ms": 4962.769,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 4971.079,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5080.321,
+      "content": "Warm"
+    },
+    {
+      "timestamp_ms": 5080.321,
+      "content": " regards"
+    },
+    {
+      "timestamp_ms": 5080.586,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5080.779,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 5080.88,
+      "content": "Grand"
+    },
+    {
+      "timestamp_ms": 5096.935,
+      "content": "eur"
+    },
+    {
+      "timestamp_ms": 5104.839,
+      "content": " Hotel"
+    },
+    {
+      "timestamp_ms": 5120.47,
+      "content": " Res"
+    },
+    {
+      "timestamp_ms": 5182.871,
+      "content": "ervations"
+    },
+    {
+      "timestamp_ms": 5183.055,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 5183.135,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5268.535,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 5268.888,
+      "content": "Remember"
+    },
+    {
+      "timestamp_ms": 5269.074,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5269.213,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 5274.349,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5366.965,
+      "content": " red"
+    },
+    {
+      "timestamp_ms": 5367.1,
+      "content": "act"
+    },
+    {
+      "timestamp_ms": 5367.165,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 5367.22,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5369.09,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 5389.887,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 5406.944,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5426.961,
+      "content": " kind"
+    },
+    {
+      "timestamp_ms": 5586.868,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5587.091,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 5587.257,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5587.351,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5587.422,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample hotel reservation confirmation. Please ensure that sensitive information is handled securely and complies with privacy standards.\n\n---\n\n**Hotel Reservation Confirmation**\n\n**Guest Information:**\n- **Full Name:** Jane Doe\n- **Email:** jane.doe@example.com\n- **Phone Number:** +1 (555) 123-4567\n\n**Reservation Details:**\n- **Check-in Date:** October 15, 2023\n- **Check-out Date:** October 18, 2023\n- **Room Type:** Deluxe King Room\n\n**Payment Information:**\n- **Credit Card:** **** **** **** 4321\n\n**Confirmation Number:** HLR123456789\n\n**Hotel Information:**\n- **Hotel Name:** Grandeur Hotel\n- **Address:** 123 Luxury Lane, Paradise City, PA 12345\n- **Phone:** +1 (555) 987-6543\n\n**Special Requests:**\n- Non-smoking room\n- Late check-out (if available)\n\nThank you for choosing Grandeur Hotel. We look forward to welcoming you! If you have any questions or need to modify your reservation, please contact our reservations team at reservations@grandeurhotel.com or call us directly.\n\nWarm regards,  \nGrandeur Hotel Reservations Team\n\n---\n\nRemember to remove or redact sensitive information when sharing this kind of document.",
+  "response_chars": 1151,
+  "num_chunks": 275,
+  "ttft_ms": 269.086,
+  "total_ms": 5587.712,
+  "model_name": "model-medium"
+}

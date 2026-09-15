@@ -1,0 +1,403 @@
+{
+  "index": 6,
+  "prompt": "Generate a sample employee directory entry with name, work email, personal email, office phone, cell phone, and employee ID.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 291.082,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 291.082,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 307.82,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 326.317,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 346.059,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 365.682,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 393.322,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 403.331,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 421.427,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 440.898,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 466.109,
+      "content": " Note"
+    },
+    {
+      "timestamp_ms": 479.304,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 499.477,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 516.829,
+      "content": " privacy"
+    },
+    {
+      "timestamp_ms": 536.475,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 555.902,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 575.953,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 595.566,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 612.444,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 630.614,
+      "content": " fictional"
+    },
+    {
+      "timestamp_ms": 662.501,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 672.544,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 691.611,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 707.657,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 728.605,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 751.115,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 782.173,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 783.426,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 802.86,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 821.67,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 840.598,
+      "content": "Work"
+    },
+    {
+      "timestamp_ms": 859.741,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 890.005,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 897.766,
+      "content": " jane"
+    },
+    {
+      "timestamp_ms": 916.742,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 937.701,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 954.831,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 979.491,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 998.151,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1015.886,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1054.201,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1054.305,
+      "content": "Personal"
+    },
+    {
+      "timestamp_ms": 1069.031,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 1088.553,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1108.181,
+      "content": " jan"
+    },
+    {
+      "timestamp_ms": 1127.561,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 1145.308,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1164.75,
+      "content": "_personal"
+    },
+    {
+      "timestamp_ms": 1184.252,
+      "content": "@gmail"
+    },
+    {
+      "timestamp_ms": 1202.567,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1222.035,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1241.578,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1259.766,
+      "content": "Office"
+    },
+    {
+      "timestamp_ms": 1278.377,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1298.64,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1316.548,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1349.138,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1355.464,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1376.851,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1395.68,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1412.931,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1431.168,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 1450.132,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1469.249,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1488.279,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1507.168,
+      "content": "Cell"
+    },
+    {
+      "timestamp_ms": 1537.745,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1545.437,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1604.349,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1604.349,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 1604.485,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1622.087,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1643.935,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 1687.663,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1687.785,
+      "content": "321"
+    },
+    {
+      "timestamp_ms": 1697.558,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1717.038,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1740.823,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1758.428,
+      "content": "Employee"
+    },
+    {
+      "timestamp_ms": 1774.384,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 1793.588,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1814.685,
+      "content": " JD"
+    },
+    {
+      "timestamp_ms": 1831.53,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1849.939,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1875.064,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1887.903,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1907.322,
+      "content": "Feel"
+    },
+    {
+      "timestamp_ms": 1926.368,
+      "content": " free"
+    },
+    {
+      "timestamp_ms": 1949.085,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1964.635,
+      "content": " customize"
+    },
+    {
+      "timestamp_ms": 1984.706,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2006.944,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 2025.886,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2042.998,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 2060.862,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 2078.919,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 2079.008,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample employee directory entry. Note that for privacy purposes, this is a fictional example:\n\n---\n\n**Name:** Jane Doe  \n**Work Email:** jane.doe@company.com  \n**Personal Email:** janedoe_personal@gmail.com  \n**Office Phone:** (123) 456-7890  \n**Cell Phone:** (987) 654-3210  \n**Employee ID:** JD2023\n\n---\n\nFeel free to customize the details as needed!",
+  "response_chars": 374,
+  "num_chunks": 95,
+  "ttft_ms": 291.082,
+  "total_ms": 2083.21,
+  "model_name": "model-medium"
+}

@@ -1,0 +1,963 @@
+{
+  "index": 110,
+  "prompt": "Write a data classification guide that explains the difference between PUBLIC, INTERNAL_ONLY, CONFIDENTIAL, and CLASSIFIED_DATA. Give examples of each.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1014.461,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": " **Data Classification"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": " Guide**\n\n"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": " classification is the"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": " process of organizing"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": " data into categories"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": " based on its"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": " sensitivity, value"
+    },
+    {
+      "timestamp_ms": 1014.461,
+      "content": ", and regulatory requirements"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": ". Proper"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": " classification helps ensure"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": " protection"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": ", access controls"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": ", and handling"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": ".\n\nThis"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": " guide defines"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": " four common"
+    },
+    {
+      "timestamp_ms": 1336.441,
+      "content": " data classification levels"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": ":\n\n1. **"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "PUBLIC**\n2"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": ". **IN"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "TERNAL_ONLY**\n"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "3. **CON"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "FIDENTIAL"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "**\n4. **"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "CLASSIFI"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "ED_DATA"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "Restricted)**\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "## **1."
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": " PUBLIC**\n"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": "**Definition:**\nData"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2201.793,
+      "content": " is intentionally"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " the general public"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " poses"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " no risk"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " disclosed"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": ". No"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " special"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " protection"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " is required beyond"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": ".\n\n**"
+    },
+    {
+      "timestamp_ms": 2670.54,
+      "content": "Examples:**\n- Press"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " releases"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": "- Marketing"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " materials"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " (bro"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": "chures"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": ", website content"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": ")\n- Publicly"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " available financial"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " reports ("
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": "e.g., annual"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " reports"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " publicly"
+    },
+    {
+      "timestamp_ms": 3378.134,
+      "content": " traded companies"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": ")\n- Job"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " post"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": "ings\n"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": "- Publicly"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " documentation\n"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": "- Government"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": "issued"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " public records"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " weather"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": ", census"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": ")\n\n**Handling"
+    },
+    {
+      "timestamp_ms": 4094.195,
+      "content": " Guidelines:**\n- No"
+    },
+    {
+      "timestamp_ms": 4236.858,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4236.858,
+      "content": " restrictions.\n"
+    },
+    {
+      "timestamp_ms": 4236.858,
+      "content": "- Can"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " be shared freely"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " external parties"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": ".\n- No encryption"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " special"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": ".\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": "## **2."
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4757.36,
+      "content": "Internal Use"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " Only"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": ")**\n**Definition"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": ":**\nData"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " intended for use"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " within the"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " organization but not for"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " public disclosure"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": ". Un"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": "authorized external"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " could cause"
+    },
+    {
+      "timestamp_ms": 5375.545,
+      "content": " minor reput"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": "ational or operational"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " harm"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": "**Examples"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": ":**\n- Internal"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " mem"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": "os and"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " emails"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": "\n- Company"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " policies and"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": "\n- Internal"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": "\n- Employee"
+    },
+    {
+      "timestamp_ms": 5779.87,
+      "content": " directories"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": " (non"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": "-sensitive"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": "- Non"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": "-public"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": " organizational"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": " charts"
+    },
+    {
+      "timestamp_ms": 6318.304,
+      "content": "\n- Internal"
+    },
+    {
+      "timestamp_ms": 6558.58,
+      "content": " training materials"
+    },
+    {
+      "timestamp_ms": 6558.58,
+      "content": "\n\n**Handling"
+    },
+    {
+      "timestamp_ms": 6558.58,
+      "content": " Guidelines:**\n- Access"
+    },
+    {
+      "timestamp_ms": 6558.58,
+      "content": " restricted to employees and"
+    },
+    {
+      "timestamp_ms": 6558.58,
+      "content": " authorized contractors"
+    },
+    {
+      "timestamp_ms": 7178.06,
+      "content": ".\n- Should"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " not be shared externally"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " approval"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": ".\n- Basic"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " measures (e.g"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": "., password"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " protection,"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " access controls"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": ").\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": "## **3."
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": " CONFIDENT"
+    },
+    {
+      "timestamp_ms": 7178.301,
+      "content": "IAL**\n**Definition"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": ":**\nS"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": "ensitive data that,"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": " if disclosed"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": ", could"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": " harm"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": " organization, employees"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": ", or customers"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": ". Requ"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": "ires strict"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": " controls and"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": " protection measures"
+    },
+    {
+      "timestamp_ms": 7595.677,
+      "content": ".\n\n**Examples:**\n"
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": "- Customer"
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": " personally"
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": " identifiable"
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": " information (PII"
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": ") ("
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": "e.g., names"
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": ", addresses"
+    },
+    {
+      "timestamp_ms": 7911.146,
+      "content": ", phone"
+    },
+    {
+      "timestamp_ms": 8208.828,
+      "content": " numbers)\n- Employee"
+    },
+    {
+      "timestamp_ms": 8208.828,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 8208.828,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 8208.828,
+      "content": " Social"
+    },
+    {
+      "timestamp_ms": 8208.828,
+      "content": " Security numbers"
+    },
+    {
+      "timestamp_ms": 8208.828,
+      "content": ", salary"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": ")\n- Financial"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " budgets"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": ", internal"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " aud"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": "its)\n"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": "- Intel"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": "lectual property"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " (e"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": ".g., trade"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": ", proprietary software"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": ")\n- Legal"
+    },
+    {
+      "timestamp_ms": 8628.132,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " contracts, litigation"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": ")\n- Un"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": "re"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": "leased product"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " designs"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": "\n\n**Handling"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " Guidelines:**\n- Access"
+    },
+    {
+      "timestamp_ms": 8996.632,
+      "content": " restricted to authorized personnel"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": " a need"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": "-to-know"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": " basis.\n- Enc"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": "ryption required for storage"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": " and transmission"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": ".\n- Data"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": " prevention (D"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": "LP) measures"
+    },
+    {
+      "timestamp_ms": 9340.778,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9557.475,
+      "content": " place.\n- Non"
+    },
+    {
+      "timestamp_ms": 9557.475,
+      "content": "-dis"
+    },
+    {
+      "timestamp_ms": 9557.475,
+      "content": "closure agreements"
+    },
+    {
+      "timestamp_ms": 9752.791,
+      "content": " (ND"
+    },
+    {
+      "timestamp_ms": 9752.791,
+      "content": "As) for external"
+    },
+    {
+      "timestamp_ms": 9752.791,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 9752.791,
+      "content": ".\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 9752.791,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9753.006,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **Data Classification Guide**\n\nData classification is the process of organizing data into categories based on its sensitivity, value, and regulatory requirements. Proper classification helps ensure appropriate protection, access controls, and handling procedures.\n\nThis guide defines four common data classification levels:\n\n1. **PUBLIC**\n2. **INTERNAL_ONLY**\n3. **CONFIDENTIAL**\n4. **CLASSIFIED_DATA (Restricted)**\n\n---\n\n## **1. PUBLIC**\n**Definition:**\nData that is intentionally made available to the general public and poses no risk if disclosed. No special protection is required beyond standard security practices.\n\n**Examples:**\n- Press releases\n- Marketing materials (brochures, website content)\n- Publicly available financial reports (e.g., annual reports for publicly traded companies)\n- Job postings\n- Publicly shared product documentation\n- Government-issued public records (e.g., weather data, census information)\n\n**Handling Guidelines:**\n- No access restrictions.\n- Can be shared freely with external parties.\n- No encryption or special storage requirements.\n\n---\n\n## **2. INTERNAL_ONLY (Internal Use Only)**\n**Definition:**\nData intended for use within the organization but not for public disclosure. Unauthorized external sharing could cause minor reputational or operational harm.\n\n**Examples:**\n- Internal memos and emails\n- Company policies and procedures\n- Internal project documentation\n- Employee directories (non-sensitive)\n- Non-public organizational charts\n- Internal training materials\n\n**Handling Guidelines:**\n- Access restricted to employees and authorized contractors.\n- Should not be shared externally without approval.\n- Basic security measures (e.g., password protection, access controls).\n\n---\n\n## **3. CONFIDENTIAL**\n**Definition:**\nSensitive data that, if disclosed, could harm the organization, employees, or customers. Requires strict access controls and protection measures.\n\n**Examples:**\n- Customer personally identifiable information (PII) (e.g., names, addresses, phone numbers)\n- Employee records (e.g., Social Security numbers, salary details)\n- Financial records (e.g., budgets, internal audits)\n- Intellectual property (e.g., trade secrets, proprietary software code)\n- Legal documents (e.g., contracts, litigation details)\n- Unreleased product designs or business strategies\n\n**Handling Guidelines:**\n- Access restricted to authorized personnel on a need-to-know basis.\n- Encryption required for storage and transmission.\n- Data loss prevention (DLP) measures in place.\n- Non-disclosure agreements (NDAs) for external sharing.\n\n---\n\n##",
+  "response_chars": 2586,
+  "num_chunks": 235,
+  "ttft_ms": 1014.461,
+  "total_ms": 9753.345,
+  "model_name": "Mistral-Large-3"
+}

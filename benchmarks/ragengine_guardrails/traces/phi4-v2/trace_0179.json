@@ -1,0 +1,1983 @@
+{
+  "index": 179,
+  "prompt": "What are the key features of Rust that make it suitable for systems programming?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 306.41,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 320.061,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 401.09,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 406.768,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 406.887,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 406.956,
+      "content": "-su"
+    },
+    {
+      "timestamp_ms": 415.99,
+      "content": "ited"
+    },
+    {
+      "timestamp_ms": 463.088,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 463.27,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 472.193,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 605.957,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 606.117,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 606.266,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 606.358,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 606.429,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 606.482,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 606.551,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 636.077,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 699.693,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 699.89,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 699.97,
+      "content": " developing"
+    },
+    {
+      "timestamp_ms": 700.159,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 726.699,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 744.755,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 769.839,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 780.853,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 797.281,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 913.131,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 913.303,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 913.468,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 913.55,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 913.613,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 913.665,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 936.014,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 949.57,
+      "content": " excellent"
+    },
+    {
+      "timestamp_ms": 986.503,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 986.65,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1023.126,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1026.954,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 1051.171,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1084.854,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1100.722,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1100.861,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1120.329,
+      "content": "Memory"
+    },
+    {
+      "timestamp_ms": 1141.656,
+      "content": " Safety"
+    },
+    {
+      "timestamp_ms": 1181.273,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1205.879,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 1230.033,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 1230.033,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 1233.596,
+      "content": " safety"
+    },
+    {
+      "timestamp_ms": 1262.005,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1288.837,
+      "content": " needing"
+    },
+    {
+      "timestamp_ms": 1292.002,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1327.387,
+      "content": " garbage"
+    },
+    {
+      "timestamp_ms": 1335.059,
+      "content": " collector"
+    },
+    {
+      "timestamp_ms": 1348.115,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1371.05,
+      "content": " Its"
+    },
+    {
+      "timestamp_ms": 1401.415,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 1408.204,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1424.791,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1445.316,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 1462.457,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1531.15,
+      "content": " borrow"
+    },
+    {
+      "timestamp_ms": 1531.345,
+      "content": " checking"
+    },
+    {
+      "timestamp_ms": 1531.607,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1542.992,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 1562.561,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1601.93,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1602.181,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1622.434,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 1635.459,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 1661.008,
+      "content": " dangling"
+    },
+    {
+      "timestamp_ms": 1679.099,
+      "content": " pointers"
+    },
+    {
+      "timestamp_ms": 1691.132,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1713.021,
+      "content": " buffer"
+    },
+    {
+      "timestamp_ms": 1734.138,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 1747.243,
+      "content": "runs"
+    },
+    {
+      "timestamp_ms": 1769.887,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1793.752,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1805.744,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1825.504,
+      "content": " races"
+    },
+    {
+      "timestamp_ms": 1864.124,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1864.336,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1938.285,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1938.448,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 1938.533,
+      "content": " concerns"
+    },
+    {
+      "timestamp_ms": 1940.072,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1987.095,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 1987.334,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 1996.986,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2040.094,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2040.247,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2053.844,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2079.872,
+      "content": "Ownership"
+    },
+    {
+      "timestamp_ms": 2090.674,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 2149.186,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2149.402,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 2149.498,
+      "content": " en"
+    },
+    {
+      "timestamp_ms": 2171.557,
+      "content": "forces"
+    },
+    {
+      "timestamp_ms": 2191.58,
+      "content": " rules"
+    },
+    {
+      "timestamp_ms": 2207.264,
+      "content": " around"
+    },
+    {
+      "timestamp_ms": 2227.412,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 2244.939,
+      "content": " references"
+    },
+    {
+      "timestamp_ms": 2262.716,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2449.803,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2450.039,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2450.159,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2450.245,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2450.351,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2450.488,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2450.617,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2450.723,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2450.791,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 2453.967,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2552.109,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 2552.259,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2552.335,
+      "content": " borrowing"
+    },
+    {
+      "timestamp_ms": 2552.389,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2552.437,
+      "content": " lif"
+    },
+    {
+      "timestamp_ms": 2566.839,
+      "content": "etimes"
+    },
+    {
+      "timestamp_ms": 2586.095,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2630.299,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 2630.48,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 2643.994,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 2664.072,
+      "content": " bugs"
+    },
+    {
+      "timestamp_ms": 2713.838,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2714.018,
+      "content": " null"
+    },
+    {
+      "timestamp_ms": 2729.199,
+      "content": " pointer"
+    },
+    {
+      "timestamp_ms": 2747.127,
+      "content": " dere"
+    },
+    {
+      "timestamp_ms": 2765.146,
+      "content": "ferences"
+    },
+    {
+      "timestamp_ms": 2836.657,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2836.833,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2836.903,
+      "content": " races"
+    },
+    {
+      "timestamp_ms": 2836.959,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2925.022,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2925.227,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2925.337,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2925.42,
+      "content": "Zero"
+    },
+    {
+      "timestamp_ms": 2930.55,
+      "content": "-C"
+    },
+    {
+      "timestamp_ms": 2947.948,
+      "content": "ost"
+    },
+    {
+      "timestamp_ms": 2970.966,
+      "content": " Ab"
+    },
+    {
+      "timestamp_ms": 2987.384,
+      "content": "stractions"
+    },
+    {
+      "timestamp_ms": 3063.418,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3063.559,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 3063.674,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 3063.767,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 3166.196,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3166.34,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 3166.409,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 3166.466,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 3187.006,
+      "content": " ab"
+    },
+    {
+      "timestamp_ms": 3187.006,
+      "content": "stractions"
+    },
+    {
+      "timestamp_ms": 3199.42,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 3269.027,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3269.204,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 3274.5,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 3274.626,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3370.711,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3370.852,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3370.918,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 3371.007,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3371.096,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3473.683,
+      "content": "-sensitive"
+    },
+    {
+      "timestamp_ms": 3473.884,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3474.024,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 3474.169,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 3474.31,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3484.431,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 3507.972,
+      "content": " ab"
+    },
+    {
+      "timestamp_ms": 3523.234,
+      "content": "stractions"
+    },
+    {
+      "timestamp_ms": 3538.494,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3560.087,
+      "content": " compiled"
+    },
+    {
+      "timestamp_ms": 3576.602,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 3596.522,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3652.663,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 3652.817,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 3656.58,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3683.253,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3692.665,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3709.926,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3780.217,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3780.446,
+      "content": "Concurrency"
+    },
+    {
+      "timestamp_ms": 3780.516,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3791.652,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 3881.689,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3894.996,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 3895.234,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3895.344,
+      "content": " naturally"
+    },
+    {
+      "timestamp_ms": 3895.409,
+      "content": " lends"
+    },
+    {
+      "timestamp_ms": 3902.378,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 3920.057,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3944.922,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 4198.054,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 4198.054,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 4198.054,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4198.054,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4198.054,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 4198.054,
+      "content": " minim"
+    },
+    {
+      "timestamp_ms": 4198.315,
+      "content": "izes"
+    },
+    {
+      "timestamp_ms": 4198.411,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4198.483,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 4198.549,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4198.746,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4198.823,
+      "content": " races"
+    },
+    {
+      "timestamp_ms": 4198.884,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4207.156,
+      "content": " multi"
+    },
+    {
+      "timestamp_ms": 4292.77,
+      "content": "-thread"
+    },
+    {
+      "timestamp_ms": 4292.917,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 4292.987,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 4294.051,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 4306.794,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4394.831,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4395.032,
+      "content": " compile"
+    },
+    {
+      "timestamp_ms": 4395.137,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 4395.208,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 4413.597,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4420.6,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4434.903,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4456.004,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4471.809,
+      "content": "Fear"
+    },
+    {
+      "timestamp_ms": 4498.273,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 4513.023,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 4599.246,
+      "content": "currency"
+    },
+    {
+      "timestamp_ms": 4599.427,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4599.514,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 4599.584,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 4612.241,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4624.555,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4701.131,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4701.293,
+      "content": " unlock"
+    },
+    {
+      "timestamp_ms": 4701.468,
+      "content": " concurrency"
+    },
+    {
+      "timestamp_ms": 4701.644,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 4804.127,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4804.273,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4804.34,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 4804.397,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4804.457,
+      "content": " minimal"
+    },
+    {
+      "timestamp_ms": 4815.872,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 4866.273,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4866.447,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 4877.41,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4890.765,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4918.843,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 4930.888,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 4948.298,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4978.647,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4988.784,
+      "content": " races"
+    },
+    {
+      "timestamp_ms": 5006.772,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5111.728,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5111.872,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5111.997,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5112.078,
+      "content": "Minimal"
+    },
+    {
+      "timestamp_ms": 5112.14,
+      "content": " Runtime"
+    },
+    {
+      "timestamp_ms": 5121.512,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5201.016,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 5201.167,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 5201.259,
+      "content": " compiler"
+    },
+    {
+      "timestamp_ms": 5201.34,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5219.216,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 5240.442,
+      "content": " library"
+    },
+    {
+      "timestamp_ms": 5256.987,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5276.807,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 5316.191,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5317.775,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 5331.861,
+      "content": " imposing"
+    },
+    {
+      "timestamp_ms": 5418.477,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5418.663,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 5418.813,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5418.903,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5427.351,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 5521.057,
+      "content": " binaries"
+    },
+    {
+      "timestamp_ms": 5521.204,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5521.28,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 5521.344,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5521.538,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 5569.429,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5569.562,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 5582.661,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 5624.056,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5624.195,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 5634.623,
+      "content": " execut"
+    },
+    {
+      "timestamp_ms": 5752.301,
+      "content": "ables"
+    },
+    {
+      "timestamp_ms": 5752.514,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5752.609,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5752.687,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5752.751,
+      "content": " requirement"
+    },
+    {
+      "timestamp_ms": 5752.799,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5829.718,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5829.92,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 5830.011,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5830.088,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 5930.77,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5939.855,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5940.103,
+      "content": "Modern"
+    },
+    {
+      "timestamp_ms": 5940.215,
+      "content": " Tool"
+    },
+    {
+      "timestamp_ms": 5940.352,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 5940.429,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5961.92,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 6034.106,
+      "content": "cosystem"
+    },
+    {
+      "timestamp_ms": 6034.288,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6034.38,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 6036.208,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 6135.324,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6135.48,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 6135.551,
+      "content": " package"
+    },
+    {
+      "timestamp_ms": 6136.452,
+      "content": " manager"
+    },
+    {
+      "timestamp_ms": 6136.452,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6151.226,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 6170.848,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6237.521,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6237.672,
+      "content": " Cargo"
+    },
+    {
+      "timestamp_ms": 6237.746,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6246.778,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6340.484,
+      "content": " simpl"
+    },
+    {
+      "timestamp_ms": 6340.484,
+      "content": "ifies"
+    },
+    {
+      "timestamp_ms": 6340.689,
+      "content": " dependency"
+    },
+    {
+      "timestamp_ms": 6340.76,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 6340.924,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6361.165,
+      "content": " builds"
+    },
+    {
+      "timestamp_ms": 6382.468,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6449.405,
+      "content": " Additionally"
+    },
+    {
+      "timestamp_ms": 6449.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6449.69,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6459.877,
+      "content": " rich"
+    },
+    {
+      "timestamp_ms": 6476.126,
+      "content": " ecosystem"
+    },
+    {
+      "timestamp_ms": 6509.767,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 6514.879,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 6530.512,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6550.333,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 6651.063,
+      "content": " beneficial"
+    },
+    {
+      "timestamp_ms": 6651.196,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6651.261,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6651.316,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 6651.442,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6664.559,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 6749.558,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6749.747,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6749.879,
+      "content": "Performance"
+    },
+    {
+      "timestamp_ms": 6749.958,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6760.073,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 6851.775,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6851.924,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 6856.061,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6856.242,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 6856.317,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 6926.909,
+      "content": " close"
+    },
+    {
+      "timestamp_ms": 6927.139,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6927.277,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6934.791,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6958.239,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 6971.159,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6990.25,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 7057.41,
+      "content": "++."
+    },
+    {
+      "timestamp_ms": 7057.563,
+      "content": " Its"
+    },
+    {
+      "timestamp_ms": 7057.629,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 7064.521,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7160.388,
+      "content": " zero"
+    },
+    {
+      "timestamp_ms": 7160.535,
+      "content": "-cost"
+    },
+    {
+      "timestamp_ms": 7160.608,
+      "content": " ab"
+    },
+    {
+      "timestamp_ms": 7160.671,
+      "content": "stractions"
+    },
+    {
+      "timestamp_ms": 7160.722,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7262.06,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7262.262,
+      "content": " lack"
+    },
+    {
+      "timestamp_ms": 7262.394,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7262.499,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 7262.631,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 7273.969,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 7365.115,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7373.952,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 7374.144,
+      "content": "-su"
+    },
+    {
+      "timestamp_ms": 7374.365,
+      "content": "ited"
+    },
+    {
+      "timestamp_ms": 7374.58,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7466.948,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7467.107,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7467.183,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 7467.246,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7467.304,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 7568.896,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7569.035,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7569.102,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7569.157,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7569.206,
+      "content": "Inter"
+    },
+    {
+      "timestamp_ms": 7579.389,
+      "content": "oper"
+    },
+    {
+      "timestamp_ms": 7671.732,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 7671.878,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7671.949,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 7672.014,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7675.562,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 7774.058,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 7774.209,
+      "content": " seamless"
+    },
+    {
+      "timestamp_ms": 7774.285,
+      "content": " interoper"
+    },
+    {
+      "timestamp_ms": 7774.351,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 7774.413,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7788.588,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 7876.264,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7876.425,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 7876.5,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7885.566,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7885.74,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7978.859,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 7979.069,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 7979.215,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " invaluable"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " working"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 8286.164,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8286.552,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8286.742,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 8286.819,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8286.879,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8286.93,
+      "content": "Flex"
+    },
+    {
+      "timestamp_ms": 8388.12,
+      "content": "ibility"
+    },
+    {
+      "timestamp_ms": 8388.26,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8388.329,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 8388.391,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 8388.443,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8399.024,
+      "content": "unsafe"
+    },
+    {
+      "timestamp_ms": 8439.546,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8491.272,
+      "content": " blocks"
+    },
+    {
+      "timestamp_ms": 8491.508,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8491.661,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 8506.472,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 8519.371,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8593.11,
+      "content": " bypass"
+    },
+    {
+      "timestamp_ms": 8607.154,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 8607.28,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8607.347,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8624.029,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 8631.817,
+      "content": " safety"
+    },
+    {
+      "timestamp_ms": 8696.141,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 8696.391,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 8696.539,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 8707.815,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8805.39,
+      "content": " giving"
+    },
+    {
+      "timestamp_ms": 8814.134,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 8814.368,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8814.504,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 8814.609,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 8821.603,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8840.173,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 8857.895,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 8879.658,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8905.207,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 8920.992,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8935.468,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8961.268,
+      "content": " extend"
+    },
+    {
+      "timestamp_ms": 8981.563,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8993.488,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 9019.401,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9031.223,
+      "content": " safety"
+    },
+    {
+      "timestamp_ms": 9104.937,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 9105.102,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9105.183,
+      "content": "Together"
+    },
+    {
+      "timestamp_ms": 9105.246,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9216.728,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9216.936,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 9217.041,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 9217.12,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 9217.188,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9219.366,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 9312.428,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 9312.584,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 9312.658,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9312.716,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 9316.391,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9412.502,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9412.637,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 9412.699,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 9417.091,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9417.091,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 9429.182,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9517.62,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9521.091,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 9521.314,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9521.509,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 9523.83,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 9549.032,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9617.568,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 9617.701,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 9617.767,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9619.947,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9665.384,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9665.384,
+      "type": "done"
+    }
+  ],
+  "full_response": "Rust is particularly well-suited for systems programming due to several key features that address common challenges in developing low-level software. Here are the main features that make Rust an excellent choice in this domain:\n\n1. **Memory Safety**: Rust provides memory safety without needing a garbage collector. Its ownership model, along with borrow checking, ensures that you can't have dangling pointers, buffer overruns, or data races, which are critical concerns in systems programming.\n\n2. **Ownership System**: Rust enforces rules around how references to data can be used. This system of ownership, along with borrowing and lifetimes, helps prevent common bugs like null pointer dereferences and data races.\n\n3. **Zero-Cost Abstractions**: Rust allows developers to write high-level abstractions without a runtime cost, which is crucial for performance-sensitive systems programming tasks. These abstractions are compiled down to efficient machine code.\n\n4. **Concurrency**: Rust's ownership model naturally lends itself to creating safe concurrent code. It minimizes the risk of data races in multi-threaded applications due to its compile-time guarantees.\n\n5. **Fearless Concurrency**: With Rust, you can unlock concurrency support in your program with minimal changes, due to its safe handling of data races.\n\n6. **Minimal Runtime**: Rust's compiler and standard library are designed to avoid imposing a runtime on the resulting binaries, making it possible to create small and efficient executables, a key requirement in systems programming.\n\n7. **Modern Tooling and Ecosystem**: Rust has a comprehensive package manager and build system, Cargo, which simplifies dependency management and builds. Additionally, the rich ecosystem includes libraries and tools beneficial for systems programming.\n\n8. **Performance**: Rust is designed to provide performance close to that of C and C++. Its focus on zero-cost abstractions and a lack of runtime overhead make it well-suited for applications where performance is critical.\n\n9. **Interoperability with C**: Rust provides seamless interoperability with C, allowing you to use existing C libraries within Rust programs, which is invaluable when working with systems-level code.\n\n10. **Flexibility**: Rust provides `unsafe` blocks that allow developers to bypass some of its strict safety checks when necessary, giving them the control needed to interface directly with hardware or to extend the language's safety features.\n\nTogether, these features enable Rust to produce highly efficient, safe, and concurrent programs, making it a strong and modern choice for systems-level development.",
+  "response_chars": 2647,
+  "num_chunks": 490,
+  "ttft_ms": 306.41,
+  "total_ms": 9665.798,
+  "model_name": "model-medium"
+}

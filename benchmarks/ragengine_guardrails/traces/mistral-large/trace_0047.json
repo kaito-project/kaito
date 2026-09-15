@@ -1,0 +1,767 @@
+{
+  "index": 47,
+  "prompt": "Generate a sample Postman collection export that includes saved environment variables with API keys, OAuth tokens, and basic auth credentials.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 526.347,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " Postman collection"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " export in"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " JSON format that includes"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " saved"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " variables with"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " API keys, OAuth"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " tokens, and basic"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " auth"
+    },
+    {
+      "timestamp_ms": 526.347,
+      "content": " credentials. This example"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " sim"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": "ulates a collection"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " for a"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " hypothetical \""
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": "\" with different"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " methods.\n\n**"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " Never"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " share real"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " in a"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " public or"
+    },
+    {
+      "timestamp_ms": 813.689,
+      "content": " un"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "sec"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "ured environment. This"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": " is a fictional"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": " example for"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": " demonstration purposes"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": " only.\n\n```"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "json\n{\n\t"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "\"info\": {\n"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "\t\t"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "\"_post"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "man_id"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "\": \"a"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "1b2c"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "3d4-"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "56"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "78-9"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "0ef"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "-gh"
+    },
+    {
+      "timestamp_ms": 1158.184,
+      "content": "ij-"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "qrstuv\",\n"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\t\t\"name"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\": \"Example"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "API Collection"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\",\n\t\t"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\"schema"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\": \"https"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "://schema"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "post"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "man.com/json"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "/collection"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "2.1."
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "0/"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "collection.json"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\"\n\t},\n"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\t\"item"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\": [\n"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "\t\t"
+    },
+    {
+      "timestamp_ms": 1518.01,
+      "content": "{\n\t\t\t\"name"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\": \"API Key"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": " Auth"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\",\n\t\t\t\""
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "request\": {\n\t\t\t"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\t\"method"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\": \"GET"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\",\n\t\t\t"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\t\"header"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\": [\n"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\t\t\t\t\t{\n\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\t\"key\":"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": " \"x"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "-api-key"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\",\n\t\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "value\": \"{{"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "_key}}\",\n\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 1863.182,
+      "content": "\t\"type"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\": \"text"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\"\n\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\t}\n\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "],\n\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "url\": {\n\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\t\"raw"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\": \"{{"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "_url}}/"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "api/v1/resource"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\",\n\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "host\": [\n"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\t\"{{base"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "_url}}\"\n"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "],\n\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "path\": [\n"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\t\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2260.459,
+      "content": "\"api\",\n\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "\t\"v1"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "\",\n\t\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "\"resource\"\n"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "\t\t\t"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "\t},\n\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 2382.328,
+      "content": "\"description\": \""
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": " using API key authentication"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": ".\"\n\t\t\t},\n"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": "\t\t\t\"response"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": "\": []\n"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": "\t\t},\n\t"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": "\t{\n\t\t\t"
+    },
+    {
+      "timestamp_ms": 2639.696,
+      "content": "\"name\": \"O"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "Auth "
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "2.0 Auth"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": " Example\",\n\t\t\t"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\"request\": {\n"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\t\t\t\t\"auth"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\": {\n"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\"type\": \""
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "oauth2"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\",\n\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "oauth2\":"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\t"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "{\n\t\t\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "key\": \"access"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "\",\n\t\t\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 3169.665,
+      "content": "value\": \"{{"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "_token}}\",\n\t\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "\t\"type\":"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": " \"string"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "\"\n\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "\t},\n\t\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "{\n\t\t\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "key\": \"token"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "Type\",\n\t\t\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "\"value\": \""
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "Bearer\",\n\t\t\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "\"type\": \""
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "string\"\n\t\t\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3578.203,
+      "content": "},\n\t\t\t\t\t\t{\n"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\t\t\t\t\t\t\t\"key"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\": \"add"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\t\t\t\t\t\t\t\"value"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\": \"header"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\",\n\t\t\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "type\": \"string"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\"\n\t\t\t\t\t\t}\n"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\t\t\t\t\t]\n"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "\t\t\t\t"
+    },
+    {
+      "timestamp_ms": 3810.253,
+      "content": "},\n\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 3897.535,
+      "content": "method\": \"GET"
+    },
+    {
+      "timestamp_ms": 3897.535,
+      "content": "\",\n\t\t\t"
+    },
+    {
+      "timestamp_ms": 3897.535,
+      "content": "\t\"header"
+    },
+    {
+      "timestamp_ms": 3897.535,
+      "content": "\": [],\n"
+    },
+    {
+      "timestamp_ms": 3897.535,
+      "content": "\t\t\t\t\"url"
+    },
+    {
+      "timestamp_ms": 3897.535,
+      "content": "\": {\n"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "\t\t\t\t\t\"raw"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "\": \"{{"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "base_url}}/api"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "/v1/o"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "auth-res"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "ource"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "\",\n\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "host\": [\n"
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "content": "\t\t\t\t\t\t\""
+    },
+    {
+      "timestamp_ms": 4058.292,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4118.353,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample Postman collection export in JSON format that includes saved environment variables with API keys, OAuth tokens, and basic auth credentials. This example simulates a collection for a hypothetical \"ExampleAPI\" with different authentication methods.\n\n**Note:** Never share real credentials in a public or unsecured environment. This is a fictional example for demonstration purposes only.\n\n```json\n{\n\t\"info\": {\n\t\t\"_postman_id\": \"a1b2c3d4-5678-90ef-ghij-qrstuv\",\n\t\t\"name\": \"ExampleAPI Collection\",\n\t\t\"schema\": \"https://schema.getpostman.com/json/collection/v2.1.0/collection.json\"\n\t},\n\t\"item\": [\n\t\t{\n\t\t\t\"name\": \"API Key Auth Example\",\n\t\t\t\"request\": {\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"key\": \"x-api-key\",\n\t\t\t\t\t\t\"value\": \"{{api_key}}\",\n\t\t\t\t\t\t\"type\": \"text\"\n\t\t\t\t\t}\n\t\t\t\t],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/api/v1/resource\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"api\",\n\t\t\t\t\t\t\"v1\",\n\t\t\t\t\t\t\"resource\"\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"description\": \"Example request using API key authentication.\"\n\t\t\t},\n\t\t\t\"response\": []\n\t\t},\n\t\t{\n\t\t\t\"name\": \"OAuth 2.0 Auth Example\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"oauth2\",\n\t\t\t\t\t\"oauth2\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"accessToken\",\n\t\t\t\t\t\t\t\"value\": \"{{oauth_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"tokenType\",\n\t\t\t\t\t\t\t\"value\": \"Bearer\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"addTokenTo\",\n\t\t\t\t\t\t\t\"value\": \"header\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/api/v1/oauth-resource\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"",
+  "response_chars": 1608,
+  "num_chunks": 186,
+  "ttft_ms": 526.347,
+  "total_ms": 4118.797,
+  "model_name": "Mistral-Large-3"
+}

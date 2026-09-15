@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guardrails-demo-policy
+data:
+  guardrails.yaml: |
+    blockMessage: The model output was blocked by output guardrails.
+    scanners:
+      - type: ban_substrings
+        action: block
+        substrings:
+          - SECRET_PROJECT
+          - INTERNAL_ONLY
+        match_type: word
+        case_sensitive: false
+
+      - type: regex
+        action: redact
+        patterns:
+          - 'DEMO-[0-9]{4}'
+        match_type: search
+
+      - type: sensitive
+        action: redact
+        detectors:
+          - email

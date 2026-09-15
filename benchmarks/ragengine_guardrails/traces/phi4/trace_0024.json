@@ -1,0 +1,1403 @@
+{
+  "index": 24,
+  "prompt": "What is a service mesh and why would you use one in a microservices architecture?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 306.248,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 309.483,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 330.576,
+      "content": " mesh"
+    },
+    {
+      "timestamp_ms": 349.373,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 366.331,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 385.631,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 405.294,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 425.959,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 443.66,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 476.062,
+      "content": " facilitate"
+    },
+    {
+      "timestamp_ms": 491.841,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 499.666,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 520.555,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 537.75,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 559.231,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 576.144,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 595.128,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 614.295,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 634.297,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 652.106,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 671.246,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 690.6,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 710.696,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 729.661,
+      "content": "-service"
+    },
+    {
+      "timestamp_ms": 748.673,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 767.216,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 786.296,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 804.823,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 823.53,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 842.616,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 861.34,
+      "content": " decentralized"
+    },
+    {
+      "timestamp_ms": 881.851,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 899.759,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 918.923,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 938.261,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 956.925,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 976.079,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1002.381,
+      "content": " accomplished"
+    },
+    {
+      "timestamp_ms": 1021.347,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 1033.809,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1052.503,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 1071.853,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1091.338,
+      "content": " lightweight"
+    },
+    {
+      "timestamp_ms": 1110.327,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1129.526,
+      "content": " proxies"
+    },
+    {
+      "timestamp_ms": 1147.511,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1170.439,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 1187.03,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1205.601,
+      "content": " side"
+    },
+    {
+      "timestamp_ms": 1223.475,
+      "content": "cars"
+    },
+    {
+      "timestamp_ms": 1242.538,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1262.24,
+      "content": " inserted"
+    },
+    {
+      "timestamp_ms": 1280.96,
+      "content": " alongside"
+    },
+    {
+      "timestamp_ms": 1300.092,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1320.093,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 1339.715,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 1357.15,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1376.596,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 1396.831,
+      "content": " proxies"
+    },
+    {
+      "timestamp_ms": 1413.842,
+      "content": " impose"
+    },
+    {
+      "timestamp_ms": 1435.381,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 1451.806,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1470.931,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 1490.815,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1515.127,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 1530.998,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 1550.344,
+      "content": " aspects"
+    },
+    {
+      "timestamp_ms": 1566.495,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1593.197,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 1604.981,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1623.676,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 1642.506,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1673.787,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1680.865,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1699.72,
+      "content": " themselves"
+    },
+    {
+      "timestamp_ms": 1718.76,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1739.034,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1757.266,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1787.033,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1795.004,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1814.148,
+      "content": " reasons"
+    },
+    {
+      "timestamp_ms": 1835.265,
+      "content": " why"
+    },
+    {
+      "timestamp_ms": 1855.564,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1873.961,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 1890.932,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1910.893,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1929.443,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 1947.32,
+      "content": " mesh"
+    },
+    {
+      "timestamp_ms": 1966.982,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1986.645,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2004.459,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 2025.677,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 2046.976,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 2063.923,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2081.107,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2100.681,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2129.406,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2142.023,
+      "content": "Traffic"
+    },
+    {
+      "timestamp_ms": 2157.05,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 2202.903,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2202.903,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 2215.27,
+      "content": " meshes"
+    },
+    {
+      "timestamp_ms": 2236.458,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 2252.447,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 2273.071,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 2290.257,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2309.48,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 2330.379,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2350.731,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2368.83,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2390.518,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 2405.953,
+      "content": " balancing"
+    },
+    {
+      "timestamp_ms": 2425.164,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2442.8,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 2462.035,
+      "content": " routing"
+    },
+    {
+      "timestamp_ms": 2481.218,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2504.55,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2518.904,
+      "content": "ary"
+    },
+    {
+      "timestamp_ms": 2539.216,
+      "content": " releases"
+    },
+    {
+      "timestamp_ms": 2568.468,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2577.973,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 2595.76,
+      "content": "/B"
+    },
+    {
+      "timestamp_ms": 2619.298,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 2638.738,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2660.359,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2675.81,
+      "content": " fail"
+    },
+    {
+      "timestamp_ms": 2693.332,
+      "content": "over"
+    },
+    {
+      "timestamp_ms": 2717.873,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2729.967,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2766.321,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 2774.913,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2785.558,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 2818.32,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 2824.413,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 2845.416,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 2863.302,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2886.455,
+      "content": " reliably"
+    },
+    {
+      "timestamp_ms": 2900.533,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2919.988,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2952.314,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2957.199,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2976.365,
+      "content": "Observ"
+    },
+    {
+      "timestamp_ms": 2996.799,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 3016.199,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3034.015,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 3072.563,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 3072.563,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 3091.28,
+      "content": " observ"
+    },
+    {
+      "timestamp_ms": 3109.594,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 3128.988,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3149.221,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3167.578,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 3185.82,
+      "content": " collecting"
+    },
+    {
+      "timestamp_ms": 3204.97,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 3242.188,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3242.33,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 3262.368,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3281.179,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3300.617,
+      "content": " traces"
+    },
+    {
+      "timestamp_ms": 3326.991,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3338.22,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 3357.676,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 3376.621,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3397.224,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 3414.984,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 3438.263,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 3455.162,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3471.484,
+      "content": " troubleshooting"
+    },
+    {
+      "timestamp_ms": 3490.71,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 3510.159,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3529.472,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3548.518,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3575.183,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3585.713,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 3606.316,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3624.553,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3643.343,
+      "content": " meshes"
+    },
+    {
+      "timestamp_ms": 3662.291,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 3681.324,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 3700.996,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 3719.203,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3740.416,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3757.918,
+      "content": " mutual"
+    },
+    {
+      "timestamp_ms": 3792.06,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 3795.768,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3814.955,
+      "content": "Transport"
+    },
+    {
+      "timestamp_ms": 3833.425,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 3852.718,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 3875.254,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4001.025,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4001.219,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4001.332,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 4001.408,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4001.468,
+      "content": " authenticated"
+    },
+    {
+      "timestamp_ms": 4001.521,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 4007.489,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 4024.142,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 4046.369,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 4063.907,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4090.001,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4100.878,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 4120.406,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 4265.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4265.978,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4265.978,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 4265.978,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 4265.978,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4265.978,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4265.978,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4272.179,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4292.466,
+      "content": "Rel"
+    },
+    {
+      "timestamp_ms": 4314.501,
+      "content": "iability"
+    },
+    {
+      "timestamp_ms": 4329.799,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4348.941,
+      "content": " Features"
+    },
+    {
+      "timestamp_ms": 4370.247,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 4387.117,
+      "content": " circuit"
+    },
+    {
+      "timestamp_ms": 4413.318,
+      "content": " breaking"
+    },
+    {
+      "timestamp_ms": 4428.491,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4444.043,
+      "content": " retries"
+    },
+    {
+      "timestamp_ms": 4463.029,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4482.45,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4500.815,
+      "content": " timeouts"
+    },
+    {
+      "timestamp_ms": 4520.015,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4538.766,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4560.444,
+      "content": " configured"
+    },
+    {
+      "timestamp_ms": 4576.697,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 4595.913,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4614.95,
+      "content": " mesh"
+    },
+    {
+      "timestamp_ms": 4634.044,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4653.323,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 4672.49,
+      "content": " resilience"
+    },
+    {
+      "timestamp_ms": 4691.372,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4711.93,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 4729.338,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 4748.972,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 4768.39,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4791.668,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 4806.139,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 4826.82,
+      "content": " ecosystem"
+    },
+    {
+      "timestamp_ms": 4843.662,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4862.874,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4882.297,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4903.86,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4919.795,
+      "content": "Platform"
+    },
+    {
+      "timestamp_ms": 4939.05,
+      "content": " Ag"
+    },
+    {
+      "timestamp_ms": 4958.275,
+      "content": "nostic"
+    },
+    {
+      "timestamp_ms": 4977.141,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4997.689,
+      "content": " Since"
+    },
+    {
+      "timestamp_ms": 5036.529,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 5041.598,
+      "content": " meshes"
+    },
+    {
+      "timestamp_ms": 5053.015,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5072.447,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 5091.677,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5111.306,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5131.276,
+      "content": " ag"
+    },
+    {
+      "timestamp_ms": 5157.161,
+      "content": "nostic"
+    },
+    {
+      "timestamp_ms": 5167.902,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5186.78,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5207.997,
+      "content": " underlying"
+    },
+    {
+      "timestamp_ms": 5224.622,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 5243.645,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5262.955,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 5282.028,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 5301.71,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 5320.002,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5338.994,
+      "content": " complexities"
+    },
+    {
+      "timestamp_ms": 5358.708,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5378.112,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 5396.385,
+      "content": " inter"
+    },
+    {
+      "timestamp_ms": 5415.419,
+      "content": "-service"
+    },
+    {
+      "timestamp_ms": 5435.102,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 5453.778,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5474.599,
+      "content": " regardless"
+    },
+    {
+      "timestamp_ms": 5492.55,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5512.024,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 5531.427,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5548.93,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5568.121,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5587.948,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 5606.306,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5638.033,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5644.115,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5663.508,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5682.365,
+      "content": "Configuration"
+    },
+    {
+      "timestamp_ms": 5701.332,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5720.795,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 5739.384,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5759.476,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 5780.235,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 5796.793,
+      "content": " centralized"
+    },
+    {
+      "timestamp_ms": 5816.049,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 5835.199,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5853.863,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 5873.981,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5892.426,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 5911.384,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 5931.062,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5949.754,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5968.378,
+      "content": " plane"
+    },
+    {
+      "timestamp_ms": 5987.454,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 6009.417,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6025.61,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 6044.596,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6063.749,
+      "content": " operational"
+    },
+    {
+      "timestamp_ms": 6082.648,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 6103.008,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6120.927,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 6144.177,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6159.0,
+      "content": " operators"
+    },
+    {
+      "timestamp_ms": 6179.102,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6198.132,
+      "content": "Overall"
+    },
+    {
+      "timestamp_ms": 6251.038,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6251.038,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6257.644,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 6273.768,
+      "content": " mesh"
+    },
+    {
+      "timestamp_ms": 6291.658,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 6312.322,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6330.834,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6349.8,
+      "content": " manages"
+    },
+    {
+      "timestamp_ms": 6369.166,
+      "content": " complexities"
+    },
+    {
+      "timestamp_ms": 6387.976,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6415.25,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 6425.794,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 6445.99,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 6464.544,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6482.871,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 6502.339,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 6522.151,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6540.404,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 6559.928,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6578.781,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 6597.927,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6616.923,
+      "content": " securing"
+    },
+    {
+      "timestamp_ms": 6636.147,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6654.924,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6675.122,
+      "content": " troubleshooting"
+    },
+    {
+      "timestamp_ms": 6693.108,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 6711.951,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 6731.2,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6750.494,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6769.231,
+      "content": " unified"
+    },
+    {
+      "timestamp_ms": 6804.898,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6807.153,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 6826.9,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 6846.342,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6865.291,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 6865.291,
+      "type": "done"
+    }
+  ],
+  "full_response": "A service mesh is an infrastructure layer designed to facilitate communication between microservices. It provides a way to control service-to-service communication, often in a highly decentralized and dynamic environment. This is accomplished through a set of lightweight network proxies, known as sidecars, inserted alongside each service instance. These proxies impose predefined network policies and control communication aspects without requiring code changes to the services themselves.\n\nHere are some key reasons why you might use a service mesh in a microservices architecture:\n\n1. **Traffic Management**: Service meshes provide advanced traffic control capabilities, such as load balancing, traffic routing for canary releases, A/B testing, and failover. This helps in managing application traffic efficiently and reliably.\n\n2. **Observability**: They offer robust observability features by automatically collecting metrics, logs, and traces for service communication, enabling detailed monitoring and troubleshooting capabilities.\n\n3. **Security**: Service meshes enhance security through features like mutual TLS (Transport Layer Security) to ensure encrypted and authenticated communication between microservices, access control policies, and identity management.\n\n4. **Reliability**: Features like circuit breaking, retries, and timeouts can be configured within the mesh to improve resilience and fault tolerance across the microservices ecosystem.\n\n5. **Platform Agnostic**: Since service meshes are designed to be agnostic of the underlying platform, they help abstract the complexities of handling inter-service communication, regardless of where the services are deployed.\n\n6. **Configuration and Management**: They allow centralized configuration and management of communication policies and data plane operations, reducing the operational overhead for developers and operators.\n\nOverall, a service mesh abstracts and manages complexities of microservices communication, providing teams with tools for scaling, securing, and troubleshooting distributed applications in a unified, consistent way.",
+  "response_chars": 2113,
+  "num_chunks": 345,
+  "ttft_ms": 306.248,
+  "total_ms": 6870.271,
+  "model_name": "model-medium"
+}

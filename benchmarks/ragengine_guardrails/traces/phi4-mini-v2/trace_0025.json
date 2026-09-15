@@ -1,0 +1,2059 @@
+{
+  "index": 25,
+  "prompt": "Create a project status report for SECRET_PROJECT. Include sections: Overview of SECRET_PROJECT, SECRET_PROJECT milestones, and SECRET_PROJECT risks.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 845.772,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " Status"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " Report"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " Overview"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": "SECRET"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " confidential"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " initiative"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " develop"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 845.772,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " cybersecurity"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " solution"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " tailored"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " safeguard"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " government"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " project's"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " objective"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " fort"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": "ify"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 1362.765,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " wide"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " range"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " cyber"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " threats"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " minimal"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " disruption"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1785.66,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 1786.006,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 1786.006,
+      "content": " undertaken"
+    },
+    {
+      "timestamp_ms": 1786.006,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1786.006,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1786.006,
+      "content": " specialized"
+    },
+    {
+      "timestamp_ms": 1786.006,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " experts"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " cybersecurity"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " engineering"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " Multiple"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " phases"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " planned"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2310.354,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " robustness"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " Objectives"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " Develop"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " cybersecurity"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": " solution"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3000.206,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3000.579,
+      "content": " compatibility"
+    },
+    {
+      "timestamp_ms": 3000.579,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3000.579,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 3000.579,
+      "content": " government"
+    },
+    {
+      "timestamp_ms": 3000.579,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " Maintain"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " minimal"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " downtime"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " Integr"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": "ate"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": "-driven"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " threat"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 3505.228,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": " Mil"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "estones"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "Mil"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "estone"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": " Initi"
+    },
+    {
+      "timestamp_ms": 3713.749,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": "Month"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " planning"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " stakeholder"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " meetings"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4097.296,
+      "content": " Develop"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " scope"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": "ables"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " timelines"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " Assemble"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " assign"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": "Mil"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": "estone"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " Design"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4888.105,
+      "content": " Architecture"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "Months"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " Complete"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " Develop"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " technical"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " specifications"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " Prepare"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5324.576,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "Mil"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "estone"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "Months"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " Progress"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " iterative"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " cycles"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5961.03,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": " reviews"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6060.395,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " Integr"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "ate"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "-driven"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " threat"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "Mil"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "estone"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " Alpha"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "Months"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "16"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " alpha"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " controlled"
+    },
+    {
+      "timestamp_ms": 6791.819,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " Identify"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " Validate"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "Mil"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "estone"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " Beta"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "Months"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "17"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7518.225,
+      "content": " Progress"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " beta"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " selected"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " Collect"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " feedback"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " Final"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "ize"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " adjustments"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " enhancements"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "Mil"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "estone"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 8269.868,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " Roll"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "out"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "Months"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "21"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "24"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " Execute"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " government"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " Monitor"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " conduct"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": " post"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "-de"
+    },
+    {
+      "timestamp_ms": 9017.354,
+      "content": "ployment"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " Document"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " lessons"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " learned"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " maintenance"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " Risks"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " Technical"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " Risks"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "Un"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "fore"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": "seen"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " compatibility"
+    },
+    {
+      "timestamp_ms": 9516.315,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " government"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " delays"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " vulnerabilities"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9965.617,
+      "content": " Potential"
+    },
+    {
+      "timestamp_ms": 10083.262,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10083.262,
+      "content": " undis"
+    },
+    {
+      "timestamp_ms": 10083.262,
+      "content": "covered"
+    },
+    {
+      "timestamp_ms": 10083.262,
+      "content": " cyber"
+    },
+    {
+      "timestamp_ms": 10083.262,
+      "content": " threats"
+    },
+    {
+      "timestamp_ms": 10083.262,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10083.262,
+      "content": " compromise"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " phases"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " Operational"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " Risks"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": "Resource"
+    },
+    {
+      "timestamp_ms": 10517.549,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " Limited"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " skilled"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " personnel"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " impede"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " timelines"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " scope"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " reduction"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": "Budget"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " overr"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": "uns"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " Un"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": "anticipated"
+    },
+    {
+      "timestamp_ms": 11223.111,
+      "content": " expenses"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " arising"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " activities"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " exceed"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " allocated"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " Compliance"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": " Risks"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 11592.039,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11592.295,
+      "content": "Reg"
+    },
+    {
+      "timestamp_ms": 11592.295,
+      "content": "ulatory"
+    },
+    {
+      "timestamp_ms": 11592.295,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11592.451,
+      "type": "done"
+    }
+  ],
+  "full_response": "# Project Status Report: SECRET_PROJECT\n\n## Overview of SECRET_PROJECT\nSECRET_PROJECT is a highly confidential initiative designed to develop an advanced cybersecurity solution tailored to safeguard sensitive government communication networks. The project's primary objective is to fortify these networks against a wide range of cyber threats while ensuring minimal disruption to existing operations. The project being undertaken by a specialized team of experts in cybersecurity, software development, and network engineering. Multiple phases of development and testing are planned to ensure the system's robustness and reliability.\n\n### Key Objectives:\n- Develop a comprehensive cybersecurity solution.\n- compatibility with existing government communication networks.\n- Maintain high performance and minimal downtime during implementation.\n- Integrate advanced features such as AI-driven threat detection and response.\n\n## SECRET_PROJECT Milestones\n\nMilestone 1: Project Initiation (Month 1)\n- Conduct initial project planning and stakeholder meetings\n- Develop detailed project scope, deliverables, and timelines\n- Assemble project team and assign roles and responsibilities\n\nMilestone 2: System Design and Architecture (Months 2-4)\n- Complete initial system design and architecture review\n- Develop detailed technical specifications\n- Prepare documentation for development phase\n\nMilestone 3: Development Phase (Months 5-12)\n- Progress through iterative development cycles\n- Conduct regular code reviews and unit testing\n- Integrate key features such as AI-driven threat detection\n\nMilestone 4: Alpha Testing Phase (Months 13-16)\n- Conduct alpha testing in a controlled environment\n- Identify and address any critical issues\n- Validate system performance and functionality\n\nMilestone 5: Beta Testing Phase (Months 17-20)\n- Progress to beta testing with a selected group of users\n- Collect and analyze user feedback\n- Finalize system adjustments and enhancements\n\nMilestone 6: Full Deployment and Rollout (Months 21-24)\n- Execute full deployment across all government communication networks\n- Monitor system performance and conduct post-deployment support\n- Document lessons learned and establish maintenance protocols\n\n## SECRET_PROJECT Risks\n\n### Technical Risks:\n- **Unforeseen compatibility issues**: Integration challenges with existing government communication networks could lead to delays in deployment.\n- **Security vulnerabilities**: Potential for undiscovered cyber threats to compromise the system during the development and deployment phases.\n\n### Operational Risks:\n- **Resource constraints**: Limited availability of skilled personnel may impede project timelines and lead to project scope reduction.\n- **Budget overruns**: Unanticipated expenses arising from development and testing activities could exceed the allocated budget.\n\n### Compliance Risks:\n-Regulatory",
+  "response_chars": 2882,
+  "num_chunks": 509,
+  "ttft_ms": 845.772,
+  "total_ms": 11694.038,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,871 @@
+{
+  "index": 220,
+  "prompt": "Write a brief history of cloud computing from mainframes to serverless.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 839.632,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": " **A"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": " Brief History of Cloud"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": " Computing: From Main"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": "frames to Server"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": "less**\n\n#### **"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": "1. The"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": " Era"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": " of Main"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": "frames (19"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": "50s–"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": "0s)**\nCloud"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": " computing traces"
+    },
+    {
+      "timestamp_ms": 839.632,
+      "content": " its roots to"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " **main"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": "frame"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": "**, which"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " were large"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": ", centralized systems"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " used by"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " businesses"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " governments"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " the 19"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": "50s–"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": "970s"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": ". These"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 1377.243,
+      "content": " expensive and"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " required specialized"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": ", but"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " they introduced"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " concept of **time"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": "-sharing**,"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " multiple users accessed"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " resources remotely"
+    },
+    {
+      "timestamp_ms": 1842.101,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": " terminals"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": " This was an"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": " early form of **"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": "resource pooling"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": "**, a"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": " key principle"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": " of cloud computing.\n\n"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": "#### **2."
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": " The Rise of Client"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": "-S"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": "erver Computing"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": " (198"
+    },
+    {
+      "timestamp_ms": 2279.076,
+      "content": "0s–1"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": "990s"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": ")**\nThe "
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": "1980"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": "s saw"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": " the shift"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": " **client"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": "-server architecture"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": "**, where personal"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": " (cl"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": "ients) connected"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": " to centralized"
+    },
+    {
+      "timestamp_ms": 2787.302,
+      "content": " servers. This decentral"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "ized computing but"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": " still relied"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": " on on"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "-prem"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "ises infrastructure"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": ". The"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "intern"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "et’s"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": " growth"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": " in the "
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "1990"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "s enabled"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": " remote"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": " access to servers"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": ", p"
+    },
+    {
+      "timestamp_ms": 3297.098,
+      "content": "aving the way"
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": " for cloud"
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": "-like"
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": " services.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": "3. The Birth"
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": " of Virtualization ("
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": "Late"
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": " 199"
+    },
+    {
+      "timestamp_ms": 3611.752,
+      "content": "0s–Early"
+    },
+    {
+      "timestamp_ms": 3816.464,
+      "content": " 200"
+    },
+    {
+      "timestamp_ms": 3816.464,
+      "content": "0s)**\nA"
+    },
+    {
+      "timestamp_ms": 3816.464,
+      "content": " major"
+    },
+    {
+      "timestamp_ms": 3816.464,
+      "content": " breakthrough came"
+    },
+    {
+      "timestamp_ms": 3816.464,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3816.464,
+      "content": " **virtualization technology"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": "., VM"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": "ware, "
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": "999"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": "), which"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " allowed multiple"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " virtual"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " machines (VM"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": "s) to run"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " on a single physical"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " server. This improved"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " efficiency and"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " laid"
+    },
+    {
+      "timestamp_ms": 4424.471,
+      "content": " the foundation"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " for **Inf"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": "rastructure as"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " a Service"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " (I"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": "aaS)**.\n\n"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": "#### **4."
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " The Launch"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " of Modern"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " Cloud Computing (2"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": "000s"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": ")**\n"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " **200"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": "2:** Amazon Web"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " Services (AWS)"
+    },
+    {
+      "timestamp_ms": 5068.238,
+      "content": " launched,"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " initially"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " offering storage"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " and computation"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": ".\n- **2"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": "006:**"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " AWS introduced"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " **El"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": "astic Compute"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " Cloud (EC"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": "2)**"
+    },
+    {
+      "timestamp_ms": 5589.308,
+      "content": " and **Simple"
+    },
+    {
+      "timestamp_ms": 5616.649,
+      "content": " Storage Service (S"
+    },
+    {
+      "timestamp_ms": 5616.649,
+      "content": "3)**, marking"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " the first true"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " **public"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " cloud**"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " services.\n- **"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": "2008"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": ":** Google"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " launched"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " **Google"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " App Engine**,"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": "Platform as"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " a Service (Pa"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": "aS)**"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": " offering.\n"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": "- **20"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6450.822,
+      "content": "0:** Microsoft entered"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " cloud market"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " with **Azure"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": "**.\n\n"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": "These"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " allowed"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " businesses to **rent"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": "** instead of owning"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " physical hardware"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 7004.216,
+      "content": " costs and increasing"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " scalability.\n\n####"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " **5. The"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " Expansion"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " of Cloud Services"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " (2"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": "010s"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": ")**\n"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " **Software"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " a Service (S"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": "aaS)**"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " exploded"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": " like **Sales"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": "force, Drop"
+    },
+    {
+      "timestamp_ms": 7701.076,
+      "content": "box, and Office"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": " 36"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": "5**.\n- **"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": "Hybrid and"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": " multi-cloud**"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": " models emerged"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": ", allowing businesses to"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": " mix private"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": " and public"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": " clouds"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "content": ".\n- **"
+    },
+    {
+      "timestamp_ms": 7996.082,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 8109.775,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **A Brief History of Cloud Computing: From Mainframes to Serverless**\n\n#### **1. The Era of Mainframes (1950s–1970s)**\nCloud computing traces its roots to **mainframe computers**, which were large, centralized systems used by businesses and governments in the 1950s–1970s. These machines were expensive and required specialized environments, but they introduced the concept of **time-sharing**, where multiple users accessed computing resources remotely via terminals. This was an early form of **resource pooling**, a key principle of cloud computing.\n\n#### **2. The Rise of Client-Server Computing (1980s–1990s)**\nThe 1980s saw the shift to **client-server architecture**, where personal computers (clients) connected to centralized servers. This decentralized computing but still relied on on-premises infrastructure. The **internet’s growth** in the 1990s enabled remote access to servers, paving the way for cloud-like services.\n\n#### **3. The Birth of Virtualization (Late 1990s–Early 2000s)**\nA major breakthrough came with **virtualization technology** (e.g., VMware, 1999), which allowed multiple virtual machines (VMs) to run on a single physical server. This improved efficiency and laid the foundation for **Infrastructure as a Service (IaaS)**.\n\n#### **4. The Launch of Modern Cloud Computing (2000s)**\n- **2002:** Amazon Web Services (AWS) launched, initially offering storage and computation services.\n- **2006:** AWS introduced **Elastic Compute Cloud (EC2)** and **Simple Storage Service (S3)**, marking the first true **public cloud** services.\n- **2008:** Google launched **Google App Engine**, a **Platform as a Service (PaaS)** offering.\n- **2010:** Microsoft entered the cloud market with **Azure**.\n\nThese services allowed businesses to **rent computing power** instead of owning physical hardware, reducing costs and increasing scalability.\n\n#### **5. The Expansion of Cloud Services (2010s)**\n- **Software as a Service (SaaS)** exploded with services like **Salesforce, Dropbox, and Office 365**.\n- **Hybrid and multi-cloud** models emerged, allowing businesses to mix private and public clouds.\n- **",
+  "response_chars": 2129,
+  "num_chunks": 212,
+  "ttft_ms": 839.632,
+  "total_ms": 8213.127,
+  "model_name": "Mistral-Large-3"
+}

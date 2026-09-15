@@ -1,0 +1,771 @@
+{
+  "index": 73,
+  "prompt": "Describe how content delivery networks improve web performance.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 904.489,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " greatly"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " ge"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": "ol"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": "ocations"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " speeds"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 904.489,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " loading"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " factor"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " retention"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " satisfaction"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1515.857,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " CDN"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " serves"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " closest"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " decreased"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " loading"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " caching"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " variety"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " globally"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 2129.067,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " heavily"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " strain"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " spread"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " resilient"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " face"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 2706.051,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " addition"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " feature"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " compression"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " optimization"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " custom"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3235.131,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " boosting"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " Overall"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " hosting"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " workload"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3877.186,
+      "content": " optimizing"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": "Ns"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " superior"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": "-performance"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " translates"
+    },
+    {
+      "timestamp_ms": 4119.594,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " engagement"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " SEO"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " improved"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4417.453,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 4486.328,
+      "type": "done"
+    }
+  ],
+  "full_response": "Content delivery networks (CDNs) greatly improve web performance by distributing content across multiple servers and geolocations. This speeds up content delivery and reduces latency, ensuring faster loading times, a crucial factor in user retention and satisfaction. When a user requests a website or resource, the CDN serves it from the closest server, resulting in decreased overall loading time. By caching content on a variety of servers globally, CDNs can heavily reduce the strain on a website’s primary server and spread traffic, making the website more scalable and resilient in the face of high traffic. In addition, CDNs often include advanced security features, feature compression and optimization technologies, and custom configurations that are specific to the needs of the website or content, a further boosting of performance. Overall, by reducing latency, distributing the hosting workload, and optimizing the website, CDNs ensure superior web-performance that translates to increased engagement, better SEO results, and overall improved user experience.",
+  "response_chars": 1072,
+  "num_chunks": 187,
+  "ttft_ms": 904.489,
+  "total_ms": 4599.148,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,2051 @@
+{
+  "index": 117,
+  "prompt": "Create a sample Python script that connects to multiple services using hardcoded API keys for OpenAI, Azure, Google Cloud, and GitHub.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 957.951,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " connects"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 957.951,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " Note"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": "-the"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": "Internet"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": "coding"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1580.062,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " reasons"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "Here's"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " os"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " google"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": ".cloud"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2288.378,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " Keys"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "Do"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "OPEN"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_open"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 3172.855,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_C"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "LOUD"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_google"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_cloud"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_project"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "ITHUB"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_g"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "ithub"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "'\n\n"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " Define"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": "headers"
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3999.819,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "'b"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "ear"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "ITHUB"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "}'\n"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": " Connect"
+    },
+    {
+      "timestamp_ms": 5020.042,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "_open"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": ".api"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": " OPEN"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": ".Com"
+    },
+    {
+      "timestamp_ms": 5022.074,
+      "content": "pletion"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": ".create"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "(\n"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": " engine"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "dav"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "inci"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": " prompt"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": "Translate"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 5269.294,
+      "content": " English"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " French"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "Hello"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "?'"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " max"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "_tokens"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "60"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5766.529,
+      "content": " )\n"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "Open"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "response"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "choices"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "]."
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 6486.462,
+      "content": ".strip"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "\")\n\n"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " Connect"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 6486.872,
+      "content": "_account"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": " os"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": ".environ"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "_ACCOUNT"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "')\n"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": " os"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": ".environ"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 7302.409,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": "')\n\n"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " Set"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": ".identity"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 7311.84,
+      "content": " Default"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "Azure"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "Credential"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": ".m"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "gmt"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": ".compute"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": " Compute"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "Management"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 7739.754,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7740.074,
+      "content": "Azure"
+    },
+    {
+      "timestamp_ms": 7740.074,
+      "content": "Credential"
+    },
+    {
+      "timestamp_ms": 7740.074,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 7740.074,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 7740.074,
+      "content": "_account"
+    },
+    {
+      "timestamp_ms": 7820.323,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7820.323,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 7820.323,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 7820.323,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7820.323,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": " Compute"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "Management"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "(credentials"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "')"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 8532.475,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " subscription"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " Virtual"
+    },
+    {
+      "timestamp_ms": 8535.88,
+      "content": " Machines"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " subscription"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " vm"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "_list"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": ".virtual"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "_m"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "achines"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": ".list"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "_all"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " vm"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " vm"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "_list"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "vm"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": ".name"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "},"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " Location"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": "vm"
+    },
+    {
+      "timestamp_ms": 9351.041,
+      "content": ".location"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "}\")\n\n"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " Connect"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "_google"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "_cloud"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " google"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": ".cloud"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "_v"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "_v"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": ".In"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "stances"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "()\n\n"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " Get"
+    },
+    {
+      "timestamp_ms": 10068.458,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 10121.374,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10121.374,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10121.374,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "replace"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "instance"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "')\n"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "_instance"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "(instance"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "instance"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 10886.759,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "_C"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "LOUD"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "_description"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "instance"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": ".name"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "},"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "Zone"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "instance"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": ".zone"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "},"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "Machine"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": "instance"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "content": ".machine"
+    },
+    {
+      "timestamp_ms": 11415.122,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11420.863,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is an example of a Python script that connects to multiple services using hardcoded API keys for OpenAI, Azure, Google Cloud, and GitHub. Note that for over-the-Internet usage, you should use environment variables or secure key management systems rather than hardcoding sensitive keys into your code for security reasons.\n\nHere's the example Python script:\n\n```python\nimport openai\nimport os\nimport azure\nimport google.cloud\nimport requests\n\n# Hardcoded API Keys (Do not store them this way in production code)\nOPENAI_API_KEY = 'your_openai_api_key_here'\nAZURE_API_KEY = 'your_azure_api_key_here'\nGOOGLE_CLOUD_PROJECT_ID = 'your_google_cloud_project_id'\nGITHUB_TOKEN = 'your_github_token_here'\n\n# Define headers for HTTP requests\nheaders = {\n    'Authorization': f'bearer {GITHUB_TOKEN}'\n}\n\n# Connect toAI\ndef call_openai():\n    openai.api_key = OPENAI_API_KEY\n    response = openai.Completion.create(\n        engine=\"davinci\",\n        prompt=\"Translate the following English text to French: 'Hello, how are you?'\",\n        max_tokens=60\n    )\n    print(f\"OpenAI Response: {response.choices[0].text.strip\")\n\n# Connect to Azure\ndef call_azure():\n    # Azure account credentials\n    azure_account = os.environ.get('AZURE_ACCOUNT')\n    azure_password = os.environ.get('URE_PASSWORD')\n\n    # Set up with Azure\n    from azure.identity import DefaultAzureCredential\n    from azure.mgmt.compute import ComputeManagementClient\n\n    credentials =AzureCredential(azure_account, azure_password)\n    compute_client = ComputeManagementClient(credentials, 'sub_id') # Replace 'sub_id with your subscription ID\n\n    # Function to list all Virtual Machines in the subscription\n    vm_list = compute_client.virtual_machines.list_all()\n    for vm in vm_list:\n        print(f\"Name: {vm.name}, Location: {vm.location}\")\n\n# Connect to Google Cloud\ndef call_google_cloud():\n    from google.cloud import compute_v1\n    client = compute_v1.InstancesClient()\n\n    # Get details of a specific instance (replace 'instance_name')\n    instance_id = 'your_instance_name'\n    instance = client.get(instance=instance_id, project=GOOGLE_CLOUD_PROJECT_ID)\n    instance_description = f\"Name: {instance.name},Zone: {instance.zone},Machine type: {instance.machine",
+  "response_chars": 2243,
+  "num_chunks": 507,
+  "ttft_ms": 957.951,
+  "total_ms": 11555.068,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,823 @@
+{
+  "index": 190,
+  "prompt": "Explain the difference between processes and threads in operating systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1049.677,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": " systems, **"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": "processes** and"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": " **threads"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": "** are both"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": " for executing programs"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": ", but they differ"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": " in key ways"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": " Definition"
+    },
+    {
+      "timestamp_ms": 1049.677,
+      "content": "**\n- **Process"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": "**:\n  - A"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " **process"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": "** is an"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " of a program in"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " execution.\n  -"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " It includes"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " the program"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": ", data"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": ", resources"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " (like file"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " handles, memory),"
+    },
+    {
+      "timestamp_ms": 1833.682,
+      "content": " and execution"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " state.\n  -"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " process runs"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " in its"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " own **isol"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": "ated memory space**"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " (virtual"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " address space"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": ").\n\n- **Thread"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": "**:\n  - A"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " **thread** is"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2213.626,
+      "content": " smallest unit of execution"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " within a process.\n"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": "  - Multiple"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " threads can"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " exist"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " a single process,"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " sharing the same memory"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " resources.\n  -"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " Thread"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": "s are sometimes"
+    },
+    {
+      "timestamp_ms": 2761.51,
+      "content": " called **\""
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": "lightweight processes"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": "\"**"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": " because they have"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": " lower"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": " overhead than"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": ".\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": " Key Differences**\n\n"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": "| Feature"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": "              "
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": " | Process"
+    },
+    {
+      "timestamp_ms": 3245.535,
+      "content": "                          | Thread                         "
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": " |\n|--------------------"
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": "---|--------------------------------"
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": "--|---------------------------------"
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": "|\n| **Memory"
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": " Space"
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": "**     "
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": " | Separ"
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": "ate ("
+    },
+    {
+      "timestamp_ms": 3683.821,
+      "content": "isolated)             "
+    },
+    {
+      "timestamp_ms": 3773.44,
+      "content": " | Shared"
+    },
+    {
+      "timestamp_ms": 3773.44,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " the same process "
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " |\n| **Creation"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " Over"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": "head** |"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " High (requires"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " allocation"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": ") | Low"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " (uses"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " existing process"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " memory) |\n|"
+    },
+    {
+      "timestamp_ms": 4698.801,
+      "content": " **Communication"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": "**    "
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": " | Inter-"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": "Process Communication (I"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": "PC) ("
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": "slow"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": " | Direct"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": " (fast"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": ", via"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": " shared memory) |\n"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": "| **Context"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": " Switch"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": "ing** | Sl"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": "ower (requires"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": " OS intervention"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": ") |"
+    },
+    {
+      "timestamp_ms": 5182.599,
+      "content": " F"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": "aster (hand"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": "led within the"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " process) |\n|"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " **Independ"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": "ence**     "
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " | Ful"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": "ly independent               "
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " | Dep"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": "endent"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": "if"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " crashes,"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": " all threads die"
+    },
+    {
+      "timestamp_ms": 5736.479,
+      "content": ") |\n| **"
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": "Resource Usage"
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": "**   "
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": " | More"
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": "each"
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": " its own memory"
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": ")  "
+    },
+    {
+      "timestamp_ms": 6068.161,
+      "content": " | Less"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": " (sh"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": "ares memory with"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": " threads) |\n|"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": " **Parallel"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": "ism**      "
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": " | Can run"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": " on different CP"
+    },
+    {
+      "timestamp_ms": 6476.172,
+      "content": "Us       "
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": " | Can run on"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": " different CP"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": "Us (if"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": " multi"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": "-core) |\n"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": "| **Security"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": "**         "
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": " | More secure ("
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": "isolated)          "
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": " | Less"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": " secure (shared memory"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": " risks"
+    },
+    {
+      "timestamp_ms": 6943.622,
+      "content": ") |\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": " **3. When"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": " to Use Which"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": "?**\n- **"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": "Use Processes when"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": ":**\n  - You"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": " need **strong"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": " isolation** (e"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": ".g., running un"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": "trusted code"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": ").\n  - You"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": " want **fault"
+    },
+    {
+      "timestamp_ms": 7382.732,
+      "content": " tolerance** (one"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": " process crashing"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": " doesn’t affect"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": " others).\n  -"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": " need **different"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": " memory spaces"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 7756.456,
+      "content": "., different"
+    },
+    {
+      "timestamp_ms": 7994.09,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 7994.09,
+      "content": " sessions"
+    },
+    {
+      "timestamp_ms": 7994.09,
+      "content": ").\n\n- **Use"
+    },
+    {
+      "timestamp_ms": 7994.09,
+      "content": " Threads when"
+    },
+    {
+      "timestamp_ms": 7994.09,
+      "content": ":**\n  - You"
+    },
+    {
+      "timestamp_ms": 7994.09,
+      "content": " need **fast communication"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": "** between"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " servers handling"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " requests).\n  -"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " You want"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " **lower"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": "., background"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " tasks in an"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " app).\n  -"
+    },
+    {
+      "timestamp_ms": 8628.364,
+      "content": " You need **parallel"
+    },
+    {
+      "timestamp_ms": 8760.194,
+      "content": "ism** (e"
+    },
+    {
+      "timestamp_ms": 8760.194,
+      "content": ".g., multi"
+    },
+    {
+      "timestamp_ms": 8760.194,
+      "content": "-core CPU"
+    },
+    {
+      "timestamp_ms": 8760.194,
+      "content": " utilization"
+    },
+    {
+      "timestamp_ms": 8760.194,
+      "content": ").\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 8760.194,
+      "content": "4."
+    },
+    {
+      "timestamp_ms": 8760.194,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9042.688,
+      "type": "done"
+    }
+  ],
+  "full_response": "In operating systems, **processes** and **threads** are both mechanisms for executing programs, but they differ in key ways:\n\n### **1. Definition**\n- **Process**:\n  - A **process** is an instance of a program in execution.\n  - It includes the program code, data, resources (like file handles, memory), and execution state.\n  - Each process runs in its own **isolated memory space** (virtual address space).\n\n- **Thread**:\n  - A **thread** is the smallest unit of execution within a process.\n  - Multiple threads can exist within a single process, sharing the same memory and resources.\n  - Threads are sometimes called **\"lightweight processes\"** because they have lower overhead than processes.\n\n---\n\n### **2. Key Differences**\n\n| Feature               | Process                          | Thread                          |\n|-----------------------|----------------------------------|---------------------------------|\n| **Memory Space**      | Separate (isolated)              | Shared within the same process  |\n| **Creation Overhead** | High (requires new memory allocation) | Low (uses existing process memory) |\n| **Communication**     | Inter-Process Communication (IPC) (slow) | Direct (fast, via shared memory) |\n| **Context Switching** | Slower (requires OS intervention) | Faster (handled within the process) |\n| **Independence**      | Fully independent                | Dependent (if process crashes, all threads die) |\n| **Resource Usage**    | More (each has its own memory)   | Less (shares memory with other threads) |\n| **Parallelism**       | Can run on different CPUs        | Can run on different CPUs (if multi-core) |\n| **Security**          | More secure (isolated)           | Less secure (shared memory risks) |\n\n---\n\n### **3. When to Use Which?**\n- **Use Processes when:**\n  - You need **strong isolation** (e.g., running untrusted code).\n  - You want **fault tolerance** (one process crashing doesn’t affect others).\n  - You need **different memory spaces** (e.g., different user sessions).\n\n- **Use Threads when:**\n  - You need **fast communication** between tasks (e.g., web servers handling multiple requests).\n  - You want **lower overhead** (e.g., background tasks in an app).\n  - You need **parallelism** (e.g., multi-core CPU utilization).\n\n---\n\n### **4.",
+  "response_chars": 2289,
+  "num_chunks": 200,
+  "ttft_ms": 1049.677,
+  "total_ms": 9043.034,
+  "model_name": "Mistral-Large-3"
+}

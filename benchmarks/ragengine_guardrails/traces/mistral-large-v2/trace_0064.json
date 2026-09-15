@@ -1,0 +1,771 @@
+{
+  "index": 64,
+  "prompt": "What are the SOLID principles in software engineering?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 820.043,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " **SOLID"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " principles are a set"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " of five"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " design principles in"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": "-oriented software"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " engineering"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " that help"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": "able, scalable"
+    },
+    {
+      "timestamp_ms": 820.043,
+      "content": ", and flexible"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": " code. They"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": " were introduced by **"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": "Robert C."
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": " Martin ("
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": "Uncle"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": " Bob)** and are"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": " widely used in software"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": " development. Here"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": "’s a breakdown of"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": " each principle"
+    },
+    {
+      "timestamp_ms": 922.199,
+      "content": ":\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": " S –"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": " Single Responsibility Principle"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": " (SR"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": "P)**\n**Definition"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": "*A class"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": " should have only one"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": " reason to change"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": ", meaning it should"
+    },
+    {
+      "timestamp_ms": 1043.281,
+      "content": " have only one job"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " responsibility.*\n\n**Key"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " Idea"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": ":**\n- A class"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " should focus"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " on a"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " single functionality"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": ".\n- If"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " a class handles"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": ", changes"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " to one"
+    },
+    {
+      "timestamp_ms": 1260.565,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " affect the"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " others, leading to"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " bugs.\n\n**Example"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": "❌ **"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": "Vi"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": "olation"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": ":**\n```java\n"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": "class User"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " {\n    void"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " saveTo"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": "(User"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " user)"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " { /*"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " ... */"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " }\n    void"
+    },
+    {
+      "timestamp_ms": 1533.744,
+      "content": " sendEmail(User"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " user) { /*"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " ..."
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " */ }\n}\n```\n"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "✅ **Solution"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "SR"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "P-com"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "pliant):**\n"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "```java\nclass"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "Repository {\n    void"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " saveToDatabase"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "(User user) {"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " /* ... */"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": " }\n}\n\n"
+    },
+    {
+      "timestamp_ms": 1794.553,
+      "content": "class Email"
+    },
+    {
+      "timestamp_ms": 1841.565,
+      "content": "Service {\n    void"
+    },
+    {
+      "timestamp_ms": 1841.565,
+      "content": " sendEmail(User user"
+    },
+    {
+      "timestamp_ms": 1841.565,
+      "content": ") { /* ..."
+    },
+    {
+      "timestamp_ms": 1841.565,
+      "content": " */ }\n}\n```\n\n"
+    },
+    {
+      "timestamp_ms": 1841.565,
+      "content": "---\n\n### **2"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": ". O"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": " – Open"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": "Closed Principle (OC"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": "P)**\n**Definition"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": ":**\n*"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": "Software entities"
+    },
+    {
+      "timestamp_ms": 1958.032,
+      "content": " (classes"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": ", modules"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": ", functions"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": ") should be **"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": "open for extension"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": "** but"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": " **closed for modification"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": "**.*\n\n"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": "**Key"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": " Idea:**\n- Ext"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": "end behavior"
+    },
+    {
+      "timestamp_ms": 2153.349,
+      "content": " without modifying existing code"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": "e.g., using"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": " interfaces or"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": " classes).\n- Red"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": "uces the"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": " risk of introducing"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": " bugs in working"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": " code.\n\n**Example"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": "❌ **Vi"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": "olation:**\n```"
+    },
+    {
+      "timestamp_ms": 2354.359,
+      "content": "java\nclass Rectangle"
+    },
+    {
+      "timestamp_ms": 2427.599,
+      "content": " {\n    double"
+    },
+    {
+      "timestamp_ms": 2427.599,
+      "content": " width;\n    double"
+    },
+    {
+      "timestamp_ms": 2427.599,
+      "content": " height;\n}\n\n"
+    },
+    {
+      "timestamp_ms": 2427.599,
+      "content": "class Area"
+    },
+    {
+      "timestamp_ms": 2427.599,
+      "content": "Calculator {\n    double"
+    },
+    {
+      "timestamp_ms": 2427.599,
+      "content": " calculateArea(Object"
+    },
+    {
+      "timestamp_ms": 2427.599,
+      "content": " shape) {\n"
+    },
+    {
+      "timestamp_ms": 2459.283,
+      "content": "        if (shape"
+    },
+    {
+      "timestamp_ms": 2459.283,
+      "content": " instanceof Rectangle) {\n"
+    },
+    {
+      "timestamp_ms": 2459.283,
+      "content": "            return (("
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": "Rectangle)"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": " shape).width *"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": " ((Rectangle) shape"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": ").height;\n       "
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": " }\n        // Adding"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": " new shape ("
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": "e.g., Circle"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": ") requires modifying"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": ".\n    }\n}\n"
+    },
+    {
+      "timestamp_ms": 2660.677,
+      "content": "```\n✅"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": " **Solution"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": " (OC"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": "P-compliant"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": "):**\n```java"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": "\ninterface"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": " Shape {\n    double"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": " area"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": "();\n"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": "}\n\nclass Rectangle"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": " implements"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": " Shape {\n"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": "    double"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": " width, height"
+    },
+    {
+      "timestamp_ms": 2865.432,
+      "content": ";\n    public"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " double area() {"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " return width * height"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": "; }\n}\n\nclass"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " Circle"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " implements Shape {\n   "
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " double radius"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": ";\n    public"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " double area() {"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " return Math"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": ".PI * radius *"
+    },
+    {
+      "timestamp_ms": 3069.94,
+      "content": " radius; }\n}\n\n"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": "class AreaCalculator {\n"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": "    double"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": " calculateArea(S"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": "hape shape"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": ") {\n        return"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": " shape."
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": "area(); // No"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": " modification"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": " needed for"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": " new shapes"
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": ".\n   "
+    },
+    {
+      "timestamp_ms": 3194.785,
+      "content": " }\n}\n```\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3285.146,
+      "content": "### **3."
+    },
+    {
+      "timestamp_ms": 3285.146,
+      "content": " L –"
+    },
+    {
+      "timestamp_ms": 3285.146,
+      "content": " Liskov"
+    },
+    {
+      "timestamp_ms": 3285.146,
+      "content": " Substitution Principle"
+    },
+    {
+      "timestamp_ms": 3285.146,
+      "content": " (LSP)**\n"
+    },
+    {
+      "timestamp_ms": 3285.146,
+      "content": "**Definition:**\n"
+    },
+    {
+      "timestamp_ms": 3285.146,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3479.655,
+      "type": "done"
+    }
+  ],
+  "full_response": "The **SOLID** principles are a set of five design principles in object-oriented software engineering that help create maintainable, scalable, and flexible code. They were introduced by **Robert C. Martin (Uncle Bob)** and are widely used in software development. Here’s a breakdown of each principle:\n\n---\n\n### **1. S – Single Responsibility Principle (SRP)**\n**Definition:**\n*A class should have only one reason to change, meaning it should have only one job or responsibility.*\n\n**Key Idea:**\n- A class should focus on a single functionality.\n- If a class handles multiple responsibilities, changes to one may affect the others, leading to bugs.\n\n**Example:**\n❌ **Violation:**\n```java\nclass User {\n    void saveToDatabase(User user) { /* ... */ }\n    void sendEmail(User user) { /* ... */ }\n}\n```\n✅ **Solution (SRP-compliant):**\n```java\nclass UserRepository {\n    void saveToDatabase(User user) { /* ... */ }\n}\n\nclass EmailService {\n    void sendEmail(User user) { /* ... */ }\n}\n```\n\n---\n\n### **2. O – Open/Closed Principle (OCP)**\n**Definition:**\n*Software entities (classes, modules, functions) should be **open for extension** but **closed for modification**.*\n\n**Key Idea:**\n- Extend behavior without modifying existing code (e.g., using interfaces or abstract classes).\n- Reduces the risk of introducing bugs in working code.\n\n**Example:**\n❌ **Violation:**\n```java\nclass Rectangle {\n    double width;\n    double height;\n}\n\nclass AreaCalculator {\n    double calculateArea(Object shape) {\n        if (shape instanceof Rectangle) {\n            return ((Rectangle) shape).width * ((Rectangle) shape).height;\n        }\n        // Adding a new shape (e.g., Circle) requires modifying this class.\n    }\n}\n```\n✅ **Solution (OCP-compliant):**\n```java\ninterface Shape {\n    double area();\n}\n\nclass Rectangle implements Shape {\n    double width, height;\n    public double area() { return width * height; }\n}\n\nclass Circle implements Shape {\n    double radius;\n    public double area() { return Math.PI * radius * radius; }\n}\n\nclass AreaCalculator {\n    double calculateArea(Shape shape) {\n        return shape.area(); // No modification needed for new shapes.\n    }\n}\n```\n\n---\n\n### **3. L – Liskov Substitution Principle (LSP)**\n**Definition:**\n",
+  "response_chars": 2241,
+  "num_chunks": 187,
+  "ttft_ms": 820.043,
+  "total_ms": 3485.129,
+  "model_name": "Mistral-Large-3"
+}

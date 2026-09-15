@@ -1,0 +1,1387 @@
+{
+  "index": 141,
+  "prompt": "Create a code review comment pointing out hardcoded secrets in a pull request, showing the problematic lines with fake but realistic-looking API keys and passwords.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 996.101,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Pull"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Keys"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Det"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "ected"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "Hi"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "Developer"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "],\n\n"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "I've"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " completed"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " reviewing"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " pull"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "PR"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " #["
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "PR"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 996.101,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": "`)"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " noticed"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " issue"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " potentially"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " vulnerabilities"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " Specifically"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " I've"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " identified"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " passwords"
+    },
+    {
+      "timestamp_ms": 1512.53,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " It's"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2115.539,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2119.934,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " Let"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " me"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " highlight"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " affected"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " clarification"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "Extr"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "aneous"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "-Z"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 2837.213,
+      "content": "-C"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "DE"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "ABCDE"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "-F"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "HI"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "JKLM"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "-N"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": " It's"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3754.386,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "telegram"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "_bot"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": " Bot"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "(token"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "-Z"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "-C"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "DE"
+    },
+    {
+      "timestamp_ms": 3756.531,
+      "content": "ABCDE"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "-F"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "HI"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "JKLM"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "-N"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "Conf"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": "idential"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 4683.443,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "SECRET"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "cur"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "ss"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "rd"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "!\"\n"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " Similarly"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4698.463,
+      "content": " addressed"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": " accidental"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": "_connection"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 4864.827,
+      "content": ".connect"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "(host"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "543"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "admin"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "cur"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "ss"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "rd"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "!\")\n"
+    },
+    {
+      "timestamp_ms": 5432.511,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": "Sharing"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": "even"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": "-production"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 6012.564,
+      "content": " breaches"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " compromise"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " ref"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": "actor"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " retrieve"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 6634.04,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " ideally"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " endpoint"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": "I'd"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " happy"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " discuss"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7031.584,
+      "content": " securing"
+    },
+    {
+      "timestamp_ms": 7141.762,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 7141.762,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 7141.762,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7141.762,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7141.762,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 7141.762,
+      "content": " ref"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": "actor"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": "Best"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " regards"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 7551.304,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7644.784,
+      "type": "done"
+    }
+  ],
+  "full_response": "Subject: Pull Request Review - Hardcoded API Keys Detected\n\nHi [Developer's Name],\n\nI've completed reviewing the recent pull request (`PR #[PR Number]`) and noticed an issue that could potentially lead to security vulnerabilities. Specifically, I've identified some hardcoded API keys and passwords within the codebase. It's recommended to remove these secrets from the source code and use a method, such as environment variables or a secrets management tool, to handle sensitive information. Let me highlight the affected code for clarification:\n\n**Extraneous API Key:**\n```python\nAPI_KEY = \"12345-ZX-CDEABCDE-9876-FGHIJKLM-NOP\"\n# It's recommended to replace hardcoded value with a secure retrieval method\ntelegram_bot = Bot(token=\"12345-ZX-CDEABCDE-9876-FGHIJKLM-NOP\")\n```\n\n**Confidential Password:```python\nSECRET_PASSWORD = \"s3cur3p@ssw0rd123!\"\n# Similarly, this hardcoded password should be addressed to prevent accidental exposure\ndatabase_connection = Database.connect(host=\"localhost\", port=5432, username=\"admin\", password=\"s3cur3p@ssw0rd123!\")\n```\n\nSharing sensitive data in the version control system (even if it's a non-production environment) can lead to unauthorized access, potential breaches, and compromise the integrity of your application and services. As such, it is essential to refactor the code to retrieve these sensitive values at runtime, ideally from a secure endpoint or environment management service.\n\nI'd be happy to discuss best practices for securing secrets further and to help refactor the code to ensure it's protected against such issues.\n\nBest regards,\n[Your Name]",
+  "response_chars": 1602,
+  "num_chunks": 341,
+  "ttft_ms": 996.101,
+  "total_ms": 7753.055,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,895 @@
+{
+  "index": 67,
+  "prompt": "Write a detailed customer profile for a fictional person including their full name, email address, phone number, home address, and date of birth.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 722.801,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": "’s a detailed"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": " fictional customer profile for"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": " your reference"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": ". **"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": ":** This is entirely"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": " fictional"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": " and any resemblance"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": " to real"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": " persons is coinc"
+    },
+    {
+      "timestamp_ms": 722.801,
+      "content": "idental.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " **Customer"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " Profile:"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " Emily"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " Rose"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " Thompson**\n\n####"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " **Personal"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " Information**\n- **"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": "Full Name:** Emily"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " Rose"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " Thompson\n- **"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": "Date of Birth"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": ":** March"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " 12"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": ", 1"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": "988"
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1226.764,
+      "content": "Age: 3"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": ")\n- **Gender"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": ":** Female"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": "\n- **Mar"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": "ital Status"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": ":** Mar"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": "ried (Sp"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": "ouse: Daniel"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": " Thompson"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": ")\n- **Occ"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": "upation:** Marketing"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": " Director at"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": " Bright"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": " Horizon"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": " Media"
+    },
+    {
+      "timestamp_ms": 1674.539,
+      "content": "\n- **Email"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": " Address:** em"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "ily"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "thom"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "pson@hor"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "izonmail"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": ".com\n- **"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "Phone Number:** ("
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "555)"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": " 246"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "-8"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "7\n- **"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "Altern"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "ate Phone"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": ":** (5"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "55) "
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 2409.674,
+      "content": "87"
+    },
+    {
+      "timestamp_ms": 2409.88,
+      "content": "54"
+    },
+    {
+      "timestamp_ms": 2409.88,
+      "content": "3 ("
+    },
+    {
+      "timestamp_ms": 2409.88,
+      "content": "Work"
+    },
+    {
+      "timestamp_ms": 2409.88,
+      "content": ")\n\n#### **Home"
+    },
+    {
+      "timestamp_ms": 2409.88,
+      "content": " Address**\n"
+    },
+    {
+      "timestamp_ms": 2409.88,
+      "content": "- **Street"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": " Address:** 1"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "72"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": " Maplewood"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": " Lane"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "\n- **City"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": ":** Portland"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "- **State"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": ":** Oregon"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "OR)\n- **"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "ZIP Code"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": ":** 9"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "72"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "05"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "\n- **Country"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": ":** United"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": " States\n\n#### **"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": "Billing"
+    },
+    {
+      "timestamp_ms": 3089.988,
+      "content": " & Shipping"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": "*("
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": "Same as home"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " address, unless"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " specified otherwise)*\n\n"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": "#### **Dem"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": "ographics"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " Background"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": "**\n- **Education"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": ":** MBA"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " Marketing (University"
+    },
+    {
+      "timestamp_ms": 3662.741,
+      "content": " of Oregon"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": ", 20"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "2)\n- **"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "Income Level"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": ":** $"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "5,00"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "0/"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "year\n"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "- **House"
+    },
+    {
+      "timestamp_ms": 3994.792,
+      "content": "hold Size"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": ":** 3"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " (includes"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " spouse"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " one child,"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " Oliver"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " age"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " 6"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": ")\n- **Home"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": "own"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": "ership:** Own"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": "s a"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": " 3-bed"
+    },
+    {
+      "timestamp_ms": 4514.528,
+      "content": "room house"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": "purchased in"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " 201"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": "8)\n"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": "- **Inter"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": "ests &"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " Hobbies:**\n"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": "  - Yoga"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " wellness"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": "\n  - Sustainable"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " living"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " (eco"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": "-friendly products"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": ")\n  - Travel"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " (especially"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5082.177,
+      "content": " national"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " parks"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": ")\n  - Reading"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " self-im"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": "provement books\n"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": "  - Cook"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": "ing (ve"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": "get"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": "arian cuisine"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": ")\n\n#### **Shopping"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " Brand"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " Preferences"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": "**\n- **Preferred"
+    },
+    {
+      "timestamp_ms": 5579.655,
+      "content": " Shopping"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": " Channels:**\n "
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": " - Online ("
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": "Amazon, E"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": "tsy, brand"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": " websites"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": ")\n  - Local"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": " bout"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": "iques (for"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": " sustainable"
+    },
+    {
+      "timestamp_ms": 5930.386,
+      "content": " fashion"
+    },
+    {
+      "timestamp_ms": 6074.053,
+      "content": ")\n  - Subscription"
+    },
+    {
+      "timestamp_ms": 6074.053,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 6074.053,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6074.053,
+      "content": " Th"
+    },
+    {
+      "timestamp_ms": 6074.053,
+      "content": "rive Market"
+    },
+    {
+      "timestamp_ms": 6074.053,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " organic gro"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "ceries"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": ")\n- **Favorite"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " Br"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "ands:**\n  -"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " Patagonia ("
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "ustainable outdoor"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " wear"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": ")\n  - L"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "ush"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "eco"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "-friendly cos"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": "metics)\n  -"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " Apple"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " (tech"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 6782.865,
+      "content": ")\n  - RE"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": " (out"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "door gear)\n-"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": " **Payment"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": " Methods"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": ":**\n  - Credit"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": " Card (Ch"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "ase Sap"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "phire Preferred"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": ")\n  - Pay"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "Pal\n"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "  - Apple"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": " Pay\n\n#### **"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "Digital"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": " Behavior"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "content": "**\n- **Social"
+    },
+    {
+      "timestamp_ms": 7361.582,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7411.488,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a detailed fictional customer profile for your reference. **Note:** This is entirely fictional, and any resemblance to real persons is coincidental.\n\n---\n\n### **Customer Profile: Emily Rose Thompson**\n\n#### **Personal Information**\n- **Full Name:** Emily Rose Thompson\n- **Date of Birth:** March 12, 1988 (Age: 36)\n- **Gender:** Female\n- **Marital Status:** Married (Spouse: Daniel Thompson)\n- **Occupation:** Marketing Director at Bright Horizon Media\n- **Email Address:** emily.thompson@horizonmail.com\n- **Phone Number:** (555) 246-8137\n- **Alternate Phone:** (555) 987543 (Work)\n\n#### **Home Address**\n- **Street Address:** 1472 Maplewood Lane\n- **City:** Portland\n- **State:** Oregon (OR)\n- **ZIP Code:** 97205\n- **Country:** United States\n\n#### **Billing & Shipping Address**\n*(Same as home address, unless specified otherwise)*\n\n#### **Demographics & Background**\n- **Education:** MBA in Marketing (University of Oregon, 2012)\n- **Income Level:** $95,000/year\n- **Household Size:** 3 (includes spouse and one child, Oliver, age 6)\n- **Homeownership:** Owns a 3-bedroom house (purchased in 2018)\n- **Interests & Hobbies:**\n  - Yoga and wellness\n  - Sustainable living (eco-friendly products)\n  - Travel (especially to national parks)\n  - Reading business and self-improvement books\n  - Cooking (vegetarian cuisine)\n\n#### **Shopping & Brand Preferences**\n- **Preferred Shopping Channels:**\n  - Online (Amazon, Etsy, brand websites)\n  - Local boutiques (for sustainable fashion)\n  - Subscription services (e.g., Thrive Market for organic groceries)\n- **Favorite Brands:**\n  - Patagonia (sustainable outdoor wear)\n  - Lush (eco-friendly cosmetics)\n  - Apple (tech products)\n  - REI (outdoor gear)\n- **Payment Methods:**\n  - Credit Card (Chase Sapphire Preferred)\n  - PayPal\n  - Apple Pay\n\n#### **Digital Behavior**\n- **Social",
+  "response_chars": 1835,
+  "num_chunks": 218,
+  "ttft_ms": 722.801,
+  "total_ms": 7548.856,
+  "model_name": "Mistral-Large-3"
+}

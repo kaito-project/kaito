@@ -1,0 +1,2071 @@
+{
+  "index": 208,
+  "prompt": "Generate sample output from a secrets scanning tool that found 8 different types of credentials in a repository, showing the file path, line number, and detected secret type for each.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 306.036,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 306.165,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 306.286,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 391.581,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 391.802,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 391.899,
+      "content": " mim"
+    },
+    {
+      "timestamp_ms": 391.976,
+      "content": "icking"
+    },
+    {
+      "timestamp_ms": 508.296,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 511.621,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 511.761,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 511.846,
+      "content": " scanning"
+    },
+    {
+      "timestamp_ms": 511.925,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 512.14,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 515.574,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 611.153,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 611.386,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 611.532,
+      "content": " finds"
+    },
+    {
+      "timestamp_ms": 611.597,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 611.646,
+      "content": " credential"
+    },
+    {
+      "timestamp_ms": 714.992,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 715.194,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 715.287,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 715.359,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 715.422,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 822.7,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 822.834,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 822.9,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 822.956,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 823.074,
+      "content": " Scan"
+    },
+    {
+      "timestamp_ms": 823.879,
+      "content": " Report"
+    },
+    {
+      "timestamp_ms": 1028.69,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1028.85,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1028.928,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1028.991,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 1029.049,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 1029.113,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1029.172,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1029.225,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1029.267,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 1029.432,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1029.587,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 1127.939,
+      "content": "config"
+    },
+    {
+      "timestamp_ms": 1128.169,
+      "content": "/aws"
+    },
+    {
+      "timestamp_ms": 1128.331,
+      "content": "_config"
+    },
+    {
+      "timestamp_ms": 1128.498,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 1128.588,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1143.421,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1226.668,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 1226.846,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1226.933,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1227.002,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1431.288,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1431.288,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1431.288,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 1431.469,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 1431.469,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1431.545,
+      "content": " AK"
+    },
+    {
+      "timestamp_ms": 1431.676,
+      "content": "IA"
+    },
+    {
+      "timestamp_ms": 1431.807,
+      "content": "IOS"
+    },
+    {
+      "timestamp_ms": 1431.881,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 1431.938,
+      "content": "OD"
+    },
+    {
+      "timestamp_ms": 1453.031,
+      "content": "NN"
+    },
+    {
+      "timestamp_ms": 1460.978,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1474.747,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 1535.383,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1535.516,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 1535.582,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1545.134,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 1635.265,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 1635.402,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1635.528,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1635.605,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 1638.575,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 1738.547,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 1738.683,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1738.75,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1738.806,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1738.858,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 1753.984,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1783.164,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 1840.866,
+      "content": "config"
+    },
+    {
+      "timestamp_ms": 1841.029,
+      "content": "/aws"
+    },
+    {
+      "timestamp_ms": 1841.096,
+      "content": "_config"
+    },
+    {
+      "timestamp_ms": 1849.242,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 1942.649,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1942.788,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1942.852,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 1942.908,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1945.065,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2045.53,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 2045.745,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2045.812,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2045.886,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 2045.953,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 2058.368,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2147.599,
+      "content": " w"
+    },
+    {
+      "timestamp_ms": 2147.753,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 2147.821,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 2147.881,
+      "content": "r"
+    },
+    {
+      "timestamp_ms": 2152.991,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 2249.58,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 2249.762,
+      "content": "tn"
+    },
+    {
+      "timestamp_ms": 2249.843,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 2249.906,
+      "content": "EM"
+    },
+    {
+      "timestamp_ms": 2249.96,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 2352.5,
+      "content": "/K"
+    },
+    {
+      "timestamp_ms": 2352.635,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 2352.714,
+      "content": "MD"
+    },
+    {
+      "timestamp_ms": 2352.827,
+      "content": "ENG"
+    },
+    {
+      "timestamp_ms": 2352.902,
+      "content": "/b"
+    },
+    {
+      "timestamp_ms": 2363.415,
+      "content": "Px"
+    },
+    {
+      "timestamp_ms": 2454.608,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 2454.759,
+      "content": "fi"
+    },
+    {
+      "timestamp_ms": 2454.759,
+      "content": "CY"
+    },
+    {
+      "timestamp_ms": 2454.847,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 2458.351,
+      "content": "KEY"
+    },
+    {
+      "timestamp_ms": 2535.137,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2535.526,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 2659.585,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 2659.788,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2659.788,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 2659.926,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2660.001,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2660.062,
+      "content": " GitHub"
+    },
+    {
+      "timestamp_ms": 2660.115,
+      "content": " Personal"
+    },
+    {
+      "timestamp_ms": 2660.165,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 2668.163,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 2761.917,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2762.07,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2762.149,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 2766.126,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2766.126,
+      "content": " /."
+    },
+    {
+      "timestamp_ms": 2865.938,
+      "content": "env"
+    },
+    {
+      "timestamp_ms": 2866.093,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2866.163,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2866.222,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 2866.273,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2878.19,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2966.588,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2966.765,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2966.846,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2966.909,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 2973.667,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 3068.897,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3069.028,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3069.092,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3069.144,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 3069.26,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3171.697,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 3171.869,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3171.946,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 3172.043,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3172.196,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3185.356,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3273.987,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 3274.125,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3274.186,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 3274.235,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3281.509,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 3376.334,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 3376.489,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 3376.589,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 3376.657,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 3376.713,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3391.095,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 3478.711,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3478.839,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 3478.904,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3478.965,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 3489.091,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3580.729,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 3580.894,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3580.981,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 3581.051,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3582.76,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 3683.622,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3683.825,
+      "content": "q"
+    },
+    {
+      "timestamp_ms": 3683.952,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3684.033,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3684.179,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3786.175,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3786.32,
+      "content": " SSH"
+    },
+    {
+      "timestamp_ms": 3786.388,
+      "content": " Private"
+    },
+    {
+      "timestamp_ms": 3786.447,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3786.571,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3791.869,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3994.234,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 3994.234,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3994.234,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 3994.234,
+      "content": "keys"
+    },
+    {
+      "timestamp_ms": 3994.234,
+      "content": "/id"
+    },
+    {
+      "timestamp_ms": 3994.234,
+      "content": "_rsa"
+    },
+    {
+      "timestamp_ms": 3994.234,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3994.434,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3994.565,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 3994.664,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4001.746,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4093.835,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4094.016,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4094.113,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4094.193,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 4099.791,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 4198.218,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4198.444,
+      "content": " -----"
+    },
+    {
+      "timestamp_ms": 4198.61,
+      "content": "BEGIN"
+    },
+    {
+      "timestamp_ms": 4198.767,
+      "content": " OPEN"
+    },
+    {
+      "timestamp_ms": 4198.887,
+      "content": "SSH"
+    },
+    {
+      "timestamp_ms": 4212.189,
+      "content": " PRIVATE"
+    },
+    {
+      "timestamp_ms": 4298.267,
+      "content": " KEY"
+    },
+    {
+      "timestamp_ms": 4298.49,
+      "content": "-----\n"
+    },
+    {
+      "timestamp_ms": 4298.556,
+      "content": "                       "
+    },
+    {
+      "timestamp_ms": 4298.61,
+      "content": " b"
+    },
+    {
+      "timestamp_ms": 4308.557,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4400.554,
+      "content": "Bl"
+    },
+    {
+      "timestamp_ms": 4400.839,
+      "content": "bn"
+    },
+    {
+      "timestamp_ms": 4400.968,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 4401.059,
+      "content": "za"
+    },
+    {
+      "timestamp_ms": 4401.819,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 4502.66,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4502.794,
+      "content": "r"
+    },
+    {
+      "timestamp_ms": 4502.857,
+      "content": "ZX"
+    },
+    {
+      "timestamp_ms": 4502.911,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 4502.959,
+      "content": "td"
+    },
+    {
+      "timestamp_ms": 4515.873,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 4605.472,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 4605.786,
+      "content": "AAAA"
+    },
+    {
+      "timestamp_ms": 4605.913,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 4605.989,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 4613.831,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4708.299,
+      "content": "v"
+    },
+    {
+      "timestamp_ms": 4708.462,
+      "content": "bm"
+    },
+    {
+      "timestamp_ms": 4708.538,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 4708.604,
+      "content": "AAAA"
+    },
+    {
+      "timestamp_ms": 4710.59,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 4813.559,
+      "content": "bm"
+    },
+    {
+      "timestamp_ms": 4813.795,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4813.936,
+      "content": "u"
+    },
+    {
+      "timestamp_ms": 4814.05,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 4814.151,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 4828.868,
+      "content": "AAAAAAAA"
+    },
+    {
+      "timestamp_ms": 4841.623,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 4911.899,
+      "content": "AAA"
+    },
+    {
+      "timestamp_ms": 4912.102,
+      "content": "AM"
+    },
+    {
+      "timestamp_ms": 4912.191,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 4918.473,
+      "content": "AAA"
+    },
+    {
+      "timestamp_ms": 5019.858,
+      "content": "Ad"
+    },
+    {
+      "timestamp_ms": 5020.008,
+      "content": "zc"
+    },
+    {
+      "timestamp_ms": 5020.085,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5020.151,
+      "content": "gt"
+    },
+    {
+      "timestamp_ms": 5020.21,
+      "content": "cn"
+    },
+    {
+      "timestamp_ms": 5033.577,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5116.903,
+      "content": "                       "
+    },
+    {
+      "timestamp_ms": 5117.039,
+      "content": " Nh"
+    },
+    {
+      "timestamp_ms": 5117.104,
+      "content": "AAAA"
+    },
+    {
+      "timestamp_ms": 5117.16,
+      "content": "Aw"
+    },
+    {
+      "timestamp_ms": 5129.558,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 5221.95,
+      "content": "AA"
+    },
+    {
+      "timestamp_ms": 5222.194,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 5222.519,
+      "content": "AA"
+    },
+    {
+      "timestamp_ms": 5222.85,
+      "content": "AY"
+    },
+    {
+      "timestamp_ms": 5322.745,
+      "content": "EA"
+    },
+    {
+      "timestamp_ms": 5322.745,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 5323.05,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 5323.162,
+      "content": "ht"
+    },
+    {
+      "timestamp_ms": 5323.241,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5323.296,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 5337.124,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5427.68,
+      "content": "z"
+    },
+    {
+      "timestamp_ms": 5427.998,
+      "content": "...\n"
+    },
+    {
+      "timestamp_ms": 5428.415,
+      "content": "                       "
+    },
+    {
+      "timestamp_ms": 5428.521,
+      "content": " -----"
+    },
+    {
+      "timestamp_ms": 5434.21,
+      "content": "END"
+    },
+    {
+      "timestamp_ms": 5527.353,
+      "content": " OPEN"
+    },
+    {
+      "timestamp_ms": 5527.544,
+      "content": "SSH"
+    },
+    {
+      "timestamp_ms": 5527.623,
+      "content": " PRIVATE"
+    },
+    {
+      "timestamp_ms": 5527.687,
+      "content": " KEY"
+    },
+    {
+      "timestamp_ms": 5529.753,
+      "content": "-----\n\n"
+    },
+    {
+      "timestamp_ms": 5552.227,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5566.431,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5585.686,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5634.801,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 5634.801,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5646.357,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5680.19,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 5685.27,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5733.911,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 5734.23,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 5746.647,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 5837.017,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 5837.213,
+      "content": ".txt"
+    },
+    {
+      "timestamp_ms": 5837.303,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5837.362,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5837.414,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 5852.111,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5935.95,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5936.132,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 5936.216,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5936.277,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5950.844,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 5966.245,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 5995.215,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6010.797,
+      "content": " cpu"
+    },
+    {
+      "timestamp_ms": 6023.977,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 6046.58,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6066.727,
+      "content": "vi"
+    },
+    {
+      "timestamp_ms": 6082.706,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 6141.17,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 6141.488,
+      "content": "FB"
+    },
+    {
+      "timestamp_ms": 6141.611,
+      "content": "sv"
+    },
+    {
+      "timestamp_ms": 6158.982,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 6179.671,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 6203.127,
+      "content": "62"
+    },
+    {
+      "timestamp_ms": 6215.771,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 6246.107,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6251.906,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6306.619,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6306.783,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 6310.179,
+      "content": "MT"
+    },
+    {
+      "timestamp_ms": 6358.963,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 6359.144,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6373.679,
+      "content": "Di"
+    },
+    {
+      "timestamp_ms": 6439.514,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 6439.691,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6439.897,
+      "content": "gs"
+    },
+    {
+      "timestamp_ms": 6444.287,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 6551.426,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 6551.591,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 6551.669,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6551.729,
+      "content": "tg"
+    },
+    {
+      "timestamp_ms": 6551.781,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 6653.341,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 6653.525,
+      "content": "pc"
+    },
+    {
+      "timestamp_ms": 6653.663,
+      "content": "=\n\n"
+    },
+    {
+      "timestamp_ms": 6654.044,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6654.169,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6654.333,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 6739.628,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 6739.801,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6739.879,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6739.938,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 6756.801,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6767.306,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 6863.425,
+      "content": "config"
+    },
+    {
+      "timestamp_ms": 6863.609,
+      "content": "/database"
+    },
+    {
+      "timestamp_ms": 6863.707,
+      "content": ".yml"
+    },
+    {
+      "timestamp_ms": 6870.496,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6870.496,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6959.99,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 6969.911,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6970.015,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6970.08,
+      "content": "22"
+    },
+    {
+      "timestamp_ms": 6970.137,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6978.682,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7064.579,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 7064.78,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 7064.87,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7064.941,
+      "content": " admin"
+    },
+    {
+      "timestamp_ms": 7074.732,
+      "content": "Pass"
+    },
+    {
+      "timestamp_ms": 7166.214,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 7166.535,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7166.709,
+      "content": "rd"
+    },
+    {
+      "timestamp_ms": 7166.903,
+      "content": "!\n\n"
+    },
+    {
+      "timestamp_ms": 7169.885,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7202.704,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7205.307,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7272.763,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 7272.936,
+      "content": " Connection"
+    },
+    {
+      "timestamp_ms": 7273.016,
+      "content": " String"
+    },
+    {
+      "timestamp_ms": 7284.066,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7370.148,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7370.309,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 7376.09,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7376.09,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 7382.087,
+      "content": "configs"
+    },
+    {
+      "timestamp_ms": 7421.077,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7421.274,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 7434.582,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 7472.057,
+      "content": ".txt"
+    },
+    {
+      "timestamp_ms": 7474.386,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7574.921,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7575.052,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 7575.117,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7575.169,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7575.216,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7586.427,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7641.718,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7641.866,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 7650.7,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 7780.867,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7781.023,
+      "content": " Default"
+    },
+    {
+      "timestamp_ms": 7781.092,
+      "content": "Endpoints"
+    },
+    {
+      "timestamp_ms": 7781.148,
+      "content": "Protocol"
+    },
+    {
+      "timestamp_ms": 7781.197,
+      "content": "=https"
+    },
+    {
+      "timestamp_ms": 7781.242,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 7781.286,
+      "content": "Account"
+    },
+    {
+      "timestamp_ms": 7796.144,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 7841.757,
+      "content": "=my"
+    },
+    {
+      "timestamp_ms": 7857.753,
+      "content": "account"
+    },
+    {
+      "timestamp_ms": 7865.631,
+      "content": "...\n"
+    },
+    {
+      "timestamp_ms": 7896.117,
+      "content": "                           "
+    },
+    {
+      "timestamp_ms": 7896.251,
+      "content": " Account"
+    },
+    {
+      "timestamp_ms": 7911.901,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 7975.071,
+      "content": "=Y"
+    },
+    {
+      "timestamp_ms": 7975.227,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 7975.377,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 8191.95,
+      "content": "hb"
+    },
+    {
+      "timestamp_ms": 8191.95,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8191.95,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 8191.95,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 8191.95,
+      "content": "am"
+    },
+    {
+      "timestamp_ms": 8191.95,
+      "content": "Kr"
+    },
+    {
+      "timestamp_ms": 8191.95,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8192.232,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 8192.326,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8192.393,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 8192.449,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8199.086,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 8242.658,
+      "content": "Am"
+    },
+    {
+      "timestamp_ms": 8242.86,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 8254.222,
+      "content": "ch"
+    },
+    {
+      "timestamp_ms": 8274.792,
+      "content": "q"
+    },
+    {
+      "timestamp_ms": 8394.145,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 8394.412,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8394.596,
+      "content": "bd"
+    },
+    {
+      "timestamp_ms": 8394.751,
+      "content": "wr"
+    },
+    {
+      "timestamp_ms": 8394.887,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 8395.027,
+      "content": "...\n\n"
+    },
+    {
+      "timestamp_ms": 8421.857,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 8429.372,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8496.524,
+      "content": " Digital"
+    },
+    {
+      "timestamp_ms": 8496.724,
+      "content": "Ocean"
+    },
+    {
+      "timestamp_ms": 8496.838,
+      "content": " Personal"
+    },
+    {
+      "timestamp_ms": 8503.527,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 8589.027,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 8589.163,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8589.227,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8589.282,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 8599.645,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8706.474,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 8706.644,
+      "content": "tokens"
+    },
+    {
+      "timestamp_ms": 8706.716,
+      "content": "/d"
+    },
+    {
+      "timestamp_ms": 8706.77,
+      "content": "igital"
+    },
+    {
+      "timestamp_ms": 8706.817,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 8713.747,
+      "content": "cean"
+    },
+    {
+      "timestamp_ms": 8732.296,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 8804.291,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 8804.436,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8804.523,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8810.303,
+      "content": " Line"
+    },
+    {
+      "timestamp_ms": 8906.074,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8906.263,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8906.339,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8906.401,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8910.654,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9007.995,
+      "content": " Detected"
+    },
+    {
+      "timestamp_ms": 9008.241,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 9008.382,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9008.471,
+      "content": " sk"
+    },
+    {
+      "timestamp_ms": 9008.533,
+      "content": "_f"
+    },
+    {
+      "timestamp_ms": 9019.292,
+      "content": "oo"
+    },
+    {
+      "timestamp_ms": 9113.738,
+      "content": "Bar"
+    },
+    {
+      "timestamp_ms": 9114.002,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 9114.093,
+      "content": "az"
+    },
+    {
+      "timestamp_ms": 9114.163,
+      "content": "Qu"
+    },
+    {
+      "timestamp_ms": 9115.129,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 9213.669,
+      "content": "Qu"
+    },
+    {
+      "timestamp_ms": 9213.892,
+      "content": "ux"
+    },
+    {
+      "timestamp_ms": 9213.984,
+      "content": "Qu"
+    },
+    {
+      "timestamp_ms": 9214.102,
+      "content": "u"
+    },
+    {
+      "timestamp_ms": 9214.221,
+      "content": "ux"
+    },
+    {
+      "timestamp_ms": 9228.599,
+      "content": "Qu"
+    },
+    {
+      "timestamp_ms": 9315.784,
+      "content": "uz"
+    },
+    {
+      "timestamp_ms": 9315.933,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9316.086,
+      "content": "Summary"
+    },
+    {
+      "timestamp_ms": 9316.188,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9323.977,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9347.709,
+      "content": " Total"
+    },
+    {
+      "timestamp_ms": 9418.822,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 9419.063,
+      "content": " Found"
+    },
+    {
+      "timestamp_ms": 9419.191,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9419.433,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9491.495,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 9491.643,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9491.719,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9494.232,
+      "content": " Files"
+    },
+    {
+      "timestamp_ms": 9622.928,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9623.082,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 9623.147,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9623.201,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9623.253,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 9623.306,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9633.36,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 9725.473,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9725.661,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 9725.738,
+      "content": " report"
+    },
+    {
+      "timestamp_ms": 9725.8,
+      "content": " shows"
+    },
+    {
+      "timestamp_ms": 9725.861,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9759.098,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 9763.271,
+      "content": " paths"
+    },
+    {
+      "timestamp_ms": 9828.221,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9828.384,
+      "content": " line"
+    },
+    {
+      "timestamp_ms": 9833.28,
+      "content": " numbers"
+    },
+    {
+      "timestamp_ms": 9841.051,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9901.61,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9901.764,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 9901.845,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9914.393,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 9935.332,
+      "content": " detected"
+    },
+    {
+      "timestamp_ms": 10032.04,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10032.176,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 10032.284,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 10032.407,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10032.407,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10032.407,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample output mimicking what a secrets scanning tool might generate when it finds various credential types within a repository:\n\n```\nSecrets Scan Report\n\n1. AWS Access Key\n   File: /config/aws_config.json\n   Line: 12\n   Detected Secret: AKIAIOSFODNN7EXAMPLE (Access Key ID)\n\n2. AWS Secret Access Key\n   File: /config/aws_config.json\n   Line: 13\n   Detected Secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY (Secret Access Key)\n\n3. GitHub Personal Access Token\n   File: /.env\n   Line: 5\n   Detected Secret: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7\n\n4. SSH Private Key\n   File: /keys/id_rsa\n   Line: 1\n   Detected Secret: -----BEGIN OPENSSH PRIVATE KEY-----\n                        b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAdzc2gtcn\n                        NhAAAAAwEAAQAAAYEAxNht0K5z...\n                        -----END OPENSSH PRIVATE KEY-----\n\n5. API Key\n   File: /services/api_key.txt\n   Line: 8\n   Detected Secret: cpuQ2vi9oFBsvYQ62C6s4RMTk7DiA7gsk0I2tgjDpc=\n\n6. Database Password\n   File: /config/database.yml\n   Line: 22\n   Detected Secret: adminPassw0rd!\n\n7. Azure Storage Connection String\n   File: /configs/azure_storage.txt\n   Line: 3\n   Detected Secret: DefaultEndpointsProtocol=https;AccountName=myaccount...\n                            AccountKey=YnGhb2FpamKr6R5m5GAmPchqO2bdwrF...\n\n8. DigitalOcean Personal Access Token\n   File: /tokens/digitalocean_token.env\n   Line: 1\n   Detected Secret: sk_fooBarBazQuxQuuxQuuuxQuuz\n\nSummary:\n- Total Secrets Found: 8\n- Files with Secrets: 6\n```\n\nThis report shows the file paths, line numbers, and types of secrets detected in each instance.",
+  "response_chars": 1613,
+  "num_chunks": 512,
+  "ttft_ms": 306.036,
+  "total_ms": 10032.74,
+  "model_name": "model-medium"
+}

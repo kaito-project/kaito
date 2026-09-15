@@ -1,0 +1,863 @@
+{
+  "index": 22,
+  "prompt": "Create a sample resume for a software engineer including full name, email, phone number, LinkedIn URL, GitHub profile, and home address.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 847.753,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": "’s a **prof"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": "essional sample"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " resume** for a"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " **Software Engineer**"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " with all"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " the requested"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " details. You"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " can customize it"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " further based on your"
+    },
+    {
+      "timestamp_ms": 847.753,
+      "content": " experience and"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " skills.\n\n---\n\n**["
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": "Your Full"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " Name]**\n"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": "📍 ["
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": "Your Home"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " Address]"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " 📞"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " [Your"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " Phone Number] |"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " ✉ [Your"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " Email]"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " 🔗 [LinkedIn"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": "] |"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " 🐙 [Git"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": "Hub Profile"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 2975.102,
+      "content": "]\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": "### **Prof"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": "essional Summary"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": "**\nResults"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": "-driven **"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": "Software Engineer** with"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": "X] years of"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": " experience in designing"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": ", developing"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": ", and deploying"
+    },
+    {
+      "timestamp_ms": 3897.135,
+      "content": " scalable software solutions."
+    },
+    {
+      "timestamp_ms": 3921.445,
+      "content": " Pro"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": "ficient in ["
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": "list"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": " languages, e"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": ".g., Python"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": ", Java, Java"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": "Script] and frameworks"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": "e.g., React"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": ", Django"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": ", Spring"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": " Boot"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": "]. Strong problem"
+    },
+    {
+      "timestamp_ms": 4662.746,
+      "content": "-solving skills"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": " a passion for writing"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": " clean, efficient code"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": " collaborating"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": " Ag"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": "ile environments"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": "Technical Skills**\n"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": "- **Program"
+    },
+    {
+      "timestamp_ms": 5291.982,
+      "content": "ming Languages:**"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": " Python, Java,"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": " JavaScript/"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "TypeScript, C"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "++,"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "\n- **Web"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": ":** React"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": ", Angular"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": ", Node.js,"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": " HTML"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "/CSS,"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "ful APIs"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "- **Backend &"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 6142.228,
+      "content": "abases:** Django"
+    },
+    {
+      "timestamp_ms": 6448.199,
+      "content": ", Flask"
+    },
+    {
+      "timestamp_ms": 6448.199,
+      "content": ", Spring Boot,"
+    },
+    {
+      "timestamp_ms": 6448.199,
+      "content": " PostgreSQL, Mongo"
+    },
+    {
+      "timestamp_ms": 6448.199,
+      "content": "DB,"
+    },
+    {
+      "timestamp_ms": 6448.199,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 6448.199,
+      "content": "\n- **Dev"
+    },
+    {
+      "timestamp_ms": 6448.199,
+      "content": "Ops"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": " & Cloud:** Docker"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": ", Kubernetes"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": ", AWS"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": ", Azure"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": ", CI/CD ("
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": "GitHub Actions"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": ", Jenkins"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": ")\n- **Tools"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 6808.1,
+      "content": " Method"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "ologies:** Git,"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": " J"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "ira"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": ", Ag"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "ile/"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "Scrum, TD"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": " Mic"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "roservices"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "Work Experience**\n\n"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "**Senior"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": " Software Engineer**\n["
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "Company Name] |"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": " [Location"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": " | [MM"
+    },
+    {
+      "timestamp_ms": 7581.703,
+      "content": "/YYYY"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " – Present"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": "]\n-"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " Developed and"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " optimized"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": "specific"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " feature/system"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": "] using"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": "tech"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " stack], improving"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " by [X]"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": "%.\n- Led"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " a team"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " of [X]"
+    },
+    {
+      "timestamp_ms": 8189.709,
+      "content": " engineers to deliver"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": " [project"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": "], reducing"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": " deployment time by"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": " [X]%"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": ".\n- Des"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": "igned REST"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": "ful APIs for ["
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": "use"
+    },
+    {
+      "timestamp_ms": 8505.023,
+      "content": " case], enhancing"
+    },
+    {
+      "timestamp_ms": 8701.772,
+      "content": " scalability and reducing"
+    },
+    {
+      "timestamp_ms": 8701.772,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 8701.772,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8701.772,
+      "content": "- Collaborated with"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " cross-functional teams"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " to implement"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " Ag"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": "ile best practices.\n\n"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": "**Software"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " Engineer**\n[Company"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " Name] | ["
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": "Location] | ["
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": "MM/YYYY –"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " MM/YYYY]\n"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": "- Built"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9065.715,
+      "content": " maintained [specific"
+    },
+    {
+      "timestamp_ms": 9628.697,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 9628.697,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 9628.697,
+      "content": " using [tech"
+    },
+    {
+      "timestamp_ms": 9628.697,
+      "content": " stack], serving"
+    },
+    {
+      "timestamp_ms": 9628.697,
+      "content": " [X] users"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": "- Autom"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": "ated testing"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": " pipelines"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": ", reducing bugs"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": " production by [X"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": "]%.\n-"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": " Cont"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": "ributed to open"
+    },
+    {
+      "timestamp_ms": 9628.956,
+      "content": "-source projects"
+    },
+    {
+      "timestamp_ms": 9629.147,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": "link"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": " to GitHub contributions"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": "Software Engineering"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": " Intern**\n"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": "[Company Name]"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": " | [Location]"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": " | [MM/"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": "YYYY – MM/"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": "YYYY]\n- Ass"
+    },
+    {
+      "timestamp_ms": 10033.443,
+      "content": "isted in"
+    },
+    {
+      "timestamp_ms": 10139.402,
+      "content": " developing [feature"
+    },
+    {
+      "timestamp_ms": 10139.402,
+      "content": "/to"
+    },
+    {
+      "timestamp_ms": 10139.563,
+      "content": "ol"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": "] using"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": " [tech"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": " stack].\n"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": "- Debug"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": "ged and"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": " resolved"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": "X] issues"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "content": " improving"
+    },
+    {
+      "timestamp_ms": 10443.1,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10547.961,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a **professional sample resume** for a **Software Engineer** with all the requested details. You can customize it further based on your experience and skills.\n\n---\n\n**[Your Full Name]**\n📍 [Your Home Address] | 📞 [Your Phone Number] | ✉ [Your Email] | 🔗 [LinkedIn URL] | 🐙 [GitHub Profile URL]\n\n---\n\n### **Professional Summary**\nResults-driven **Software Engineer** with [X] years of experience in designing, developing, and deploying scalable software solutions. Proficient in [list key programming languages, e.g., Python, Java, JavaScript] and frameworks [e.g., React, Django, Spring Boot]. Strong problem-solving skills with a passion for writing clean, efficient code and collaborating in Agile environments.\n\n---\n\n### **Technical Skills**\n- **Programming Languages:** Python, Java, JavaScript/TypeScript, C++, Go\n- **Web Development:** React, Angular, Node.js, HTML/CSS, RESTful APIs\n- **Backend & Databases:** Django, Flask, Spring Boot, PostgreSQL, MongoDB, Redis\n- **DevOps & Cloud:** Docker, Kubernetes, AWS, Azure, CI/CD (GitHub Actions, Jenkins)\n- **Tools & Methodologies:** Git, Jira, Agile/Scrum, TDD, Microservices\n\n---\n\n### **Work Experience**\n\n**Senior Software Engineer**\n[Company Name] | [Location] | [MM/YYYY – Present]\n- Developed and optimized [specific feature/system] using [tech stack], improving performance by [X]%.\n- Led a team of [X] engineers to deliver [project name], reducing deployment time by [X]%.\n- Designed RESTful APIs for [use case], enhancing scalability and reducing latency.\n- Collaborated with cross-functional teams to implement Agile best practices.\n\n**Software Engineer**\n[Company Name] | [Location] | [MM/YYYY – MM/YYYY]\n- Built and maintained [specific application] using [tech stack], serving [X] users.\n- Automated testing pipelines, reducing bugs in production by [X]%.\n- Contributed to open-source projects (link to GitHub contributions).\n\n**Software Engineering Intern**\n[Company Name] | [Location] | [MM/YYYY – MM/YYYY]\n- Assisted in developing [feature/tool] using [tech stack].\n- Debugged and resolved [X] issues, improving",
+  "response_chars": 2086,
+  "num_chunks": 210,
+  "ttft_ms": 847.753,
+  "total_ms": 10647.764,
+  "model_name": "Mistral-Large-3"
+}

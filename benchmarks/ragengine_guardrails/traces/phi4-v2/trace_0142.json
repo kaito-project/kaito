@@ -1,0 +1,1423 @@
+{
+  "index": 142,
+  "prompt": "Write a sample connection string reference showing examples for: MongoDB (mongodb://user:pass@host), PostgreSQL (postgresql://user:pass@host/db), Redis (redis://:password@host:6379), and MSSQL (Server=host;Password=pass).",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 505.309,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 505.529,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 505.66,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 505.837,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 505.983,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 506.129,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 506.254,
+      "content": " strings"
+    },
+    {
+      "timestamp_ms": 514.426,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 514.63,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 514.747,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 526.756,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 544.785,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 603.058,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 603.197,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 812.108,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 812.275,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 812.35,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 812.411,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 812.464,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 812.511,
+      "content": " MongoDB"
+    },
+    {
+      "timestamp_ms": 812.557,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 812.852,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 812.982,
+      "content": "plaintext"
+    },
+    {
+      "timestamp_ms": 813.095,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 813.206,
+      "content": "mongodb"
+    },
+    {
+      "timestamp_ms": 813.476,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 869.954,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 870.162,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 870.241,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 912.514,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 912.652,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 926.983,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 945.426,
+      "content": "270"
+    },
+    {
+      "timestamp_ms": 1008.314,
+      "content": "17"
+    },
+    {
+      "timestamp_ms": 1008.442,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1008.504,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 1022.465,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 1231.301,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1231.495,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1231.605,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 1231.692,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1231.822,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 1231.917,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1232.256,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1232.398,
+      "content": " Username"
+    },
+    {
+      "timestamp_ms": 1232.526,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1232.628,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 1233.119,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1289.242,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 1289.473,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1289.626,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1307.331,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1330.77,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 1349.846,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1510.584,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1510.719,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1510.806,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 1510.905,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1510.972,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1511.024,
+      "content": " MongoDB"
+    },
+    {
+      "timestamp_ms": 1511.071,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1511.116,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1521.101,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 1537.023,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 1560.45,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 1574.469,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1600.027,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 1614.185,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 1635.51,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1655.316,
+      "content": "127"
+    },
+    {
+      "timestamp_ms": 1673.497,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1810.593,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1810.854,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1811.001,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1811.074,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1811.122,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1811.166,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 1811.213,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1825.59,
+      "content": " fully"
+    },
+    {
+      "timestamp_ms": 1849.869,
+      "content": " qualified"
+    },
+    {
+      "timestamp_ms": 1861.499,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 1937.002,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 1937.181,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 1937.26,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1937.32,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1971.474,
+      "content": "270"
+    },
+    {
+      "timestamp_ms": 1974.315,
+      "content": "17"
+    },
+    {
+      "timestamp_ms": 2114.919,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2115.116,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2115.245,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2115.367,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 2115.444,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 2115.507,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2115.812,
+      "content": " MongoDB"
+    },
+    {
+      "timestamp_ms": 2160.691,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2160.859,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2166.877,
+      "content": " PostgreSQL"
+    },
+    {
+      "timestamp_ms": 2183.951,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2202.955,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2356.018,
+      "content": "plaintext"
+    },
+    {
+      "timestamp_ms": 2356.165,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2356.231,
+      "content": "postgresql"
+    },
+    {
+      "timestamp_ms": 2356.287,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 2356.338,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2356.387,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2356.435,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 2357.107,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 2373.297,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 2433.356,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2433.541,
+      "content": "543"
+    },
+    {
+      "timestamp_ms": 2433.626,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2450.178,
+      "content": "/db"
+    },
+    {
+      "timestamp_ms": 2473.682,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2511.999,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2512.247,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 2528.096,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 2559.27,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2572.956,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2589.316,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2687.897,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2688.083,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 2688.21,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2688.21,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2688.374,
+      "content": " Username"
+    },
+    {
+      "timestamp_ms": 2702.485,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2849.045,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 2849.242,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2849.309,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 2853.848,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2854.036,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2854.036,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2854.036,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 2854.217,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2887.43,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2900.364,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2910.106,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 2951.974,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2952.133,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2965.48,
+      "content": " PostgreSQL"
+    },
+    {
+      "timestamp_ms": 3023.362,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3023.537,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3023.621,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3042.128,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3061.845,
+      "content": "543"
+    },
+    {
+      "timestamp_ms": 3082.132,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3098.114,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3370.151,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3370.329,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3370.396,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 3370.454,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 3370.502,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3370.549,
+      "content": " PostgreSQL"
+    },
+    {
+      "timestamp_ms": 3370.593,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3370.648,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3370.699,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3370.743,
+      "content": "dbname"
+    },
+    {
+      "timestamp_ms": 3370.786,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3370.829,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3370.875,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3370.917,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 3389.789,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3439.313,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3439.484,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3445.315,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3465.021,
+      "content": " connect"
+    },
+    {
+      "timestamp_ms": 3566.202,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3566.458,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3566.558,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3566.641,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 3566.702,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3581.339,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3594.187,
+      "content": "plaintext"
+    },
+    {
+      "timestamp_ms": 3632.307,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3636.523,
+      "content": "redis"
+    },
+    {
+      "timestamp_ms": 3881.387,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 3881.62,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3881.795,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 3881.899,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 3882.021,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 3882.105,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3890.327,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 3890.514,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 3890.612,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3890.691,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3890.75,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 3890.799,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3890.847,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3901.488,
+      "content": ":`"
+    },
+    {
+      "timestamp_ms": 3921.538,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3939.003,
+      "content": " Place"
+    },
+    {
+      "timestamp_ms": 4188.984,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4189.395,
+      "content": " colon"
+    },
+    {
+      "timestamp_ms": 4189.609,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4189.734,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 4189.811,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4189.875,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 4189.941,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4214.168,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4214.349,
+      "content": "defaults"
+    },
+    {
+      "timestamp_ms": 4214.414,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4214.47,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4214.525,
+      "content": "redis"
+    },
+    {
+      "timestamp_ms": 4214.573,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4220.847,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 4222.571,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4373.054,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4373.232,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 4373.298,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4373.353,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4373.404,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4373.452,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4373.497,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4374.852,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 4394.262,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4627.106,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4627.334,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4627.417,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 4627.522,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4643.225,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4643.464,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4643.552,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 4643.616,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4643.67,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4643.72,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 4643.767,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4643.818,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4643.947,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4699.527,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4699.816,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 4699.906,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4799.147,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4799.394,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4799.464,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4799.528,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 4799.581,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 4812.971,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4845.532,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 4859.263,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4874.053,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4903.78,
+      "content": " MSS"
+    },
+    {
+      "timestamp_ms": 4913.955,
+      "content": "QL"
+    },
+    {
+      "timestamp_ms": 4929.16,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4947.848,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 4967.279,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 5060.665,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5060.945,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 5061.048,
+      "content": "plaintext"
+    },
+    {
+      "timestamp_ms": 5061.126,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5068.283,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 5082.098,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5100.133,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 5129.529,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 5138.092,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 5160.124,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5415.903,
+      "content": "dbname"
+    },
+    {
+      "timestamp_ms": 5416.098,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 5416.167,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 5416.221,
+      "content": " Id"
+    },
+    {
+      "timestamp_ms": 5416.271,
+      "content": "=user"
+    },
+    {
+      "timestamp_ms": 5416.317,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 5416.362,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 5416.407,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5416.451,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 5416.493,
+      "content": ";\n"
+    },
+    {
+      "timestamp_ms": 5416.537,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 5416.579,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 5416.62,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5424.97,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5469.892,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 5470.074,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5484.168,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 5553.593,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5553.793,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5553.896,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5556.802,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 5577.588,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5602.304,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5712.371,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 5712.533,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 5712.605,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5712.667,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5712.718,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5712.776,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 5733.861,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5755.722,
+      "content": "dbname"
+    },
+    {
+      "timestamp_ms": 5768.619,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5790.136,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5805.171,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5830.786,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 5843.381,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6018.771,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6018.771,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 6018.771,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6018.771,
+      "content": " connect"
+    },
+    {
+      "timestamp_ms": 6018.771,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6018.771,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6019.104,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6019.278,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6019.381,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 6033.174,
+      "content": " Id"
+    },
+    {
+      "timestamp_ms": 6332.205,
+      "content": "=user"
+    },
+    {
+      "timestamp_ms": 6332.415,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6332.496,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6332.558,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6339.619,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 6339.773,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6339.877,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 6340.065,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6340.165,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6340.255,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6340.366,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 6340.433,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 6340.49,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 6340.539,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6340.586,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6340.631,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6495.192,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 6495.407,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6495.527,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 6495.605,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6495.672,
+      "content": "Each"
+    },
+    {
+      "timestamp_ms": 6495.869,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 6495.987,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 6496.224,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6529.421,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6538.349,
+      "content": " modified"
+    },
+    {
+      "timestamp_ms": 6549.612,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 6583.697,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 6588.981,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6637.694,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 6637.876,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 6643.871,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6663.035,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6927.79,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 6927.948,
+      "content": " selection"
+    },
+    {
+      "timestamp_ms": 6928.025,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6928.085,
+      "content": " SSL"
+    },
+    {
+      "timestamp_ms": 6928.134,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 6928.182,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6928.23,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6928.274,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6928.32,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6928.365,
+      "content": " depending"
+    },
+    {
+      "timestamp_ms": 6928.409,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6928.563,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6928.621,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 6930.057,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6949.889,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7072.516,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 7072.65,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7072.716,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7072.774,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below are sample connection strings for each of the specified databases, following your format.\n\n### MongoDB\n```plaintext\nmongodb://user:pass@host:27017\n```\n- `user:pass` - Username and password for authentication.\n- `host` - The address of the MongoDB server (e.g., `localhost`, `127.0.0.1`, or fully qualified domain name).\n- `27017` - The default port for MongoDB.\n\n### PostgreSQL\n```plaintext\npostgresql://user:pass@host:5432/dbname\n```\n- `user:pass` - Username and password for authentication.\n- `host` - The address of the PostgreSQL server.\n- `5432` - The default port for PostgreSQL.\n- `dbname` - The name of the database to connect to.\n\n### Redis\n```plaintext\nredis://:password@host:6379\n```\n- `:` - Place a colon if there is no user (defaults to `redis`).\n- `password` - The password for authentication.\n- `host` - The address of the Redis server.\n- `6379` - The default port for Redis.\n\n### MSSQL (SQL Server)\n```plaintext\nServer=host;Database=dbname;User Id=user;Password=pass;\n```\n- `Server=host` - The address of the SQL Server.\n- `Database=dbname` - The name of the database to connect to.\n- `User Id=user` - The username for authentication.\n- `Password=pass` - The password for authentication.\n\nEach connection string can be modified further based on additional requirements such as database selection, SSL usage, and more, depending on the specific application or context.",
+  "response_chars": 1400,
+  "num_chunks": 350,
+  "ttft_ms": 505.309,
+  "total_ms": 7073.053,
+  "model_name": "model-medium"
+}

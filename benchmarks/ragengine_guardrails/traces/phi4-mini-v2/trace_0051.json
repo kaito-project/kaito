@@ -1,0 +1,1671 @@
+{
+  "index": 51,
+  "prompt": "Explain how HTTPS works, including the TLS handshake process.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 974.925,
+      "content": "HTTPS"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " Hyper"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " Transfer"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 974.925,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " you're"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " Transport"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " user's"
+    },
+    {
+      "timestamp_ms": 1545.646,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " site"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " establishing"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " client's"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2269.711,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " Here's"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " simplified"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": ":\n\n\n"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 2880.415,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " supported"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " c"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": "iphers"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " selects"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " cipher"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3518.917,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " issued"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " trusted"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " authority"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4415.196,
+      "content": " proves"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " claims"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 4416.208,
+      "content": " verifies"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " CA"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " hasn't"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": " revoked"
+    },
+    {
+      "timestamp_ms": 4416.447,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " It's"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " hostname"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4722.003,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " man"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": "-the"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": "-middle"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 5643.821,
+      "content": " confirms"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " certificate"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " valid"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " hasn't"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " revoked"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " creates"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5661.132,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": "-master"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " encrypt"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " On"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " side"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": "-master"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " decrypted"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6211.663,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6668.249,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": "-master"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": " After"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6975.538,
+      "content": " generated"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " recon"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": "firm"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " identities"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " exchange"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " duration"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7485.884,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": "By"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " loaded"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " checked"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " other's"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " authenticity"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " established"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8011.497,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " intercepted"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " party"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8750.444,
+      "content": " remaining"
+    },
+    {
+      "timestamp_ms": 8750.983,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " happens"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " transmitted"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " credit"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " card"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " numbers"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9134.344,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": "aves"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": "dro"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": "pping"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": " tam"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": "pering"
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9712.521,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9712.99,
+      "type": "done"
+    }
+  ],
+  "full_response": "HTTPS, or Hypertext Transfer Protocol Secure, is the secure version of HTTP, the protocol over which data is sent between your browser and the website that you're connected to. HTTPS uses TLS, or Transport Layer Security, to protect the integrity and confidentiality of data between the user's computer and the site.\n\n\nThe process of using HTTPS and establishing a secure connection involves a handshake between the client's browser (user's computer) and the server. Here's a simplified version of the TLS handshake process:\n\n\n1. The client requests a secure connection to the server and the web browser sends a list of supported ciphers to the server.\n\n2. The server selects a cipher and sends its public key along with its digital certificate back to the client. The digital certificate has been issued by a trusted certificate authority (CA) and proves the server is who it claims to be.\n\n3. The client verifies the server's certificate with the CA to ensure it hasn't been revoked. It's also where the client checks the intended server's hostname against the certificate's domain name to prevent man-in-the-middle attacks.\n\n4. Once the client confirms the certificate is valid and hasn't been revoked, it creates a pre-master secret, encrypts it with the server's public key, and sends it to the server.\n\n5. On the server side, the pre-master secret is decrypted with the server's private key, and both the client and server independently compute the session keys from the pre-master secret.\n\n6. After these keys are generated, both client and server can reconfirm their identities, and they exchange encrypted messages using these session keys for the duration of the connection.\n\n\nBy the end of the handshake, both parties have loaded the session keys, checked each other's authenticity, and established an encrypted channel. This process ensures that all the following communication between both parties cannot be intercepted and read by an unauthorized party. The remaining part of the communication happens within this encrypted channel, by which HTTPS means all transmitted data (like your password, credit card numbers, or personal information) are protected against eavesdropping and tampering.",
+  "response_chars": 2206,
+  "num_chunks": 412,
+  "ttft_ms": 974.925,
+  "total_ms": 9713.465,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,2055 @@
+{
+  "index": 70,
+  "prompt": "What are microservices and what are the trade-offs compared to monolithic architecture?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 920.293,
+      "content": "Micro"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": "service"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " developing"
+    },
+    {
+      "timestamp_ms": 920.293,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " suite"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 947.855,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " communicates"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": "REST"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " asynchronous"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " messaging"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": "service"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1440.466,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " around"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " capability"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " enough"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " described"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " understood"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": " individually"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1955.298,
+      "content": "Micro"
+    },
+    {
+      "timestamp_ms": 1955.574,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 1955.574,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 1955.574,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 1955.574,
+      "content": " advantages"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " mon"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " Scal"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " too"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2462.873,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " divided"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " independent"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " Organizations"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3070.992,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": " keeping"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": " mind"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3072.727,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " Ownership"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " Teams"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " owned"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": "service"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " tend"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " motivated"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " charge"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 3691.643,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": " Technology"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": " Variety"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3929.035,
+      "content": " Mon"
+    },
+    {
+      "timestamp_ms": 4248.657,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " stack"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " adopted"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4248.866,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " quicker"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": " Res"
+    },
+    {
+      "timestamp_ms": 4809.914,
+      "content": "ilience"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " changing"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " faulty"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " anywhere"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " stack"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " Even"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " fails"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " doesn't"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " affect"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5357.921,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": "However"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": " mon"
+    },
+    {
+      "timestamp_ms": 5748.679,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": " Complexity"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 5957.642,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " Teams"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " observe"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " measure"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " inter"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": "-service"
+    },
+    {
+      "timestamp_ms": 6558.795,
+      "content": " communications"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " Managing"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " Transactions"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " span"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7089.115,
+      "content": " they're"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " Distribution"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " registered"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " discover"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " communicate"
+    },
+    {
+      "timestamp_ms": 7601.389,
+      "content": " asynchronously"
+    },
+    {
+      "timestamp_ms": 7679.351,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7679.351,
+      "content": " adding"
+    },
+    {
+      "timestamp_ms": 7679.351,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " Coordination"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " challenging"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 8191.41,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8191.887,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 8191.887,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8191.887,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 8191.887,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 8191.887,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 8191.887,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " smooth"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " Cost"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 8816.906,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " always"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " businesses"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": "Before"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " choosing"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " mon"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9382.686,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 9523.023,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9523.023,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 9523.023,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9523.023,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": "-term"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " goals"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " let"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " advantage"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " modular"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " give"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9932.254,
+      "content": " flexibility"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " Mon"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 10651.64,
+      "content": " requirement"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " quicker"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " straightforward"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " efforts"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " focused"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " largely"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11167.095,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 11279.2,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11279.2,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11279.2,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 11279.2,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 11279.2,
+      "content": "-market"
+    },
+    {
+      "timestamp_ms": 11279.2,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11369.388,
+      "type": "done"
+    }
+  ],
+  "full_response": "Microservices, also known as microservice architecture, is a design approach for developing a application as a suite of small, independently deployable services. Each service runs its own process and communicates through mechanisms like HTTP/REST or asynchronous messaging. Each microservice is built around a specific business capability and is small enough to be described and understood individually.\n\nMicro architecture offers several advantages over the traditional monolithic architecture:\n\n1. Scalability: If the application components become too large to manage, the functionality of the application can be divided into separate services that are independent. Organizations can add and remove new services keeping in mind the required capacity.\n2. Team Ownership: Teams with related functionality owned by a single microservice tend to be more motivated, as each one is in charge of the specific features' performance, process, and evolution.\n3. Technology Variety: Monolithic structures often require that an entire stack of technologies be adopted for the project. Microservices architecture allows quicker development by using different technologies, frameworks, languages, tools, and databases.\n4. Resilience: Microservices solutions can better handle changing or faulty requirements, anywhere in the stack. Even if one service fails, it doesn't affect the availability of other services.\n\nHowever, there are trade-offs between microservices architecture and monolithic architecture:\n\n1. Complexity: Microservices systems can be much more complex to build and maintain. Teams need to understand their development patterns, observe, measure, and enhance the inter-service communications.\n2. Data Consistency: Managing consistency across different services can be complex. Transactions that span multiple services must ensure that they're committed across all those services.\n3. Distribution: Services need to be registered, discover each other, and communicate asynchronously, adding overhead to application architecture.\n4. Service Coordination: It can be more challenging to maintain an when different parts have consistency and management issues, especially when maintaining a smooth user experience.\n5. Cost: Services and tools required to build and deploy a microservices architecture have a cost that may not always work for all businesses.\n\nBefore choosing between monolithic and microservices architecture, it's critical that you consider your business, development team, and long-term goals. Microservices can let you take advantage of modular development, give developers the flexibility to deliver the product quickly, and make it easier to scale the product. Monolithic architecture, on the other hand, may help deliver the initial requirement quicker, as it can be built in a more straightforward way and development efforts are more focused. This will largely depend on the scale, complexity, and time-to-market",
+  "response_chars": 2936,
+  "num_chunks": 508,
+  "ttft_ms": 920.293,
+  "total_ms": 11369.85,
+  "model_name": "Phi-4-mini-instruct"
+}

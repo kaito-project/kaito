@@ -1,0 +1,855 @@
+{
+  "index": 65,
+  "prompt": "Describe the actor model for concurrent programming.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 807.152,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " **Actor"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " Model** is a"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " conceptual"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " framework"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " for concurrent"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " computing, first"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " proposed"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " Carl Hewitt"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " in 19"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": "73"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " later developed by"
+    },
+    {
+      "timestamp_ms": 807.152,
+      "content": " Gul"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": "gha"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " It provides"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " a high"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": "-level abstraction"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " for writing"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " concurrent programs"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " by treating"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": "actors\" as the"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " fundamental units of computation"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " Here’s a"
+    },
+    {
+      "timestamp_ms": 1326.906,
+      "content": " detailed breakdown:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": "### **Core"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " Principles"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " of the Actor"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " Model**\n1."
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " **Act"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": "ors as"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " Universal"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " Pr"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": "imitives**\n  "
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " - Everything"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " is an **actor"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " a lightweight"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": ", isolated"
+    },
+    {
+      "timestamp_ms": 1834.088,
+      "content": " computational entity that encaps"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": "ulates state"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": " behavior, and communication"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": ".\n   - Actors"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": " analogous"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": " to \""
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": "objects\" in object"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": "-oriented programming but with"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": " differences ("
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": "e.g., no"
+    },
+    {
+      "timestamp_ms": 2116.054,
+      "content": " shared state,"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " asynchronous"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " messaging"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": ").\n\n2. **"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": "Message"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " Passing"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": "**\n   - Actors"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " communicate **"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": "only**"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " via **"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": "asynchronous messages**"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " (no shared memory"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " or direct method"
+    },
+    {
+      "timestamp_ms": 2571.502,
+      "content": " calls).\n   -"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " Messages"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " are sent"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " to an"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " actor’s **mail"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": "box** (a"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " F"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": "IFO queue) and"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " processed one"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " a time.\n  "
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " - This"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " avoids race"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " conditions and"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": " need for locks"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": "/m"
+    },
+    {
+      "timestamp_ms": 3103.565,
+      "content": "utexes"
+    },
+    {
+      "timestamp_ms": 3159.744,
+      "content": ".\n\n3. **"
+    },
+    {
+      "timestamp_ms": 3159.744,
+      "content": "Isolation and Enc"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": "apsulation**\n  "
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " - An"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " actor’s **"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": "internal state** is"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " and can"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " only be modified by"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " actor itself"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3433.446,
+      "content": " response to messages"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": ".\n   - No"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " access to another"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " actor’s state ("
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": "un"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": "like objects"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " in O"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": "OP).\n\n4."
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " **No Shared"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " State"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": "**\n   - Actors"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " not share memory"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " interact"
+    },
+    {
+      "timestamp_ms": 4178.78,
+      "content": " solely"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": " through messages"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": "   - This eliminates"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": " like dead"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": "locks, liv"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": "elocks, or"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": " data races"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": " in thread"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": "-based conc"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": "urrency.\n\n5."
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": " **Behavior"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": "-D"
+    },
+    {
+      "timestamp_ms": 4185.61,
+      "content": "riven Execution"
+    },
+    {
+      "timestamp_ms": 4274.349,
+      "content": "**\n   - An"
+    },
+    {
+      "timestamp_ms": 4274.349,
+      "content": " actor’s"
+    },
+    {
+      "timestamp_ms": 4274.349,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 4274.349,
+      "content": " defines"
+    },
+    {
+      "timestamp_ms": 4274.349,
+      "content": " how it processes messages"
+    },
+    {
+      "timestamp_ms": 4274.349,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4274.349,
+      "content": "   - Upon"
+    },
+    {
+      "timestamp_ms": 4353.203,
+      "content": " receiving a message,"
+    },
+    {
+      "timestamp_ms": 4353.203,
+      "content": " an actor can"
+    },
+    {
+      "timestamp_ms": 4353.203,
+      "content": ":\n     - **"
+    },
+    {
+      "timestamp_ms": 4353.203,
+      "content": "Send messages** to"
+    },
+    {
+      "timestamp_ms": 4353.203,
+      "content": " other actors.\n    "
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " - **Create"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " new actors"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": "**.\n"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": "     - **Design"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": "ate a"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " new behavior** for"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " next message (e"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": ".g., change"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " its state).\n\n6"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": ". **Location"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " Trans"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": "parency**\n   -"
+    },
+    {
+      "timestamp_ms": 4596.233,
+      "content": " Actors can reside"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " on the"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " same machine or be"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " distributed across a"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " network without"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " changing the programming"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": ".\n   - The"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " abstracts away"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " location"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": " (us"
+    },
+    {
+      "timestamp_ms": 4822.418,
+      "content": "eful for"
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": " distributed systems).\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": "### **How Actors"
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": " Work**\n1."
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": " **Mail"
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": "box**\n"
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": "   - Each actor"
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": " has a mail"
+    },
+    {
+      "timestamp_ms": 4962.219,
+      "content": "box where"
+    },
+    {
+      "timestamp_ms": 4996.954,
+      "content": " incoming messages are que"
+    },
+    {
+      "timestamp_ms": 4996.954,
+      "content": "ued.\n   -"
+    },
+    {
+      "timestamp_ms": 4996.954,
+      "content": " Messages are processed"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": "sequentially** ("
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": "no"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": "ism within"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " actor).\n\n2."
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " **Message Processing**\n"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": "   - When an"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " actor processes a"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " message, it:\n"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": "     - **"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": "Reads**"
+    },
+    {
+      "timestamp_ms": 5251.255,
+      "content": " the message from"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": " mailbox.\n    "
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": " - **Executes"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": "** its"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": " behavior (logic"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": " to handle"
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "content": " the message.\n    "
+    },
+    {
+      "timestamp_ms": 5401.21,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5454.771,
+      "type": "done"
+    }
+  ],
+  "full_response": "The **Actor Model** is a conceptual framework for concurrent and distributed computing, first proposed by Carl Hewitt in 1973 and later developed by Gul Agha. It provides a high-level abstraction for writing concurrent programs by treating \"actors\" as the fundamental units of computation. Here’s a detailed breakdown:\n\n---\n\n### **Core Principles of the Actor Model**\n1. **Actors as Universal Primitives**\n   - Everything is an **actor**: a lightweight, isolated computational entity that encapsulates state, behavior, and communication.\n   - Actors are analogous to \"objects\" in object-oriented programming but with key differences (e.g., no shared state, asynchronous messaging).\n\n2. **Message Passing**\n   - Actors communicate **only** via **asynchronous messages** (no shared memory or direct method calls).\n   - Messages are sent to an actor’s **mailbox** (a FIFO queue) and processed one at a time.\n   - This avoids race conditions and the need for locks/mutexes.\n\n3. **Isolation and Encapsulation**\n   - An actor’s **internal state** is private and can only be modified by the actor itself in response to messages.\n   - No direct access to another actor’s state (unlike objects in OOP).\n\n4. **No Shared State**\n   - Actors do not share memory; they interact solely through messages.\n   - This eliminates issues like deadlocks, livelocks, or data races common in thread-based concurrency.\n\n5. **Behavior-Driven Execution**\n   - An actor’s behavior defines how it processes messages.\n   - Upon receiving a message, an actor can:\n     - **Send messages** to other actors.\n     - **Create new actors**.\n     - **Designate a new behavior** for the next message (e.g., change its state).\n\n6. **Location Transparency**\n   - Actors can reside on the same machine or be distributed across a network without changing the programming model.\n   - The model abstracts away physical location (useful for distributed systems).\n\n---\n\n### **How Actors Work**\n1. **Mailbox**\n   - Each actor has a mailbox where incoming messages are queued.\n   - Messages are processed **sequentially** (no parallelism within an actor).\n\n2. **Message Processing**\n   - When an actor processes a message, it:\n     - **Reads** the message from its mailbox.\n     - **Executes** its current behavior (logic) to handle the message.\n    ",
+  "response_chars": 2303,
+  "num_chunks": 208,
+  "ttft_ms": 807.152,
+  "total_ms": 5493.045,
+  "model_name": "Mistral-Large-3"
+}

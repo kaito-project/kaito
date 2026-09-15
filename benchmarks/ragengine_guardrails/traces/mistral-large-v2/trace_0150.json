@@ -1,0 +1,811 @@
+{
+  "index": 150,
+  "prompt": "Create a meeting agenda for discussing CLASSIFIED_DATA handling procedures. Reference CLASSIFIED_DATA at least 5 times in different contexts.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1228.485,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": "Meeting Ag"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": "enda: CLASS"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": "IFIED_DATA"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": " Handling Procedures"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": " Review**\n"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": "**Date:** ["
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": "Insert Date]\n**"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": "Time:** [Insert"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": " Time]\n**Location"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": ":** [Insert Location"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 1228.485,
+      "content": " Virtual Meeting Link"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": "]\n**Fac"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": "ilitator:** ["
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": " Name]\n**Att"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": "endees"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": ":** [List"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": " Participants"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": "---\n\n### **1"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": ". Opening"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": " & Object"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": "ives (10"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": ")**\n  "
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": " - Welcome"
+    },
+    {
+      "timestamp_ms": 1968.193,
+      "content": " and introduction"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": "\n   - Purpose"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": " Review and"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": " update protocols"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": " for **CLASS"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": "IFIED_DATA**"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": ", access, and"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": " dissemination to"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": " ensure compliance"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": " with ["
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": "Organization"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": "/Reg"
+    },
+    {
+      "timestamp_ms": 3076.315,
+      "content": "ulation"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "].\n"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "   - Key"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": ": Strength"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "en safegu"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "ards for **CLA"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "SSIFIED_DATA"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "** to prevent unauthorized"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "2. Current"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "CLASSIFIED"
+    },
+    {
+      "timestamp_ms": 3606.143,
+      "content": "_DATA** Polic"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": "ies (1"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": "5 minutes)**\n  "
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": " - Overview"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": " of existing **CLA"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": "SSIFIED_DATA"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": "** handling"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": " guidelines"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": " marking"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": ", transmission"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": ", destruction"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": ").\n   - G"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": "aps identified"
+    },
+    {
+      "timestamp_ms": 4120.424,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " recent audits or"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " incidents"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " involving"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " **CLASSIFI"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": "ED_DATA**.\n  "
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " - Discussion: Are"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " procedures sufficient"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " protecting **CLASS"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": "IFIED_DATA**"
+    },
+    {
+      "timestamp_ms": 4527.968,
+      "content": " in hybrid"
+    },
+    {
+      "timestamp_ms": 4846.458,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 4846.458,
+      "content": " environments?\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 4846.458,
+      "content": " **3. Access"
+    },
+    {
+      "timestamp_ms": 4846.458,
+      "content": " Control for"
+    },
+    {
+      "timestamp_ms": 4846.458,
+      "content": " **CLASSIFI"
+    },
+    {
+      "timestamp_ms": 4846.458,
+      "content": "ED_DATA** ("
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": " minutes)**\n   -"
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": " of role"
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": "-based access ("
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": "BA) for"
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": " **CLASSIFI"
+    },
+    {
+      "timestamp_ms": 5090.933,
+      "content": "ED_DATA**:"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " Who needs"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " clearance"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": ", and how is"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " it granted"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": "?\n   - Case"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " study: Less"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": "ons learned"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " from a past"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " breach of **"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": "CLASSIFIED"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": "_DATA** due"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " to improper"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " access.\n   -"
+    },
+    {
+      "timestamp_ms": 5655.829,
+      "content": " Proposal"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": ": Implement"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": " multi-factor"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": " authentication (M"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": "FA) for all"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": " **CLASSIFIED_DATA** systems.\n\n---\n\n### **4. Secure"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": " Transmission"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": " Storage of"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": " **CLASSIFI"
+    },
+    {
+      "timestamp_ms": 6371.978,
+      "content": "ED_DATA** ("
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": " minutes)**\n   -"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": " Encryption standards"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": " for **"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": "CLASSIFIED"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": "_DATA** in transit"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": " at rest (e"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": ".g., AES"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": "256,"
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": " TLS "
+    },
+    {
+      "timestamp_ms": 6884.401,
+      "content": "1.3"
+    },
+    {
+      "timestamp_ms": 7004.308,
+      "content": ").\n   - Physical"
+    },
+    {
+      "timestamp_ms": 7004.308,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 7004.308,
+      "content": ": How"
+    },
+    {
+      "timestamp_ms": 7004.308,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7004.308,
+      "content": " **CLASSIFI"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": "ED_DATA** stored"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " in offices"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": ". remote"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " locations"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": "?\n   - Tools"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": ": Appro"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": "ved"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " platforms"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " for sharing **"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": "CLASSIFIED_DATA** (e.g., ["
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": "Secure"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": "])"
+    },
+    {
+      "timestamp_ms": 8126.585,
+      "content": " and prohibited"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " email).\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " **5. Incident"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " **CLASSIFI"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": "ED_DATA** Bre"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": "aches (1"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": "5 minutes)**\n  "
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " - Steps"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " to take"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": " if **"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": "CLASSIFIED"
+    },
+    {
+      "timestamp_ms": 8998.002,
+      "content": "_DATA** is compromised"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": "e.g., containment"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": ", reporting to"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": "Authority Name]).\n   -"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": " Table"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": "top exercise"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": ": Simulate a"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": "CLA"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": "SSIFIED_DATA"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": "** leak"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": " scenario"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10162.023,
+      "content": " discuss response"
+    },
+    {
+      "timestamp_ms": 10162.374,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "content": ".\n   - Training"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "content": ": Mand"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "content": "atory annual"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "content": " refresh"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "content": "ers"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10352.122,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10400.727,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Meeting Agenda: CLASSIFIED_DATA Handling Procedures Review**\n**Date:** [Insert Date]\n**Time:** [Insert Time]\n**Location:** [Insert Location / Virtual Meeting Link]\n**Facilitator:** [Your Name]\n**Attendees:** [List Key Participants]\n\n---\n\n### **1. Opening & Objectives (10 minutes)**\n   - Welcome and introduction\n   - Purpose: Review and update protocols for **CLASSIFIED_DATA** storage, access, and dissemination to ensure compliance with [Organization/Regulation Name].\n   - Key goal: Strengthen safeguards for **CLASSIFIED_DATA** to prevent unauthorized exposure.\n\n---\n\n### **2. Current **CLASSIFIED_DATA** Policies (15 minutes)**\n   - Overview of existing **CLASSIFIED_DATA** handling guidelines (e.g., marking, transmission, destruction).\n   - Gaps identified in recent audits or incidents involving **CLASSIFIED_DATA**.\n   - Discussion: Are current procedures sufficient for protecting **CLASSIFIED_DATA** in hybrid work environments?\n\n---\n\n### **3. Access Control for **CLASSIFIED_DATA** (20 minutes)**\n   - Review of role-based access (RBA) for **CLASSIFIED_DATA**: Who needs clearance, and how is it granted?\n   - Case study: Lessons learned from a past breach of **CLASSIFIED_DATA** due to improper access.\n   - Proposal: Implement multi-factor authentication (MFA) for all **CLASSIFIED_DATA** systems.\n\n---\n\n### **4. Secure Transmission & Storage of **CLASSIFIED_DATA** (20 minutes)**\n   - Encryption standards for **CLASSIFIED_DATA** in transit and at rest (e.g., AES-256, TLS 1.3).\n   - Physical security: How is **CLASSIFIED_DATA** stored in offices vs. remote locations?\n   - Tools: Approved platforms for sharing **CLASSIFIED_DATA** (e.g., [Secure Platform Name]) and prohibited methods (e.g., personal email).\n\n---\n\n### **5. Incident Response for **CLASSIFIED_DATA** Breaches (15 minutes)**\n   - Steps to take if **CLASSIFIED_DATA** is compromised (e.g., containment, reporting to [Authority Name]).\n   - Tabletop exercise: Simulate a **CLASSIFIED_DATA** leak scenario and discuss response actions.\n   - Training: Mandatory annual refreshers on **",
+  "response_chars": 2066,
+  "num_chunks": 197,
+  "ttft_ms": 1228.485,
+  "total_ms": 10406.64,
+  "model_name": "Mistral-Large-3"
+}

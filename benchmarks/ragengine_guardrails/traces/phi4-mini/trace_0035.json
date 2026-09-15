@@ -1,0 +1,1495 @@
+{
+  "index": 35,
+  "prompt": "What are the best practices for designing RESTful APIs?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 971.168,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " designing"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " easy"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " successful"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 971.168,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " Resource"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": "GET"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " PUT"
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1829.422,
+      "content": " DELETE"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " manipulate"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " unique"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " URI"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": "Uniform"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " Resource"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " Identifier"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " clients"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 2364.459,
+      "content": " manner"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " designing"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": "400"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": "404"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3398.317,
+      "content": " indicate"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " success"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " failure"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " Additionally"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " meaningful"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " caller"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " went"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " wrong"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3883.317,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " naming"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " conventions"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " Choose"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " convention"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " naming"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " UR"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": "Is"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": "istent"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " naming"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 4570.345,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " Support"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " modifying"
+    },
+    {
+      "timestamp_ms": 4916.184,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " breaking"
+    },
+    {
+      "timestamp_ms": 5267.484,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " consumers"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " Document"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " covers"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5885.349,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " formats"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " consumers"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " Work"
+    },
+    {
+      "timestamp_ms": 6627.168,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " considering"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": "\t"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": "*"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " encrypt"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": "\t"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": "*"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " Add"
+    },
+    {
+      "timestamp_ms": 7063.257,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 7237.544,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 7237.544,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 7237.544,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7237.544,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 7237.544,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7237.544,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7237.544,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": "\t"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": "*"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " retries"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 7988.82,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " abuse"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " Min"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": "imize"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7989.243,
+      "content": " amount"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " transmitted"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " utilizing"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " pagination"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " filtering"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " caching"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " optimize"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8603.99,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 8723.951,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8723.951,
+      "content": " client's"
+    },
+    {
+      "timestamp_ms": 8723.951,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 8723.951,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8723.951,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8766.824,
+      "type": "done"
+    }
+  ],
+  "full_response": "When designing RESTful APIs, it's important to follow some best practices to ensure that your API is easy to use, maintainable, and successful. Here are some best practices to consider:\n\n1. Resource-oriented: RESTful APIs should be based on resources and use standard HTTP methods (GET, POST, PUT, DELETE) to manipulate those resources. Resources should have a unique URI (Uniform Resource Identifier) and should be exposed to clients in a consistent manner.\n\n2. Use HTTP status codes and error messages: When designing your API, make sure you use standard HTTP status codes (e.g., 200, 400, 404, 500) to indicate the success or failure of an operation. Additionally, provide meaningful error messages that help the caller understand what went wrong.\n\n3. Use consistent naming conventions: Choose a convention for naming your API resources, HTTP methods, and URIs. Consistent naming will make it easier for developers to understand and use your API.\n\n4. Support versioning: When modifying your API, it's important to support versioning. This will help prevent breaking changes for consumers of your API.\n\n5. Document your API: Create a comprehensive API documentation that covers all the available resources, their methods, and the expected request and response formats. This documentation will help your API consumers to understand and use your API.\n\n6. Secure your API: Work to secure your API by considering the following measures:\n\t* Use HTTPS to encrypt sensitive data.\n\t* Add authentication mechanisms such as OAuth or API keys to control access to your API.\n\t* Use rate limiting and retries to protect your from abuse.\n7. Reduce the number of HTTP requests: Minimize the amount of data transmitted by your API by utilizing techniques like pagination, filtering, and caching. This will help optimize your API's performance and reduce the client's latency.",
+  "response_chars": 1861,
+  "num_chunks": 368,
+  "ttft_ms": 971.168,
+  "total_ms": 8791.876,
+  "model_name": "Phi-4-mini-instruct"
+}

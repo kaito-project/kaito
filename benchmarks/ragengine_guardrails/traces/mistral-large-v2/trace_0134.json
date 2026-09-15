@@ -1,0 +1,751 @@
+{
+  "index": 134,
+  "prompt": "How does a neural network learn through backpropagation?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 880.447,
+      "content": "Back"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": "propagation ("
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": "short for"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " \"backward"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " propagation of"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " errors\") is the"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " core algorithm used"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " to train neural networks"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " by efficiently"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " gradients"
+    },
+    {
+      "timestamp_ms": 880.447,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " the loss"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " function with respect to"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " the weights"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": ". Here"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " a step-by-step"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " breakdown"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " of how it works"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": ":\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": "1. Forward"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " Pass**\n"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": "- **Input Data"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": "**: A"
+    },
+    {
+      "timestamp_ms": 1583.461,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " an image,"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " or numerical"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " data) is fed"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " into the network"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": ".\n- **Layer"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": "-by"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": "-L"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": "ayer Computation**:"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " The input"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " propag"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": "ates through each layer"
+    },
+    {
+      "timestamp_ms": 2293.973,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " the network ("
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": "input"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " → hidden layers →"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " output),"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": "  - Each"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " neuron applies"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " a weighted"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " sum"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " of its inputs"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " \\( z"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " = w"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " \\cdot x"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " + b \\)"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " (where \\( w"
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " \\) ="
+    },
+    {
+      "timestamp_ms": 2432.169,
+      "content": " weights, \\( x"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": " \\) = inputs"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": ", \\( b \\"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": ") = bias"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": ").\n  - An"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": " activation function ("
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": "e.g., Re"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": "LU, sig"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": "moid) is applied"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": " to introduce"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": " non-linearity:"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": " \\( a"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": " = \\sigma"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": "(z) \\).\n"
+    },
+    {
+      "timestamp_ms": 2919.431,
+      "content": "- **Output Prediction"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": "**: The final"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " produces a prediction"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " probabilities for"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": ").\n- **Loss"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " Calculation**: The"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " prediction is compared to"
+    },
+    {
+      "timestamp_ms": 3104.74,
+      "content": " the true label"
+    },
+    {
+      "timestamp_ms": 3208.197,
+      "content": " using a loss"
+    },
+    {
+      "timestamp_ms": 3208.197,
+      "content": " function (e.g"
+    },
+    {
+      "timestamp_ms": 3208.197,
+      "content": "., cross"
+    },
+    {
+      "timestamp_ms": 3208.197,
+      "content": "-entropy for"
+    },
+    {
+      "timestamp_ms": 3208.197,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": ", M"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": "SE for regression"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": "). The loss quant"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": "ifies how"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": " \"wrong\" the"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": " prediction"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": " is.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 3683.274,
+      "content": " **2. Back"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": "ward Pass"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " (Gradient"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " Calculation)**\nThe"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " goal is to compute"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " how much each weight"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " contributed"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " to the error"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " and adjust"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": " the loss"
+    },
+    {
+      "timestamp_ms": 4095.227,
+      "content": ". This is done"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " using the"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " **chain rule**"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " from calculus to"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " propagate the"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " error backward.\n\n####"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " **Step 1"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": ": Compute Output"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " Layer"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " Grad"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": "ients**\n- Calculate"
+    },
+    {
+      "timestamp_ms": 4095.618,
+      "content": " the gradient of the"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " loss \\("
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " \\) with respect"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " to the output"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": "^"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": "L \\) ("
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": "where \\( L"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " \\) ="
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " last layer):\n "
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": " \\[\n  \\"
+    },
+    {
+      "timestamp_ms": 4095.83,
+      "content": "frac{\\partial L"
+    },
+    {
+      "timestamp_ms": 4231.406,
+      "content": "}{\\partial a"
+    },
+    {
+      "timestamp_ms": 4231.406,
+      "content": "^L}\n"
+    },
+    {
+      "timestamp_ms": 4231.406,
+      "content": "  \\]\n "
+    },
+    {
+      "timestamp_ms": 4231.406,
+      "content": " For example, in"
+    },
+    {
+      "timestamp_ms": 4231.406,
+      "content": " binary"
+    },
+    {
+      "timestamp_ms": 4231.406,
+      "content": " classification with"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": " cross-entropy loss"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": ":\n  \\[\n"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "  \\frac{\\"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "partial L}{\\partial"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": " a^L}"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": " = \\"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "frac{a^L"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": " - y}{a"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "^L("
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "1 - a^"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "L)}"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": " \\quad \\text"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "{(for"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": " sig"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": "moid output"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": ")}\n  \\]\n "
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": " where \\( y \\"
+    },
+    {
+      "timestamp_ms": 4605.758,
+      "content": ") is the true"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " label.\n\n-"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " Compute the gradient of"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " the loss"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " with respect to the"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " weighted"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " input \\( z^"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": "L \\)"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " (before activation"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": "):\n  \\[\n"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": "  \\frac{\\"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": "partial L}{\\partial"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " z^L}"
+    },
+    {
+      "timestamp_ms": 4750.072,
+      "content": " = \\frac{\\"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": "partial L}{\\partial"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": " a^L}"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": " \\cdot \\sigma"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": "'(z"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": "^L)\n "
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": " \\]\n  Here,"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": " \\( \\sigma'"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": " \\) is the"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "content": " derivative of the"
+    },
+    {
+      "timestamp_ms": 4845.994,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5220.123,
+      "type": "done"
+    }
+  ],
+  "full_response": "Backpropagation (short for \"backward propagation of errors\") is the core algorithm used to train neural networks by efficiently computing gradients of the loss function with respect to the weights. Here’s a step-by-step breakdown of how it works:\n\n---\n\n### **1. Forward Pass**\n- **Input Data**: A training example (e.g., an image, text, or numerical data) is fed into the network.\n- **Layer-by-Layer Computation**: The input propagates through each layer of the network (input → hidden layers → output), where:\n  - Each neuron applies a weighted sum of its inputs: \\( z = w \\cdot x + b \\) (where \\( w \\) = weights, \\( x \\) = inputs, \\( b \\) = bias).\n  - An activation function (e.g., ReLU, sigmoid) is applied to introduce non-linearity: \\( a = \\sigma(z) \\).\n- **Output Prediction**: The final layer produces a prediction (e.g., class probabilities for classification).\n- **Loss Calculation**: The prediction is compared to the true label using a loss function (e.g., cross-entropy for classification, MSE for regression). The loss quantifies how \"wrong\" the prediction is.\n\n---\n\n### **2. Backward Pass (Gradient Calculation)**\nThe goal is to compute how much each weight contributed to the error and adjust it to reduce the loss. This is done using the **chain rule** from calculus to propagate the error backward.\n\n#### **Step 1: Compute Output Layer Gradients**\n- Calculate the gradient of the loss \\( L \\) with respect to the output \\( a^L \\) (where \\( L \\) = last layer):\n  \\[\n  \\frac{\\partial L}{\\partial a^L}\n  \\]\n  For example, in binary classification with cross-entropy loss:\n  \\[\n  \\frac{\\partial L}{\\partial a^L} = \\frac{a^L - y}{a^L(1 - a^L)} \\quad \\text{(for sigmoid output)}\n  \\]\n  where \\( y \\) is the true label.\n\n- Compute the gradient of the loss with respect to the weighted input \\( z^L \\) (before activation):\n  \\[\n  \\frac{\\partial L}{\\partial z^L} = \\frac{\\partial L}{\\partial a^L} \\cdot \\sigma'(z^L)\n  \\]\n  Here, \\( \\sigma' \\) is the derivative of the",
+  "response_chars": 1975,
+  "num_chunks": 182,
+  "ttft_ms": 880.447,
+  "total_ms": 5220.601,
+  "model_name": "Mistral-Large-3"
+}

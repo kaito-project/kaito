@@ -1,0 +1,891 @@
+{
+  "index": 49,
+  "prompt": "What are the main differences between Python and Go for building web APIs?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 574.049,
+      "content": "Python"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": " and Go (G"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": "olang) are"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": " both popular choices"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": " for building"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": " web APIs"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": ", but they have"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": " distinct differences"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": " in terms"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": " of performance, syntax"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": ", conc"
+    },
+    {
+      "timestamp_ms": 574.049,
+      "content": "urrency, ecosystem"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": ", and use"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " cases. Here’s"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " a detailed"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " comparison:\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " **1. Performance"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": "**\n-"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " **Go**:\n"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": "  - **F"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": "aster execution"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": "**: Go"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " is a compiled"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " language (to"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 845.833,
+      "content": " code),"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " makes it significantly"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " faster than Python"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " (an"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " interpreted"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " language).\n  -"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " **Lower"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": "**: Better"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " for high-performance APIs"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": " micros"
+    },
+    {
+      "timestamp_ms": 1057.486,
+      "content": "ervices, or"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": " real-time systems ("
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": "e.g., streaming"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": ", gaming"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": " or financial"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": "fficient memory usage**:"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": " has a smaller"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": " memory footprint and"
+    },
+    {
+      "timestamp_ms": 1272.586,
+      "content": " better garbage"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " collection,"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " making it ideal"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " for scalable"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": ".\n\n- **Python"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": "**:\n  - **"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": "Slower**: Python"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " is interpreted"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " and dynamically"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " typed"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": ", which"
+    },
+    {
+      "timestamp_ms": 1478.669,
+      "content": " adds overhead. Performance"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "-c"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "ritical parts"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " require optim"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "izations (e.g"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "., using C"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " extensions"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " like Num"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "Py or off"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "loading work"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " to async"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "/O).\n  -"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "Good enough"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " for most"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 1736.385,
+      "content": "**: Unless"
+    },
+    {
+      "timestamp_ms": 1872.633,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1872.633,
+      "content": "’re"
+    },
+    {
+      "timestamp_ms": 1872.633,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 1872.633,
+      "content": " thousands"
+    },
+    {
+      "timestamp_ms": 1872.633,
+      "content": " of requests per"
+    },
+    {
+      "timestamp_ms": 1872.633,
+      "content": " second, Python’s"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": " performance is often sufficient"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": ".g., for"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": " CR"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": "UD APIs"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": ", internal"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": ", or prototypes"
+    },
+    {
+      "timestamp_ms": 1978.318,
+      "content": ").\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " Concurrency Model"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "**\n- **Go"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "**:\n  - **"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "oroutines**:"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " Light"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "weight threads"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " by the"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " Go runtime (not"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " threads"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "). Gor"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": "outines make"
+    },
+    {
+      "timestamp_ms": 2210.869,
+      "content": " it easy to write"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": "e.g., handling"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": " thousands"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": " of requests simultaneously"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": "Channels**: Built"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": "-in primitives"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": " for safe"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": " communication between gor"
+    },
+    {
+      "timestamp_ms": 2515.032,
+      "content": "outines,"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": " need for locks"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": ".\n  - **"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": "Ideal for"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": " high-throughput APIs"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": "**: Go"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": " concurrency model"
+    },
+    {
+      "timestamp_ms": 2538.915,
+      "content": " is simpler"
+    },
+    {
+      "timestamp_ms": 2592.717,
+      "content": " and more efficient than"
+    },
+    {
+      "timestamp_ms": 2592.717,
+      "content": " Python’s threading"
+    },
+    {
+      "timestamp_ms": 2592.717,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2592.717,
+      "content": " async/"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": "await.\n\n- **"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": "Python**:\n  -"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " **Threading limitations"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": "**: Python"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": "’s Global"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " Interpreter Lock"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " (GIL"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": ") prevents true"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " parallelism"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " threads (though"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": "/O-bound"
+    },
+    {
+      "timestamp_ms": 2792.02,
+      "content": " tasks can still"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " benefit from"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " threading).\n  -"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " **Async"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": "await**: Python "
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": "3.5"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": "+ supports async I"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": "/O (e.g"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": "., with"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " `asyncio`),"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " is great"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " for I/O-bound"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3034.202,
+      "content": " calling"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": "). However, it"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": "’s more"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": " complex than Go"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": "’s gor"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": "outines.\n  -"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": " **Not"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": " ideal for CPU"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": "-bound tasks"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": "**: For"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": " CPU-he"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": "avy work"
+    },
+    {
+      "timestamp_ms": 3355.124,
+      "content": ", Python"
+    },
+    {
+      "timestamp_ms": 3392.452,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 3392.452,
+      "content": " requires multip"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": "rocessing ("
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": "which has"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": " higher overhead).\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": "### **3."
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": " Syntax and Developer"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": " Experience**\n- **"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": "Go**:\n  -"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": " **Min"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": "imalist and"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": " explicit**: Go"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": " a simple, C"
+    },
+    {
+      "timestamp_ms": 3698.781,
+      "content": "-like"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " syntax with"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " gener"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": "ics ("
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": "until Go"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " 1.1"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": "8), or"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " exceptions."
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " cognitive"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " but can"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": " feel restrictive"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "content": "  -"
+    },
+    {
+      "timestamp_ms": 4056.751,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4107.122,
+      "type": "done"
+    }
+  ],
+  "full_response": "Python and Go (Golang) are both popular choices for building web APIs, but they have distinct differences in terms of performance, syntax, concurrency, ecosystem, and use cases. Here’s a detailed comparison:\n\n---\n\n### **1. Performance**\n- **Go**:\n  - **Faster execution**: Go is a compiled language (to machine code), which makes it significantly faster than Python (an interpreted language).\n  - **Lower latency**: Better for high-performance APIs, microservices, or real-time systems (e.g., streaming, gaming, or financial services).\n  - **Efficient memory usage**: Go has a smaller memory footprint and better garbage collection, making it ideal for scalable systems.\n\n- **Python**:\n  - **Slower**: Python is interpreted and dynamically typed, which adds overhead. Performance-critical parts often require optimizations (e.g., using C extensions like NumPy or offloading work to async I/O).\n  - **Good enough for most APIs**: Unless you’re handling thousands of requests per second, Python’s performance is often sufficient (e.g., for CRUD APIs, internal tools, or prototypes).\n\n---\n\n### **2. Concurrency Model**\n- **Go**:\n  - **Goroutines**: Lightweight threads managed by the Go runtime (not OS threads). Goroutines make it easy to write concurrent code (e.g., handling thousands of requests simultaneously).\n  - **Channels**: Built-in primitives for safe communication between goroutines, reducing the need for locks.\n  - **Ideal for high-throughput APIs**: Go’s concurrency model is simpler and more efficient than Python’s threading or async/await.\n\n- **Python**:\n  - **Threading limitations**: Python’s Global Interpreter Lock (GIL) prevents true parallelism with threads (though I/O-bound tasks can still benefit from threading).\n  - **Async/await**: Python 3.5+ supports async I/O (e.g., with `asyncio`), which is great for I/O-bound APIs (e.g., calling external services). However, it’s more complex than Go’s goroutines.\n  - **Not ideal for CPU-bound tasks**: For CPU-heavy work, Python often requires multiprocessing (which has higher overhead).\n\n---\n\n### **3. Syntax and Developer Experience**\n- **Go**:\n  - **Minimalist and explicit**: Go has a simple, C-like syntax with no classes, generics (until Go 1.18), or exceptions. This reduces cognitive overhead but can feel restrictive.\n  -",
+  "response_chars": 2302,
+  "num_chunks": 217,
+  "ttft_ms": 574.049,
+  "total_ms": 4244.146,
+  "model_name": "Mistral-Large-3"
+}

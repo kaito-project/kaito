@@ -1,0 +1,631 @@
+{
+  "index": 99,
+  "prompt": "Write a JSON schema definition for a user registration form with fields: username, email, password, date_of_birth, and address object.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 617.83,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": "'s a JSON"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": " Schema"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": " definition for a user"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": " registration form with the"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": " you specified"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": "username`, `email"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": "`, `password"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": "`, `date"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": "_of_birth`,"
+    },
+    {
+      "timestamp_ms": 617.83,
+      "content": " and an `address"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "` object):\n\n"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "```json"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "\n{\n  \"$"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "schema\": \"http"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "://json"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "-schema.org/d"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "raft-"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "07/schema"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "#\",\n"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "  \"title"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "\": \"User Registration"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": " Form\",\n  \""
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": "description\": \"Schema"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": " for a"
+    },
+    {
+      "timestamp_ms": 804.545,
+      "content": " user registration form\",\n"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "  \"type\":"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": " \"object\",\n "
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": " \"required"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "\": [\""
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "username\", \"email"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "\", \"password\","
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": " \"date_of_b"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "irth\"],\n  \""
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "properties\": {\n   "
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": " \"username\": {\n"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "      \"type"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "\": \"string"
+    },
+    {
+      "timestamp_ms": 1010.401,
+      "content": "\",\n      \"description"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "\": \"The"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": " user's unique"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": " username\",\n      \""
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "minLength"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "\": 3"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": ",\n      \"max"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "Length\": 3"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "0,\n      \""
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "pattern\": \"^"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "[a-zA"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "-Z0-9"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "_]+$"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "\"\n    },\n   "
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": " \"email\": {\n"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": "      \"type\":"
+    },
+    {
+      "timestamp_ms": 1214.801,
+      "content": " \"string\",\n     "
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": " \"description\": \""
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": "The user's email"
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": " address\",\n      \""
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": "format\": \"email"
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": "    },\n    \""
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": "password\": {\n     "
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": " \"type\": \""
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": "string\",\n      \""
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": "description\": \"The"
+    },
+    {
+      "timestamp_ms": 1348.28,
+      "content": " user's password\",\n"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "      \"minLength"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "\": 8"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": ",\n      \"pattern"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "\": \"^"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "(?="
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": ".*["
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "a-z])"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "(?="
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": ".*[A"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "-Z])(?="
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": ".*\\\\"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "d)("
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "?=.*[@"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "$!"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "%*"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "?&"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "])["
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "A-Za"
+    },
+    {
+      "timestamp_ms": 1753.92,
+      "content": "-z\\\\"
+    },
+    {
+      "timestamp_ms": 1754.206,
+      "content": "$!"
+    },
+    {
+      "timestamp_ms": 1754.206,
+      "content": "%*?"
+    },
+    {
+      "timestamp_ms": 1754.206,
+      "content": "&]+"
+    },
+    {
+      "timestamp_ms": 1754.206,
+      "content": "$\"\n   "
+    },
+    {
+      "timestamp_ms": 1754.206,
+      "content": " },\n    \"date"
+    },
+    {
+      "timestamp_ms": 1754.206,
+      "content": "_of_birth\":"
+    },
+    {
+      "timestamp_ms": 1754.206,
+      "content": " {\n      \"type"
+    },
+    {
+      "timestamp_ms": 1777.512,
+      "content": "\": \"string\",\n"
+    },
+    {
+      "timestamp_ms": 1777.512,
+      "content": "      \"description\":"
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": " \"The user's"
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": " date of birth\",\n"
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": "      \"format\":"
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": " \"date\"\n   "
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": " },\n    \"address"
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": "\": {\n      \""
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": "type\": \"object"
+    },
+    {
+      "timestamp_ms": 1931.31,
+      "content": "\",\n      \"description"
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": "\": \"The"
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": " user's address\",\n"
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": "      \"properties"
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": "\": {\n        \""
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": "street\": {\n         "
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": " \"type\": \""
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": "string\",\n          \""
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": "description\": \"Street"
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": " address\",\n          \""
+    },
+    {
+      "timestamp_ms": 2045.333,
+      "content": "minLength\": "
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "1\n"
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "        },\n        \""
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "city\": {\n         "
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": " \"type\": \""
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "string\",\n          \""
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "description\": \"City"
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "          \"min"
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "Length\": 1"
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "\n        },\n       "
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": " \"state\": {\n"
+    },
+    {
+      "timestamp_ms": 2238.327,
+      "content": "          \"type\":"
+    },
+    {
+      "timestamp_ms": 2340.216,
+      "content": " \"string\",\n         "
+    },
+    {
+      "timestamp_ms": 2340.216,
+      "content": " \"description\": \""
+    },
+    {
+      "timestamp_ms": 2340.216,
+      "content": "State or"
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": " province\",\n          \""
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": "minLength\": "
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": "1\n        },\n"
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": "        \"post"
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": "al_code"
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": "\": {\n          \""
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": "type\": \"string"
+    },
+    {
+      "timestamp_ms": 2443.069,
+      "content": "\",\n          \"description"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": "\": \"Post"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": "al or"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": " ZIP code\",\n         "
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": " \"minLength\":"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": " 1\n       "
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": " },\n        \"country"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": "\": {\n          \""
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": "type\": \"string"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": "\",\n          \"description"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": "\": \"Country\",\n"
+    },
+    {
+      "timestamp_ms": 2549.683,
+      "content": "          \"minLength"
+    },
+    {
+      "timestamp_ms": 2649.48,
+      "content": "\": 1\n"
+    },
+    {
+      "timestamp_ms": 2649.48,
+      "content": "        }\n      },\n"
+    },
+    {
+      "timestamp_ms": 2649.48,
+      "content": "      \"required\":"
+    },
+    {
+      "timestamp_ms": 2649.48,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 2649.48,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 2750.533,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a JSON Schema definition for a user registration form with the fields you specified (`username`, `email`, `password`, `date_of_birth`, and an `address` object):\n\n```json\n{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"title\": \"User Registration Form\",\n  \"description\": \"Schema for a user registration form\",\n  \"type\": \"object\",\n  \"required\": [\"username\", \"email\", \"password\", \"date_of_birth\"],\n  \"properties\": {\n    \"username\": {\n      \"type\": \"string\",\n      \"description\": \"The user's unique username\",\n      \"minLength\": 3,\n      \"maxLength\": 30,\n      \"pattern\": \"^[a-zA-Z0-9_]+$\"\n    },\n    \"email\": {\n      \"type\": \"string\",\n      \"description\": \"The user's email address\",\n      \"format\": \"email\"\n    },\n    \"password\": {\n      \"type\": \"string\",\n      \"description\": \"The user's password\",\n      \"minLength\": 8,\n      \"pattern\": \"^(?=.*[a-z])(?=.*[A-Z])(?=.*\\\\d)(?=.*[@$!%*?&])[A-Za-z\\\\$!%*?&]+$\"\n    },\n    \"date_of_birth\": {\n      \"type\": \"string\",\n      \"description\": \"The user's date of birth\",\n      \"format\": \"date\"\n    },\n    \"address\": {\n      \"type\": \"object\",\n      \"description\": \"The user's address\",\n      \"properties\": {\n        \"street\": {\n          \"type\": \"string\",\n          \"description\": \"Street address\",\n          \"minLength\": 1\n        },\n        \"city\": {\n          \"type\": \"string\",\n          \"description\": \"City\",\n          \"minLength\": 1\n        },\n        \"state\": {\n          \"type\": \"string\",\n          \"description\": \"State or province\",\n          \"minLength\": 1\n        },\n        \"postal_code\": {\n          \"type\": \"string\",\n          \"description\": \"Postal or ZIP code\",\n          \"minLength\": 1\n        },\n        \"country\": {\n          \"type\": \"string\",\n          \"description\": \"Country\",\n          \"minLength\": 1\n        }\n      },\n      \"required\": [\"",
+  "response_chars": 1819,
+  "num_chunks": 152,
+  "ttft_ms": 617.83,
+  "total_ms": 2750.922,
+  "model_name": "Mistral-Large-3"
+}

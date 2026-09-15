@@ -1,0 +1,999 @@
+{
+  "index": 99,
+  "prompt": "Write a JSON schema definition for a user registration form with fields: username, email, password, date_of_birth, and address object.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1435.751,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": " \"$"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "schema"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "http"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "-schema"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": ".org"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "/d"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "raft"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "07"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "/schema"
+    },
+    {
+      "timestamp_ms": 1435.751,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "object"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "properties"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1436.073,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "format"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2277.784,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "min"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "Length"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 2288.802,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "format"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "address"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "object"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "properties"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3177.009,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "city"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "state"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3963.416,
+      "content": "zip"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "country"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "required"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "city"
+    },
+    {
+      "timestamp_ms": 4818.219,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "state"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "zip"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "country"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "required"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "address"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 5630.994,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5631.548,
+      "type": "done"
+    }
+  ],
+  "full_response": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#  \"type\": \"object\",\n  \"properties\": {\n    \"username\": {\n      \"type\": \"string\"\n    },\n    \"email\": {\n      \"type\": \"string\",\n      \"format\": \"email\"\n       \"password\": {\n      \"type\": \"string\",\n      \"minLength\": 8\n    },\n    \"date_of_birth\": {\n      \"type\": \"string\",\n      \"format\": \"date\"\n    },\n    \"address\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"street\": {\n          \"type\": \"string\"\n        },\n        \"city\": {\n          \"type\": \"string\"\n        },\n        \"state\": {\n          \"type\": \"string\"\n        },\n        \"zip_code\": {\n          \"type\": \"string\"\n        },\n        \"country\": {\n          \"type\": \"string\"\n        }\n      },\n      \"required\": [\"street\", \"city\", \"state\", \"zip_code\", \"country\"]\n    }\n  },\n  \"required\": [\"username\", \"email\", \"password\", \"date_of_birth\", \"address\"]\n}",
+  "response_chars": 872,
+  "num_chunks": 244,
+  "ttft_ms": 1435.751,
+  "total_ms": 5756.053,
+  "model_name": "Phi-4-mini-instruct"
+}

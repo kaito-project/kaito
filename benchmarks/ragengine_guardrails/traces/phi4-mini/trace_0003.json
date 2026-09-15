@@ -1,0 +1,2043 @@
+{
+  "index": 3,
+  "prompt": "Describe the MapReduce programming model and its use in big data processing.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 883.29,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " framework"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 883.29,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": " computation"
+    },
+    {
+      "timestamp_ms": 883.664,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " developed"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " serves"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " foundation"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " File"
+    },
+    {
+      "timestamp_ms": 1510.26,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": "FS"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": "Map"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " consists"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2198.105,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " implemented"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " Java"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " written"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2198.367,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2965.695,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": "Map"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " Model"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2965.956,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " pair"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " produces"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " pair"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": "-output"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " signature"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3577.872,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": " \n\n"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": "Input"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": ",V"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 4455.278,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": ",M"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " derived"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4455.473,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " pair"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " M"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " obtained"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 4763.988,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " executed"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 5081.217,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " elements"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " second"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 5801.639,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " Model"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " merges"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " interim"
+    },
+    {
+      "timestamp_ms": 5801.916,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " produced"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " combine"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6430.247,
+      "content": " consolidated"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " revolves"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " around"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " signature"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " described"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " \n\n"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": "Input"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " Intermediate"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " Multiple"
+    },
+    {
+      "timestamp_ms": 6998.112,
+      "content": " Values"
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7959.788,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " compact"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " \n\n"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 7960.029,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7960.221,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " clusters"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": "Map"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " commodity"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " task"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " among"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " Nodes"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 8442.063,
+      "content": " jobs"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " duties"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " dis"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": "similar"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " inputs"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9102.498,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 9140.339,
+      "content": " processed"
+    },
+    {
+      "timestamp_ms": 9140.339,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9140.339,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9140.339,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": "Map"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " computations"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " extensive"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " sets"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9599.379,
+      "content": " perfect"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " batch"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " un"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": "structured"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10236.967,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " very"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 11103.942,
+      "content": " essence"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 11104.2,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " assist"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " solving"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " extracting"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " insights"
+    },
+    {
+      "timestamp_ms": 11197.496,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " intervention"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " Its"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " elegance"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " lies"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " simplicity"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " writing"
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11485.163,
+      "content": " debugging"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " executions"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " principal"
+    },
+    {
+      "timestamp_ms": 11967.757,
+      "content": " motivation"
+    },
+    {
+      "timestamp_ms": 11967.895,
+      "content": " behind"
+    },
+    {
+      "timestamp_ms": 11967.895,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 11967.895,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 11967.895,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11967.895,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 11967.895,
+      "content": " massive"
+    },
+    {
+      "timestamp_ms": 11967.895,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11973.102,
+      "type": "done"
+    }
+  ],
+  "full_response": "The MapReduce programming model is a framework used to process large datasets across a distributed set systems (a cluster) to perform computation without requiring access to the dataset storage level. It was developed by Google and serves as the foundation for their storage system, the Google File System (GFS).\n\nMapReduce consists of two primary functions: Map and Reduce. These are typically implemented in Java but can also be written in other languages. They work together to process large amounts of data in parallel and efficiently.\n\n1 Map: \nMap is the first stage of the Model. In this phase, the Map function takes an input pair and produces an intermediate key-value pair.\n\nThe input-output signature for Map function is defined as follows: \n\nInput: Key-value pairs (K,V) \nOutput: Key-value pairsK,M)\n\nHere, K represents the key, and V represents the value derived from the input key-value pair, while M represents the result obtained from processing the value associated with key K. The Map function is executed in parallel across multiple elements of the input data.\n\n2. Reduce: \nReduce is the second stage of MapReduce Model. In this phase, the Reduce function merges the interim key-value pairs produced by the Map function. It does so by using the same key to combine multiple values associated with it, resulting in the consolidated output for each key.\n\nThe Reduce function revolves around a signature described as: \n\nInput: Intermediate Key (K), Multiple Values (M’s) \nOutput: Key and the compacted value \n\nThe Reduce function processes parallel tasks to generate the final result as an output for each key across the intermediate clusters.\n\nMapReduce works in a cluster of commodity servers, and the task of processing is distributed among them. Nodes running the Map and Reduce jobs can perform their duties independently on dissimilar data partitions. The Map tasks produce intermediate key-value pairs given inputs, which are then processed by the Reduce tasks to generate the final result.\n\nMapReduce can handle computations across extensive distributed sets of nodes, making it perfect for both batch and real-time analysis, processing large volumes of structured and unstructured data, and the overall speed of parallelization of the tasks. As a result, it is very efficient to handle big data processing.\n\nIn essence the MapReduce programming model is a tool for big data processing that can assist in solving complex tasks and extracting insights without the need for human intervention. Its elegance lies in the simplicity of writing, debugging, scaling, and handling parallel executions. The principal motivation behind it is to process massive",
+  "response_chars": 2673,
+  "num_chunks": 505,
+  "ttft_ms": 883.29,
+  "total_ms": 12155.772,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,2071 @@
+{
+  "index": 31,
+  "prompt": "Describe the architecture of a typical Kubernetes cluster and the role of each component.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 245.726,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 262.166,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 281.741,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 300.661,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 319.39,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 338.442,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 357.734,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 376.624,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 395.674,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 413.555,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 433.521,
+      "content": " resilient"
+    },
+    {
+      "timestamp_ms": 452.595,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 471.59,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 490.969,
+      "content": " manageable"
+    },
+    {
+      "timestamp_ms": 510.658,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 529.14,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 548.053,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 567.366,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 586.048,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 605.216,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 624.012,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 643.054,
+      "content": " typical"
+    },
+    {
+      "timestamp_ms": 662.115,
+      "content": " breakdown"
+    },
+    {
+      "timestamp_ms": 681.359,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 701.474,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 719.482,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 738.401,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 769.43,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 777.68,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 796.075,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 815.137,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 833.944,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 853.538,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 872.13,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 893.154,
+      "content": " Master"
+    },
+    {
+      "timestamp_ms": 910.559,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 928.936,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 948.944,
+      "content": "Control"
+    },
+    {
+      "timestamp_ms": 967.604,
+      "content": " Plane"
+    },
+    {
+      "timestamp_ms": 986.537,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 1005.528,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1024.388,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1043.61,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1062.522,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 1082.241,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 1100.388,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1119.315,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1139.908,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1157.825,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1177.664,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1195.808,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 1214.751,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1234.729,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 1252.818,
+      "content": "erves"
+    },
+    {
+      "timestamp_ms": 1275.41,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1292.025,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1312.331,
+      "content": " frontend"
+    },
+    {
+      "timestamp_ms": 1330.23,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1347.975,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1367.126,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 1386.492,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 1405.377,
+      "content": " plane"
+    },
+    {
+      "timestamp_ms": 1425.499,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1443.899,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1462.171,
+      "content": " exposes"
+    },
+    {
+      "timestamp_ms": 1481.339,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1500.457,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 1519.272,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1538.877,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1557.648,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1576.622,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1595.576,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 1615.157,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 1635.993,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1654.049,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1672.145,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 1690.984,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 1710.133,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 1729.258,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1749.185,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1767.711,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 1791.474,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 1805.357,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1824.439,
+      "content": " validates"
+    },
+    {
+      "timestamp_ms": 1843.684,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 1863.441,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1883.99,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1909.44,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 1919.605,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 1939.032,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1958.598,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1978.87,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2077.282,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2077.282,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 2077.282,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2077.282,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 2077.282,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2092.365,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2110.066,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2129.078,
+      "content": "et"
+    },
+    {
+      "timestamp_ms": 2148.073,
+      "content": "cd"
+    },
+    {
+      "timestamp_ms": 2167.844,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2186.422,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2205.242,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2224.114,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2243.395,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2262.51,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 2281.649,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2301.327,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 2319.58,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 2338.799,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 2357.966,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2377.084,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 2396.143,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 2414.732,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2433.752,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2453.043,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 2472.114,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2490.924,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 2509.858,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2529.167,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2567.626,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2567.723,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2588.262,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 2605.716,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2625.198,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2643.933,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2666.13,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2681.584,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2703.197,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2720.355,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2739.275,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 2760.065,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2778.073,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 2796.27,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2814.905,
+      "content": " events"
+    },
+    {
+      "timestamp_ms": 2834.024,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2853.164,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2872.347,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2891.205,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 2914.974,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2929.165,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2948.397,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2969.131,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 2986.703,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3005.927,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 3025.047,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 3043.814,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3064.367,
+      "content": " truth"
+    },
+    {
+      "timestamp_ms": 3082.155,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3101.822,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3120.329,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 3138.872,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3158.372,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 3176.962,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3196.242,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3215.949,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3234.112,
+      "content": "Scheduler"
+    },
+    {
+      "timestamp_ms": 3253.466,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3273.025,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3291.583,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3310.806,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3329.721,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3348.618,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 3367.613,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3386.825,
+      "content": " Watches"
+    },
+    {
+      "timestamp_ms": 3406.273,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3427.841,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3444.031,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 3463.786,
+      "content": " creation"
+    },
+    {
+      "timestamp_ms": 3482.156,
+      "content": " events"
+    },
+    {
+      "timestamp_ms": 3501.075,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3520.329,
+      "content": "which"
+    },
+    {
+      "timestamp_ms": 3539.349,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 3558.002,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 3579.997,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 3596.535,
+      "content": " assigned"
+    },
+    {
+      "timestamp_ms": 3616.184,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3636.882,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3653.56,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 3673.013,
+      "content": " selects"
+    },
+    {
+      "timestamp_ms": 3692.068,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3710.456,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 3732.9,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3748.551,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3767.816,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 3786.779,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3805.839,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 3826.453,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3844.755,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3863.177,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3882.448,
+      "content": " evaluates"
+    },
+    {
+      "timestamp_ms": 3901.225,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3920.005,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 3939.011,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 3958.297,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3977.876,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3996.705,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4015.742,
+      "content": " considering"
+    },
+    {
+      "timestamp_ms": 4034.507,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 4053.891,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 4072.805,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4128.608,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 4128.608,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4133.011,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4148.975,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 4170.329,
+      "content": " scheduling"
+    },
+    {
+      "timestamp_ms": 4187.407,
+      "content": " decisions"
+    },
+    {
+      "timestamp_ms": 4206.082,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4227.351,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 4244.697,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4262.552,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4282.478,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4301.435,
+      "content": "Controller"
+    },
+    {
+      "timestamp_ms": 4322.178,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 4340.066,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4358.738,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4378.435,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4398.398,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4415.72,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4435.278,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 4454.085,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4473.262,
+      "content": " Runs"
+    },
+    {
+      "timestamp_ms": 4491.891,
+      "content": " controller"
+    },
+    {
+      "timestamp_ms": 4511.081,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 4533.397,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4549.485,
+      "content": " regulate"
+    },
+    {
+      "timestamp_ms": 4567.987,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4587.238,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4606.565,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4625.397,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4644.516,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 4663.582,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4682.609,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 4701.859,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4721.551,
+      "content": " desired"
+    },
+    {
+      "timestamp_ms": 4739.648,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4758.976,
+      "content": " matches"
+    },
+    {
+      "timestamp_ms": 4780.299,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4797.61,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 4816.128,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4835.672,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4854.468,
+      "content": " Examples"
+    },
+    {
+      "timestamp_ms": 4874.328,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 4894.481,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4911.626,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 4931.353,
+      "content": " Controller"
+    },
+    {
+      "timestamp_ms": 4949.518,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4969.82,
+      "content": " Rep"
+    },
+    {
+      "timestamp_ms": 4993.319,
+      "content": "lication"
+    },
+    {
+      "timestamp_ms": 5009.602,
+      "content": " Controller"
+    },
+    {
+      "timestamp_ms": 5026.017,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5045.472,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5064.132,
+      "content": " End"
+    },
+    {
+      "timestamp_ms": 5083.887,
+      "content": "points"
+    },
+    {
+      "timestamp_ms": 5103.035,
+      "content": " Controller"
+    },
+    {
+      "timestamp_ms": 5123.664,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5141.577,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5177.682,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5178.777,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5198.559,
+      "content": "Cloud"
+    },
+    {
+      "timestamp_ms": 5229.864,
+      "content": " Controller"
+    },
+    {
+      "timestamp_ms": 5235.788,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 5255.112,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5273.615,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5294.021,
+      "content": "optional"
+    },
+    {
+      "timestamp_ms": 5313.385,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5331.566,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5350.754,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 5376.238,
+      "content": "-native"
+    },
+    {
+      "timestamp_ms": 5388.146,
+      "content": " setups"
+    },
+    {
+      "timestamp_ms": 5412.191,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 5426.775,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5445.418,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5466.196,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5486.411,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 5503.289,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5522.545,
+      "content": " Man"
+    },
+    {
+      "timestamp_ms": 5540.754,
+      "content": "ages"
+    },
+    {
+      "timestamp_ms": 5560.498,
+      "content": " controllers"
+    },
+    {
+      "timestamp_ms": 5586.258,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5600.488,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 5617.751,
+      "content": "-specific"
+    },
+    {
+      "timestamp_ms": 5637.027,
+      "content": " functionalities"
+    },
+    {
+      "timestamp_ms": 5655.252,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 5674.265,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5704.986,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 5711.981,
+      "content": " provisioning"
+    },
+    {
+      "timestamp_ms": 5731.114,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5753.683,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 5771.542,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5789.993,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5808.033,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 5827.795,
+      "content": " balancing"
+    },
+    {
+      "timestamp_ms": 5846.328,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5868.329,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5888.541,
+      "content": " Worker"
+    },
+    {
+      "timestamp_ms": 5902.967,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 5922.129,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5941.273,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5960.189,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5986.624,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6100.241,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 6100.241,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 6100.241,
+      "content": "let"
+    },
+    {
+      "timestamp_ms": 6100.241,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6100.241,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6100.241,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6113.151,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6131.724,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6156.537,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 6170.569,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6188.855,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 6207.917,
+      "content": " agent"
+    },
+    {
+      "timestamp_ms": 6242.993,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 6245.837,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6265.888,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 6285.385,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6303.689,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6323.565,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 6342.161,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6360.481,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 6383.147,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6402.378,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 6417.64,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6436.888,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6457.378,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 6478.546,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6495.23,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6513.335,
+      "content": " communicates"
+    },
+    {
+      "timestamp_ms": 6532.264,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6551.888,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6572.203,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6588.951,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6608.226,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6627.882,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 6646.758,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 6665.816,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6684.584,
+      "content": " reports"
+    },
+    {
+      "timestamp_ms": 6703.809,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6722.966,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6744.005,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 6761.415,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6780.263,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 6799.59,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6818.729,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 6839.087,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 6856.402,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6875.626,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6894.713,
+      "content": " master"
+    },
+    {
+      "timestamp_ms": 6914.139,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6936.149,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6951.711,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6971.626,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6989.884,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7010.577,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 7028.291,
+      "content": "ube"
+    },
+    {
+      "timestamp_ms": 7047.136,
+      "content": " Proxy"
+    },
+    {
+      "timestamp_ms": 7066.295,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7085.273,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7104.971,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7124.019,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7142.596,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7161.499,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 7180.465,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7200.086,
+      "content": " Maint"
+    },
+    {
+      "timestamp_ms": 7219.05,
+      "content": "ains"
+    },
+    {
+      "timestamp_ms": 7238.024,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 7272.994,
+      "content": " rules"
+    },
+    {
+      "timestamp_ms": 7276.082,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7295.534,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 7314.638,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7333.226,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 7352.54,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 7371.688,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 7390.403,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7409.746,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7428.937,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 7447.524,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7466.828,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 7485.85,
+      "content": " sessions"
+    },
+    {
+      "timestamp_ms": 7505.771,
+      "content": " inside"
+    },
+    {
+      "timestamp_ms": 7523.875,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7543.968,
+      "content": " outside"
+    },
+    {
+      "timestamp_ms": 7566.456,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7580.534,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7600.861,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 7619.041,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7638.851,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7657.221,
+      "content": " performs"
+    },
+    {
+      "timestamp_ms": 7677.455,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 7698.282,
+      "content": " forwarding"
+    },
+    {
+      "timestamp_ms": 7715.484,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7734.204,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 7752.623,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 7776.292,
+      "content": " translation"
+    },
+    {
+      "timestamp_ms": 7793.418,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7811.022,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 7829.149,
+      "content": "AT"
+    },
+    {
+      "timestamp_ms": 7848.216,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 7867.26,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7886.537,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 7905.395,
+      "content": " balancing"
+    },
+    {
+      "timestamp_ms": 7925.061,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7943.371,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7963.513,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7984.095,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8000.901,
+      "content": "Container"
+    },
+    {
+      "timestamp_ms": 8020.129,
+      "content": " Runtime"
+    },
+    {
+      "timestamp_ms": 8038.951,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8058.243,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8077.038,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8097.599,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8115.492,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8135.385,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 8153.835,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8174.985,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8191.482,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 8212.567,
+      "content": " responsible"
+    },
+    {
+      "timestamp_ms": 8229.98,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8252.644,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 8271.229,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 8287.403,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8305.297,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 8326.224,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8344.358,
+      "content": " Docker"
+    },
+    {
+      "timestamp_ms": 8363.06,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8386.585,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 8401.639,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 8422.003,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8440.121,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8459.742,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 8479.905,
+      "content": "RI"
+    },
+    {
+      "timestamp_ms": 8497.557,
+      "content": "-O"
+    },
+    {
+      "timestamp_ms": 8515.649,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8536.344,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 8553.386,
+      "content": " manages"
+    },
+    {
+      "timestamp_ms": 8573.47,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 8592.428,
+      "content": " lifecycle"
+    },
+    {
+      "timestamp_ms": 8612.072,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8630.987,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 8649.45,
+      "content": " starting"
+    },
+    {
+      "timestamp_ms": 8668.384,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8687.339,
+      "content": " stopping"
+    },
+    {
+      "timestamp_ms": 8706.539,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8728.714,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8745.835,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 8764.079,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 8783.163,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8801.959,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8822.188,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8842.345,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8859.478,
+      "content": "Pod"
+    },
+    {
+      "timestamp_ms": 8879.784,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8897.395,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8916.619,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8935.745,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8958.266,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8974.736,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8993.829,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 9025.442,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9031.822,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9050.252,
+      "content": " smallest"
+    },
+    {
+      "timestamp_ms": 9069.355,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 9090.498,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 9107.702,
+      "content": " units"
+    },
+    {
+      "timestamp_ms": 9126.73,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9145.385,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 9172.804,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9183.73,
+      "content": " consisting"
+    },
+    {
+      "timestamp_ms": 9204.128,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9222.39,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 9241.234,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9260.356,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9280.484,
+      "content": " containers"
+    },
+    {
+      "timestamp_ms": 9299.646,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 9318.545,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9338.384,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 9355.893,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9374.857,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9394.338,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 9412.777,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 9432.018,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9453.865,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 9471.221,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 9488.951,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 9508.213,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9528.367,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9546.07,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 9565.621,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 9584.559,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9605.404,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 9622.746,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 9641.96,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9661.911,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9680.426,
+      "content": "Control"
+    },
+    {
+      "timestamp_ms": 9699.014,
+      "content": " Plane"
+    },
+    {
+      "timestamp_ms": 9718.18,
+      "content": " Components"
+    },
+    {
+      "timestamp_ms": 9737.56,
+      "content": " Interface"
+    },
+    {
+      "timestamp_ms": 9757.505,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9775.597,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9794.57,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9816.223,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9832.76,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9851.75,
+      "content": "Role"
+    },
+    {
+      "timestamp_ms": 9871.527,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9890.128,
+      "content": " Communication"
+    },
+    {
+      "timestamp_ms": 9911.138,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 9928.723,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9947.493,
+      "content": " master"
+    },
+    {
+      "timestamp_ms": 9968.296,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9985.75,
+      "content": " worker"
+    },
+    {
+      "timestamp_ms": 9985.75,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9985.868,
+      "type": "done"
+    }
+  ],
+  "full_response": "A Kubernetes cluster architecture is designed to support scalable, resilient, and manageable containerized applications. Here's a typical breakdown of the architecture and the role of each component:\n\n### Master Node (Control Plane)\n\n1. **API Server**:\n   - **Role**: Serves as the frontend of the Kubernetes control plane. It exposes the Kubernetes API and is the entry point for all cluster management operations. It handles requests, validates them, and makes updates to the cluster's state.\n   \n2. **etcd**:\n   - **Role**: A highly available key-value store used by Kubernetes to store all data used to manage the cluster, such as the cluster state, configurations, events, and other critical information. It provides the single source of truth for the cluster.\n   \n3. **Scheduler**:\n   - **Role**: Watches for new pod creation events (which have no node assigned), and then selects a node for each pod to run on. It evaluates the current state of nodes, considering resource availability and constraints, to make scheduling decisions.\n   \n4. **Controller Manager**:\n   - **Role**: Runs controller processes that regulate the state of the cluster, ensuring the desired state matches the current state. Examples include the Node Controller, Replication Controller, and Endpoints Controller.\n\n5. **Cloud Controller Manager** (optional, in cloud-native setups):\n   - **Role**: Manages controllers for cloud-specific functionalities such as node provisioning, storage, and load balancing.\n\n### Worker Node\n\n1. **Kubelet**:\n   - **Role**: An agent running on each node, ensuring that containers are running in a pod. It communicates with the API server to receive instructions and reports on the status of pods and containers back to the master node.\n\n2. **Kube Proxy**:\n   - **Role**: Maintains network rules on nodes, allowing network communication to your pods from network sessions inside or outside of your cluster. It performs connection forwarding, network address translation (NAT), and load balancing.\n\n3. **Container Runtime**:\n   - **Role**: The software responsible for running containers, such as Docker, containerd, or CRI-O. It manages container lifecycle, including starting, stopping, and resource management.\n\n4. **Pods**:\n   - **Role**: The smallest deployable units in Kubernetes, consisting of one or more containers sharing the same network and storage resources. Each pod runs on a worker node.\n   \n5. **Control Plane Components Interface**:\n   - **Role**: Communication between the master and worker",
+  "response_chars": 2522,
+  "num_chunks": 512,
+  "ttft_ms": 245.726,
+  "total_ms": 9989.608,
+  "model_name": "model-medium"
+}

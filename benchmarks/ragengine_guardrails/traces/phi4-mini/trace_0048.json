@@ -1,0 +1,1223 @@
+{
+  "index": 48,
+  "prompt": "What are WebSockets and how do they differ from HTTP long polling?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 875.801,
+      "content": "Web"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": "Sockets"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " polling"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " achieving"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": "such"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 875.801,
+      "content": "Web"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": "Sockets"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": "-du"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": "plex"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " ongoing"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " directions"
+    },
+    {
+      "timestamp_ms": 1395.289,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": "Socket"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " bid"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": "irectional"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2011.932,
+      "content": " asynchronously"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": "Web"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": "Sockets"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": "-supported"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " browsers"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 2598.23,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": " polling"
+    },
+    {
+      "timestamp_ms": 2598.461,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": "Sockets"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " continuously"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " transmit"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " exchange"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " responsive"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3082.484,
+      "content": " interactive"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " apps"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " gaming"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " chat"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " stock"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " quotes"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": "On"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " polling"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3683.669,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " keeps"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " holding"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " onto"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 3986.89,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " timeout"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " occurs"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 4275.029,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " waiting"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " simply"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " reuse"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " holding"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " quick"
+    },
+    {
+      "timestamp_ms": 4804.582,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " updated"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " While"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " polling"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " useful"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " persistent"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": "aking"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5400.58,
+      "content": " inefficient"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "-consuming"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "Sockets"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " short"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "Sockets"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " bid"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "irectional"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "-l"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "at"
+    },
+    {
+      "timestamp_ms": 7025.09,
+      "content": "ency"
+    },
+    {
+      "timestamp_ms": 7209.916,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 7209.916,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 7209.916,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " polling"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " polling"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " viable"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " option"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " working"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " older"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " slower"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7400.101,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7506.859,
+      "type": "done"
+    }
+  ],
+  "full_response": "WebSockets and HTTP long polling are both techniques for achieving real-time communication between a client (such as a web browser) and a server.\n\nWebSockets provide a full-duplex communication channel over a single ongoing connection, which means that data can flow in both directions simultaneously. When you establish a WebSocket connection, a bidirectional channel is created, and both the client and the server can send messages directly and asynchronously.\nWebSockets are well-supported in modern web browsers, and they allow for much faster more efficient communication compared to HTTP long polling. WebSockets can continuously transmit small messages without additional overhead or latency on each exchange, providing a more responsive and interactive experience for real-time apps such as gaming, chat systems, or stock quotes.\n\nOn the other hand, HTTP long polling involves the client sending an HTTP request to the server, which keeps the server holding onto that request until new data becomes available or a timeout occurs. If the client receives a response within a long waiting time, the server could simply reuse the holding connection and immediately send a response, allowing for quick updates on data being updated. While HTTP long polling can be useful, it requires making persistent connections and handshaking each time, which can be inefficient and time-consuming as compared to WebSockets.\n\nIn short, WebSockets provide a more real-time, bidirectional, low-latency communication channel compared to HTTP long polling, while long polling can be a more viable option when working with older, slower, less efficient node.js web applications.",
+  "response_chars": 1663,
+  "num_chunks": 300,
+  "ttft_ms": 875.801,
+  "total_ms": 7588.638,
+  "model_name": "Phi-4-mini-instruct"
+}

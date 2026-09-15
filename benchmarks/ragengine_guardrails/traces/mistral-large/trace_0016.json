@@ -1,0 +1,779 @@
+{
+  "index": 16,
+  "prompt": "Explain how attention mechanisms work in transformer models.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 509.482,
+      "content": "Att"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": "ention mechanisms are a"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " innovation"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " in **"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": "Transformer models**, enabling"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " them to handle"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": "-range dependencies and"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " on relevant"
+    },
+    {
+      "timestamp_ms": 509.482,
+      "content": " parts of the input"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": ". Here"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": "’s a"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " breakdown of how they"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " work:\n\n"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": "---\n\n### **1"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": ". Core Idea"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " Attention**\nAtt"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": "ention allows"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " model to dynamically"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " weigh the"
+    },
+    {
+      "timestamp_ms": 711.57,
+      "content": " importance of different"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " tokens when"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " producing"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " output. Instead"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " of treating"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " all tokens"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " equally ("
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": "like in R"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": "NNs or CN"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": "Ns), it learns"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": "pay attention\" to"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1042.147,
+      "content": " most relevant parts of"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " the input for"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " a given task"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": "2. Key Components"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " Attention"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " common type"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " is **Scal"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": "ed Dot"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": "Product Attention**,"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " which involves"
+    },
+    {
+      "timestamp_ms": 1170.752,
+      "content": " three main"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " components:\n\n####"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " **a)"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": "Q), Key ("
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": "K), and Value"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " (V)"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " Matrices**\n-"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " **Input Represent"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": "ation**: For"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " token,"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " the model"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " generates three"
+    },
+    {
+      "timestamp_ms": 1402.924,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": ":\n  - **"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": "Query (Q)**:"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": "presents what"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " the current token is"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " \"looking for"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": "\" in"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " other tokens.\n "
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " - **Key"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " (K)**: Re"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": "presents what"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " the token \"off"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": "ers\" to"
+    },
+    {
+      "timestamp_ms": 1610.696,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 1690.681,
+      "content": " (like"
+    },
+    {
+      "timestamp_ms": 1690.681,
+      "content": " a label).\n "
+    },
+    {
+      "timestamp_ms": 1690.681,
+      "content": " - **Value ("
+    },
+    {
+      "timestamp_ms": 1690.681,
+      "content": "V)**: The"
+    },
+    {
+      "timestamp_ms": 1690.681,
+      "content": " actual content/in"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": "formation"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": " with the token.\n"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": "- These"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": " are learned"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": " linear"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": " transformations"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": " of the input"
+    },
+    {
+      "timestamp_ms": 1820.886,
+      "content": " embeddings:\n "
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " \\[\n  Q"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " = X"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " \\cdot W_Q"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": ", \\quad K"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " = X"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " \\cdot W_K"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": ", \\quad V"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " = X \\cdot"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " W_V"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": "\n  \\]\n "
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " where \\(X"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": "\\) is the input"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " and \\(W_Q"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " W_K, W"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": "_V\\) are learned"
+    },
+    {
+      "timestamp_ms": 2188.22,
+      "content": " weight matrices.\n\n####"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " **b"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": ") Attention"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " Scores**\n- The"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " computes **"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": "compatibility scores**"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " between the"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " query of"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " one token and the"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " keys of all other"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " tokens using"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2501.595,
+      "content": " dot product:\n "
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": " \\[\n  \\"
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": "text{Score}("
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": "Q,"
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": " K) = Q"
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": " \\cdot K^T"
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": "\n  \\]\n-"
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": " scores indicate"
+    },
+    {
+      "timestamp_ms": 2701.196,
+      "content": " how much attention"
+    },
+    {
+      "timestamp_ms": 2847.095,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2847.095,
+      "content": " token should pay"
+    },
+    {
+      "timestamp_ms": 2847.095,
+      "content": " to others"
+    },
+    {
+      "timestamp_ms": 2847.095,
+      "content": ".\n\n#### **c"
+    },
+    {
+      "timestamp_ms": 2847.095,
+      "content": ") Scaling and"
+    },
+    {
+      "timestamp_ms": 2847.095,
+      "content": " Soft"
+    },
+    {
+      "timestamp_ms": 2847.095,
+      "content": "max**\n- The"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " scores are scaled by"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " \\(\\"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": "sqrt{d"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": "_k}\\) (where"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " \\(d_k\\)"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " is the dimension"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " of the key"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": ") to prevent"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " dot"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " products from"
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " dominating gradients:\n "
+    },
+    {
+      "timestamp_ms": 3198.535,
+      "content": " \\[\n  \\"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "text{S"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "caled Score"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "} = \\frac"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "{Q \\cdot K"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "^T}{\\sqrt{d"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "_k}}\n  \\]\n"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "- A **soft"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "max** is applied"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": " to convert"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": " scores into"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": " probabilities (att"
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": "ention weights):\n "
+    },
+    {
+      "timestamp_ms": 3562.933,
+      "content": " \\[\n  \\"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": "text{Attention"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": " Weights} ="
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": " \\text{soft"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": "max}\\"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": "left(\\frac{Q"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": " \\cdot K^T"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": "}{\\sqrt{d_k"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": "}}\\right)\n "
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": " \\]\n\n#### **d"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": ") Weight"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": "ed Sum of"
+    },
+    {
+      "timestamp_ms": 3732.113,
+      "content": " Values**\n- The"
+    },
+    {
+      "timestamp_ms": 3757.049,
+      "content": " attention weights are used"
+    },
+    {
+      "timestamp_ms": 3757.049,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3821.567,
+      "type": "done"
+    }
+  ],
+  "full_response": "Attention mechanisms are a key innovation in **Transformer models**, enabling them to handle long-range dependencies and focus on relevant parts of the input sequence. Here’s a breakdown of how they work:\n\n---\n\n### **1. Core Idea of Attention**\nAttention allows the model to dynamically weigh the importance of different input tokens when producing an output. Instead of treating all tokens equally (like in RNNs or CNNs), it learns to \"pay attention\" to the most relevant parts of the input for a given task.\n\n---\n\n### **2. Key Components of Attention**\nThe most common type is **Scaled Dot-Product Attention**, which involves three main components:\n\n#### **a) Query (Q), Key (K), and Value (V) Matrices**\n- **Input Representation**: For each input token, the model generates three vectors:\n  - **Query (Q)**: Represents what the current token is \"looking for\" in other tokens.\n  - **Key (K)**: Represents what the token \"offers\" to others (like a label).\n  - **Value (V)**: The actual content/information associated with the token.\n- These are learned linear transformations of the input embeddings:\n  \\[\n  Q = X \\cdot W_Q, \\quad K = X \\cdot W_K, \\quad V = X \\cdot W_V\n  \\]\n  where \\(X\\) is the input, and \\(W_Q, W_K, W_V\\) are learned weight matrices.\n\n#### **b) Attention Scores**\n- The model computes **compatibility scores** between the query of one token and the keys of all other tokens using a dot product:\n  \\[\n  \\text{Score}(Q, K) = Q \\cdot K^T\n  \\]\n- These scores indicate how much attention each token should pay to others.\n\n#### **c) Scaling and Softmax**\n- The scores are scaled by \\(\\sqrt{d_k}\\) (where \\(d_k\\) is the dimension of the key vectors) to prevent large dot products from dominating gradients:\n  \\[\n  \\text{Scaled Score} = \\frac{Q \\cdot K^T}{\\sqrt{d_k}}\n  \\]\n- A **softmax** is applied to convert scores into probabilities (attention weights):\n  \\[\n  \\text{Attention Weights} = \\text{softmax}\\left(\\frac{Q \\cdot K^T}{\\sqrt{d_k}}\\right)\n  \\]\n\n#### **d) Weighted Sum of Values**\n- The attention weights are used",
+  "response_chars": 2036,
+  "num_chunks": 189,
+  "ttft_ms": 509.482,
+  "total_ms": 3919.788,
+  "model_name": "Mistral-Large-3"
+}

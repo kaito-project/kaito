@@ -1,0 +1,2071 @@
+{
+  "index": 14,
+  "prompt": "Describe the CAP theorem and its implications for distributed database design.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 374.691,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 374.691,
+      "content": " CAP"
+    },
+    {
+      "timestamp_ms": 392.735,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 412.604,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 429.744,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 450.059,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 467.761,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 486.766,
+      "content": " Brewer"
+    },
+    {
+      "timestamp_ms": 506.279,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 524.892,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 544.084,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 563.447,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 582.02,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 602.683,
+      "content": " fundamental"
+    },
+    {
+      "timestamp_ms": 636.652,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 639.498,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 658.716,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 677.29,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 696.816,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 715.648,
+      "content": " outlines"
+    },
+    {
+      "timestamp_ms": 735.567,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 754.376,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 781.69,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 801.03,
+      "content": " involved"
+    },
+    {
+      "timestamp_ms": 813.479,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 830.033,
+      "content": " designing"
+    },
+    {
+      "timestamp_ms": 851.345,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 870.248,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 887.456,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 906.224,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 926.456,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 945.856,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 963.123,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 982.189,
+      "content": " states"
+    },
+    {
+      "timestamp_ms": 1023.755,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1023.888,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1040.171,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1059.575,
+      "content": " impossible"
+    },
+    {
+      "timestamp_ms": 1077.182,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1096.59,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1116.117,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 1135.848,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1153.699,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 1175.344,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1193.912,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 1210.954,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 1231.214,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 1272.72,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 1272.89,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 1287.136,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1306.019,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1325.121,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 1344.586,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 1363.114,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 1382.083,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1418.741,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1421.336,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1439.376,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1458.49,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 1481.04,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 1496.981,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1515.732,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 1537.599,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 1573.683,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1573.792,
+      "content": " Every"
+    },
+    {
+      "timestamp_ms": 1591.57,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 1611.827,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 1638.657,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 1650.342,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1667.734,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 1686.932,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 1705.946,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 1724.915,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1744.29,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1763.166,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 1782.091,
+      "content": " piece"
+    },
+    {
+      "timestamp_ms": 1846.0,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1846.0,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1846.0,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1857.948,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 1877.891,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 1905.794,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 1915.642,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1934.837,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1954.291,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1972.769,
+      "content": " see"
+    },
+    {
+      "timestamp_ms": 1991.843,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2010.677,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 2030.249,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2048.592,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2067.485,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2086.748,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 2105.559,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2124.735,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2170.068,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2170.068,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 2185.838,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 2202.277,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 2222.072,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2240.045,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 2258.361,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2278.074,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2301.536,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2315.711,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2335.233,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2354.045,
+      "content": "Availability"
+    },
+    {
+      "timestamp_ms": 2372.571,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2391.533,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 2411.976,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 2431.933,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2448.847,
+      "content": " Every"
+    },
+    {
+      "timestamp_ms": 2470.331,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2486.902,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2506.038,
+      "content": "read"
+    },
+    {
+      "timestamp_ms": 2525.846,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2545.561,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 2563.239,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2581.949,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 2601.361,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2622.081,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 2657.72,
+      "content": "-error"
+    },
+    {
+      "timestamp_ms": 2661.937,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 2677.373,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2697.328,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 2715.629,
+      "content": " guarantee"
+    },
+    {
+      "timestamp_ms": 2735.016,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 2755.233,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2772.576,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2791.87,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 2811.54,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2829.805,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 2848.636,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 2869.616,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 2887.498,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2906.207,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2925.013,
+      "content": " property"
+    },
+    {
+      "timestamp_ms": 2945.385,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 2967.242,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2985.38,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3001.25,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3020.761,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3039.771,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 3058.472,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3077.631,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 3096.467,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3116.454,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3135.388,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3153.97,
+      "content": " always"
+    },
+    {
+      "timestamp_ms": 3175.309,
+      "content": " respond"
+    },
+    {
+      "timestamp_ms": 3194.356,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3220.372,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3230.568,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3248.98,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 3268.143,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 3287.775,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 3326.63,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3327.688,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3455.07,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 3455.194,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3455.302,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3455.378,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3455.435,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3455.487,
+      "content": "Partition"
+    },
+    {
+      "timestamp_ms": 3458.402,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 3477.934,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 3497.281,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3515.705,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 3535.581,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 3555.257,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3593.191,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3593.333,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3628.141,
+      "content": " continues"
+    },
+    {
+      "timestamp_ms": 3630.025,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3649.344,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 3668.411,
+      "content": " despite"
+    },
+    {
+      "timestamp_ms": 3688.397,
+      "content": " arbitrary"
+    },
+    {
+      "timestamp_ms": 3706.914,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 3725.988,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3744.637,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 3764.446,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3782.714,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3802.099,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 3821.869,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3843.035,
+      "content": " That"
+    },
+    {
+      "timestamp_ms": 3858.934,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3877.877,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3897.232,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3929.227,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3938.088,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3955.777,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 3974.945,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3995.474,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 4011.667,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 4030.313,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4126.557,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 4126.557,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4126.557,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4126.557,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4126.557,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4144.863,
+      "content": " unable"
+    },
+    {
+      "timestamp_ms": 4164.105,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4182.59,
+      "content": " communicate"
+    },
+    {
+      "timestamp_ms": 4206.791,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4220.806,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4240.37,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 4261.667,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 4277.84,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4297.34,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 4318.445,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 4335.06,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4362.654,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4373.192,
+      "content": " Imp"
+    },
+    {
+      "timestamp_ms": 4392.368,
+      "content": "lications"
+    },
+    {
+      "timestamp_ms": 4411.668,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4434.738,
+      "content": " Distributed"
+    },
+    {
+      "timestamp_ms": 4449.792,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 4469.865,
+      "content": " Design"
+    },
+    {
+      "timestamp_ms": 4487.54,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4506.771,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 4525.657,
+      "content": " designing"
+    },
+    {
+      "timestamp_ms": 4548.711,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4564.544,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 4586.433,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4607.328,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4622.285,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4640.391,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 4659.084,
+      "content": " decide"
+    },
+    {
+      "timestamp_ms": 4702.562,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4702.562,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 4729.831,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4735.033,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4755.121,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 4773.466,
+      "content": " properties"
+    },
+    {
+      "timestamp_ms": 4796.458,
+      "content": "—"
+    },
+    {
+      "timestamp_ms": 4811.453,
+      "content": "cons"
+    },
+    {
+      "timestamp_ms": 4831.5,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 4850.205,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4868.985,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 4888.982,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4907.23,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4926.185,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 4945.373,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 4964.157,
+      "content": "—the"
+    },
+    {
+      "timestamp_ms": 4983.091,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5002.509,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5021.543,
+      "content": " prioritize"
+    },
+    {
+      "timestamp_ms": 5039.982,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5061.066,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5079.261,
+      "content": " achieving"
+    },
+    {
+      "timestamp_ms": 5099.053,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5117.944,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 5136.323,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 5156.092,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5174.448,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5193.748,
+      "content": " feasible"
+    },
+    {
+      "timestamp_ms": 5212.275,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 5231.359,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5251.266,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5269.802,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5288.846,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 5307.676,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 5327.247,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5345.246,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 5365.558,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 5383.339,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 5402.313,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5421.692,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 5440.967,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 5459.708,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5479.334,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5497.798,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5517.626,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 5535.968,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5555.263,
+      "content": " prioritize"
+    },
+    {
+      "timestamp_ms": 5577.058,
+      "content": " CP"
+    },
+    {
+      "timestamp_ms": 5593.036,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 5612.388,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 5631.39,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 5661.849,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5669.641,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 5688.55,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 5707.474,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5727.491,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 5746.768,
+      "content": " sacrifice"
+    },
+    {
+      "timestamp_ms": 5767.142,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 5785.489,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5805.741,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 5823.159,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5841.216,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5859.917,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 5879.066,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5899.821,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 5918.568,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5937.733,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 5955.249,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5974.334,
+      "content": " unable"
+    },
+    {
+      "timestamp_ms": 5993.108,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6012.284,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6032.151,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 6054.538,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 6070.472,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6088.946,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 6107.649,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 6127.193,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 6148.86,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6164.904,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6184.557,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6203.566,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 6222.633,
+      "content": " occurs"
+    },
+    {
+      "timestamp_ms": 6240.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6261.01,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 6279.558,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6301.916,
+      "content": " chooses"
+    },
+    {
+      "timestamp_ms": 6317.344,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6338.336,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 6355.312,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6375.377,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6394.02,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 6412.704,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6439.942,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 6450.952,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 6472.824,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6490.556,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6507.925,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6526.791,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 6546.03,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 6567.222,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6584.334,
+      "content": " Financial"
+    },
+    {
+      "timestamp_ms": 6603.205,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6625.491,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6641.362,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 6660.311,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6701.284,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 6701.481,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 6718.017,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6736.831,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 6755.84,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6774.935,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6826.378,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 6828.212,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6831.953,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6851.273,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 6870.1,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 6891.832,
+      "content": " temporarily"
+    },
+    {
+      "timestamp_ms": 6908.583,
+      "content": " unavailable"
+    },
+    {
+      "timestamp_ms": 6927.782,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 6958.554,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6987.778,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6987.778,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 7003.698,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7022.635,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7042.914,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7063.275,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7080.112,
+      "content": "Availability"
+    },
+    {
+      "timestamp_ms": 7099.956,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7117.979,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 7137.121,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 7155.786,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 7175.055,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7210.117,
+      "content": "AP"
+    },
+    {
+      "timestamp_ms": 7213.894,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 7233.401,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7251.898,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7271.053,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7290.17,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 7314.477,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7328.133,
+      "content": " choose"
+    },
+    {
+      "timestamp_ms": 7346.862,
+      "content": " AP"
+    },
+    {
+      "timestamp_ms": 7366.39,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7385.279,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 7404.292,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 7423.908,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7455.906,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 7461.062,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 7481.128,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7501.608,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7519.319,
+      "content": " sacrifice"
+    },
+    {
+      "timestamp_ms": 7537.912,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 7556.775,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7576.357,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 7594.553,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7617.166,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7633.836,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 7652.28,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7671.018,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 7690.453,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 7709.629,
+      "content": " reads"
+    },
+    {
+      "timestamp_ms": 7728.546,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7748.779,
+      "content": " writes"
+    },
+    {
+      "timestamp_ms": 7766.242,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7785.733,
+      "content": " proceed"
+    },
+    {
+      "timestamp_ms": 7804.828,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 7823.873,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 7843.006,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 7861.847,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7880.857,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7900.504,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7919.496,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7938.62,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7965.349,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7976.98,
+      "content": " stale"
+    },
+    {
+      "timestamp_ms": 7995.668,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8014.797,
+      "content": " inconsistent"
+    },
+    {
+      "timestamp_ms": 8034.331,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 8052.466,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 8071.954,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8091.419,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8110.423,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8128.904,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 8147.706,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 8175.096,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8186.333,
+      "content": " Social"
+    },
+    {
+      "timestamp_ms": 8230.756,
+      "content": " media"
+    },
+    {
+      "timestamp_ms": 8230.936,
+      "content": " platforms"
+    },
+    {
+      "timestamp_ms": 8243.434,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 8264.647,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8281.699,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8300.709,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8320.125,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 8430.773,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8430.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8430.773,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8430.773,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8430.773,
+      "content": " remain"
+    },
+    {
+      "timestamp_ms": 8434.813,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 8453.179,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8472.971,
+      "content": " responsive"
+    },
+    {
+      "timestamp_ms": 8491.074,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8510.018,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 8534.029,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 8548.334,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8568.237,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 8589.553,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8605.865,
+      "content": " temporary"
+    },
+    {
+      "timestamp_ms": 8627.241,
+      "content": " inconsistencies"
+    },
+    {
+      "timestamp_ms": 8643.972,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8666.118,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8682.23,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8701.019,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8720.641,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 8739.856,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 8758.778,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8777.996,
+      "content": " Availability"
+    },
+    {
+      "timestamp_ms": 8796.493,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8816.786,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 8834.554,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 8857.484,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8873.891,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8891.993,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8913.96,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 8930.964,
+      "content": " theory"
+    },
+    {
+      "timestamp_ms": 8950.215,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8968.924,
+      "content": " priorit"
+    },
+    {
+      "timestamp_ms": 8988.568,
+      "content": "izing"
+    },
+    {
+      "timestamp_ms": 9006.198,
+      "content": " CA"
+    },
+    {
+      "timestamp_ms": 9028.124,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 9044.97,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 9064.247,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 9082.566,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 9102.057,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 9120.752,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9155.326,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9164.478,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 9184.46,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 9198.674,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 9217.492,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 9235.693,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9260.392,
+      "content": " never"
+    },
+    {
+      "timestamp_ms": 9273.373,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 9292.861,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9311.783,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 9371.03,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9371.03,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 9371.231,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9392.924,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 9406.692,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 9425.831,
+      "content": " practical"
+    },
+    {
+      "timestamp_ms": 9445.011,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9464.299,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 9486.062,
+      "content": "-world"
+    },
+    {
+      "timestamp_ms": 9505.086,
+      "content": " scenarios"
+    },
+    {
+      "timestamp_ms": 9657.651,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9659.167,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9659.276,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 9659.337,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9659.453,
+      "content": " splits"
+    },
+    {
+      "timestamp_ms": 9659.541,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9669.006,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9669.006,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9674.162,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 9693.144,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9712.41,
+      "content": " Such"
+    },
+    {
+      "timestamp_ms": 9731.827,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 9750.632,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9771.612,
+      "content": " feasible"
+    },
+    {
+      "timestamp_ms": 9793.37,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9809.031,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 9828.406,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9846.295,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 9865.39,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9885.611,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 9903.698,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9923.663,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9941.988,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9960.481,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 9979.578,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 9998.496,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10018.088,
+      "content": " Non"
+    },
+    {
+      "timestamp_ms": 10041.421,
+      "content": "-d"
+    },
+    {
+      "timestamp_ms": 10055.675,
+      "content": "istributed"
+    },
+    {
+      "timestamp_ms": 10075.131,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 10094.231,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 10094.231,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10094.231,
+      "type": "done"
+    }
+  ],
+  "full_response": "The CAP theorem, also known as Brewer's theorem, is a fundamental principle in distributed computing that outlines the trade-offs involved when designing a distributed database system. The theorem states that it is impossible for a distributed data store to simultaneously provide more than two of the following three guarantees:\n\n1. **Consistency (C):** Every read operation receives the most recent write for a given piece of data. In other words, all nodes see the same data at the same time, which ensures consistency across the distributed system.\n\n2. **Availability (A):** Every request (read or write) receives a non-error response, without guaranteeing that it contains the most recent write. This property ensures that the system is up and running, and can always respond to requests, even if some nodes are down.\n\n3. **Partition Tolerance (P):** The system continues to operate despite arbitrary partitioning due to network failures. That is, the system can continue to function even if parts of the system are unable to communicate with each other due to network issues.\n\n### Implications for Distributed Database Design\n\nWhen designing a distributed database, you must decide which two of the three properties—consistency, availability, and partition tolerance—the system should prioritize, as achieving all three simultaneously is not feasible:\n\n1. **Consistency and Partition Tolerance (CP):**\n   - Systems that prioritize CP will ensure consistency and partition tolerance but may sacrifice availability. \n   - Example: A system might be unable to process write requests or some read requests if a network partition occurs, so it chooses to ensure that all available data remains consistent.\n   - Use case: Financial systems that need to ensure accurate and consistent data, even if it means being temporarily unavailable during a network partition.\n\n2. **Availability and Partition Tolerance (AP):**\n   - Systems that choose AP will ensure availability and partition tolerance but might sacrifice consistency. \n   - Example: Systems allow reads and writes to proceed even during partitions, but the data might be stale or inconsistent across partitions.\n   - Use case: Social media platforms where it's more important for the system to remain available and responsive, even at the cost of temporary inconsistencies.\n\n3. **Consistency and Availability (CA):**\n   - In theory, prioritizing CA without partition tolerance could work in a distributed setup if there are never any network partitions, which is generally not practical in real-world scenarios that can experience network splits.\n   - Example: Such systems are feasible in environments with no network failures.\n   - Use case: Non-distributed databases or",
+  "response_chars": 2730,
+  "num_chunks": 512,
+  "ttft_ms": 374.691,
+  "total_ms": 10098.316,
+  "model_name": "model-medium"
+}

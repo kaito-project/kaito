@@ -1,0 +1,799 @@
+{
+  "index": 30,
+  "prompt": "Describe the differences between TCP and UDP protocols.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 523.518,
+      "content": "Trans"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": "mission Control"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " Protocol (TCP"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": ") and User"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " Datagram Protocol"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " (U"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": "DP) are two"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " fundamental"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " transport layer"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " protocols in"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " the Internet Protocol"
+    },
+    {
+      "timestamp_ms": 523.518,
+      "content": " Suite (TCP/IP"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " They serve"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " different purposes"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " have distinct"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " characteristics."
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " Here’s a detailed"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " comparison:\n\n### **"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": "1. Connection"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": " Orientation"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": "**\n- **TCP"
+    },
+    {
+      "timestamp_ms": 699.802,
+      "content": "**:\n  - **"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": "Connection-oriented**:"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " Establ"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": "ishes a connection"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": "via a three"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": "-way handshake"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " before data"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " transfer"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " and ensures"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " reliable,"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " ordered"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 938.667,
+      "content": " data.\n  -"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " Uses"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " numbers and"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " acknowledgments to"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " data packets"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": ".\n  - Example"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": ": Web"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " browsing ("
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": "HTTP/"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": "HTTPS"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": "), email"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": "SMTP), file"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " transfers ("
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": "FTP).\n\n-"
+    },
+    {
+      "timestamp_ms": 1186.563,
+      "content": " **UDP**:\n"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": "  - **Connection"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": "less**: S"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": "ends data without establishing"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " a connection,"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " it faster"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " less reliable.\n "
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " - No hand"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": "shake or connection"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " setup; data"
+    },
+    {
+      "timestamp_ms": 1362.188,
+      "content": " is sent"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": " immediately.\n  -"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": " Example: Video"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": " streaming ("
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": "VoIP"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": ", live"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": " broadcasts"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": "), online"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": " gaming,"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": " DNS look"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": "ups.\n\n### **"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": "2. Reli"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": "ability**\n- **"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": "TCP**:\n  -"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": " **Reliable"
+    },
+    {
+      "timestamp_ms": 1580.271,
+      "content": "**: Gu"
+    },
+    {
+      "timestamp_ms": 1668.198,
+      "content": "arantees delivery"
+    },
+    {
+      "timestamp_ms": 1668.198,
+      "content": " of data in"
+    },
+    {
+      "timestamp_ms": 1668.198,
+      "content": " the correct order.\n"
+    },
+    {
+      "timestamp_ms": 1668.198,
+      "content": "  - Uses acknowled"
+    },
+    {
+      "timestamp_ms": 1668.198,
+      "content": "gments ("
+    },
+    {
+      "timestamp_ms": 1668.198,
+      "content": "ACKs"
+    },
+    {
+      "timestamp_ms": 1769.85,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 1769.85,
+      "content": " retransmissions, and"
+    },
+    {
+      "timestamp_ms": 1769.85,
+      "content": " error-check"
+    },
+    {
+      "timestamp_ms": 1769.85,
+      "content": "ing to"
+    },
+    {
+      "timestamp_ms": 1769.85,
+      "content": " ensure data integrity"
+    },
+    {
+      "timestamp_ms": 1769.85,
+      "content": ".\n  - If"
+    },
+    {
+      "timestamp_ms": 1769.85,
+      "content": " packets"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": " are lost, TCP"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": " retransm"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": "its them.\n\n-"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": " **UDP**:\n"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": "  - **Un"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": "reliable**: Does"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": " not guarantee delivery"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": ", ordering"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": ", or"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": " error recovery"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": ".\n  - No"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": " retrans"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": "mission"
+    },
+    {
+      "timestamp_ms": 1978.495,
+      "content": " mechanism;"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " lost"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " packets are"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " simply"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " discarded.\n  -"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " Suitable for applications"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " where speed"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " is more"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " critical than reliability"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": ".\n\n### **3"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": ". Flow"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": " & Cong"
+    },
+    {
+      "timestamp_ms": 2296.482,
+      "content": "estion Control"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": "**\n- **TCP"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": "**:\n  - Im"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": "plements **flow"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": " control** (ad"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": "justs data"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": " transmission rate"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": " based on the receiver"
+    },
+    {
+      "timestamp_ms": 2648.909,
+      "content": "’s capacity"
+    },
+    {
+      "timestamp_ms": 2654.462,
+      "content": ").\n  - Im"
+    },
+    {
+      "timestamp_ms": 2654.462,
+      "content": "plements **con"
+    },
+    {
+      "timestamp_ms": 2654.462,
+      "content": "gestion control** ("
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": "ad"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": "justs transmission"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " rate to prevent"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " network overload).\n"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": "  - Uses sliding"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " window mechanisms"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " to optimize"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " data transfer"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": ".\n\n- **U"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": "DP**:\n  -"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3046.388,
+      "content": " congestion control.\n "
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " - Sends data"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " at a constant"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " rate,"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " can lead to packet"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " loss if the"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " network is congest"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": "ed.\n\n### **"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": "4. Speed"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " Over"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": "head**\n- **"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": "TCP**:\n  -"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " **Slower**"
+    },
+    {
+      "timestamp_ms": 3480.38,
+      "content": " due to connection"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": ", acknowled"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": "gments, and"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " error recovery"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": ".\n  - Higher"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " **overhead**"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " (more"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": ", ~"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": "20 bytes"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " per packet).\n\n-"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": " **UDP**:\n"
+    },
+    {
+      "timestamp_ms": 3873.099,
+      "content": "  - **F"
+    },
+    {
+      "timestamp_ms": 3921.24,
+      "content": "aster** with"
+    },
+    {
+      "timestamp_ms": 3921.24,
+      "content": " minimal delay"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " (no connection"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " setup or"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " retrans"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": "missions).\n  -"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " Lower **overhead"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": "** (small"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": "er header, ~"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": "8 bytes per"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " packet).\n\n### **"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": "5. Use"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " Cases**\n|"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " **TCP** |"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": " **U"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "content": "DP** |\n|"
+    },
+    {
+      "timestamp_ms": 4324.062,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4362.943,
+      "type": "done"
+    }
+  ],
+  "full_response": "Transmission Control Protocol (TCP) and User Datagram Protocol (UDP) are two fundamental transport layer protocols in the Internet Protocol Suite (TCP/IP). They serve different purposes and have distinct characteristics. Here’s a detailed comparison:\n\n### **1. Connection Orientation**\n- **TCP**:\n  - **Connection-oriented**: Establishes a connection (via a three-way handshake) before data transfer and ensures a reliable, ordered delivery of data.\n  - Uses sequence numbers and acknowledgments to track data packets.\n  - Example: Web browsing (HTTP/HTTPS), email (SMTP), file transfers (FTP).\n\n- **UDP**:\n  - **Connectionless**: Sends data without establishing a connection, making it faster but less reliable.\n  - No handshake or connection setup; data is sent immediately.\n  - Example: Video streaming (VoIP, live broadcasts), online gaming, DNS lookups.\n\n### **2. Reliability**\n- **TCP**:\n  - **Reliable**: Guarantees delivery of data in the correct order.\n  - Uses acknowledgments (ACKs), retransmissions, and error-checking to ensure data integrity.\n  - If packets are lost, TCP retransmits them.\n\n- **UDP**:\n  - **Unreliable**: Does not guarantee delivery, ordering, or error recovery.\n  - No retransmission mechanism; lost packets are simply discarded.\n  - Suitable for applications where speed is more critical than reliability.\n\n### **3. Flow Control & Congestion Control**\n- **TCP**:\n  - Implements **flow control** (adjusts data transmission rate based on the receiver’s capacity).\n  - Implements **congestion control** (adjusts transmission rate to prevent network overload).\n  - Uses sliding window mechanisms to optimize data transfer.\n\n- **UDP**:\n  - No flow or congestion control.\n  - Sends data at a constant rate, which can lead to packet loss if the network is congested.\n\n### **4. Speed & Overhead**\n- **TCP**:\n  - **Slower** due to connection setup, acknowledgments, and error recovery.\n  - Higher **overhead** (more header data, ~20 bytes per packet).\n\n- **UDP**:\n  - **Faster** with minimal delay (no connection setup or retransmissions).\n  - Lower **overhead** (smaller header, ~8 bytes per packet).\n\n### **5. Use Cases**\n| **TCP** | **UDP** |\n|",
+  "response_chars": 2171,
+  "num_chunks": 194,
+  "ttft_ms": 523.518,
+  "total_ms": 4511.257,
+  "model_name": "Mistral-Large-3"
+}

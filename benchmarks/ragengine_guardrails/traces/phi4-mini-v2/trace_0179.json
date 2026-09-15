@@ -1,0 +1,2059 @@
+{
+  "index": 179,
+  "prompt": "What are the key features of Rust that make it suitable for systems programming?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 956.322,
+      "content": "Rust"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " fast"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 956.322,
+      "content": "uited"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": ":\n\n\n"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": "Memory"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " Safety"
+    },
+    {
+      "timestamp_ms": 956.757,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " Garbage"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " Collection"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " safety"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " relying"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " garbage"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " collector"
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1649.031,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": " rules"
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": " enforced"
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1649.504,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " compiler"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " compile"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": "-after"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": "-free"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " dangling"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " pointers"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": " races"
+    },
+    {
+      "timestamp_ms": 2042.693,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": "Concurrency"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": "aces"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " concurrency"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " borrowing"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " rules"
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2690.666,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " prevents"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " races"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " compile"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " Memory"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": "oved"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " thread"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " borrowed"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " imm"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": "ut"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": "ably"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " mut"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": "ably"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": "but"
+    },
+    {
+      "timestamp_ms": 3306.419,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": ").\n\n\n"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "Zero"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "-C"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "ost"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " Ab"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "stra"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "ctions"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " aims"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " abstra"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "ctions"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " minimal"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " abstra"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": "ctions"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " concurrency"
+    },
+    {
+      "timestamp_ms": 4310.593,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " futures"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 4340.556,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " penalties"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": "Type"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " Safety"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " very"
+    },
+    {
+      "timestamp_ms": 4686.437,
+      "content": " expressive"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " ownership"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " borrowing"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " rules"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " guarantee"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " likely"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " programmer"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " introduce"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 5058.212,
+      "content": " bugs"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "Compilation"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " Speed"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " comp"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "iles"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " very"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " rapid"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " iteration"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " developer"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " productivity"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": "Custom"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " Safe"
+    },
+    {
+      "timestamp_ms": 5849.094,
+      "content": " Ab"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": "stra"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": "ctions"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " customized"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " abstra"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": "ctions"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " sacrificing"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 6202.467,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 6202.844,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 6202.844,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6202.844,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6202.844,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6202.844,
+      "content": " encaps"
+    },
+    {
+      "timestamp_ms": 6202.978,
+      "content": "ulate"
+    },
+    {
+      "timestamp_ms": 6202.978,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 6202.978,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " introducing"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " unsafe"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": "Rich"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " Tool"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " Ecos"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": "ystem"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " comes"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " very"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " powerful"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " compiler"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " ecosystem"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " package"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " managers"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7602.023,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " Cargo"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " integral"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " binary"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " ideal"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " embedded"
+    },
+    {
+      "timestamp_ms": 7602.55,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " limited"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " Role"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " Compiler"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " compiler"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "rust"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " syntax"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " checking"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 8144.237,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 8218.995,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8218.995,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8218.995,
+      "content": " invari"
+    },
+    {
+      "timestamp_ms": 8218.995,
+      "content": "ants"
+    },
+    {
+      "timestamp_ms": 8218.995,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " maintained"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " below"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " imaginary"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " land"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " exempl"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": "ifies"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " capability"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 8614.832,
+      "content": " segmentation"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " faults"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": "/C"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": "++"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " constant"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " vigilance"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " Can"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " identify"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " safety"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " feature"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " snippet"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " en"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": "forces"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " preventing"
+    },
+    {
+      "timestamp_ms": 9211.848,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "/C"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "++"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "?\n\n\n"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "rust"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "fn"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " safer"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "_vector"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "_operation"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "(v"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "Vec"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "<i"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": ">)"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " ->"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " i"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " match"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " v"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " Some"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "(&"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "val"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " =>"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " val"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 10139.34,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " None"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " =>"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " panic"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": "!(\""
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": "Vector"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " empty"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " attempting"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 10443.57,
+      "content": ".\"),\n"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "fn"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": " let"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "_vec"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": " vec"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "!["
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10760.728,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10800.09,
+      "type": "done"
+    }
+  ],
+  "full_response": "Rust is designed to be safe, fast, and efficient, making it well-suited systems programming. Here are some key features:\n\n\n1. **Memory Safety without Garbage Collection**: Rust offers memory safety guarantees without relying on a garbage collector. Rust ownership model, with rules enforced by the compiler at compile time, ensures safe memory management. This can prevent common problems like use-after-free, dangling pointers, and data races.\n\n\n2. **Concurrency without Data Races**: Rust's approach to concurrency is different from other languages. By using the ownership and borrowing rules, Rust prevents data races at compile time. Memory for a data structure is either sent (moved into another thread) or borrowed immutably or mutably (but not both).\n\n\n3. **Zero-Cost Abstractions**: Rust aims to provide abstractions that have minimal overhead. For example, the abstractions for concurrency and futures ensure that you can write concurrent code without significant performance penalties.\n\n\n4. **Type Safety**: Rust's type system is very expressive and its ownership model along with borrowing rules results in a strong guarantee that makes it less likely for the programmer to introduce common bugs.\n\n\n5. **Compilation Speed**: Rust compiles very quickly, allowing for rapid iteration and ensuring high developer productivity.\n\n\n6. **Custom Safe Abstractions**: Rust allows developers to build customized safe abstractions without sacrificing performance; way, they can encapsulate complexity without introducing unsafe code.\n\n\n7. **Rich Tooling and Ecosystem**: Rust comes with a very powerful compiler and an ecosystem of package managers and tools like Cargo, which is an integral part of Rust's development process. The binary size of Rust applications is low, making it ideal for embedded systems which often have limited resources.\n\n\n8. **The Role of the Compiler**: Rust's compiler, `rustc`, does not just perform syntax checking, but also checks that all invariants are maintained. The example below in this imaginary land exemplifies Rust's capability to prevent you from running into segmentation faults that are common in C/C++ without constant vigilance. Can you identify the safety feature that this Rust code snippet enforces, preventing similar problems from a C/C++ environment?\n\n\n```rust\nfn safer_vector_operation(v: &Vec<i32>) -> i32 {\n    match v.get(0) {\n        Some(&val) => val + 1,\n        None => panic!(\"Vector is empty; attempting to access a value.\"),\n    }\n}\n\nfn main() {\n    let my_vec = vec![1",
+  "response_chars": 2532,
+  "num_chunks": 509,
+  "ttft_ms": 956.322,
+  "total_ms": 11098.617,
+  "model_name": "Phi-4-mini-instruct"
+}

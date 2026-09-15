@@ -1,0 +1,719 @@
+{
+  "index": 42,
+  "prompt": "Generate a sample webhook payload that contains user signup data: email, full_name, phone_number, ip_address, user_agent, and referral_code.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 3831.056,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": "hook payload in"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": " JSON format that includes"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": " signup data you requested"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": ":\n\n```json\n"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": "{\n  \"event"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": "\": \"user_sign"
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": "up\",\n  \""
+    },
+    {
+      "timestamp_ms": 3831.056,
+      "content": "timestamp\": \"2"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "023-"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "11-1"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "5T1"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "4:30"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": ":4"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "5Z"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "\",\n  \"data"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "\": {\n    \""
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "email\": \"j"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "ohn.d"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "oe@example.com\",\n"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "    \"full"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "_name\": \"John"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": " Doe\",\n    \""
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "phone_number"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "\": \"+"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "90\",\n"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "    \"ip"
+    },
+    {
+      "timestamp_ms": 3915.218,
+      "content": "_address\": \"1"
+    },
+    {
+      "timestamp_ms": 3936.881,
+      "content": "92.1"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "68"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": ".1.1"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "00\",\n   "
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": " \"user_agent\":"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": " \"Mozilla/"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "5.0 ("
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "Mac"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "intosh; Intel"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": " Mac OS"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": " X 10"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "_15"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "_7"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": ") AppleWeb"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "Kit/5"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "37"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": ".36 ("
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "KHTML"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": ", like"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": " Gecko)"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": " Chrome/1"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "19"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": ".0.0"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": ".0 Safari"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "/5"
+    },
+    {
+      "timestamp_ms": 3937.044,
+      "content": "37.3"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "6\",\n    \""
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "referral"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "_code\": \"REF"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "23XYZ"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "\",\n    \"metadata"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "\": {\n      \""
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "signup_method"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "\": \"email"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "\",\n      \"is"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "_verified\": false"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": ",\n      \"created"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "_at\": \"2"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "023-"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "11-1"
+    },
+    {
+      "timestamp_ms": 4017.497,
+      "content": "5T14"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": ":30:"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "45Z\"\n"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "    }\n  }\n"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "}\n```\n\n### Key"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": " Fields"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": " Expl"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "ained:\n-"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": " **event"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "**: Ident"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "ifies the type"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": " of event"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": " `user_signup"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "`).\n- **"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": "timestamp**: When"
+    },
+    {
+      "timestamp_ms": 4032.955,
+      "content": " the event occurred"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": " (ISO"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": " 860"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "1 format).\n-"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": " **data**:\n"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "  - **email"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "**: User"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "'s email address"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": ".\n  - **"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "full_name**: User"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "'s full name.\n"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "  - **phone"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "_number**: User"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": "'s phone"
+    },
+    {
+      "timestamp_ms": 4059.538,
+      "content": " number (E"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": ".1"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": " format recommended"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": "ip_address**: IP"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": " address of the user"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4237.124,
+      "content": " signup.\n  -"
+    },
+    {
+      "timestamp_ms": 4425.123,
+      "content": " **user_agent**:"
+    },
+    {
+      "timestamp_ms": 4425.123,
+      "content": " Browser"
+    },
+    {
+      "timestamp_ms": 4425.123,
+      "content": "/device info"
+    },
+    {
+      "timestamp_ms": 4425.123,
+      "content": " from the HTTP"
+    },
+    {
+      "timestamp_ms": 4425.123,
+      "content": " request.\n  -"
+    },
+    {
+      "timestamp_ms": 4425.123,
+      "content": " **refer"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": "ral_code**: Optional"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " referral"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " code used"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " signup.\n  -"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " **metadata**: Additional"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " context (e.g"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": "., verification"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": ", signup"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " method).\n\n###"
+    },
+    {
+      "timestamp_ms": 4776.378,
+      "content": " Variations"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": ":\n1"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": ". **Min"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": "imal Payload"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": " (if"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": " need core"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": " fields):\n   ```"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": "json\n   {\n"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": "     \"email\":"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": " \"jane"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": "mith@example.com\",\n"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": "     \"full"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": "_name\": \"Jane"
+    },
+    {
+      "timestamp_ms": 5402.806,
+      "content": " Smith\",\n     \""
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "phone_number\": \"+"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "19"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "87"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "65"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "43"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "21"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "\",\n     \"ip"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "_address\": \"2"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "03"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": ".0"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": ".11"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "3.4"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "5\"\n"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "   }\n   ```\n\n"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "2. **With"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": " N"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "ested Device"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": " Info"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "**:\n"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "   ```json\n"
+    },
+    {
+      "timestamp_ms": 6010.181,
+      "content": "   {\n     \""
+    },
+    {
+      "timestamp_ms": 6110.333,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 6110.333,
+      "content": "_agent\": {\n"
+    },
+    {
+      "timestamp_ms": 6110.333,
+      "content": "       \"browser"
+    },
+    {
+      "timestamp_ms": 6129.211,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6129.211,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6212.679,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample webhook payload in JSON format that includes the user signup data you requested:\n\n```json\n{\n  \"event\": \"user_signup\",\n  \"timestamp\": \"2023-11-15T14:30:45Z\",\n  \"data\": {\n    \"email\": \"john.doe@example.com\",\n    \"full_name\": \"John Doe\",\n    \"phone_number\": \"+1234567890\",\n    \"ip_address\": \"192.168.1.100\",\n    \"user_agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36\",\n    \"referral_code\": \"REF123XYZ\",\n    \"metadata\": {\n      \"signup_method\": \"email\",\n      \"is_verified\": false,\n      \"created_at\": \"2023-11-15T14:30:45Z\"\n    }\n  }\n}\n```\n\n### Key Fields Explained:\n- **event**: Identifies the type of event (e.g., `user_signup`).\n- **timestamp**: When the event occurred (ISO 8601 format).\n- **data**:\n  - **email**: User's email address.\n  - **full_name**: User's full name.\n  - **phone_number**: User's phone number (E.164 format recommended).\n  - **ip_address**: IP address of the user at signup.\n  - **user_agent**: Browser/device info from the HTTP request.\n  - **referral_code**: Optional referral code used during signup.\n  - **metadata**: Additional context (e.g., verification status, signup method).\n\n### Variations:\n1. **Minimal Payload** (if you only need core fields):\n   ```json\n   {\n     \"email\": \"jane.smith@example.com\",\n     \"full_name\": \"Jane Smith\",\n     \"phone_number\": \"+1987654321\",\n     \"ip_address\": \"203.0.113.45\"\n   }\n   ```\n\n2. **With Nested Device Info**:\n   ```json\n   {\n     \"user_agent\": {\n       \"browser\":",
+  "response_chars": 1532,
+  "num_chunks": 174,
+  "ttft_ms": 3831.056,
+  "total_ms": 6214.675,
+  "model_name": "Mistral-Large-3"
+}

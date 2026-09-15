@@ -1,0 +1,927 @@
+{
+  "index": 203,
+  "prompt": "Write a policy document explaining how employees should handle INTERNAL_ONLY documents. Use the label INTERNAL_ONLY throughout the document.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 625.865,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " **Policy"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " IN"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": "TERNAL_ONLY Documents"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": "**Effect"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": "ive Date"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": ":** [Insert"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " Date]\n**Policy"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " Owner"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": ":** [Insert Department"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " e.g., Information"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " Security,"
+    },
+    {
+      "timestamp_ms": 625.865,
+      "content": " Legal"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": " Compliance]\n**"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "Ap"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "plic"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "ability:** All"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": " Employees,"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": " Contract"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "ors, and Third"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "-Party"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": " Vend"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "ors with"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": " Access to Company"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "\n\n---\n\n## **"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "1. Purpose**\n"
+    },
+    {
+      "timestamp_ms": 1091.065,
+      "content": "This policy"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " establishes"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " guidelines"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " for the"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " handling, storage"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": ", sharing"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": ", and disposal"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " of **IN"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": "TERNAL_ONLY**"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " sensitive company"
+    },
+    {
+      "timestamp_ms": 1091.323,
+      "content": " information from"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": ", disclosure, or"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " misuse"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": ". **"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": "** documents"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " confidential, or"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": "public information that should"
+    },
+    {
+      "timestamp_ms": 1382.226,
+      "content": " not be shared"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " outside the"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " organization without"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " proper authorization"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": ".\n\nFailure"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " to comply"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " with this"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " policy may result in"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " disciplinary"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " action, up"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " to and"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 1500.835,
+      "content": " termination, as well"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " as potential"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " legal consequences"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " the company.\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": "## **2."
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " Definition"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " IN"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": "TERNAL_ONLY Documents"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": "**\n**"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": "** documents"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " but are"
+    },
+    {
+      "timestamp_ms": 1808.865,
+      "content": " not limited to:\n"
+    },
+    {
+      "timestamp_ms": 1809.202,
+      "content": "- Internal"
+    },
+    {
+      "timestamp_ms": 1809.202,
+      "content": " mem"
+    },
+    {
+      "timestamp_ms": 1809.202,
+      "content": "os, reports"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": ", and presentations"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": "\n- Strategic"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": " plans"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": ", financial"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": ", and business forecasts"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": "\n- Employee"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": ", performance"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": " reviews"
+    },
+    {
+      "timestamp_ms": 2001.754,
+      "content": ", and HR"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": "-related documents"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": "\n- Product"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": " road"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": "maps, intellectual"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": " property"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": " (IP), and"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": " trade secrets"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": "\n- Internal"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": " emails"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": ", meeting"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": " notes, and collaboration"
+    },
+    {
+      "timestamp_ms": 2062.285,
+      "content": " materials\n- IT"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": " documentation, security protocols"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": ", and infrastructure"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": "\n- Legal"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": " compliance,"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": " or audit"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": "-related documents"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": "\n\n**IN"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": "TERNAL_ONLY**"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2418.533,
+      "content": " are **not**"
+    },
+    {
+      "timestamp_ms": 2418.78,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 2418.78,
+      "content": " for public distribution"
+    },
+    {
+      "timestamp_ms": 2418.78,
+      "content": ", external partners"
+    },
+    {
+      "timestamp_ms": 2418.78,
+      "content": ", or"
+    },
+    {
+      "timestamp_ms": 2418.78,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 2418.78,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 2433.373,
+      "content": " personnel.\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 2433.373,
+      "content": " **3. Classification"
+    },
+    {
+      "timestamp_ms": 2433.373,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 2433.373,
+      "content": " Labeling**\n-"
+    },
+    {
+      "timestamp_ms": 2433.373,
+      "content": " All **"
+    },
+    {
+      "timestamp_ms": 2433.373,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": "** documents must be"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " clearly labeled with:\n"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": "  - The"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " phrase"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " **\"INTERNAL_ON"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": "LY\"** in"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " the header"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " footer, or"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " name.\n"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": "  - A confidentiality"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " notice"
+    },
+    {
+      "timestamp_ms": 2901.724,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " *\"This document"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " is the"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " property"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " of ["
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": "Company Name] and"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " is intended"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " for internal"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " use only."
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " Unauthorized distribution"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " prohibited.\"*).\n"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": "- If"
+    },
+    {
+      "timestamp_ms": 3047.303,
+      "content": " a document contains"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": " both public"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": " and **"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": "** information"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": ", the sensitive"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": " sections"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": " must be marked"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": " accordingly"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": ".\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": "## **4."
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": " Access &"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": " Perm"
+    },
+    {
+      "timestamp_ms": 3047.593,
+      "content": "issions**\n###"
+    },
+    {
+      "timestamp_ms": 3393.539,
+      "content": " **4"
+    },
+    {
+      "timestamp_ms": 3393.539,
+      "content": ".1 Who"
+    },
+    {
+      "timestamp_ms": 3393.539,
+      "content": " Can"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " Access IN"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": "TERNAL_ONLY Documents"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": "?**\n- Only"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " contractors, or"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " third parties"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " with a"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " **leg"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": "itimate business need"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": "** may"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": " **INTERNAL_ON"
+    },
+    {
+      "timestamp_ms": 3393.762,
+      "content": "LY** documents"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": ".\n- Access"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " be granted"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " on the **pr"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": "inciple of least"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " privilege** (i"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": ".e., only the"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " required to"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " perform job"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " duties).\n"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": "- External"
+    },
+    {
+      "timestamp_ms": 3666.423,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " vendors"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": ", clients"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " or partners) must"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " sign"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " a **Non"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": "-Disclosure"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " Agreement (ND"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": "A)** before"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " accessing"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3958.296,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3958.55,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **Policy on Handling INTERNAL_ONLY Documents**\n**Effective Date:** [Insert Date]\n**Policy Owner:** [Insert Department, e.g., Information Security, Legal, or Compliance]\n**Applicability:** All Employees, Contractors, and Third-Party Vendors with Access to Company Information\n\n---\n\n## **1. Purpose**\nThis policy establishes guidelines for the proper handling, storage, sharing, and disposal of **INTERNAL_ONLY** documents to protect sensitive company information from unauthorized access, disclosure, or misuse. **INTERNAL_ONLY** documents contain proprietary, confidential, or non-public information that should not be shared outside the organization without proper authorization.\n\nFailure to comply with this policy may result in disciplinary action, up to and including termination, as well as potential legal consequences for the company.\n\n---\n\n## **2. Definition of INTERNAL_ONLY Documents**\n**INTERNAL_ONLY** documents include, but are not limited to:\n- Internal memos, reports, and presentations\n- Strategic plans, financial data, and business forecasts\n- Employee records, performance reviews, and HR-related documents\n- Product roadmaps, intellectual property (IP), and trade secrets\n- Internal emails, meeting notes, and collaboration materials\n- IT system documentation, security protocols, and infrastructure details\n- Legal, compliance, or audit-related documents\n\n**INTERNAL_ONLY** documents are **not** intended for public distribution, external partners, or unauthorized internal personnel.\n\n---\n\n## **3. Classification & Labeling**\n- All **INTERNAL_ONLY** documents must be clearly labeled with:\n  - The phrase **\"INTERNAL_ONLY\"** in the header, footer, or file name.\n  - A confidentiality notice (e.g., *\"This document is the property of [Company Name] and is intended for internal use only. Unauthorized distribution is prohibited.\"*).\n- If a document contains both public and **INTERNAL_ONLY** information, the sensitive sections must be marked accordingly.\n\n---\n\n## **4. Access & Permissions**\n### **4.1 Who Can Access INTERNAL_ONLY Documents?**\n- Only employees, contractors, or third parties with a **legitimate business need** may access **INTERNAL_ONLY** documents.\n- Access must be granted based on the **principle of least privilege** (i.e., only the minimum access required to perform job duties).\n- External parties (e.g., vendors, clients, or partners) must sign a **Non-Disclosure Agreement (NDA)** before accessing **",
+  "response_chars": 2450,
+  "num_chunks": 226,
+  "ttft_ms": 625.865,
+  "total_ms": 4150.233,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,855 @@
+{
+  "index": 25,
+  "prompt": "Create a project status report for SECRET_PROJECT. Include sections: Overview of SECRET_PROJECT, SECRET_PROJECT milestones, and SECRET_PROJECT risks.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 717.208,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "SE"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "CRET_PROJECT STATUS"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": " RE"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "PORT**\n"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "**Date:** ["
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "Insert Date]\n**"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "Prepared"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": " by:** [Your"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": " Name/"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "Team"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "]\n**Classification"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": " CON"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "FID"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "ENTIAL"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": " – E"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": "YES"
+    },
+    {
+      "timestamp_ms": 717.208,
+      "content": " ONLY\n\n"
+    },
+    {
+      "timestamp_ms": 717.664,
+      "content": ". Overview of SE"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "CRET_PROJECT**\n"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "**Project"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": " Name:** SE"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "CRET_PROJECT\n"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "**Objective"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "Prov"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "ide a high-level"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "-sensitive"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": " description of the project"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "’s purpose"
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1002.062,
+      "content": " For example:]\n"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "*\"SE"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "CRET_PROJECT aims"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " to develop an"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " innovative"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "red"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "act"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "ed] solution"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " to enhance ["
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "red"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "acted"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "] capabilities"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " for [red"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "acted]"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " stakeholders."
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " The project"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": " lever"
+    },
+    {
+      "timestamp_ms": 1273.726,
+      "content": "ages cutting"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": "-edge ["
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": "red"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": "acted]"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": " to achieve [red"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": "acted]"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": " outcomes while ensuring"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": " with [red"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": "acted] standards"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": ".\"*\n\n**Scope"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": ":**\n- **In"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": " Scope"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": ":** [List"
+    },
+    {
+      "timestamp_ms": 1529.538,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": "-level deliver"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": "ables,"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " e.g., \""
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": "Pro"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": "totype development,\""
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " \"Testing"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " controlled"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " environments,\" \"Integration"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " with existing"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " systems.\"]\n-"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " **Out"
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": " of Scope:** ["
+    },
+    {
+      "timestamp_ms": 1935.881,
+      "content": "List"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": " exclus"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "ions, e.g"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "., \"Deployment"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": " operational environments,\""
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": " \"Long"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "-term maintenance"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": ".\"]\n\n"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "**Key St"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "akeholders"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": ":**\n- **"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "Project Sponsor:**"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": " [Red"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "acted]\n-"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": " **Project Lead"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": ":** [Red"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "acted]\n-"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": " **Techn"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "ical Team"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": ":** [Redact"
+    },
+    {
+      "timestamp_ms": 2033.519,
+      "content": "ed]\n- **"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": "External Partners:** ["
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": "Red"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": "acted,"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": " if applicable]\n\n**"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": "Current Status:**\n-"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": " **Phase"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": ":** [e"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": ".g., \"Research"
+    },
+    {
+      "timestamp_ms": 2143.766,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " Development,\" \"Pro"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "totype Testing"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": ",\" \"Final"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "\"]\n- **Overall"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " Progress:** [e"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": ".g., \""
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "On track"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " (8"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "5%"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " complete"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "),\" \"At"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " risk ("
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "delayed"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " due to [red"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "acted"
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": "]),\""
+    },
+    {
+      "timestamp_ms": 2450.871,
+      "content": " \"A"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "head of schedule"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "- **Budget"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": " Status"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": ":** [e"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": ".g., \"Within"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": " budget,\""
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": " \"Over"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": " by ["
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "X]%"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": " to [red"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "acted].\""
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "---\n\n### **2"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": ". SECRET_PRO"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "JECT Mil"
+    },
+    {
+      "timestamp_ms": 2750.984,
+      "content": "estones**\n**Completed"
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": " Milestones:**\n"
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": "| Mil"
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": "estone              "
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": " | Target"
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": " Date      "
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": " | Actual"
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": " Com"
+    },
+    {
+      "timestamp_ms": 2790.26,
+      "content": "pletion Date | Status"
+    },
+    {
+      "timestamp_ms": 2860.378,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 2860.378,
+      "content": " | Notes                          |\n"
+    },
+    {
+      "timestamp_ms": 2860.378,
+      "content": "|------------------------"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "-|----------------"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "---|------------------------"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "|------------"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "--|--------------------------------"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "|\n| ["
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "Red"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "acted"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": " Appro"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "val    "
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": " | [MM"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "/YYYY"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "]        "
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": " | [MM"
+    },
+    {
+      "timestamp_ms": 3261.8,
+      "content": "/YYYY"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "]             "
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " ✅ Complete"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " | [Red"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "acted"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "]            "
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " |\n| Pro"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "totype Development"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " | [MM"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "/YYYY]"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "         | [MM"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "/YYYY]             "
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": " ✅ Complete"
+    },
+    {
+      "timestamp_ms": 3673.764,
+      "content": "  | [Red"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": "acted details]"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": "             |\n| Internal"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": " Testing Phase"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": " 1|"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": " [MM"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": "/YYYY]        "
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": " | [MM/"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": "YYYY]             "
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": " ✅ Complete"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": "  | [Red"
+    },
+    {
+      "timestamp_ms": 3909.011,
+      "content": "acted results]"
+    },
+    {
+      "timestamp_ms": 3928.016,
+      "content": "             |\n\n**Up"
+    },
+    {
+      "timestamp_ms": 3979.511,
+      "content": "coming Milestones"
+    },
+    {
+      "timestamp_ms": 3979.511,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4081.887,
+      "type": "done"
+    }
+  ],
+  "full_response": "**SECRET_PROJECT STATUS REPORT**\n**Date:** [Insert Date]\n**Prepared by:** [Your Name/Team]\n**Classification:** CONFIDENTIAL – EYES ONLY\n\n. Overview of SECRET_PROJECT**\n**Project Name:** SECRET_PROJECT\n**Objective:**\n[Provide a high-level, non-sensitive description of the project’s purpose. For example:]\n*\"SECRET_PROJECT aims to develop an innovative [redacted] solution to enhance [redacted] capabilities for [redacted] stakeholders. The project leverages cutting-edge [redacted] technologies to achieve [redacted] outcomes while ensuring compliance with [redacted] standards.\"*\n\n**Scope:**\n- **In Scope:** [List high-level deliverables, e.g., \"Prototype development,\" \"Testing in controlled environments,\" \"Integration with existing systems.\"]\n- **Out of Scope:** [List exclusions, e.g., \"Deployment in operational environments,\" \"Long-term maintenance.\"]\n\n**Key Stakeholders:**\n- **Project Sponsor:** [Redacted]\n- **Project Lead:** [Redacted]\n- **Technical Team:** [Redacted]\n- **External Partners:** [Redacted, if applicable]\n\n**Current Status:**\n- **Phase:** [e.g., \"Research & Development,\" \"Prototype Testing,\" \"Final Review\"]\n- **Overall Progress:** [e.g., \"On track (85% complete),\" \"At risk (delayed due to [redacted]),\" \"Ahead of schedule\"]\n- **Budget Status:** [e.g., \"Within budget,\" \"Over budget by [X]% due to [redacted].\"]\n\n---\n\n### **2. SECRET_PROJECT Milestones**\n**Completed Milestones:**\n| Milestone               | Target Date       | Actual Completion Date | Status       | Notes                          |\n|-------------------------|-------------------|------------------------|--------------|--------------------------------|\n| [Redacted] Approval     | [MM/YYYY]         | [MM/YYYY]              | ✅ Complete  | [Redacted details]             |\n| Prototype Development   | [MM/YYYY]         | [MM/YYYY]              | ✅ Complete  | [Redacted details]             |\n| Internal Testing Phase 1| [MM/YYYY]         | [MM/YYYY]              | ✅ Complete  | [Redacted results]             |\n\n**Upcoming Milestones",
+  "response_chars": 2033,
+  "num_chunks": 208,
+  "ttft_ms": 717.208,
+  "total_ms": 4095.097,
+  "model_name": "Mistral-Large-3"
+}

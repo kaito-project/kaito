@@ -1,0 +1,463 @@
+{
+  "index": 87,
+  "prompt": "Return a JSON array of 5 fictional users, each with fields: id, name, email, phone, role, department. Format as valid JSON only.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 858.161,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "json\n[\n   "
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": " {\n        \"id"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "\": "
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "1,\n        \""
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "name\": \"Alex"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "andra Carter"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "\",\n        \"email"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "\": \"al"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "exandra.carter"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "@f"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "ictional"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "cor"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "p.com\",\n       "
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": " \"phone"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "\": \"+"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "1-"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "555-"
+    },
+    {
+      "timestamp_ms": 858.161,
+      "content": "123-"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "4567"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "\",\n        \"role"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "\": \"Software"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": " Engineer\",\n        \""
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "department\": \"Engine"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "ering\"\n    },\n"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "    {\n        \""
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "id\": 2"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": ",\n        \"name"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "\": \"Marcus"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": " Bennett"
+    },
+    {
+      "timestamp_ms": 1025.35,
+      "content": "\",\n        \"email"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "\": \"mar"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "cus.benn"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "ett@f"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "ictionalcor"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "p.com\",\n       "
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": " \"phone\": \"+"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "1-"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "555-"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "234-"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "5678"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "\",\n        \"role"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "\": \"Product"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": " Manager\",\n        \""
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "department\": \"Product"
+    },
+    {
+      "timestamp_ms": 1284.188,
+      "content": "\"\n    },\n   "
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": " {\n        \"id"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "\": 3,\n"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "        \"name\":"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": " \"Soph"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "ia Nguyen"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "\",\n        \"email"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "\": \"s"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "ophia.ng"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "uyen"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "@fictional"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "corp.com\",\n"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "        \"phone\":"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": " \"+1-5"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "55-3"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "45-6"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "789\",\n"
+    },
+    {
+      "timestamp_ms": 1624.521,
+      "content": "        \"role\":"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": " \"UX"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": " Designer\",\n        \""
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "department\": \"Design"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "\"\n   "
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": " },\n    {\n       "
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": " \"id\": "
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "4,\n        \""
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "name\": \"E"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "than Patel"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "\",\n        \"email"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "\": \"eth"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "an.p"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "atel@f"
+    },
+    {
+      "timestamp_ms": 1807.292,
+      "content": "ictionalcorp"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": ".com\",\n        \""
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "phone\": \"+"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "1-55"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "5-4"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "56-7"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "890\",\n"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "        \"role"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "\": \"Data"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": " Analyst\",\n       "
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": " \"department\": \""
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "Analytics\"\n    },\n"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "    {\n        \""
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": "id\": 5"
+    },
+    {
+      "timestamp_ms": 2398.509,
+      "content": ",\n        \"name"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "\": \"Ol"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "ivia Reynolds"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "\",\n        \"email"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "\": \"ol"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "ivia.re"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "ynolds"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "@fictional"
+    },
+    {
+      "timestamp_ms": 2540.855,
+      "content": "corp.com\",\n"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": "        \"phone\":"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": " \"+1-5"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": "55-5"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": "67-8"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": "901\",\n"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": "        \"role\":"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": " \"HR Specialist"
+    },
+    {
+      "timestamp_ms": 2599.177,
+      "content": "\",\n        \"department"
+    },
+    {
+      "timestamp_ms": 2743.529,
+      "content": "\": \"Human"
+    },
+    {
+      "timestamp_ms": 2743.529,
+      "content": " Resources\"\n    }\n"
+    },
+    {
+      "timestamp_ms": 2743.529,
+      "content": "]\n```"
+    },
+    {
+      "timestamp_ms": 2743.529,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 2746.653,
+      "type": "done"
+    }
+  ],
+  "full_response": "```json\n[\n    {\n        \"id\": 1,\n        \"name\": \"Alexandra Carter\",\n        \"email\": \"alexandra.carter@fictionalcorp.com\",\n        \"phone\": \"+1-555-123-4567\",\n        \"role\": \"Software Engineer\",\n        \"department\": \"Engineering\"\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Marcus Bennett\",\n        \"email\": \"marcus.bennett@fictionalcorp.com\",\n        \"phone\": \"+1-555-234-5678\",\n        \"role\": \"Product Manager\",\n        \"department\": \"Product\"\n    },\n    {\n        \"id\": 3,\n        \"name\": \"Sophia Nguyen\",\n        \"email\": \"sophia.nguyen@fictionalcorp.com\",\n        \"phone\": \"+1-555-345-6789\",\n        \"role\": \"UX Designer\",\n        \"department\": \"Design\"\n    },\n    {\n        \"id\": 4,\n        \"name\": \"Ethan Patel\",\n        \"email\": \"ethan.patel@fictionalcorp.com\",\n        \"phone\": \"+1-555-456-7890\",\n        \"role\": \"Data Analyst\",\n        \"department\": \"Analytics\"\n    },\n    {\n        \"id\": 5,\n        \"name\": \"Olivia Reynolds\",\n        \"email\": \"olivia.reynolds@fictionalcorp.com\",\n        \"phone\": \"+1-555-567-8901\",\n        \"role\": \"HR Specialist\",\n        \"department\": \"Human Resources\"\n    }\n]\n```",
+  "response_chars": 1118,
+  "num_chunks": 110,
+  "ttft_ms": 858.161,
+  "total_ms": 2747.062,
+  "model_name": "Mistral-Large-3"
+}

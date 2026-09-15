@@ -1,0 +1,891 @@
+{
+  "index": 76,
+  "prompt": "Explain the concept of eventual consistency in distributed systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 578.984,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": "Eventual Consistency"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": "** is a consistency"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " model used"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " in distributed"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " systems to achieve"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " availability and"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " tolerance ("
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": "as"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": " per the **"
+    },
+    {
+      "timestamp_ms": 578.984,
+      "content": "CAP Theorem"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": "**)."
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " It guarantees"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " that if"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " new updates"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " made to a given"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " data item, eventually"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " all accesses"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " to that"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " item will return"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " the last"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " updated"
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " value."
+    },
+    {
+      "timestamp_ms": 1016.975,
+      "content": " However, it does"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " not provide"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " immediate consistency"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": "—there"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " may be a period"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " where different"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " the system have different"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " versions"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": " of the data.\n\n"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1441.518,
+      "content": "### **Key Concept"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": "s of Event"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": "ual Consistency**\n"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": "1. **No"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": " Im"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": "mediate Gu"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": "arantees**\n  "
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": " - Unlike **"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": "strong consistency**"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": " (where all"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": " reads return"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": " the most"
+    },
+    {
+      "timestamp_ms": 1784.147,
+      "content": " recent write), eventual"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " consistency allows temporary"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " inconsist"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": "encies.\n"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": "   - Example:"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " If you"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " update a user's"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " profile picture"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": ", some"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " users might see the"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " old picture"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " a short"
+    },
+    {
+      "timestamp_ms": 2208.725,
+      "content": " time before the"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " update propag"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": "ates.\n\n2."
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " **Con"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": "vergence Over"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " Time**\n   -"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " The system ensures that"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " enough"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " time without"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " updates, all"
+    },
+    {
+      "timestamp_ms": 2544.101,
+      "content": " replicas will eventually reflect"
+    },
+    {
+      "timestamp_ms": 2648.63,
+      "content": " the same value"
+    },
+    {
+      "timestamp_ms": 2648.63,
+      "content": ".\n   - This"
+    },
+    {
+      "timestamp_ms": 2648.63,
+      "content": " is achieved through"
+    },
+    {
+      "timestamp_ms": 2648.63,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": " like **replication"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": "**, **anti"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": "entropy protocols"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": "**, or **g"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": "ossip"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": " protocols**.\n\n3."
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": " **Trade"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": "-off"
+    },
+    {
+      "timestamp_ms": 3024.239,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": " Performance"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": " & Availability**\n  "
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": " - Event"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": "ual consistency is often"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": " used in systems"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": " where **"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": "low latency"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": "** and"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": " **high availability**"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": " are priorit"
+    },
+    {
+      "timestamp_ms": 3336.404,
+      "content": "ized over immediate"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " consistency (e.g"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": "., social"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " media feeds"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": ", DNS"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": "Ns).\n   -"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " It allows the"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " system to remain"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " operational even during"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " network partitions"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": "unlike strong"
+    },
+    {
+      "timestamp_ms": 3813.785,
+      "content": " consistency,"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": " which may block"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": ").\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": " Eventual Consistency"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": " Used?**\n-"
+    },
+    {
+      "timestamp_ms": 3964.496,
+      "content": " **Large"
+    },
+    {
+      "timestamp_ms": 4165.643,
+      "content": "-scale distributed"
+    },
+    {
+      "timestamp_ms": 4165.643,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 4165.643,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 4165.643,
+      "content": "., Cassandra"
+    },
+    {
+      "timestamp_ms": 4165.643,
+      "content": ", DynamoDB,"
+    },
+    {
+      "timestamp_ms": 4165.643,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 4165.643,
+      "content": "iak"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": ").\n- **Content"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " Delivery"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " Networks"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " (CD"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": "Ns)** (e"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": ".g., caching systems"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " stale"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " data is"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " acceptable for"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " short time).\n-"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " **Social"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " media"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": " platforms"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 4652.34,
+      "content": "., Facebook"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": ", Twitter, where"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " slight"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " delays in updates are"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " toler"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": "able).\n- **"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": "Multi"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": "-region"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": "** (where"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " latency makes"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": " consistency imp"
+    },
+    {
+      "timestamp_ms": 5075.879,
+      "content": "ractical).\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " **Examples"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " of Event"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": "ual Consistency**\n"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": "1. **DNS"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": "Domain"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " Name System)**\n  "
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " - When you update"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " a DNS"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " record, it"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 5364.475,
+      "content": " take minutes"
+    },
+    {
+      "timestamp_ms": 5452.657,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5452.657,
+      "content": " hours for all"
+    },
+    {
+      "timestamp_ms": 5452.657,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 5452.657,
+      "content": " servers worldwide"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " to reflect"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " the change.\n\n"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": "2. **Amazon"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": "3 (Simple"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " Service)**\n   -"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " you upload a file"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " it may not"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " be immediately visible"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " to all users due"
+    },
+    {
+      "timestamp_ms": 5677.566,
+      "content": " to replication"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " delays"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": ".\n\n3. **"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": "Social"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " Media Fe"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": "eds**\n   -"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " you post a tweet"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": ", it"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " may not"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " appear instantly"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " for all followers"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " to replication"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5960.436,
+      "content": " centers.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "content": " **How is"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "content": " Event"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "content": "ual Consistency Ach"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "content": "ieved?**\nSeveral"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "content": " enforce"
+    },
+    {
+      "timestamp_ms": 6065.047,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6108.344,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Eventual Consistency** is a consistency model used in distributed systems to achieve high availability and partition tolerance (as per the **CAP Theorem**). It guarantees that if no new updates are made to a given data item, eventually all accesses to that item will return the last updated value. However, it does not provide immediate consistency—there may be a period where different nodes in the system have different versions of the data.\n\n---\n\n### **Key Concepts of Eventual Consistency**\n1. **No Immediate Guarantees**\n   - Unlike **strong consistency** (where all reads return the most recent write), eventual consistency allows temporary inconsistencies.\n   - Example: If you update a user's profile picture, some users might see the old picture for a short time before the update propagates.\n\n2. **Convergence Over Time**\n   - The system ensures that, given enough time without new updates, all replicas will eventually reflect the same value.\n   - This is achieved through mechanisms like **replication**, **anti-entropy protocols**, or **gossip protocols**.\n\n3. **Trade-off for Performance & Availability**\n   - Eventual consistency is often used in systems where **low latency** and **high availability** are prioritized over immediate consistency (e.g., social media feeds, DNS, CDNs).\n   - It allows the system to remain operational even during network partitions (unlike strong consistency, which may block operations).\n\n---\n\n### **When is Eventual Consistency Used?**\n- **Large-scale distributed databases** (e.g., Cassandra, DynamoDB, Riak).\n- **Content Delivery Networks (CDNs)** (e.g., caching systems where stale data is acceptable for a short time).\n- **Social media platforms** (e.g., Facebook, Twitter, where slight delays in updates are tolerable).\n- **Multi-region cloud services** (where network latency makes strong consistency impractical).\n\n---\n\n### **Examples of Eventual Consistency**\n1. **DNS (Domain Name System)**\n   - When you update a DNS record, it may take minutes or hours for all DNS servers worldwide to reflect the change.\n\n2. **Amazon S3 (Simple Storage Service)**\n   - If you upload a file, it may not be immediately visible to all users due to replication delays.\n\n3. **Social Media Feeds**\n   - When you post a tweet, it may not appear instantly for all followers due to replication across data centers.\n\n---\n\n### **How is Eventual Consistency Achieved?**\nSeveral techniques help enforce",
+  "response_chars": 2436,
+  "num_chunks": 217,
+  "ttft_ms": 578.984,
+  "total_ms": 6147.625,
+  "model_name": "Mistral-Large-3"
+}

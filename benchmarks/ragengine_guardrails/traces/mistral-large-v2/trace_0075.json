@@ -1,0 +1,691 @@
+{
+  "index": 75,
+  "prompt": "Generate a JSON configuration file for a web application with sections for database, cache, logging, and authentication settings.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 624.683,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": "'s a comprehensive"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": " JSON configuration file"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": " for a web"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": " application with sections"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": " for database"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": ", cache"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": ", logging"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": ", and authentication"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": " settings:\n\n"
+    },
+    {
+      "timestamp_ms": 624.683,
+      "content": "```json\n{\n"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "  \"app"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "\": {\n    \""
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "name\": \"My"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "WebApplication"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "\",\n    \"version"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "\": \"1."
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "0.0\",\n"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "    \"environment\":"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": " \"development"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "\",\n    \"debug"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "\": true"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": ",\n    \"port"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "\": "
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "000,\n"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "    \"host"
+    },
+    {
+      "timestamp_ms": 832.086,
+      "content": "\": \"0"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": ".0.0"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": ".0\",\n"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "    \"baseUrl"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "\": \"http"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "://localhost:3"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "000\",\n"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "    \"session"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "\": {\n      \""
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "secret\": \"your"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "-session"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "-secret-key"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "-here\",\n     "
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": " \"maxAge"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "\": 8"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": "00,\n     "
+    },
+    {
+      "timestamp_ms": 1139.488,
+      "content": " \"secure"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "\": false"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": ",\n      \"http"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "Only\": true"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "\n    }\n "
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": " },\n\n  \"database"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "\": {\n    \""
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "default\": {\n     "
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": " \"type\": \""
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "postgresql\",\n     "
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": " \"host"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "\": \"localhost"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "\",\n      \"port"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "\": 5"
+    },
+    {
+      "timestamp_ms": 1443.592,
+      "content": "43"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "2,\n      \""
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\": \"db_user"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\",\n      \"password"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\": \"db_password"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\",\n      \"database"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\": \"my"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "_db\",\n      \""
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "schema"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\": \"public"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\",\n      \"ssl"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "\": false"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": ",\n      \"s"
+    },
+    {
+      "timestamp_ms": 1634.189,
+      "content": "ynchronize"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "\": true"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": ",\n      \"logging"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "\": false"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": ",\n      \"pool"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": " {\n        \"max"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": " 1"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "0,\n        \""
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "min"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "\": 2"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": ",\n        \"id"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "leTimeout"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "Millis"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "\": 3"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "0000"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "        \"ac"
+    },
+    {
+      "timestamp_ms": 2000.307,
+      "content": "quireTimeoutMillis"
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": "\": 30"
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": "000\n"
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": "      },\n      \""
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": "retry"
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": "\": {\n        \""
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": "attempts"
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": "\": 3"
+    },
+    {
+      "timestamp_ms": 2302.421,
+      "content": ",\n        \"delay"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "\": 1"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "000\n"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "      }\n    },\n"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "    \"read"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "plic"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "as\": [\n"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "      {\n        \""
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "host\": \"re"
+    },
+    {
+      "timestamp_ms": 2304.74,
+      "content": "plica1"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": ".localhost"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "\",\n        \"port"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "\": 5"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "432,\n"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "        \"username\":"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": " \"db_user\",\n"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "        \"password"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "\": \"db_password"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "\",\n        \"database"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "\": \"my"
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": "app_db\"\n     "
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": " }\n    ]\n "
+    },
+    {
+      "timestamp_ms": 2690.385,
+      "content": " },\n\n  \"cache"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "\": {\n    \""
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "default\": {\n     "
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": " \"type\": \""
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "redis\",\n      \""
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "host\": \"localhost"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "\",\n      \"port"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "\": 6"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "37"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "9,\n      \""
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "\": \"redis"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "\",\n      \"db"
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "\": "
+    },
+    {
+      "timestamp_ms": 2835.75,
+      "content": "0,\n      \""
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "tt"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "l\": "
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "3600"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": ",\n      \"prefix"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "\": \""
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "myapp:"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "cache"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": ":\"\n"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": " },\n    \"st"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "ores"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "\": {\n      \""
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "memory\": {\n       "
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": " \"type"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "\": \"memory"
+    },
+    {
+      "timestamp_ms": 3185.407,
+      "content": "\",\n        \"max"
+    },
+    {
+      "timestamp_ms": 3185.645,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3185.645,
+      "content": " 100"
+    },
+    {
+      "timestamp_ms": 3185.645,
+      "content": ",\n        \"tt"
+    },
+    {
+      "timestamp_ms": 3185.645,
+      "content": "l\": 6"
+    },
+    {
+      "timestamp_ms": 3185.645,
+      "content": "0\n"
+    },
+    {
+      "timestamp_ms": 3185.645,
+      "content": "      },\n      \""
+    },
+    {
+      "timestamp_ms": 3219.224,
+      "content": "redis\": {\n       "
+    },
+    {
+      "timestamp_ms": 3219.224,
+      "content": " \"type\": \""
+    },
+    {
+      "timestamp_ms": 3219.224,
+      "content": "redis\",\n        \""
+    },
+    {
+      "timestamp_ms": 3219.224,
+      "content": "host\": \"localhost"
+    },
+    {
+      "timestamp_ms": 3219.224,
+      "content": "\",\n        \""
+    },
+    {
+      "timestamp_ms": 3219.224,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3252.797,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a comprehensive JSON configuration file for a web application with sections for database, cache, logging, and authentication settings:\n\n```json\n{\n  \"app\": {\n    \"name\": \"MyWebApplication\",\n    \"version\": \"1.0.0\",\n    \"environment\": \"development\",\n    \"debug\": true,\n    \"port\": 3000,\n    \"host\": \"0.0.0.0\",\n    \"baseUrl\": \"http://localhost:3000\",\n    \"session\": {\n      \"secret\": \"your-session-secret-key-here\",\n      \"maxAge\": 86400000,\n      \"secure\": false,\n      \"httpOnly\": true\n    }\n  },\n\n  \"database\": {\n    \"default\": {\n      \"type\": \"postgresql\",\n      \"host\": \"localhost\",\n      \"port\": 5432,\n      \"username\": \"db_user\",\n      \"password\": \"db_password\",\n      \"database\": \"myapp_db\",\n      \"schema\": \"public\",\n      \"ssl\": false,\n      \"synchronize\": true,\n      \"logging\": false,\n      \"pool\": {\n        \"max\": 10,\n        \"min\": 2,\n        \"idleTimeoutMillis\": 30000,\n        \"acquireTimeoutMillis\": 30000\n      },\n      \"retry\": {\n        \"attempts\": 3,\n        \"delay\": 1000\n      }\n    },\n    \"readReplicas\": [\n      {\n        \"host\": \"replica1.localhost\",\n        \"port\": 5432,\n        \"username\": \"db_user\",\n        \"password\": \"db_password\",\n        \"database\": \"myapp_db\"\n      }\n    ]\n  },\n\n  \"cache\": {\n    \"default\": {\n      \"type\": \"redis\",\n      \"host\": \"localhost\",\n      \"port\": 6379,\n      \"password\": \"redis_password\",\n      \"db\": 0,\n      \"ttl\": 3600,\n      \"prefix\": \"myapp:cache:\"\n    },\n    \"stores\": {\n      \"memory\": {\n        \"type\": \"memory\",\n        \"max\": 100,\n        \"ttl\": 60\n      },\n      \"redis\": {\n        \"type\": \"redis\",\n        \"host\": \"localhost\",\n        \"",
+  "response_chars": 1615,
+  "num_chunks": 167,
+  "ttft_ms": 624.683,
+  "total_ms": 3258.484,
+  "model_name": "Mistral-Large-3"
+}

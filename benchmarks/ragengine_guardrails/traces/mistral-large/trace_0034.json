@@ -1,0 +1,827 @@
+{
+  "index": 34,
+  "prompt": "What is observability in software systems and how does it differ from monitoring?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 758.882,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": "Observability**"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": " and **monitor"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": "ing** are related"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": " concepts in software systems"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": ", but they serve"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": " different purposes"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": " and operate"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": " at different levels of"
+    },
+    {
+      "timestamp_ms": 758.882,
+      "content": " depth"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": ". Here’s a"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": " breakdown of each"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": " they differ:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": " Monitoring**\n**Definition"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": "Monitoring is the"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": " process of collecting,"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": " analyzing"
+    },
+    {
+      "timestamp_ms": 1214.608,
+      "content": ", and displaying"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " logs, and events"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " to track"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " health,"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " performance,"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " and availability"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " of a"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " system. It answers"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " question: *\"Is"
+    },
+    {
+      "timestamp_ms": 1750.768,
+      "content": " the system working as"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": " expected?\"*\n\n**"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": "Key Characteristics:**\n-"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": " **Pre"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": "defined Met"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": "rics:** Focuses"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": " on known"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": " indicators"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": " CPU usage"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": ", error"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": " rates"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": ", latency"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": ", upt"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": "ime).\n- **"
+    },
+    {
+      "timestamp_ms": 2318.605,
+      "content": "Alert"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "ing:**"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " Tr"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "iggers alerts when"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " thresholds are bre"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "ached (e.g"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "., \"CPU"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " >"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " 90%"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " for 5 minutes"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "\").\n- **Dash"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "boards:** Uses"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " visual"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "izations"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": " Grafana, Dat"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": "adog"
+    },
+    {
+      "timestamp_ms": 2966.003,
+      "content": ") to show"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": ".\n- **Re"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": "active:** Hel"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": "ps detect and"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": " respond"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": " to *"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": "known* issues ("
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": "e.g., out"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": "ages, performance"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": " degradation"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": ").\n- **Tool"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": ":** Examples include"
+    },
+    {
+      "timestamp_ms": 3518.669,
+      "content": " Prometheus, Nag"
+    },
+    {
+      "timestamp_ms": 3743.72,
+      "content": "ios, New"
+    },
+    {
+      "timestamp_ms": 3743.72,
+      "content": " Relic"
+    },
+    {
+      "timestamp_ms": 3743.72,
+      "content": ", and"
+    },
+    {
+      "timestamp_ms": 3743.72,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 3743.72,
+      "content": "Watch.\n\n**Limit"
+    },
+    {
+      "timestamp_ms": 3743.72,
+      "content": "ations:**\n- Only"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " answers"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " you’ve"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " anticipated"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": "e.g., \""
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": "Is the"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " database slow"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": "?\").\n- May"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " miss"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " unknown"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4206.531,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": " issues (e.g"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": "., intermittent"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": " failures, distributed"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": " bottlene"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": "cks).\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": " Observability**\n**"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": "Definition:**\nObserv"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": "ability is the ability"
+    },
+    {
+      "timestamp_ms": 4597.848,
+      "content": " to *in"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": "fer the"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": " internal state of a"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": " system* by"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": " analyzing its external"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": " outputs (metrics"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": ", logs, traces"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": ", and other"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": " tele"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": "metry). It answers"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": " the question"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": ": *\"Why"
+    },
+    {
+      "timestamp_ms": 5031.38,
+      "content": " is the system beh"
+    },
+    {
+      "timestamp_ms": 5293.945,
+      "content": "aving this"
+    },
+    {
+      "timestamp_ms": 5293.945,
+      "content": " way?\"*"
+    },
+    {
+      "timestamp_ms": 5293.945,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 5293.945,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5293.945,
+      "content": " unknown or unpredictable"
+    },
+    {
+      "timestamp_ms": 5293.945,
+      "content": " issues.\n\n**Key"
+    },
+    {
+      "timestamp_ms": 5293.945,
+      "content": " Characteristics:**\n- **"
+    },
+    {
+      "timestamp_ms": 5535.034,
+      "content": "Three Pill"
+    },
+    {
+      "timestamp_ms": 5535.034,
+      "content": "ars:**\n"
+    },
+    {
+      "timestamp_ms": 5535.034,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5535.034,
+      "content": "1. **Metrics"
+    },
+    {
+      "timestamp_ms": 5535.034,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5535.034,
+      "content": " Quantitative data (e"
+    },
+    {
+      "timestamp_ms": 5535.034,
+      "content": ".g., request"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " latency, error"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " rates).\n  "
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": "2. **Logs"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": ":** Timestamp"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": "ed records of"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " events (e.g"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": "., \"User"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " X failed to"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " log in\").\n "
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " 3. **"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": "Traces:** End"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": "-to-end request"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " flows"
+    },
+    {
+      "timestamp_ms": 6038.738,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " tracking"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " a user request"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " across micros"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": "ervices).\n-"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " **Expl"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": "oratory"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": ":** En"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": "ables debugging"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " *unknown"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": "* problems"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " asking"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " ad"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": "-hoc questions (e"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": ".g., \"Why"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " did"
+    },
+    {
+      "timestamp_ms": 6734.238,
+      "content": " this request fail"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": "?\").\n- **"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": "Context"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": "-R"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": "ich"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": ":** Cor"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": "relates data across"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": ", teams"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": ", and time"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": "e.g., linking"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": " a spike"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": " in latency"
+    },
+    {
+      "timestamp_ms": 7263.024,
+      "content": " to a specific"
+    },
+    {
+      "timestamp_ms": 7358.308,
+      "content": " micros"
+    },
+    {
+      "timestamp_ms": 7358.308,
+      "content": "ervice).\n- **"
+    },
+    {
+      "timestamp_ms": 7358.308,
+      "content": "Proactive:** Hel"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "ps identify"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": " trends"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": " anomalies before they cause"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "ages.\n- **"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "Tooling:** Examples"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": " include Open"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "Telemetry, Ja"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "eger ("
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "t"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "racing), EL"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": "K Stack"
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7869.669,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Observability** and **monitoring** are related concepts in software systems, but they serve different purposes and operate at different levels of depth. Here’s a breakdown of each and how they differ:\n\n---\n\n### **1. Monitoring**\n**Definition:**\nMonitoring is the process of collecting, analyzing, and displaying predefined metrics, logs, and events to track the health, performance, and availability of a system. It answers the question: *\"Is the system working as expected?\"*\n\n**Key Characteristics:**\n- **Predefined Metrics:** Focuses on known indicators (e.g., CPU usage, error rates, latency, uptime).\n- **Alerting:** Triggers alerts when thresholds are breached (e.g., \"CPU > 90% for 5 minutes\").\n- **Dashboards:** Uses visualizations (e.g., Grafana, Datadog) to show system state.\n- **Reactive:** Helps detect and respond to *known* issues (e.g., outages, performance degradation).\n- **Tooling:** Examples include Prometheus, Nagios, New Relic, and CloudWatch.\n\n**Limitations:**\n- Only answers questions you’ve anticipated (e.g., \"Is the database slow?\").\n- May miss unknown or complex issues (e.g., intermittent failures, distributed system bottlenecks).\n\n---\n\n### **2. Observability**\n**Definition:**\nObservability is the ability to *infer the internal state of a system* by analyzing its external outputs (metrics, logs, traces, and other telemetry). It answers the question: *\"Why is the system behaving this way?\"* even for unknown or unpredictable issues.\n\n**Key Characteristics:**\n- **Three Pillars:**\n  1. **Metrics:** Quantitative data (e.g., request latency, error rates).\n  2. **Logs:** Timestamped records of events (e.g., \"User X failed to log in\").\n  3. **Traces:** End-to-end request flows (e.g., tracking a user request across microservices).\n- **Exploratory:** Enables debugging *unknown* problems by asking ad-hoc questions (e.g., \"Why did this request fail?\").\n- **Context-Rich:** Correlates data across services, teams, and time (e.g., linking a spike in latency to a specific microservice).\n- **Proactive:** Helps identify trends or anomalies before they cause outages.\n- **Tooling:** Examples include OpenTelemetry, Jaeger (tracing), ELK Stack (",
+  "response_chars": 2175,
+  "num_chunks": 201,
+  "ttft_ms": 758.882,
+  "total_ms": 8057.116,
+  "model_name": "Mistral-Large-3"
+}

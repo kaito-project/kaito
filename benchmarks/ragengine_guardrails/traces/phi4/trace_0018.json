@@ -1,0 +1,2071 @@
+{
+  "index": 18,
+  "prompt": "Explain the concept of database sharding and when it should be used.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 275.939,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 276.088,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 295.403,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 314.313,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 332.949,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 352.023,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 371.519,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 390.817,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 409.032,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 430.505,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 453.062,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 469.544,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 487.923,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 506.496,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 525.409,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 542.879,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 562.776,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 581.404,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 602.442,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 619.332,
+      "content": " shards"
+    },
+    {
+      "timestamp_ms": 639.305,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 656.336,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 675.554,
+      "content": " shard"
+    },
+    {
+      "timestamp_ms": 695.089,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 715.536,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 735.95,
+      "content": " subset"
+    },
+    {
+      "timestamp_ms": 752.117,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 773.069,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 790.264,
+      "content": " total"
+    },
+    {
+      "timestamp_ms": 809.092,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 829.053,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 847.48,
+      "content": " operates"
+    },
+    {
+      "timestamp_ms": 867.743,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 885.304,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 905.01,
+      "content": " independent"
+    },
+    {
+      "timestamp_ms": 923.965,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 942.32,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 961.491,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 982.911,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 1000.258,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 1018.815,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 1039.945,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 1057.235,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 1081.398,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1094.992,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 1131.798,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 1140.961,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 1152.14,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1171.358,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1191.236,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1210.178,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 1228.24,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1247.294,
+      "content": " accommodate"
+    },
+    {
+      "timestamp_ms": 1269.016,
+      "content": " growing"
+    },
+    {
+      "timestamp_ms": 1286.117,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1304.814,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 1328.402,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1352.324,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1370.532,
+      "content": " loads"
+    },
+    {
+      "timestamp_ms": 1381.776,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1404.873,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1419.377,
+      "content": " opposed"
+    },
+    {
+      "timestamp_ms": 1438.273,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1458.179,
+      "content": " vertical"
+    },
+    {
+      "timestamp_ms": 1476.168,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 1496.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1517.307,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1534.07,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 1555.489,
+      "content": " increasing"
+    },
+    {
+      "timestamp_ms": 1572.262,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1590.886,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1609.582,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1629.103,
+      "content": "such"
+    },
+    {
+      "timestamp_ms": 1648.895,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1666.474,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 1687.821,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1722.817,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 1724.609,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1743.35,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1762.506,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1781.948,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1799.868,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1819.667,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1838.109,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1865.167,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1876.043,
+      "content": " Concepts"
+    },
+    {
+      "timestamp_ms": 1895.112,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1914.518,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 1933.083,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 1952.237,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 1971.404,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1991.046,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2009.451,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2028.924,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2047.357,
+      "content": "Horizontal"
+    },
+    {
+      "timestamp_ms": 2066.395,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 2085.3,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 2105.446,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2128.963,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 2142.813,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 2161.795,
+      "content": " divides"
+    },
+    {
+      "timestamp_ms": 2190.876,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2209.742,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 2221.485,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2238.295,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2258.836,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 2278.354,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 2297.945,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 2314.114,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 2335.327,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2352.548,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2372.108,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 2391.404,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 2409.922,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2428.742,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2447.54,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2469.812,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 2486.214,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2504.758,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2527.443,
+      "content": " distribute"
+    },
+    {
+      "timestamp_ms": 2542.79,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2562.193,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2580.963,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2600.635,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2619.746,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2639.028,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 2657.625,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 2676.546,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2695.163,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 2715.231,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 2734.229,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2872.699,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 2872.877,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2872.963,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2873.036,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2873.087,
+      "content": "Sh"
+    },
+    {
+      "timestamp_ms": 2873.133,
+      "content": "ard"
+    },
+    {
+      "timestamp_ms": 2873.178,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2886.173,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2905.63,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2925.555,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2974.466,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2974.466,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 2985.226,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2999.889,
+      "content": " combination"
+    },
+    {
+      "timestamp_ms": 3019.446,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3038.488,
+      "content": " attributes"
+    },
+    {
+      "timestamp_ms": 3058.013,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3076.69,
+      "content": " determines"
+    },
+    {
+      "timestamp_ms": 3095.375,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3120.256,
+      "content": " shard"
+    },
+    {
+      "timestamp_ms": 3133.555,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3152.95,
+      "content": " particular"
+    },
+    {
+      "timestamp_ms": 3173.239,
+      "content": " piece"
+    },
+    {
+      "timestamp_ms": 3191.755,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3211.208,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3229.574,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3252.177,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 3267.381,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3286.347,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3305.354,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3324.683,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 3343.718,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3362.361,
+      "content": " shard"
+    },
+    {
+      "timestamp_ms": 3382.453,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3401.361,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3423.03,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 3439.313,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3458.766,
+      "content": " achieving"
+    },
+    {
+      "timestamp_ms": 3478.335,
+      "content": " balanced"
+    },
+    {
+      "timestamp_ms": 3496.359,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3526.588,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 3535.202,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3561.409,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 3571.801,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 3591.043,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3610.331,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3629.302,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3647.426,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3669.197,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3686.11,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 3705.074,
+      "content": " Independence"
+    },
+    {
+      "timestamp_ms": 3725.206,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3743.965,
+      "content": " Ideally"
+    },
+    {
+      "timestamp_ms": 3762.948,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3782.118,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3801.112,
+      "content": " shard"
+    },
+    {
+      "timestamp_ms": 3819.73,
+      "content": " operates"
+    },
+    {
+      "timestamp_ms": 3838.467,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 3858.176,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3879.197,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 3895.912,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3916.237,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 3934.141,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 3954.507,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3985.598,
+      "content": " thus"
+    },
+    {
+      "timestamp_ms": 3991.007,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 4010.313,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4030.023,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 4048.536,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4068.458,
+      "content": " individual"
+    },
+    {
+      "timestamp_ms": 4086.357,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 4118.988,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4138.584,
+      "content": " Queries"
+    },
+    {
+      "timestamp_ms": 4146.283,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4162.453,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 4181.743,
+      "content": " directed"
+    },
+    {
+      "timestamp_ms": 4200.74,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4219.871,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 4238.96,
+      "content": " shards"
+    },
+    {
+      "timestamp_ms": 4259.502,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 4278.105,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 4296.754,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4315.498,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 4334.073,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4353.116,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4372.008,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4393.461,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4410.658,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4430.051,
+      "content": "Red"
+    },
+    {
+      "timestamp_ms": 4448.404,
+      "content": "und"
+    },
+    {
+      "timestamp_ms": 4467.699,
+      "content": "ancy"
+    },
+    {
+      "timestamp_ms": 4487.235,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4505.916,
+      "content": " Fault"
+    },
+    {
+      "timestamp_ms": 4524.534,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 4543.76,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 4563.121,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4581.862,
+      "content": " While"
+    },
+    {
+      "timestamp_ms": 4602.208,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 4624.966,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 4643.865,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4661.046,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 4680.397,
+      "content": " improved"
+    },
+    {
+      "timestamp_ms": 4699.046,
+      "content": " scalability"
+    },
+    {
+      "timestamp_ms": 4717.504,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4736.36,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 4764.01,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4775.66,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4790.846,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 4811.423,
+      "content": " introduce"
+    },
+    {
+      "timestamp_ms": 4829.689,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 4848.875,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4868.461,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 4886.541,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4905.716,
+      "content": " redundancy"
+    },
+    {
+      "timestamp_ms": 4981.208,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4981.208,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 4981.208,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 4983.776,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5001.465,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 5021.087,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5039.052,
+      "content": " shard"
+    },
+    {
+      "timestamp_ms": 5060.935,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5078.304,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5098.673,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 5120.777,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 5141.154,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 5160.394,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5175.29,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5194.903,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 5214.793,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 5231.834,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 5251.095,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 5268.28,
+      "content": " Should"
+    },
+    {
+      "timestamp_ms": 5288.213,
+      "content": " Be"
+    },
+    {
+      "timestamp_ms": 5307.542,
+      "content": " Used"
+    },
+    {
+      "timestamp_ms": 5345.68,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 5345.68,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5363.903,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5382.493,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5402.08,
+      "content": "Large"
+    },
+    {
+      "timestamp_ms": 5421.629,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 5439.952,
+      "content": "atasets"
+    },
+    {
+      "timestamp_ms": 5458.623,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5504.027,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 5504.162,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 5516.052,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5535.987,
+      "content": " beneficial"
+    },
+    {
+      "timestamp_ms": 5556.817,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5573.279,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5592.395,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5611.055,
+      "content": " very"
+    },
+    {
+      "timestamp_ms": 5630.496,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 5649.784,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 5668.98,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 5687.57,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 5707.081,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5725.778,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 5744.247,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5763.781,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5785.522,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5802.138,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5820.927,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 5840.308,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 5859.243,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5879.622,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 5899.49,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 5916.441,
+      "content": " impr"
+    },
+    {
+      "timestamp_ms": 5938.841,
+      "content": "actical"
+    },
+    {
+      "timestamp_ms": 5954.593,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5974.748,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5993.112,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6011.621,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6030.579,
+      "content": "High"
+    },
+    {
+      "timestamp_ms": 6049.968,
+      "content": " Through"
+    },
+    {
+      "timestamp_ms": 6068.964,
+      "content": "put"
+    },
+    {
+      "timestamp_ms": 6087.587,
+      "content": " Dem"
+    },
+    {
+      "timestamp_ms": 6109.896,
+      "content": "ands"
+    },
+    {
+      "timestamp_ms": 6126.732,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6145.496,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 6163.653,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6183.051,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6202.42,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 6221.601,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 6240.938,
+      "content": " transaction"
+    },
+    {
+      "timestamp_ms": 6259.469,
+      "content": " throughput"
+    },
+    {
+      "timestamp_ms": 6278.745,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6297.482,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 6316.291,
+      "content": "-lat"
+    },
+    {
+      "timestamp_ms": 6335.5,
+      "content": "ency"
+    },
+    {
+      "timestamp_ms": 6356.75,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 6374.098,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6393.15,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 6412.559,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 6430.882,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6459.834,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 6468.724,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 6489.393,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 6507.443,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 6526.545,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 6545.643,
+      "content": " shards"
+    },
+    {
+      "timestamp_ms": 6564.617,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6583.585,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6602.53,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6621.91,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6641.926,
+      "content": "Auto"
+    },
+    {
+      "timestamp_ms": 6660.622,
+      "content": "-scal"
+    },
+    {
+      "timestamp_ms": 6678.689,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6698.06,
+      "content": " Needs"
+    },
+    {
+      "timestamp_ms": 6719.707,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6737.128,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 6755.259,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 6775.387,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 6794.043,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 6814.596,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 6831.475,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 6850.961,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6870.316,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 6889.043,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6908.652,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 6928.428,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 6947.382,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 6966.245,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6984.775,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7007.724,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 7023.493,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7042.903,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 7060.816,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7079.017,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 7099.129,
+      "content": " shards"
+    },
+    {
+      "timestamp_ms": 7127.509,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7137.114,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 7155.819,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 7179.511,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7201.56,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 7215.853,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7232.53,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7254.542,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 7272.588,
+      "content": " Loc"
+    },
+    {
+      "timestamp_ms": 7289.671,
+      "content": "ality"
+    },
+    {
+      "timestamp_ms": 7309.46,
+      "content": " Requirements"
+    },
+    {
+      "timestamp_ms": 7327.629,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7348.454,
+      "content": " Applications"
+    },
+    {
+      "timestamp_ms": 7366.981,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7385.065,
+      "content": " benefit"
+    },
+    {
+      "timestamp_ms": 7409.336,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7426.11,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7447.704,
+      "content": " locality"
+    },
+    {
+      "timestamp_ms": 7468.45,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7482.871,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7500.998,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 7523.398,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 7538.529,
+      "content": " fast"
+    },
+    {
+      "timestamp_ms": 7562.331,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7594.009,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7596.24,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 7622.901,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7637.875,
+      "content": " segment"
+    },
+    {
+      "timestamp_ms": 7654.907,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7671.858,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7697.704,
+      "content": " utilize"
+    },
+    {
+      "timestamp_ms": 7715.267,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 7732.972,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 7756.842,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7768.816,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 7786.067,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 7805.333,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7823.803,
+      "content": " ge"
+    },
+    {
+      "timestamp_ms": 7844.028,
+      "content": "ographically"
+    },
+    {
+      "timestamp_ms": 7864.059,
+      "content": " closer"
+    },
+    {
+      "timestamp_ms": 7884.857,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7904.348,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 7921.434,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 7938.45,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7963.926,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7977.112,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7999.532,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8017.39,
+      "content": "Avoid"
+    },
+    {
+      "timestamp_ms": 8036.849,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 8075.298,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 8080.899,
+      "content": " Bott"
+    },
+    {
+      "timestamp_ms": 8109.366,
+      "content": "lene"
+    },
+    {
+      "timestamp_ms": 8119.059,
+      "content": "cks"
+    },
+    {
+      "timestamp_ms": 8129.671,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8148.743,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 8167.421,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 8202.006,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8234.51,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8234.51,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 8246.589,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8266.243,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 8285.908,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 8302.553,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 8322.84,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8341.346,
+      "content": " preventing"
+    },
+    {
+      "timestamp_ms": 8360.471,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8379.439,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 8403.032,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 8422.25,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 8436.663,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 8466.393,
+      "content": " becoming"
+    },
+    {
+      "timestamp_ms": 8490.813,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8491.24,
+      "content": " bottleneck"
+    },
+    {
+      "timestamp_ms": 8513.602,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8530.71,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 8549.921,
+      "content": " Challenges"
+    },
+    {
+      "timestamp_ms": 8571.473,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8590.188,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 8610.063,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 8627.825,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 8650.689,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8667.282,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8685.396,
+      "content": "Complex"
+    },
+    {
+      "timestamp_ms": 8717.13,
+      "content": " Implementation"
+    },
+    {
+      "timestamp_ms": 8720.964,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8750.205,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 8766.998,
+      "content": "arding"
+    },
+    {
+      "timestamp_ms": 8783.652,
+      "content": " adds"
+    },
+    {
+      "timestamp_ms": 8798.814,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 8819.972,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8837.38,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8861.066,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 8892.654,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 8909.859,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8911.873,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 8949.706,
+      "content": " careful"
+    },
+    {
+      "timestamp_ms": 8953.316,
+      "content": " planning"
+    },
+    {
+      "timestamp_ms": 8969.553,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8997.325,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 9031.825,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9031.825,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 9059.517,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 9068.96,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 9088.128,
+      "content": " routing"
+    },
+    {
+      "timestamp_ms": 9106.181,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9131.025,
+      "content": " reb"
+    },
+    {
+      "timestamp_ms": 9148.289,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 9160.966,
+      "content": "ancing"
+    },
+    {
+      "timestamp_ms": 9178.924,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9199.141,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 9227.404,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9242.59,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": "Sh"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": "ard"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " Selection"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " poorly"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " chosen"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " shard"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9510.912,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 9513.575,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9522.208,
+      "content": " uneven"
+    },
+    {
+      "timestamp_ms": 9532.542,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9556.741,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 9563.376,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9584.786,
+      "content": " hot"
+    },
+    {
+      "timestamp_ms": 9599.534,
+      "content": "spots"
+    },
+    {
+      "timestamp_ms": 9625.344,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9651.411,
+      "content": " causing"
+    },
+    {
+      "timestamp_ms": 9664.646,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 9675.596,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 9700.024,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9717.058,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9735.131,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9752.205,
+      "content": "Transaction"
+    },
+    {
+      "timestamp_ms": 9788.464,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9794.859,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 9820.507,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 9835.359,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 9856.187,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9866.011,
+      "content": " Managing"
+    },
+    {
+      "timestamp_ms": 9888.065,
+      "content": " transactions"
+    },
+    {
+      "timestamp_ms": 9921.202,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9923.783,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 9946.811,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10011.34,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 10011.34,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 10011.34,
+      "content": " shards"
+    },
+    {
+      "timestamp_ms": 10011.34,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10011.34,
+      "type": "done"
+    }
+  ],
+  "full_response": "Database sharding is a technique used to scale databases by partitioning data across multiple servers, or shards. Each shard contains a subset of the total data and operates as an independent database. This partitioning allows horizontal scaling, where additional hardware resources can be added to accommodate growing data volumes and user loads, as opposed to vertical scaling, which involves increasing the resources (such as CPU or memory) of an existing server.\n\n### Key Concepts of Database Sharding:\n\n1. **Horizontal Partitioning**: Sharding divides a database's data across different servers based on a sharding key, an attribute used to distribute data. This process is also known as horizontal scaling.\n   \n2. **Shard Key**: This is the attribute or combination of attributes that determines which shard a particular piece of data is stored on. The choice of shard key is crucial to achieving balanced data distribution and efficient query performance.\n\n3. **Data Independence**: Ideally, each shard operates independently, allowing for parallel processing and thus reducing the load on individual servers. Queries are generally directed to specific shards rather than the entire database.\n\n4. **Redundancy and Fault Tolerance**: While sharding can offer improved scalability and performance, it may introduce complexity in ensuring data redundancy and fault tolerance, since each shard is a separate database instance.\n\n### When Database Sharding Should Be Used:\n\n1. **Large Datasets**: Sharding is beneficial for applications with very large datasets where storing and processing all data on a single machine or server becomes impractical.\n\n2. **High Throughput Demands**: If an application requires high transaction throughput and low-latency responses, sharding can enable parallel processing across multiple shards.\n\n3. **Auto-scaling Needs**: In cloud environments where dynamic scaling is essential, sharding allows for the capacity to add or remove shards as demand changes.\n\n4. **Data Locality Requirements**: Applications that benefit from data locality, where users need fast access to their data segment, can utilize sharding to keep relevant data geographically closer in distributed databases.\n\n5. **Avoiding Database Bottlenecks**: By distributing data and queries, sharding helps in preventing any single database instance from becoming a bottleneck.\n\n### Challenges and Considerations:\n\n- **Complex Implementation**: Sharding adds complexity to the database architecture, requiring careful planning and management for operations like query routing and rebalancing.\n  \n- **Shard Key Selection**: A poorly chosen shard key can lead to uneven data distribution or hotspots, causing performance issues.\n\n- **Transaction and Consistency Management**: Managing transactions and ensuring data consistency across shards",
+  "response_chars": 2838,
+  "num_chunks": 512,
+  "ttft_ms": 275.939,
+  "total_ms": 10011.851,
+  "model_name": "model-medium"
+}

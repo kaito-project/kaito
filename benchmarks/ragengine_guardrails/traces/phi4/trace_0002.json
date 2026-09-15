@@ -1,0 +1,1891 @@
+{
+  "index": 2,
+  "prompt": "What is the role of a load balancer in a web application architecture?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 292.226,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 292.335,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 308.419,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 327.263,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 345.522,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 364.584,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 383.227,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 403.749,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 425.153,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 440.209,
+      "content": "ancer"
+    },
+    {
+      "timestamp_ms": 459.583,
+      "content": " plays"
+    },
+    {
+      "timestamp_ms": 478.517,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 498.104,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 519.749,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 536.137,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 594.07,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 594.07,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 594.07,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 672.291,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 672.291,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 672.291,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 675.945,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 691.397,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 707.713,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 726.373,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 757.616,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 764.979,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 787.412,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 802.183,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 822.035,
+      "content": " bears"
+    },
+    {
+      "timestamp_ms": 840.59,
+      "content": " too"
+    },
+    {
+      "timestamp_ms": 859.695,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 878.843,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 897.921,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 917.034,
+      "content": " preventing"
+    },
+    {
+      "timestamp_ms": 935.745,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 955.421,
+      "content": "loads"
+    },
+    {
+      "timestamp_ms": 975.886,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 993.288,
+      "content": " offering"
+    },
+    {
+      "timestamp_ms": 1012.124,
+      "content": " redundancy"
+    },
+    {
+      "timestamp_ms": 1031.639,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1055.129,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1069.36,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1090.496,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1107.992,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1126.556,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 1146.012,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1164.63,
+      "content": " benefits"
+    },
+    {
+      "timestamp_ms": 1183.25,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1202.6,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1223.838,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 1242.746,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 1259.752,
+      "content": "ancer"
+    },
+    {
+      "timestamp_ms": 1280.676,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1297.618,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1316.797,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1335.771,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1354.759,
+      "content": "Traffic"
+    },
+    {
+      "timestamp_ms": 1380.175,
+      "content": " Distribution"
+    },
+    {
+      "timestamp_ms": 1394.34,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1412.766,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 1434.888,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1450.435,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1469.879,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1491.194,
+      "content": "Eff"
+    },
+    {
+      "timestamp_ms": 1510.549,
+      "content": "icient"
+    },
+    {
+      "timestamp_ms": 1526.763,
+      "content": " Resource"
+    },
+    {
+      "timestamp_ms": 1545.655,
+      "content": " Util"
+    },
+    {
+      "timestamp_ms": 1566.125,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 1584.791,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1602.812,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 1622.29,
+      "content": " spreading"
+    },
+    {
+      "timestamp_ms": 1643.321,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 1660.115,
+      "content": " evenly"
+    },
+    {
+      "timestamp_ms": 1679.323,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1699.345,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 1716.986,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 1736.955,
+      "content": "ancers"
+    },
+    {
+      "timestamp_ms": 1756.44,
+      "content": " optimize"
+    },
+    {
+      "timestamp_ms": 1774.427,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1792.993,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1812.127,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1831.32,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1880.492,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1880.492,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1888.67,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 1908.062,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1927.503,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1945.206,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 1964.56,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1984.436,
+      "content": " working"
+    },
+    {
+      "timestamp_ms": 2004.261,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 2023.836,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 2041.438,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2121.566,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 2121.566,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 2121.566,
+      "content": " becoming"
+    },
+    {
+      "timestamp_ms": 2121.566,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2137.421,
+      "content": " bottleneck"
+    },
+    {
+      "timestamp_ms": 2156.413,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2176.838,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2193.136,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2212.937,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2399.213,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 2399.345,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 2400.496,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 2400.598,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2400.692,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 2400.791,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 2400.862,
+      "content": " increases"
+    },
+    {
+      "timestamp_ms": 2400.915,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2400.961,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 2402.718,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 2423.43,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2442.046,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2459.963,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 2479.683,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2499.455,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2522.122,
+      "content": " pool"
+    },
+    {
+      "timestamp_ms": 2537.983,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 2557.914,
+      "content": " disrupting"
+    },
+    {
+      "timestamp_ms": 2576.382,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2594.345,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 2613.063,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2631.296,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2650.976,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 2672.299,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 2689.592,
+      "content": "ancer"
+    },
+    {
+      "timestamp_ms": 2707.351,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 2727.659,
+      "content": " starts"
+    },
+    {
+      "timestamp_ms": 2745.702,
+      "content": " routing"
+    },
+    {
+      "timestamp_ms": 2765.664,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 2783.47,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2802.914,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 2823.035,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2841.94,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 2861.001,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2899.152,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2899.283,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2918.024,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2935.834,
+      "content": "Red"
+    },
+    {
+      "timestamp_ms": 2954.874,
+      "content": "und"
+    },
+    {
+      "timestamp_ms": 2974.099,
+      "content": "ancy"
+    },
+    {
+      "timestamp_ms": 2993.407,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3012.938,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 3031.639,
+      "content": " Availability"
+    },
+    {
+      "timestamp_ms": 3050.455,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3069.252,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3088.989,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3107.323,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3126.454,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3147.828,
+      "content": "Fail"
+    },
+    {
+      "timestamp_ms": 3169.095,
+      "content": "over"
+    },
+    {
+      "timestamp_ms": 3184.645,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3205.355,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 3222.348,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3240.622,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3260.587,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 3279.591,
+      "content": " unavailable"
+    },
+    {
+      "timestamp_ms": 3316.91,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3317.974,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3336.816,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 3358.78,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 3374.21,
+      "content": "ancer"
+    },
+    {
+      "timestamp_ms": 3393.473,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3412.603,
+      "content": " redirect"
+    },
+    {
+      "timestamp_ms": 3434.377,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 3450.38,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3470.13,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3490.458,
+      "content": " functioning"
+    },
+    {
+      "timestamp_ms": 3508.067,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 3526.469,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3547.149,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3564.532,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 3583.475,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3603.032,
+      "content": " greatly"
+    },
+    {
+      "timestamp_ms": 3623.259,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 3641.687,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3659.896,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 3679.488,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3702.486,
+      "content": " downtime"
+    },
+    {
+      "timestamp_ms": 3717.195,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3737.36,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3755.342,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3774.608,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3793.778,
+      "content": "Health"
+    },
+    {
+      "timestamp_ms": 3812.277,
+      "content": " Checks"
+    },
+    {
+      "timestamp_ms": 3833.485,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3850.493,
+      "content": " Load"
+    },
+    {
+      "timestamp_ms": 3870.486,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 3889.02,
+      "content": "ancers"
+    },
+    {
+      "timestamp_ms": 3907.847,
+      "content": " regularly"
+    },
+    {
+      "timestamp_ms": 3926.732,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 3948.311,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3968.473,
+      "content": " health"
+    },
+    {
+      "timestamp_ms": 3988.397,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4002.901,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 4023.088,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4040.78,
+      "content": " route"
+    },
+    {
+      "timestamp_ms": 4064.345,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 4098.851,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 4101.746,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4117.0,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 4138.004,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4155.588,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4176.171,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 4193.989,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4212.665,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 4232.116,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4250.806,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4271.278,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4289.65,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4310.228,
+      "content": "Performance"
+    },
+    {
+      "timestamp_ms": 4327.43,
+      "content": " Optimization"
+    },
+    {
+      "timestamp_ms": 4345.813,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4365.785,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4384.909,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4403.36,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4425.294,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4441.437,
+      "content": "Session"
+    },
+    {
+      "timestamp_ms": 4461.385,
+      "content": " Persistence"
+    },
+    {
+      "timestamp_ms": 4480.24,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4503.096,
+      "content": " Some"
+    },
+    {
+      "timestamp_ms": 4520.214,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 4536.682,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 4555.811,
+      "content": "ancers"
+    },
+    {
+      "timestamp_ms": 4578.825,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 4593.696,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 4612.641,
+      "content": " persistence"
+    },
+    {
+      "timestamp_ms": 4631.616,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4653.067,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 4669.627,
+      "content": " sticky"
+    },
+    {
+      "timestamp_ms": 4688.899,
+      "content": " sessions"
+    },
+    {
+      "timestamp_ms": 4707.917,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 4727.751,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 4747.473,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4765.228,
+      "content": " sessions"
+    },
+    {
+      "timestamp_ms": 4785.648,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4805.628,
+      "content": " directed"
+    },
+    {
+      "timestamp_ms": 4822.355,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4842.805,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4866.209,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 4880.943,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4899.88,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4916.901,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 4937.729,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 4955.412,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4980.315,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4994.458,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5015.298,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5032.73,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 5051.507,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5070.305,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 5091.46,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5109.266,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5154.91,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5154.91,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5167.271,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5184.714,
+      "content": "SSL"
+    },
+    {
+      "timestamp_ms": 5203.522,
+      "content": " Ter"
+    },
+    {
+      "timestamp_ms": 5222.336,
+      "content": "mination"
+    },
+    {
+      "timestamp_ms": 5244.291,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5263.712,
+      "content": " Some"
+    },
+    {
+      "timestamp_ms": 5279.665,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 5300.34,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 5319.344,
+      "content": "ancers"
+    },
+    {
+      "timestamp_ms": 5339.702,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5355.603,
+      "content": " terminate"
+    },
+    {
+      "timestamp_ms": 5384.226,
+      "content": " SSL"
+    },
+    {
+      "timestamp_ms": 5395.007,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 5413.387,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5435.455,
+      "content": " decrypt"
+    },
+    {
+      "timestamp_ms": 5452.212,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 5470.171,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 5489.237,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 5509.041,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 5528.341,
+      "content": " passing"
+    },
+    {
+      "timestamp_ms": 5546.956,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5566.131,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5585.367,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5607.403,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 5622.693,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5642.46,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5660.831,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5681.233,
+      "content": " off"
+    },
+    {
+      "timestamp_ms": 5698.982,
+      "content": "load"
+    },
+    {
+      "timestamp_ms": 5733.122,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 5737.642,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 5757.077,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5777.522,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5795.585,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 5814.804,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 5832.797,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5857.125,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5870.666,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5889.815,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5908.557,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 5929.554,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5947.119,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5965.839,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5986.008,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6006.86,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6026.387,
+      "content": "DD"
+    },
+    {
+      "timestamp_ms": 6042.891,
+      "content": "oS"
+    },
+    {
+      "timestamp_ms": 6061.011,
+      "content": " Protection"
+    },
+    {
+      "timestamp_ms": 6080.327,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6098.864,
+      "content": " Load"
+    },
+    {
+      "timestamp_ms": 6118.19,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 6140.162,
+      "content": "ancers"
+    },
+    {
+      "timestamp_ms": 6156.462,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6176.114,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 6194.444,
+      "content": " protection"
+    },
+    {
+      "timestamp_ms": 6213.466,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 6232.758,
+      "content": " Distributed"
+    },
+    {
+      "timestamp_ms": 6251.72,
+      "content": " Den"
+    },
+    {
+      "timestamp_ms": 6271.216,
+      "content": "ial"
+    },
+    {
+      "timestamp_ms": 6291.351,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6362.845,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 6362.845,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6362.845,
+      "content": "DD"
+    },
+    {
+      "timestamp_ms": 6366.83,
+      "content": "oS"
+    },
+    {
+      "timestamp_ms": 6385.192,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6404.603,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 6445.19,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6445.19,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 6462.43,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 6480.994,
+      "content": " intellig"
+    },
+    {
+      "timestamp_ms": 6503.94,
+      "content": "ently"
+    },
+    {
+      "timestamp_ms": 6518.357,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6538.192,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 6558.491,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 6580.383,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 6594.844,
+      "content": " flows"
+    },
+    {
+      "timestamp_ms": 6615.325,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6634.859,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6681.245,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6681.245,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6691.5,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 6709.837,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 6730.817,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6747.529,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 6768.729,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6785.703,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 6804.444,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6826.84,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 6844.421,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 6861.602,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6891.996,
+      "content": " restrict"
+    },
+    {
+      "timestamp_ms": 6899.432,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6918.863,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6939.468,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 7113.363,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 7113.363,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 7113.363,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 7113.363,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 7113.363,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7113.363,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7113.584,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7113.675,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7113.735,
+      "content": "Application"
+    },
+    {
+      "timestamp_ms": 7130.398,
+      "content": " Performance"
+    },
+    {
+      "timestamp_ms": 7153.261,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7171.927,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7185.851,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7204.652,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7227.735,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7243.982,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 7262.578,
+      "content": "aching"
+    },
+    {
+      "timestamp_ms": 7281.015,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7300.1,
+      "content": " Load"
+    },
+    {
+      "timestamp_ms": 7319.605,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 7338.832,
+      "content": "ancers"
+    },
+    {
+      "timestamp_ms": 7357.934,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7376.648,
+      "content": " serve"
+    },
+    {
+      "timestamp_ms": 7396.261,
+      "content": " cached"
+    },
+    {
+      "timestamp_ms": 7432.474,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 7436.169,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7456.378,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 7471.851,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7507.239,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 7514.624,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7528.801,
+      "content": " backend"
+    },
+    {
+      "timestamp_ms": 7549.482,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 7567.607,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 7587.951,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7605.373,
+      "content": " speeding"
+    },
+    {
+      "timestamp_ms": 7649.522,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7649.648,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 7661.88,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 7681.721,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7700.684,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7721.19,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7740.989,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7760.022,
+      "content": "Compression"
+    },
+    {
+      "timestamp_ms": 7776.755,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7796.898,
+      "content": " Proxy"
+    },
+    {
+      "timestamp_ms": 7816.425,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 7834.284,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7854.308,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 7874.058,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7891.202,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 7910.567,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 7929.783,
+      "content": " compression"
+    },
+    {
+      "timestamp_ms": 7949.658,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7968.031,
+      "content": " saving"
+    },
+    {
+      "timestamp_ms": 8011.731,
+      "content": " bandwidth"
+    },
+    {
+      "timestamp_ms": 8011.731,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8026.365,
+      "content": " improving"
+    },
+    {
+      "timestamp_ms": 8045.23,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8063.118,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 8084.469,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8101.38,
+      "content": "Overall"
+    },
+    {
+      "timestamp_ms": 8120.189,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8140.289,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8158.479,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 8178.435,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8197.411,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8215.99,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 8236.25,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 8253.714,
+      "content": "ancer"
+    },
+    {
+      "timestamp_ms": 8275.609,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8291.785,
+      "content": " vital"
+    },
+    {
+      "timestamp_ms": 8312.958,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8330.488,
+      "content": " enhancing"
+    },
+    {
+      "timestamp_ms": 8351.062,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8367.875,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 8389.185,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8407.605,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 8426.042,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8447.943,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8463.785,
+      "content": " scalability"
+    },
+    {
+      "timestamp_ms": 8486.916,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8502.248,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 8521.251,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8540.045,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8561.975,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 8581.125,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8601.797,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 8616.337,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 8636.124,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 8657.613,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8675.412,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 8692.727,
+      "content": " acts"
+    },
+    {
+      "timestamp_ms": 8712.119,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8730.778,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8751.639,
+      "content": " intermediary"
+    },
+    {
+      "timestamp_ms": 8769.763,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8788.28,
+      "content": " smart"
+    },
+    {
+      "timestamp_ms": 8809.294,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 8827.491,
+      "content": " forwards"
+    },
+    {
+      "timestamp_ms": 8847.904,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 8865.349,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 8883.236,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8902.219,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8925.348,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 8941.478,
+      "content": "-su"
+    },
+    {
+      "timestamp_ms": 8964.671,
+      "content": "ited"
+    },
+    {
+      "timestamp_ms": 8979.482,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 8998.102,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9018.896,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 9037.818,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9055.564,
+      "content": " smooth"
+    },
+    {
+      "timestamp_ms": 9074.466,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9093.65,
+      "content": " responsive"
+    },
+    {
+      "timestamp_ms": 9112.611,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 9150.729,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 9156.608,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9170.621,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9170.621,
+      "type": "done"
+    }
+  ],
+  "full_response": "In a web application architecture, a load balancer plays a crucial role in distributing incoming network traffic across multiple servers. This ensures that no single server bears too much load, preventing overloads and offering redundancy. Here are some key functions and benefits of a load balancer:\n\n1. **Traffic Distribution**: \n   - **Efficient Resource Utilization**: By spreading requests evenly, load balancers optimize the use of server resources, ensuring that all servers are working effectively without any single one becoming a bottleneck.\n   - **Scalability**: As demand increases, additional servers can be added to the pool without disrupting the service. The load balancer automatically starts routing traffic to these new servers.\n\n2. **Redundancy and High Availability**:\n   - **Failover**: If a server becomes unavailable, a load balancer can redirect traffic to other functioning servers in the environment, greatly reducing the potential for downtime.\n   - **Health Checks**: Load balancers regularly check the health of servers and route traffic only to servers that are up and running.\n\n3. **Performance Optimization**:\n   - **Session Persistence**: Some load balancers offer session persistence (or sticky sessions), where user sessions are directed to the same server to maintain session state, which is important for certain applications.\n   - **SSL Termination**: Some load balancers can terminate SSL connections, decrypting incoming traffic before passing it on to servers. This can offload encryption overhead from the application servers.\n\n4. **Security**:\n   - **DDoS Protection**: Load balancers can provide protection against Distributed Denial of Service (DDoS) attacks by distributing traffic intelligently and managing incoming request flows.\n   - **Access Control**: They can provide access control policies to restrict access and manage different client requirements efficiently.\n\n5. **Application Performance**:\n   - **Caching**: Load balancers can serve cached content, reducing the load on backend application servers and speeding up response times.\n   - **Compression and Proxy Services**: They can perform content compression, saving bandwidth and improving user experience.\n\nOverall, the role of a load balancer is vital in enhancing the efficiency, reliability, and scalability of web applications, especially in distributed computing environments. It acts as the intermediary that smartly forwards client requests to the best-suited server, ensuring a smooth and responsive user experience.",
+  "response_chars": 2537,
+  "num_chunks": 467,
+  "ttft_ms": 292.226,
+  "total_ms": 9174.862,
+  "model_name": "model-medium"
+}

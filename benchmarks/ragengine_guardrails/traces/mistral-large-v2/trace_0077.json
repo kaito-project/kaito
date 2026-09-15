@@ -1,0 +1,827 @@
+{
+  "index": 77,
+  "prompt": "Explain the differences between SQL and NoSQL databases with examples of when to use each.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1148.952,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": "Struct"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": "ured Query"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " Language) and No"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": "SQL ("
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": "Not"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " Only"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": ") databases"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " broad"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " categories of database"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " systems, each designed"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1148.952,
+      "content": " handle different types"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": " of data and use"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": " cases. Below is"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": " a detailed comparison,"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": " including examples of"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": " when to use each"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": "1. SQL Dat"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": "abases (Rel"
+    },
+    {
+      "timestamp_ms": 1479.409,
+      "content": "ational Databases)**\n"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " databases are **"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": "relational**,"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " meaning they store data"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " in **"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": "tables** with"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": "rows and"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " columns**."
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " a predefined"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": "schema** (structure"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": ") and"
+    },
+    {
+      "timestamp_ms": 1965.567,
+      "content": " enforce"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " **relationship"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": "s**"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " between tables"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " **foreign"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " keys**.\n\n"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": "#### **Key Characteristics"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": ":**\n- **Struct"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": "ured data"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": "**: Data"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " fit into a predefined"
+    },
+    {
+      "timestamp_ms": 2377.94,
+      "content": " schema"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": " (columns"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": " data types).\n-"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": " **AC"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": "ID compliance"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": "**: Ens"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": "ures **At"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": "omicity, Consist"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": "ency, Isolation"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": ", Dur"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": "ability** (e"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": ".g., transactions are"
+    },
+    {
+      "timestamp_ms": 2985.651,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": ").\n- **SQL"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": "**: Uses"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": "Struct"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": "ured Query"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": " Language (SQL)**"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": " for querying and"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": " data.\n- **"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": "Vertical scaling"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": "**: Sc"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": "ales by increasing"
+    },
+    {
+      "timestamp_ms": 3399.249,
+      "content": " hardware power"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": " (CPU"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": ", RAM, SSD"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": ").\n- **Jo"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": "ins**: Supports"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": " complex queries"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4239.861,
+      "content": "JOIN` operations"
+    },
+    {
+      "timestamp_ms": 4240.092,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 4240.092,
+      "content": " tables.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 4240.092,
+      "content": "Examples of"
+    },
+    {
+      "timestamp_ms": 4240.092,
+      "content": " SQL Databases:**\n"
+    },
+    {
+      "timestamp_ms": 4240.092,
+      "content": "- **My"
+    },
+    {
+      "timestamp_ms": 4240.092,
+      "content": "SQL** (open"
+    },
+    {
+      "timestamp_ms": 4240.092,
+      "content": "-source,"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": " widely used in"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": " web apps"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": ")\n- **Post"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": "greSQL** ("
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": "advanced features"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": ", extensible"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": ")\n- **Microsoft"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": " SQL Server** ("
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": "enterprise-grade"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": "- **Oracle"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": "** (high"
+    },
+    {
+      "timestamp_ms": 4240.218,
+      "content": "-performance,"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": " enterprise)\n"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": "- **SQL"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": "ite** (light"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": "weight, embedded"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": " in mobile"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": " apps)\n\n#### **"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": "When to Use SQL"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": " Dat"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": "abases?**\n"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": "✅ **Struct"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": "ured data with"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 4690.872,
+      "content": " relationships** (e"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": ".g., financial"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": ", inventory"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": ").\n✅"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": " **Need"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": " for complex queries"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": "., reporting"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": ", analytics"
+    },
+    {
+      "timestamp_ms": 5097.848,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5290.285,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5290.285,
+      "content": "JOINs"
+    },
+    {
+      "timestamp_ms": 5290.285,
+      "content": "`).\n"
+    },
+    {
+      "timestamp_ms": 5290.285,
+      "content": "✅ **Transactions"
+    },
+    {
+      "timestamp_ms": 5290.285,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5290.285,
+      "content": " critical** (e"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": ".g., banking"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": ", e-commerce orders"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": ").\n✅"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " **Data integrity"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " is a"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " priority** (e"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": ".g., healthcare"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": ", legal"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": ").\n\n####"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " **Example Use"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " Case:**\n-"
+    },
+    {
+      "timestamp_ms": 5805.225,
+      "content": " **E-commerce Platform"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "., Amazon"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "  - **Users"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "** table"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": " (user"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "_id, name"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": ", email)\n"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "  - **Orders"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "** table"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": " (order"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "_id, user"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "_id, date"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": ", total"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": ")\n  - **"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "Products"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "** table"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": " (product"
+    },
+    {
+      "timestamp_ms": 6329.427,
+      "content": "_id, name"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": ", price)\n "
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " - **Order"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": "Items** table"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " (order_id,"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " product_id, quantity"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": ")\n  - **"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": "Why"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": "?** Need"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " to enforce"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": "e.g., an"
+    },
+    {
+      "timestamp_ms": 6930.792,
+      "content": " order must belong"
+    },
+    {
+      "timestamp_ms": 6931.173,
+      "content": " to a user)"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": " and run"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": " complex queries ("
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": "e.g., \""
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": "Show"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": " all orders"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": " a user in the"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": " last month\").\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "content": " NoSQL"
+    },
+    {
+      "timestamp_ms": 7220.306,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7352.825,
+      "type": "done"
+    }
+  ],
+  "full_response": "SQL (Structured Query Language) and NoSQL (Not Only SQL) databases are two broad categories of database systems, each designed to handle different types of data and use cases. Below is a detailed comparison, including examples of when to use each.\n\n---\n\n### **1. SQL Databases (Relational Databases)**\nSQL databases are **relational**, meaning they store data in **tables** with **rows and columns**. They use a predefined **schema** (structure) and enforce **relationships** between tables using **foreign keys**.\n\n#### **Key Characteristics:**\n- **Structured data**: Data must fit into a predefined schema (columns with specific data types).\n- **ACID compliance**: Ensures **Atomicity, Consistency, Isolation, Durability** (e.g., transactions are reliable).\n- **SQL language**: Uses **Structured Query Language (SQL)** for querying and managing data.\n- **Vertical scaling**: Scales by increasing hardware power (CPU, RAM, SSD).\n- **Joins**: Supports complex queries with `JOIN` operations across tables.\n\n#### **Examples of SQL Databases:**\n- **MySQL** (open-source, widely used in web apps)\n- **PostgreSQL** (advanced features, extensible)\n- **Microsoft SQL Server** (enterprise-grade)\n- **Oracle Database** (high-performance, enterprise)\n- **SQLite** (lightweight, embedded in mobile apps)\n\n#### **When to Use SQL Databases?**\n✅ **Structured data with clear relationships** (e.g., financial systems, inventory management).\n✅ **Need for complex queries** (e.g., reporting, analytics with `JOINs`).\n✅ **Transactions are critical** (e.g., banking, e-commerce orders).\n✅ **Data integrity is a priority** (e.g., healthcare records, legal systems).\n\n#### **Example Use Case:**\n- **E-commerce Platform** (e.g., Amazon)\n  - **Users** table (user_id, name, email)\n  - **Orders** table (order_id, user_id, date, total)\n  - **Products** table (product_id, name, price)\n  - **Order_Items** table (order_id, product_id, quantity)\n  - **Why SQL?** Need to enforce relationships (e.g., an order must belong to a user) and run complex queries (e.g., \"Show all orders for a user in the last month\").\n\n---\n\n### **2. NoSQL",
+  "response_chars": 2107,
+  "num_chunks": 201,
+  "ttft_ms": 1148.952,
+  "total_ms": 7410.584,
+  "model_name": "Mistral-Large-3"
+}

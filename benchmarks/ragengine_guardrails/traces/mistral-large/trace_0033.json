@@ -1,0 +1,919 @@
+{
+  "index": 33,
+  "prompt": "Generate sample output from a secrets scanning tool that found 8 different types of credentials in a repository, showing the file path, line number, and detected secret type for each.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 694.011,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "’s a sample"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": " from a **se"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "crets scanning tool**"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": " GitLe"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "aks"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": ", Tru"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "ffle"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "Hog"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": ", or Git"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "Hub Secret"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": " Sc"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "anning) that detected"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": "8 different types of"
+    },
+    {
+      "timestamp_ms": 694.011,
+      "content": " credentials** in a"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": " repository:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "### **Se"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "crets Scan"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": " Report**\n"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "**Repository"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": ":** `"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "my"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "-company"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "/web"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "-app`\n**Scan"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": " Time"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": ":** `20"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "23-1"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "1-15"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": ":30:"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "22"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": "`\n**Total"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 1004.062,
+      "content": " Found:** `8"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": "`\n\n|"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " **File"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " Path**                    "
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " | **Line"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " Number** | **"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": "Secret Type**              "
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " | **Sever"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": "ity** |"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " **Match"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": "** ("
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": "Tr"
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": "uncated)         "
+    },
+    {
+      "timestamp_ms": 1268.196,
+      "content": " |\n|--------------------------------"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "---|----------------"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "-|----------------------------"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "---|------------"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "--|--------------------------------"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "--------|\n| `"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "src/config"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "/dev"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "              | "
+    },
+    {
+      "timestamp_ms": 1372.616,
+      "content": "12             "
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": " | AWS"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": " Key ID"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "            "
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": " | High"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "        "
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": " | `AK"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "IA"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "OS"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "OD"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "NN"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "`                "
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": " |\n| `src"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "/config/dev"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "`             "
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": " | 13"
+    },
+    {
+      "timestamp_ms": 1706.238,
+      "content": "              | AWS"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": " Secret Access"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": " Key         | Critical"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": " | `w"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "alr"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "XU"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "tnFE"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "MI"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "/K"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "MD"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "ENG"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "/b"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "Px"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "fi"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "CY"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "KEY"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "` |\n"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "| `scripts"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "/de"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "ploy.sh"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "`              "
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": " | "
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": "45              |"
+    },
+    {
+      "timestamp_ms": 2219.798,
+      "content": " GitHub Personal"
+    },
+    {
+      "timestamp_ms": 2267.667,
+      "content": " Access Token "
+    },
+    {
+      "timestamp_ms": 2267.667,
+      "content": " | High"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "         | `gh"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "_abc"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "23def"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "456ghi"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "78"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "9..."
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "`           "
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": " |\n| `backend"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "/."
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "env.pro"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "duction"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "`        "
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": " | "
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "              "
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": " | Sl"
+    },
+    {
+      "timestamp_ms": 2797.224,
+      "content": "ack API Token              "
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": " | Medium"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": " | `x"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "ox"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "b-1"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "6789"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "2-1"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "6789"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "0123"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "...`  "
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": " |\n| `frontend"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "/utils"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": ".js`      "
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": " | 2"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "              | St"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "ripe Secret"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3471.038,
+      "content": "             | Critical"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "     | `sk"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "_test_5"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "ABC"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "23..."
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "`                 "
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": " |\n| `docker"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "-compose"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": ".yml`             "
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": " | 3"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "              | Postgre"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "SQL Password"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": " | High"
+    },
+    {
+      "timestamp_ms": 3959.742,
+      "content": "         | `POST"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "RES_PASSWORD=Super"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "123!"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "`    |\n|"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": " `tests"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "/e"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4313.516,
+      "content": "e/config"
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": "`          "
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": " | "
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": "5              "
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": " | Tw"
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": "ilio API Key"
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": " | Medium"
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": "       | `"
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": "SKabc"
+    },
+    {
+      "timestamp_ms": 4463.107,
+      "content": "123def"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "456ghi"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "789..."
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "`             "
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": " |\n| `README"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": ".md`                      "
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": " | "
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "             | Send"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "Grid"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": " API Key             "
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": " | Medium"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "       | `SG"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "abc123"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 4751.728,
+      "content": "456ghi"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": "789..."
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": "`            "
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": " |\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": "Summary"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": " of Det"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": "ected Secrets**\n1"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": ". **AWS"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": " Cred"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": "entials** (2"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4926.975,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4975.941,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a sample output from a **secrets scanning tool** (e.g., GitLeaks, TruffleHog, or GitHub Secret Scanning) that detected **8 different types of credentials** in a repository:\n\n---\n\n### **Secrets Scan Report**\n**Repository:** `my-company/web-app`\n**Scan Time:** `2023-11-15 14:30:22 UTC`\n**Total Secrets Found:** `8`\n\n| **File Path**                     | **Line Number** | **Secret Type**               | **Severity** | **Match Example** (Truncated)          |\n|-----------------------------------|-----------------|-------------------------------|--------------|----------------------------------------|\n| `src/config/dev.env`              | 12              | AWS Access Key ID             | High         | `AKIAIOSFODNN7EXAMPLE`                 |\n| `src/config/dev.env`              | 13              | AWS Secret Access Key         | Critical     | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |\n| `scripts/deploy.sh`               | 45              | GitHub Personal Access Token  | High         | `ghp_abc123def456ghi789...`            |\n| `backend/.env.production`         | 8               | Slack API Token               | Medium       | `xoxb-123456789012-1234567890123...`   |\n| `frontend/src/utils/api.js`       | 22              | Stripe Secret Key             | Critical     | `sk_test_51ABC123...`                  |\n| `docker-compose.yml`              | 37              | PostgreSQL Password           | High         | `POSTGRES_PASSWORD=SuperSecret123!`    |\n| `tests/e2e/config.json`           | 5               | Twilio API Key                | Medium       | `SKabc123def456ghi789...`              |\n| `README.md`                       | 112             | SendGrid API Key              | Medium       | `SG.abc123def456ghi789...`             |\n\n---\n\n### **Summary of Detected Secrets**\n1. **AWS Credentials** (2)",
+  "response_chars": 1834,
+  "num_chunks": 224,
+  "ttft_ms": 694.011,
+  "total_ms": 5114.259,
+  "model_name": "Mistral-Large-3"
+}

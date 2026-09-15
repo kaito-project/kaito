@@ -1,0 +1,1783 @@
+{
+  "index": 178,
+  "prompt": "Explain how attention mechanisms work in transformer models.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1147.013,
+      "content": "Attention"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " pivotal"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " Vas"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": "wani"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " et"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " al"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": "201"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " paper"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": "Attention"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1147.013,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " Need"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": "\"."
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " transformers"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " generating"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 1515.291,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": "-range"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " variable"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": "-length"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " inputs"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " comprises"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " encoder"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " decoder"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 1991.547,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " stacked"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " encoder"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2769.19,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 2769.613,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 2769.613,
+      "content": " representations"
+    },
+    {
+      "timestamp_ms": 2769.613,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 2769.613,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2769.613,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2769.613,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " corresponding"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " generated"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " decoder"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " turn"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " generates"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " target"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3201.153,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": ":\n\n\n"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " passed"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " embedding"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " embedded"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " positional"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " enc"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": "odings"
+    },
+    {
+      "timestamp_ms": 3707.418,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " encode"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " position"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " mask"
+    },
+    {
+      "timestamp_ms": 4321.322,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": "to"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " enforce"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " caus"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": "ality"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " optional"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " padding"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " mask"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4767.925,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " sequences"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " lengths"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " split"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 5018.395,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5018.697,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " obtained"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " learned"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " linear"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " transformations"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " relate"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": " Dot"
+    },
+    {
+      "timestamp_ms": 5756.724,
+      "content": "-product"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " computed"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " taking"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " dot"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6188.687,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " square"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6188.859,
+      "content": " dimension"
+    },
+    {
+      "timestamp_ms": 6417.174,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6417.174,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6417.174,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6417.174,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 6417.174,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6417.174,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6417.174,
+      "content": " applying"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " soft"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": "max"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " obtain"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " multiplied"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " weighted"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " representations"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6882.811,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " Hier"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": "archical"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " combine"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " original"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " embeddings"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " richer"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7393.818,
+      "content": " integrated"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " gives"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " ability"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " capture"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " interactions"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " sequences"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " Sub"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": "se"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": "quently"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7954.727,
+      "content": " representations"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " go"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " feed"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": "-forward"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " dropout"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " normalization"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " decoder"
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8417.261,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " intermitt"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": "ently"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 8420.389,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " conjunction"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " encoder"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": "-dec"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": "oder"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " surprisingly"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " capture"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8874.481,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " translations"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " regardless"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " lengths"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " essence"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 9553.356,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 9574.168,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 9574.168,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 9574.168,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 9574.168,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9574.168,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 9574.168,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9742.415,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 9742.415,
+      "content": " sequences"
+    },
+    {
+      "timestamp_ms": 9742.415,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9742.415,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9742.415,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9742.415,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10063.885,
+      "type": "done"
+    }
+  ],
+  "full_response": "Attention mechanisms are a pivotal component of transformer models, which were first introduced by Vaswani et al. in their 2017 paper \"Attention is All You Need\". The attention mechanism in transformers allows the model to focus on different parts of the input sequence while generating the output sequence, effectively handling long-range dependencies and variable-length inputs.\n\n\nA standard transformer model comprises an encoder and decoder, each made up of stacked layers. The encoder takes the input sequence and processes it to produce a sequence continuous representations against which the output of the corresponding word is generated. The decoder, in turn, generates the target sequence one word at a time.\n\n\nThe attention mechanism works as follows:\n\n\n1. The input sequence is first passed through an embedding layer to produce an embedded representation for each token, and positional encodings are added to encode the position of each token in the sequence.\n\n\n2. A mask for future words (to enforce causality) and an optional padding mask are also applied to handle sequences with different lengths.\n\n\n3. The mechanism is split into keys,, and values. Each input token has a set of key, query, and value vectors obtained through learned linear transformations. The queries relate each token in the output to tokens in the input.\n\n\n4. Dot-product attention is computed by taking the dot product of the query with all keys, scaling by the square root of the dimension of the key vectors, and applying a softmax function to obtain attention weights. These weights are then multiplied by the value vectors to produce weighted representations based on the queries.\n\n\n5. Hierarchical attention layers combine the attention outputs with the original token embeddings to create a richer representation. This integrated form of attention from different layers gives the transformer the ability to capture interactions across entire sequences.\n\n\n6. Subsequently, these representations go through a feed-forward network, dropout, and normalization. In the decoder, the mechanism is applied intermittently across the layers in conjunction with an encoder-decoder attention.\n\n\nThis attention process can surprisingly capture complex relationships, allowing the transformer to understand the context and generate responses or translations with high accuracy, regardless of the sequence lengths. In essence, that’s how the attention mechanism helps transformer models to learn and generate sequences of data.",
+  "response_chars": 2507,
+  "num_chunks": 440,
+  "ttft_ms": 1147.013,
+  "total_ms": 10064.741,
+  "model_name": "Phi-4-mini-instruct"
+}

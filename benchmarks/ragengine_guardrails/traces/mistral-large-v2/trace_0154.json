@@ -1,0 +1,859 @@
+{
+  "index": 154,
+  "prompt": "Write a sample git commit message and diff that shows a developer removing hardcoded credentials from source code and moving them to environment variables.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 25309.997,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": " Git commit message"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": " and diff"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": " that demonstrates a"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": " developer removing hard"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": "coded credentials and"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": " replacing"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": " them with environment"
+    },
+    {
+      "timestamp_ms": 25309.997,
+      "content": " variables:\n\n"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": "---\n\n### **Commit"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": " Message"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": "**\n```\n"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": "feat"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": "(config"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": "): move"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": "coded credentials to"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": " environment variables\n\n-"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": " Remove"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": " hardcoded database"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": " credentials from"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 26214.254,
+      "content": "config/db"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": "`\n- Replace"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " variables loaded"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " via `dotenv`\n"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": "- Add"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": "env.example"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": "` with"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " placeholder values\n-"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " Update README"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 26827.209,
+      "content": " instructions for"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " environment variables\n\n"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " reduces the"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " risk of accidental"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " credential exposure\n"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " control and"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " for easier"
+    },
+    {
+      "timestamp_ms": 27406.576,
+      "content": " configuration in"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "environments ("
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "dev, staging,"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " prod).\n```\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "### **Sample"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " Diff**\n\n"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "#### **1."
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " Changes"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " `config/db.js"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "`**\n```diff"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "\n//"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " config"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "/db.js\n-"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 28569.762,
+      "content": "Config"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": " = {\n-"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "   host"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": ": 'localhost"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "',\n-"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "   user"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": ": 'admin"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "',\n"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "-   password:"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": " 's"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "3cr"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "3t"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "@ss"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "w0"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "rd1"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "23',\n"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "-  "
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": " database: 'app"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "_db'\n- };\n\n"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "('dotenv')."
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "config();\n"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "+\n"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 30003.126,
+      "content": " const dbConfig"
+    },
+    {
+      "timestamp_ms": 30032.354,
+      "content": " = {\n+"
+    },
+    {
+      "timestamp_ms": 30032.354,
+      "content": "   host"
+    },
+    {
+      "timestamp_ms": 30032.354,
+      "content": ": process"
+    },
+    {
+      "timestamp_ms": 30032.354,
+      "content": ".env.DB"
+    },
+    {
+      "timestamp_ms": 30032.354,
+      "content": "_HOST,\n+"
+    },
+    {
+      "timestamp_ms": 30032.354,
+      "content": "   user: process"
+    },
+    {
+      "timestamp_ms": 30032.354,
+      "content": ".env.DB_USER"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": ",\n+  "
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": " password:"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": " process.env.DB_PASSWORD"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": ",\n+  "
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": " database: process"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": ".env.DB_NAME"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": "\n+"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": " };\n+\n"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 30530.091,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": " (!dbConfig.host"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": " || !"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": "dbConfig.user ||"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": " !dbConfig.password"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": " || !dbConfig"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": ".database"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": ") {\n+"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": "   throw new Error"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": "('Missing"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": " required database environment"
+    },
+    {
+      "timestamp_ms": 30977.274,
+      "content": " variables');\n+"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": " }\n+\n"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": " module"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": ".exports = dbConfig"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": ";\n```\n\n####"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": " **2. New"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": " `.env.example"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": "` file**\n```"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": "diff\n+"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": " .env.example"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": "\n+"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": " # Database Configuration"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": "\n+ DB_HOST"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": "=localhost"
+    },
+    {
+      "timestamp_ms": 31707.301,
+      "content": "\n+ DB_USER"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "=your_db_user"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "\n+ DB_PASSWORD"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "=your_"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "secure_password\n+"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": " DB_NAME"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "=your_db_name"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "\n+\n"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "+ # Never"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": " commit `."
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": "env` to"
+    },
+    {
+      "timestamp_ms": 32358.27,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 32398.317,
+      "content": " control!\n```\n\n####"
+    },
+    {
+      "timestamp_ms": 32398.317,
+      "content": " **3. Updated"
+    },
+    {
+      "timestamp_ms": 32398.317,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 32398.317,
+      "content": "README.md` ("
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "optional)**\n```diff"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "\n+ ##"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": " Environment Setup"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "\n+\n"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "1. Copy"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "env.example` to"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": " `.env`:\n"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "    ```sh"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "\n+"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "    cp .env"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": ".example ."
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "env\n+   "
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": " ```\n+"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": " 2. Update"
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 33484.655,
+      "content": "env` with your"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": " database credentials.\n+"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": " 3. Install"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": " dependencies:\n+"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "    ```sh\n"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "+   "
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": " npm install\n"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "    ```\n"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "```\n\n"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "### **"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": "Key Notes:**\n1"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": ". **Security Best"
+    },
+    {
+      "timestamp_ms": 34102.334,
+      "content": " Practices**:\n   -"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " The `.env`"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " file is **never"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": "** ("
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": "should"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " be in"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " `.gitignore"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": "`).\n   -"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " `.env.example"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": "` provides"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " a template"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 34639.929,
+      "content": ".\n   - Runtime"
+    },
+    {
+      "timestamp_ms": 34694.103,
+      "content": " validation ensures required"
+    },
+    {
+      "timestamp_ms": 34822.235,
+      "content": " variables are set.\n\n"
+    },
+    {
+      "timestamp_ms": 34822.235,
+      "content": "2. **Why"
+    },
+    {
+      "timestamp_ms": 34822.235,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 34822.235,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 35142.299,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample Git commit message and diff that demonstrates a developer removing hardcoded credentials and replacing them with environment variables:\n\n---\n\n### **Commit Message**\n```\nfeat(config): move hardcoded credentials to environment variables\n\n- Remove hardcoded database credentials from `config/db.js`\n- Replace with environment variables loaded via `dotenv`\n- Add `.env.example` with placeholder values\n- Update README with setup instructions for environment variables\n\nSecurity: This change reduces the risk of accidental credential exposure\nin version control and allows for easier configuration in different\nenvironments (dev, staging, prod).\n```\n\n---\n\n### **Sample Diff**\n\n#### **1. Changes to `config/db.js`**\n```diff\n// config/db.js\n- const dbConfig = {\n-   host: 'localhost',\n-   user: 'admin',\n-   password: 's3cr3tP@ssw0rd123',\n-   database: 'app_db'\n- };\n\n+ require('dotenv').config();\n+\n+ const dbConfig = {\n+   host: process.env.DB_HOST,\n+   user: process.env.DB_USER,\n+   password: process.env.DB_PASSWORD,\n+   database: process.env.DB_NAME\n+ };\n+\n+ if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database) {\n+   throw new Error('Missing required database environment variables');\n+ }\n+\n module.exports = dbConfig;\n```\n\n#### **2. New `.env.example` file**\n```diff\n+ # .env.example\n+ # Database Configuration\n+ DB_HOST=localhost\n+ DB_USER=your_db_user\n+ DB_PASSWORD=your_secure_password\n+ DB_NAME=your_db_name\n+\n+ # Never commit `.env` to version control!\n```\n\n#### **3. Updated `README.md` (optional)**\n```diff\n+ ## Environment Setup\n+\n+ 1. Copy `.env.example` to `.env`:\n+    ```sh\n+    cp .env.example .env\n+    ```\n+ 2. Update `.env` with your local database credentials.\n+ 3. Install dependencies:\n+    ```sh\n+    npm install\n+    ```\n```\n\n---\n\n### **Key Notes:**\n1. **Security Best Practices**:\n   - The `.env` file is **never committed** (should be in `.gitignore`).\n   - `.env.example` provides a template without real credentials.\n   - Runtime validation ensures required variables are set.\n\n2. **Why This",
+  "response_chars": 2062,
+  "num_chunks": 209,
+  "ttft_ms": 25309.997,
+  "total_ms": 35149.222,
+  "model_name": "Mistral-Large-3"
+}

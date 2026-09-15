@@ -1,0 +1,1323 @@
+{
+  "index": 10,
+  "prompt": "Write a sample data export from a CRM system showing 5 customer records with fields: name, company, email, phone, address, last_purchase_date, lifetime_value.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 798.389,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": " Company"
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": "            "
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": "                "
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 798.389,
+      "content": "        "
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " Last"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " Purchase"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " Lifetime"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 798.564,
+      "content": "--------------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "-----"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "-------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "---------------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "--------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "----"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "---------------\n"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": " Ac"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": "me"
+    },
+    {
+      "timestamp_ms": 1305.329,
+      "content": " Corp"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " john"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "mith"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "ac"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "ec"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "orp"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " Elm"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " Street"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " Springfield"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " USA"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "04"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "02"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "Jane"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " Widgets"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": " Inc"
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2439.581,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": " jane"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "widgets"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "inc"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "765"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3613.917,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " Maple"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " Avenue"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "yt"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "own"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " USA"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "03"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "16"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "800"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "Michael"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " Brown"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " Gad"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "gets"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": " Ltd"
+    },
+    {
+      "timestamp_ms": 3614.144,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3614.353,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3614.353,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 3614.353,
+      "content": " m"
+    },
+    {
+      "timestamp_ms": 3614.353,
+      "content": ".b"
+    },
+    {
+      "timestamp_ms": 3614.353,
+      "content": "rown"
+    },
+    {
+      "timestamp_ms": 3614.353,
+      "content": "@g"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "ad"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "gets"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " Oak"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " Road"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " Met"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "ropolis"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " USA"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "03"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "750"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "Emily"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " Davis"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " Tech"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " Solutions"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " LLC"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": " em"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "ily"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "avis"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "tech"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": "sol"
+    },
+    {
+      "timestamp_ms": 4767.024,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "198"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "234"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " Birch"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " Boulevard"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " Skyline"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " City"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " USA"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "03"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "05"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "David"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " Wilson"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " Innovations"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " Corp"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " david"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": ".w"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "il"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "son"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "innov"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5851.19,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": "876"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": "543"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " Pine"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " Street"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " Future"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " City"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " USA"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6574.735,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "02"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "25"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "600"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 6574.984,
+      "content": " table"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " batch"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " customer"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " customer"
+    },
+    {
+      "timestamp_ms": 6715.583,
+      "content": " relationship"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": "CRM"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " detailing"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " properties"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " customers"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " particular"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " interest"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " customer"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " marketing"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7268.401,
+      "content": " sales"
+    },
+    {
+      "timestamp_ms": 7323.325,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 7323.325,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7323.325,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7420.513,
+      "type": "done"
+    }
+  ],
+  "full_response": "Name          | Company             | Email                 | Phone         | Address                | Last Purchase Date | Lifetime Value\n--------------|---------------------|-----------------------|---------------|------------------------|--------------------|---------------\nJohn Smith    | Acme Corp           | john.smith@acmecorp.com | 5551234567  | 123 Elm Street, Springfield, USA | 2023-04-02       | $1,000.00\nJane Doe      | Widgets Inc.        | jane.doe@widgetsinc.com| 5557654321  |  Maple Avenue, Anytown, USA  | 2023-03-16       | $800.00\nMichael Brown | Gadgets Ltd.        | m.brown@gadgets.com   | 5559876543  | 789 Oak Road, Metropolis, USA    | 2023-03-11       | $750.00\nEmily Davis   | Tech Solutions LLC  | emily.davis@techsol.com | 5554321987  | 234 Birch Boulevard, Skyline City, USA | 2023-03-05 | $1,200.00\nDavid Wilson  | Innovations Corp    | david.wilson@innovations.com | 5558765432 | 123 Pine Street, Future City, USA | 202-02-25      | $600.00\n\nThis table represents a batch of customer records from a customer relationship management (CRM) platform, detailing some properties and metrics of customers that are of particular interest for customer analysis, marketing, and sales teams.",
+  "response_chars": 1218,
+  "num_chunks": 325,
+  "ttft_ms": 798.389,
+  "total_ms": 7456.325,
+  "model_name": "Phi-4-mini-instruct"
+}

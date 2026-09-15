@@ -1,0 +1,2047 @@
+{
+  "index": 58,
+  "prompt": "Write a comprehensive 3000-word guide covering the complete history of artificial intelligence from the 1950s to present day, including all major milestones, breakthroughs, researchers, and their contributions.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 943.784,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " Comprehensive"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " History"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " Artificial"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " Intelligence"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " Present"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " Day"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " Introduction"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "Artificial"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " Intelligence"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " multif"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": "aceted"
+    },
+    {
+      "timestamp_ms": 943.784,
+      "content": " field"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " study"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " focusing"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " capable"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " performing"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " intelligence"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " From"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " early"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " theoretical"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1478.802,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": "-day"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " autonomous"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " undergone"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " transformative"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " growth"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " decades"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " traces"
+    },
+    {
+      "timestamp_ms": 2196.96,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2197.29,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2197.29,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 2197.29,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2197.29,
+      "content": " exploring"
+    },
+    {
+      "timestamp_ms": 2197.29,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 2197.29,
+      "content": " milestones"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " breakthroughs"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " major"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " contributions"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " pioneering"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " researchers"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " II"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " Dawn"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " Artificial"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " Intelligence"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "#####"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " Early"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": " Beg"
+    },
+    {
+      "timestamp_ms": 2620.317,
+      "content": "innings"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " term"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": "art"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": "ificial"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " intelligence"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " coined"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3652.993,
+      "content": " Dartmouth"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " organized"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " Mc"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": "Carthy"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " Marvin"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " M"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": "insky"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " Nathan"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": "iel"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " Rochester"
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3653.401,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " Claude"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " Shannon"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " conference"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " marked"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " birth"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " academic"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " discipline"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " Mc"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": "Carthy"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " groundbreaking"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " paper"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " discussed"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3939.308,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " think"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " fanc"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": "iful"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " thought"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " experiment"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": " science"
+    },
+    {
+      "timestamp_ms": 4379.575,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "#####"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " Logic"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "ist"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " Allen"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "ell"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " Herbert"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " Simon"
+    },
+    {
+      "timestamp_ms": 4783.349,
+      "content": " developed"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " Logic"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": "ist"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": "LT"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " capable"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " sim"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": "ulating"
+    },
+    {
+      "timestamp_ms": 5427.81,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " problem"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": "olver"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " LT"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " demonstrated"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": "-like"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " solution"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5428.057,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " achieved"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " breaking"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " series"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " logical"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": "#####"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6465.652,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": "akey"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " Robot"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": "Ray"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": "mond"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": "akey"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6466.512,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " autonomous"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " robot"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " capable"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " navigating"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " executing"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": "akey"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " combined"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " perception"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": " decision"
+    },
+    {
+      "timestamp_ms": 6662.476,
+      "content": "-making"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": " modeling"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": " mid"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6854.241,
+      "content": "196"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " serving"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " prototype"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " research"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " III"
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7877.799,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "ment"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": " Early"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": " Develop"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "ments"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "196"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "#####"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "im"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "ov"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7892.776,
+      "content": " Laws"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " Early"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " Applications"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": "During"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": "196"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " Isaac"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": "im"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": "ov"
+    },
+    {
+      "timestamp_ms": 8661.45,
+      "content": " published"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " series"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " science"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " fiction"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " stories"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " featuring"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " robots"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " obey"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " Three"
+    },
+    {
+      "timestamp_ms": 8661.835,
+      "content": " Laws"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " Robotics"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " emphasizing"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " interplay"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " ethics"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " Meanwhile"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " researchers"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " Marvin"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " M"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": "insky"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " constructed"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " neural"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9058.2,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9059.03,
+      "content": " early"
+    },
+    {
+      "timestamp_ms": 9059.03,
+      "content": " precursor"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "#####"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " Machine"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " Learning"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " Per"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "ce"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "ptr"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "on"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "Frank"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " Rosen"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "blatt"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " Per"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "ce"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "ptr"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "on"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " neural"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " tutorial"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " Though"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " initially"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " limited"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " instrumental"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " motivating"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " sophisticated"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 10449.04,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "#####"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " Expert"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " Knowledge"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "-Based"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " saw"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " rise"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " expert"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " emulate"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " decision"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": "-making"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " ability"
+    },
+    {
+      "timestamp_ms": 11509.559,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " experts"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " Early"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": "END"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": "RAL"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "content": " chemical"
+    },
+    {
+      "timestamp_ms": 11510.132,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11510.309,
+      "type": "done"
+    }
+  ],
+  "full_response": "### The Comprehensive History of Artificial Intelligence (1950s - Present Day)\n\n#### I. Introduction\n\nArtificial Intelligence (AI) is a multifaceted field of study focusing on creating machines capable of performing tasks that typically require human intelligence. From early theoretical frameworks to modern-day autonomous systems, AI has undergone transformative growth over the decades. This guide traces the of AI, exploring significant milestones, breakthroughs, and major contributions from pioneering researchers.\n\n#### II. The Dawn of Artificial Intelligence: The 1950s\n\n##### 2.1 Early Beginnings\n\nThe term \"artificial intelligence\" was coined in 1956 at the Dartmouth, organized by John McCarthy, Marvin Minsky, Nathaniel Rochester, and Claude Shannon. The conference marked the birth of AI as a distinct academic discipline. McCarthy's groundbreaking paper discussed the potential of machines that think, not as a fanciful thought experiment, but as a science.\n\n##### 2.2 The Logic Theorist\n\nIn 1955, Allen Newell and Herbert A. Simon developed the Logic Theorist (LT), the first computer program capable of simulating a problem-solver. LT demonstrated that a human-like solution to problems could be achieved by breaking them into a series of logical steps.\n\n##### 2. Shakey the Robot\n\nRaymond L. Smith designed and built Shakey, the first autonomous robot capable of navigating and executing tasks on its own. Shakey combined perception, decision-making, and world modeling in the mid-1960s, effectively serving as a prototype for future AI research.\n\n#### III. Thement and Early Developments (1960s-1970s)\n\n##### 3.1 Asimov's Laws and Early AI Applications\n\nDuring the 1960s, Isaac Asimov published series of science fiction stories featuring robots that obeyed a set of Three Laws of Robotics, emphasizing the interplay between AI and human ethics. Meanwhile, researchers like Marvin Minsky constructed the first neural network, an early precursor to modern AI.\n\n##### 3.2 Machine Learning: Perceptron\n\nFrank Rosenblatt introduced the Perceptron, the first neural network model, during a tutorial in 1958. Though initially limited, these networks were instrumental in motivating the development of more sophisticated learning algorithms.\n\n##### 3.3 Expert Systems and Knowledge-Based AI\n\nThe 1970s saw the rise of expert systems, which applied AI to emulate the decision-making ability of human experts. Early examples include DENDRAL for chemical",
+  "response_chars": 2462,
+  "num_chunks": 506,
+  "ttft_ms": 943.784,
+  "total_ms": 11510.648,
+  "model_name": "Phi-4-mini-instruct"
+}

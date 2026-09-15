@@ -1,0 +1,1071 @@
+{
+  "index": 146,
+  "prompt": "Create a sample hotel reservation confirmation that includes the guest's full name, email, phone number, credit card last four digits, and check-in/check-out dates.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1239.484,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " Reservation"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " Confirmation"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": "Guest"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": "Dear"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": "Guest"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 1239.484,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": "Thank"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " choosing"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": "]."
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " delighted"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " confirm"
+    },
+    {
+      "timestamp_ms": 1240.023,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " reservation"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " below"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Reservation"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Confirmation"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Guest"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Guest"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "Guest"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 1690.333,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": "Credit"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " Card"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " Last"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " Four"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " Dig"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": "its"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": "Last"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " Four"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " Dig"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": "its"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": "Check"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 2557.349,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "Check"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "Check"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "-out"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "Check"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "-out"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "Room"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " Details"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "Room"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": "Room"
+    },
+    {
+      "timestamp_ms": 2557.711,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "Floor"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "Floor"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "Room"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " Type"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "Room"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " Type"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "Special"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " Requests"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "Ind"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "icate"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " checking"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " below"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " special"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " Smoking"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "/T"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "ob"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "acco"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "-free"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " room"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3293.253,
+      "content": " Extra"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " pillows"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " Breakfast"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " inclusion"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " Airport"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " shuttle"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " Allergy"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "-friendly"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " room"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": "Total"
+    },
+    {
+      "timestamp_ms": 3995.476,
+      "content": " Reservation"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": "Total"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " Amount"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " copy"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " confirmation"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3996.278,
+      "content": " receipt"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": "Please"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " hotel"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " visit"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " Website"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4707.229,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " reservation"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": "We"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " forward"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " welcoming"
+    },
+    {
+      "timestamp_ms": 4932.311,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "!\n\n"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "incerely"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": ",\n\n"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "Hotel"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": " Reservations"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5339.193,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " double"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": "-check"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " above"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " confirmation"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " reservation"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " placeholder"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " replaced"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 5842.364,
+      "content": " reservation"
+    },
+    {
+      "timestamp_ms": 5942.721,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5942.721,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5942.721,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5993.056,
+      "type": "done"
+    }
+  ],
+  "full_response": "Subject: Reservation Confirmation - [Guest's Full Name]\n\nDear [Guest's Full NameThank you for choosing [Hotel Name]. We are delighted to confirm your reservation details below:\n\nReservation Number: [Confirmation Number]\n\nName: [Guest's Full Name]\nEmail: [Guest's Email]\nPhone: [Guest's Phone Number]\nCredit Card Last Four Digits: [Last Four Digits]\n\nCheck-in Date:Check-in Date]\nCheck-out Date: [Check-out Date]\n\nRoom Details:\nRoom Number: [Room Number]\nFloor: [Floor Number]\nRoom Type: [Room Type]\n\nSpecial Requests:\nIndicate by checking below any special requests:\n\n- Smoking/Tobacco-free room\n- Extra pillows\n- Breakfast inclusion\n- Airport shuttle\n- Allergy-friendly room\n\nTotal Reservation: $[Total Amount]\n\nA copy of your confirmation and receipt has been sent to your email address.\n\nPlease call our hotel at [Hotel Phone Number] or visit our website at [Hotel Website URL] if you have any questions or require changes to your reservation.\n\nWe look forward to welcoming you to [Hotel Name]!\n\nSincerely,\n\n[Hotel Name] Reservations Team\n\n---\n\nNote: Please double-check the above confirmation details before using it for an actual reservation. The placeholder values should be replaced with your specific reservation information.",
+  "response_chars": 1233,
+  "num_chunks": 262,
+  "ttft_ms": 1239.484,
+  "total_ms": 6038.021,
+  "model_name": "Phi-4-mini-instruct"
+}

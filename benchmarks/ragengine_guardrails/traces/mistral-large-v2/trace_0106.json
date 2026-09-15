@@ -1,0 +1,839 @@
+{
+  "index": 106,
+  "prompt": "What is the role of a load balancer in a web application architecture?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 714.498,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": "load balancer**"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " plays a critical"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " role in web"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " application architecture by"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " traffic across"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " multiple servers"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 714.498,
+      "content": " ensure **"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": "high availability, scal"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": "ability, reliability"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": ", and performance"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": "**. Here’s a"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": " breakdown of its key"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": " functions:\n\n### **"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": "1. Traffic"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": " Distribution ("
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": "Load"
+    },
+    {
+      "timestamp_ms": 1021.545,
+      "content": " Balancing)**\n  "
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": " - Dist"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": "ributes client"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": " requests across multiple backend"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": " servers (e.g"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": "., web"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": " servers, application servers"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": ", or databases"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": ") to prevent any"
+    },
+    {
+      "timestamp_ms": 1328.723,
+      "content": " single server from becoming"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": " overwhelmed.\n   -"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": " Uses"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": ":\n     - **"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": "Round Robin** ("
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": "sequ"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": "ential distribution"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": ")\n     - **"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": "Least Con"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": "nections** (s"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": "ends traffic"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": " to the server"
+    },
+    {
+      "timestamp_ms": 1632.024,
+      "content": " with the few"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": "est active"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " connections)\n     -"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " **IP"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " Hash** (cons"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": "istent routing"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " on client"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " IP)\n     -"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " **Weight"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": "ed Distribution"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": "** (p"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": "rioritizes more"
+    },
+    {
+      "timestamp_ms": 1942.891,
+      "content": " powerful servers)\n\n"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " Availability & Fault"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " Tolerance**\n  "
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " - Mon"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": "itors server"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " health ("
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": "via **health"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " checks**) and automatically"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " rer"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": "outes traffic away"
+    },
+    {
+      "timestamp_ms": 2251.088,
+      "content": " from failed"
+    },
+    {
+      "timestamp_ms": 2251.562,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2251.562,
+      "content": " unres"
+    },
+    {
+      "timestamp_ms": 2251.562,
+      "content": "ponsive servers.\n  "
+    },
+    {
+      "timestamp_ms": 2251.562,
+      "content": " - Ens"
+    },
+    {
+      "timestamp_ms": 2251.562,
+      "content": "ures **zero"
+    },
+    {
+      "timestamp_ms": 2251.562,
+      "content": " downtime** by"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": " maintaining service"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": " if some servers go"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": " offline"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": ".\n\n### **3"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": ". Sc"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": "alability**\n  "
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": " - All"
+    },
+    {
+      "timestamp_ms": 2365.398,
+      "content": "ows **"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": "horizontal scaling** by"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": " adding more"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": " servers to handle"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": " traffic without modifying"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": " the application"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": ".\n   - Works"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": " seamlessly with **"
+    },
+    {
+      "timestamp_ms": 2565.419,
+      "content": "auto-scaling groups"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": "., AWS Auto"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " Scaling,"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " Kubernetes)"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " to dynamically"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " adjust resources.\n\n###"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " **4. Performance"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " Optimization**\n   -"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " Reduces latency"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " by directing"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 2671.53,
+      "content": " to the nearest"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " least"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": "-loaded"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " server ("
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": "via"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " **geographic"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " balancing**).\n  "
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " - Off"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": "load"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": "s tasks"
+    },
+    {
+      "timestamp_ms": 2879.229,
+      "content": " like **SSL/T"
+    },
+    {
+      "timestamp_ms": 2993.507,
+      "content": "LS termination"
+    },
+    {
+      "timestamp_ms": 2993.507,
+      "content": "** (dec"
+    },
+    {
+      "timestamp_ms": 2993.507,
+      "content": "rypting HTTPS"
+    },
+    {
+      "timestamp_ms": 2993.507,
+      "content": " traffic) to improve"
+    },
+    {
+      "timestamp_ms": 2993.507,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": ".\n\n### **5"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": ". Security"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " Enh"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": "ancements**\n   -"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " Acts as a **"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": "reverse proxy**,"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " hiding backend"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " servers from"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " exposure to"
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " the internet.\n  "
+    },
+    {
+      "timestamp_ms": 3173.932,
+      "content": " - Protect"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": "s against"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " **DDoS"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " attacks** by"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " filtering"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " malicious"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " traffic before"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " it reaches"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": ".\n   - Can"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " integrate with"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " **Web Application"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " Firewalls (W"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": "AFs)** for"
+    },
+    {
+      "timestamp_ms": 3379.186,
+      "content": " additional security.\n\n###"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": " **6. Session"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": " Pers"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": "istence ("
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": "Sticky Sessions"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": ")**\n   - Ens"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": "ures a"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": " user’s requests"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": " are consistently"
+    },
+    {
+      "timestamp_ms": 3684.291,
+      "content": " routed to the same"
+    },
+    {
+      "timestamp_ms": 3790.33,
+      "content": " backend"
+    },
+    {
+      "timestamp_ms": 3790.33,
+      "content": " server (important"
+    },
+    {
+      "timestamp_ms": 3790.33,
+      "content": " for state"
+    },
+    {
+      "timestamp_ms": 3790.33,
+      "content": "ful applications like"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " shopping"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " carts).\n  "
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " - Uses"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " **co"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": "okies** or"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " **IP"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " persistence"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": "** to maintain"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " session continuity"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": ".\n\n### **7"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": ". Global"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": " Load Balancing ("
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": "GS"
+    },
+    {
+      "timestamp_ms": 4605.466,
+      "content": "LB)**\n   -"
+    },
+    {
+      "timestamp_ms": 4710.637,
+      "content": " Distributes traffic across"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": "data centers or"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " regions** for"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " disaster"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " recovery"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " and improved"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " experience.\n   -"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " Direct"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": "s users"
+    },
+    {
+      "timestamp_ms": 4710.871,
+      "content": " to the closest"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": "-per"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": "forming data"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": " center ("
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": "e.g., using"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": " **DNS"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": " load balancing**).\n\n"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "content": "### **"
+    },
+    {
+      "timestamp_ms": 5020.327,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5020.715,
+      "type": "done"
+    }
+  ],
+  "full_response": "A **load balancer** plays a critical role in web application architecture by distributing incoming network traffic across multiple servers to ensure **high availability, scalability, reliability, and performance**. Here’s a breakdown of its key functions:\n\n### **1. Traffic Distribution (Load Balancing)**\n   - Distributes client requests across multiple backend servers (e.g., web servers, application servers, or databases) to prevent any single server from becoming overwhelmed.\n   - Uses algorithms like:\n     - **Round Robin** (sequential distribution)\n     - **Least Connections** (sends traffic to the server with the fewest active connections)\n     - **IP Hash** (consistent routing based on client IP)\n     - **Weighted Distribution** (prioritizes more powerful servers)\n\n### **2. High Availability & Fault Tolerance**\n   - Monitors server health (via **health checks**) and automatically reroutes traffic away from failed or unresponsive servers.\n   - Ensures **zero downtime** by maintaining service even if some servers go offline.\n\n### **3. Scalability**\n   - Allows **horizontal scaling** by adding more servers to handle increased traffic without modifying the application.\n   - Works seamlessly with **auto-scaling groups** (e.g., AWS Auto Scaling, Kubernetes) to dynamically adjust resources.\n\n### **4. Performance Optimization**\n   - Reduces latency by directing users to the nearest or least-loaded server (via **geographic load balancing**).\n   - Offloads tasks like **SSL/TLS termination** (decrypting HTTPS traffic) to improve server efficiency.\n\n### **5. Security Enhancements**\n   - Acts as a **reverse proxy**, hiding backend servers from direct exposure to the internet.\n   - Protects against **DDoS attacks** by filtering malicious traffic before it reaches servers.\n   - Can integrate with **Web Application Firewalls (WAFs)** for additional security.\n\n### **6. Session Persistence (Sticky Sessions)**\n   - Ensures a user’s requests are consistently routed to the same backend server (important for stateful applications like shopping carts).\n   - Uses **cookies** or **IP-based persistence** to maintain session continuity.\n\n### **7. Global Server Load Balancing (GSLB)**\n   - Distributes traffic across multiple **data centers or cloud regions** for disaster recovery and improved user experience.\n   - Directs users to the closest or best-performing data center (e.g., using **DNS-based load balancing**).\n\n### **",
+  "response_chars": 2444,
+  "num_chunks": 204,
+  "ttft_ms": 714.498,
+  "total_ms": 5117.629,
+  "model_name": "Mistral-Large-3"
+}

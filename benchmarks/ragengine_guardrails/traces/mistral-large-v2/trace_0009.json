@@ -1,0 +1,783 @@
+{
+  "index": 9,
+  "prompt": "Describe how DNS resolution works when you type a URL in a browser.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 998.66,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " you type a URL"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": "e.g., `"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": "https://www.example"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": ".com`)"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " browser and"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " press"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " **Enter**, a"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " multi"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": "-step **"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": "DNS ("
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": "Domain Name"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " System)"
+    },
+    {
+      "timestamp_ms": 998.66,
+      "content": " resolution** process"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " occurs"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " to translate"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " the human"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": "-readable domain name"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " into an"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " **IP address**"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " that computers"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " to communicate."
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " Here’s a"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": " step-by-step breakdown"
+    },
+    {
+      "timestamp_ms": 1432.038,
+      "content": ":\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": "1. Browser"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " Cache"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " Check"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": "**\n-"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " The browser first checks"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " **local cache**"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " to see if it"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " already has the IP"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " address for"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " the domain"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": ".\n- If found"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": ", the"
+    },
+    {
+      "timestamp_ms": 1840.992,
+      "content": " process sk"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": "ips to"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": "8** (connect"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": "ing to the server"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": ").\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": "2. OS"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " Cache"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " Check**\n- If"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " the browser doesn’t"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " have the"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " IP cached"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": ", it"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": " asks the **oper"
+    },
+    {
+      "timestamp_ms": 2352.642,
+      "content": "ating system"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " (OS)** ("
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": "e.g., Windows"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": ", macOS,"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " Linux) to check"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " its DNS"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " cache.\n- The"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " OS may"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " have stored"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " the IP from"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " a recent"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": "3. Router"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " Cache"
+    },
+    {
+      "timestamp_ms": 2878.302,
+      "content": " Check**\n- If"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " the OS doesn’t"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " have the"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " IP, the request"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " sent to the **"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": "local router**,"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " which may have its"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " own DNS cache.\n\n"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": "---\n\n### **4"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": ". ISP"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": " Rec"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": "ursive Res"
+    },
+    {
+      "timestamp_ms": 3377.088,
+      "content": "olver Check"
+    },
+    {
+      "timestamp_ms": 3479.527,
+      "content": "**\n- If the"
+    },
+    {
+      "timestamp_ms": 3479.527,
+      "content": " router"
+    },
+    {
+      "timestamp_ms": 3479.527,
+      "content": " doesn’t have"
+    },
+    {
+      "timestamp_ms": 3479.527,
+      "content": " the IP"
+    },
+    {
+      "timestamp_ms": 3479.527,
+      "content": ", the request"
+    },
+    {
+      "timestamp_ms": 3479.527,
+      "content": " is forwarded"
+    },
+    {
+      "timestamp_ms": 3479.527,
+      "content": " to the **ISP"
+    },
+    {
+      "timestamp_ms": 3684.032,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 3684.032,
+      "content": " (Internet Service"
+    },
+    {
+      "timestamp_ms": 3684.032,
+      "content": " Provider)"
+    },
+    {
+      "timestamp_ms": 3684.032,
+      "content": " recursive DNS resolver**"
+    },
+    {
+      "timestamp_ms": 3684.032,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3684.032,
+      "content": " Google’s `8"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": ".8"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": ".8.8"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": "`, Cloud"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": "flare’s `1"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": ".1"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": ".1.1"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": "`).\n- The"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " checks its"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " and may return the"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " IP if available"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": "5. Root"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " Serv"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": "ers (If Not"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 4206.769,
+      "content": "ached)**\n- If"
+    },
+    {
+      "timestamp_ms": 4562.053,
+      "content": " the ISP"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": "’s resolver"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " doesn’t have"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " the IP"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " cached, it"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " starts a **rec"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": "ursive DNS query**"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " by contacting"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " the **root"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " servers**"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " (the top of"
+    },
+    {
+      "timestamp_ms": 4562.193,
+      "content": " the DNS hierarchy).\n"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": "- The root"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": " don"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": "’t know the IP"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": " the resolver"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": " to the **Top"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": "Level Domain (T"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": "LD) name servers"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 4988.613,
+      "content": "., `."
+    },
+    {
+      "timestamp_ms": 5220.015,
+      "content": "com`, `.org"
+    },
+    {
+      "timestamp_ms": 5220.015,
+      "content": "`, `.net`).\n\n"
+    },
+    {
+      "timestamp_ms": 5220.015,
+      "content": "---\n\n### **6"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": ". TLD Name"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " Servers**\n-"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " The resolver"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " queries the **T"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": "LD name servers**"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " `.com` servers"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " `example"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": ".com`).\n-"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " TLD servers"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " don"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": "’t know"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " the exact"
+    },
+    {
+      "timestamp_ms": 5491.608,
+      "content": " IP but"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": " the resolver"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": " to the **author"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": "itative name"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": " servers** for"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": " the domain.\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": "### **7."
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": " Authoritative Name Serv"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": "ers**\n- The"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": " resolver queries the **"
+    },
+    {
+      "timestamp_ms": 5836.118,
+      "content": "author"
+    },
+    {
+      "timestamp_ms": 6246.973,
+      "content": "itative name servers**"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " (managed"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " by the"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " domain’s"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " registrar"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " hosting provider,"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " e.g., Cloud"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": "flare, AWS Route"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " 5"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": "3).\n- These"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " hold"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " the **DNS"
+    },
+    {
+      "timestamp_ms": 6247.478,
+      "content": " records** (e"
+    },
+    {
+      "timestamp_ms": 6258.019,
+      "content": ".g., `A"
+    },
+    {
+      "timestamp_ms": 6258.019,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6338.801,
+      "type": "done"
+    }
+  ],
+  "full_response": "When you type a URL (e.g., `https://www.example.com`) into your browser and press **Enter**, a multi-step **DNS (Domain Name System) resolution** process occurs to translate the human-readable domain name into an **IP address** that computers use to communicate. Here’s a step-by-step breakdown:\n\n---\n\n### **1. Browser Cache Check**\n- The browser first checks its **local cache** to see if it already has the IP address for the domain.\n- If found, the process skips to step **8** (connecting to the server).\n\n---\n\n### **2. OS Cache Check**\n- If the browser doesn’t have the IP cached, it asks the **operating system (OS)** (e.g., Windows, macOS, Linux) to check its DNS cache.\n- The OS may have stored the IP from a recent request.\n\n---\n\n### **3. Router Cache Check**\n- If the OS doesn’t have the IP, the request is sent to the **local router**, which may have its own DNS cache.\n\n---\n\n### **4. ISP Recursive Resolver Check**\n- If the router doesn’t have the IP, the request is forwarded to the **ISP’s (Internet Service Provider) recursive DNS resolver** (e.g., Google’s `8.8.8.8`, Cloudflare’s `1.1.1.1`).\n- The resolver checks its cache and may return the IP if available.\n\n---\n\n### **5. Root Name Servers (If Not Cached)**\n- If the ISP’s resolver doesn’t have the IP cached, it starts a **recursive DNS query** by contacting the **root name servers** (the top of the DNS hierarchy).\n- The root servers don’t know the IP but direct the resolver to the **Top-Level Domain (TLD) name servers** (e.g., `.com`, `.org`, `.net`).\n\n---\n\n### **6. TLD Name Servers**\n- The resolver queries the **TLD name servers** (e.g., `.com` servers for `example.com`).\n- The TLD servers don’t know the exact IP but direct the resolver to the **authoritative name servers** for the domain.\n\n---\n\n### **7. Authoritative Name Servers**\n- The resolver queries the **authoritative name servers** (managed by the domain’s registrar or hosting provider, e.g., Cloudflare, AWS Route 53).\n- These servers hold the **DNS records** (e.g., `A",
+  "response_chars": 2012,
+  "num_chunks": 190,
+  "ttft_ms": 998.66,
+  "total_ms": 6456.467,
+  "model_name": "Mistral-Large-3"
+}

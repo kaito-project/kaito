@@ -1,0 +1,4 @@
+fastapi==0.141.1
+llm-guard==0.3.16
+PyYAML==6.0.2
+uvicorn==0.34.2

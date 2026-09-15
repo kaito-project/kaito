@@ -1,0 +1,2071 @@
+{
+  "index": 203,
+  "prompt": "Write a policy document explaining how employees should handle INTERNAL_ONLY documents. Use the label INTERNAL_ONLY throughout the document.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 390.735,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 390.938,
+      "content": "Policy"
+    },
+    {
+      "timestamp_ms": 391.037,
+      "content": " Document"
+    },
+    {
+      "timestamp_ms": 403.121,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 403.308,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 403.45,
+      "content": " Internal"
+    },
+    {
+      "timestamp_ms": 403.672,
+      "content": " Only"
+    },
+    {
+      "timestamp_ms": 453.345,
+      "content": " Documents"
+    },
+    {
+      "timestamp_ms": 453.605,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 464.073,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 606.247,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 616.907,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 617.076,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 617.184,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 617.3,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 617.384,
+      "content": " outlines"
+    },
+    {
+      "timestamp_ms": 617.505,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 618.135,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 633.217,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 698.743,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 698.931,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 699.05,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 709.46,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 799.595,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 799.784,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 799.867,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 799.936,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 803.966,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 822.434,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 902.764,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 902.945,
+      "content": "INTERNAL"
+    },
+    {
+      "timestamp_ms": 903.235,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 903.388,
+      "content": ".\""
+    },
+    {
+      "timestamp_ms": 1004.633,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 1004.845,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 1005.026,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 1005.396,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1005.568,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1013.805,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 1107.94,
+      "content": " solely"
+    },
+    {
+      "timestamp_ms": 1108.097,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1108.426,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 1108.522,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1108.719,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1209.974,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 1210.105,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1210.17,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 1210.224,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1210.272,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 1223.705,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 1271.498,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1271.645,
+      "content": " comply"
+    },
+    {
+      "timestamp_ms": 1284.281,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1299.784,
+      "content": " organizational"
+    },
+    {
+      "timestamp_ms": 1349.799,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 1349.943,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1359.456,
+      "content": " legal"
+    },
+    {
+      "timestamp_ms": 1375.302,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 1395.983,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1421.88,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1433.693,
+      "content": "Scope"
+    },
+    {
+      "timestamp_ms": 1451.753,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1516.113,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1516.246,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 1516.311,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 1530.583,
+      "content": " applies"
+    },
+    {
+      "timestamp_ms": 1581.358,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1581.695,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1584.781,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 1619.049,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1631.307,
+      "content": " contractors"
+    },
+    {
+      "timestamp_ms": 1644.978,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 1722.912,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1733.289,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1733.442,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 1733.53,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1735.782,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1773.195,
+      "content": " distribute"
+    },
+    {
+      "timestamp_ms": 1781.034,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 1796.594,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 1829.95,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 1832.703,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1888.94,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1889.173,
+      "content": "Definitions"
+    },
+    {
+      "timestamp_ms": 1889.416,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1925.665,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1927.28,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1963.896,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1969.051,
+      "content": "INTERNAL"
+    },
+    {
+      "timestamp_ms": 1988.796,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 2007.077,
+      "content": " Documents"
+    },
+    {
+      "timestamp_ms": 2113.684,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2118.75,
+      "content": " Documents"
+    },
+    {
+      "timestamp_ms": 2118.894,
+      "content": " explicitly"
+    },
+    {
+      "timestamp_ms": 2119.022,
+      "content": " marked"
+    },
+    {
+      "timestamp_ms": 2119.127,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2138.565,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2149.877,
+      "content": " label"
+    },
+    {
+      "timestamp_ms": 2156.462,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2178.726,
+      "content": "INTERNAL"
+    },
+    {
+      "timestamp_ms": 2201.94,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 2216.982,
+      "content": ".\""
+    },
+    {
+      "timestamp_ms": 2235.065,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2335.618,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2335.769,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 2335.846,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2335.899,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2335.95,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 2348.988,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2413.668,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2413.805,
+      "content": " meant"
+    },
+    {
+      "timestamp_ms": 2413.875,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2424.811,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 2540.735,
+      "content": " dissemination"
+    },
+    {
+      "timestamp_ms": 2540.923,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2541.01,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 2541.075,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 2541.137,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 2541.191,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2556.341,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2576.129,
+      "content": "Policy"
+    },
+    {
+      "timestamp_ms": 2646.437,
+      "content": " Guidelines"
+    },
+    {
+      "timestamp_ms": 2646.579,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2646.649,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 2650.989,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2745.181,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2745.389,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2745.492,
+      "content": "Identification"
+    },
+    {
+      "timestamp_ms": 2745.612,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2747.22,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 2766.928,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2847.709,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2847.916,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2848.028,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2848.162,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 2876.832,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2899.253,
+      "content": " responsible"
+    },
+    {
+      "timestamp_ms": 2899.404,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2921.664,
+      "content": " identifying"
+    },
+    {
+      "timestamp_ms": 2952.483,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2957.634,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 3052.709,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3070.119,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 3070.327,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 3070.433,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3070.617,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 3087.304,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3091.433,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3114.003,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 3127.86,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3257.545,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3257.698,
+      "content": " restricted"
+    },
+    {
+      "timestamp_ms": 3257.77,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3257.927,
+      "content": " authorized"
+    },
+    {
+      "timestamp_ms": 3258.05,
+      "content": " personnel"
+    },
+    {
+      "timestamp_ms": 3258.126,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 3462.078,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3462.078,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 3462.078,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3462.078,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 3462.078,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 3462.467,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 3462.562,
+      "content": "-know"
+    },
+    {
+      "timestamp_ms": 3462.716,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3462.842,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 3463.012,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 3463.123,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3474.922,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3493.645,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3523.259,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 3534.186,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3549.752,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3567.044,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 3667.461,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 3667.589,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3667.713,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3667.785,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3667.855,
+      "content": " passwords"
+    },
+    {
+      "timestamp_ms": 3679.815,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3770.119,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 3770.25,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 3770.313,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3770.368,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3774.998,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3873.482,
+      "content": " place"
+    },
+    {
+      "timestamp_ms": 3873.657,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 3873.734,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 3982.364,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3982.618,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 3982.725,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 3982.88,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 3982.974,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 3983.05,
+      "content": " electronically"
+    },
+    {
+      "timestamp_ms": 3983.112,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3991.339,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4010.208,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4024.802,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4076.353,
+      "content": "Handling"
+    },
+    {
+      "timestamp_ms": 4076.519,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4082.098,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 4179.061,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4179.226,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4179.36,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4179.431,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4196.917,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 4197.071,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 4282.788,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 4282.969,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 4283.062,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4283.144,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 4290.774,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 4389.158,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4389.292,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 4389.357,
+      "content": " physically"
+    },
+    {
+      "timestamp_ms": 4389.411,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4396.911,
+      "content": " electronically"
+    },
+    {
+      "timestamp_ms": 4406.2,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4430.346,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 4456.157,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4467.285,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4488.931,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 4503.606,
+      "content": " encrypted"
+    },
+    {
+      "timestamp_ms": 4548.955,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 4555.769,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 4557.639,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4588.564,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 4599.729,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 4691.167,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4691.321,
+      "content": " locked"
+    },
+    {
+      "timestamp_ms": 4691.405,
+      "content": " cabinets"
+    },
+    {
+      "timestamp_ms": 4691.527,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4691.613,
+      "content": " saf"
+    },
+    {
+      "timestamp_ms": 4793.773,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 4793.966,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4794.074,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 4794.161,
+      "content": " copies"
+    },
+    {
+      "timestamp_ms": 4794.557,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4804.608,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4896.822,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4896.976,
+      "content": " Do"
+    },
+    {
+      "timestamp_ms": 4897.041,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4897.095,
+      "content": " leave"
+    },
+    {
+      "timestamp_ms": 4899.982,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 4998.381,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 4998.55,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 4998.638,
+      "content": " un"
+    },
+    {
+      "timestamp_ms": 4998.709,
+      "content": "attended"
+    },
+    {
+      "timestamp_ms": 4998.775,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5015.676,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 5035.216,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 5102.307,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 5102.57,
+      "content": " exiting"
+    },
+    {
+      "timestamp_ms": 5102.737,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5110.761,
+      "content": " area"
+    },
+    {
+      "timestamp_ms": 5203.898,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5204.048,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 5204.131,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5204.195,
+      "content": " short"
+    },
+    {
+      "timestamp_ms": 5204.752,
+      "content": " periods"
+    },
+    {
+      "timestamp_ms": 5319.903,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5320.055,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5320.192,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5320.264,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5320.324,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 5320.376,
+      "content": "istrib"
+    },
+    {
+      "timestamp_ms": 5353.599,
+      "content": "uting"
+    },
+    {
+      "timestamp_ms": 5367.126,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5382.829,
+      "content": " Sharing"
+    },
+    {
+      "timestamp_ms": 5510.695,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5510.934,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5511.002,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5511.057,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5511.106,
+      "content": " Sharing"
+    },
+    {
+      "timestamp_ms": 5511.152,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5511.196,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 5612.858,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 5613.03,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 5613.39,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5629.108,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5629.286,
+      "content": " conducted"
+    },
+    {
+      "timestamp_ms": 5629.415,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5644.853,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 5715.351,
+      "content": " approved"
+    },
+    {
+      "timestamp_ms": 5715.54,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 5715.718,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5723.557,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5766.248,
+      "content": " authorized"
+    },
+    {
+      "timestamp_ms": 5766.401,
+      "content": " individuals"
+    },
+    {
+      "timestamp_ms": 5776.844,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 5819.755,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 5824.501,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 5835.899,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5920.024,
+      "content": " legitimate"
+    },
+    {
+      "timestamp_ms": 5920.158,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 5920.223,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 5920.283,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5930.438,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6022.247,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6022.409,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 6022.487,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 6022.658,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6024.699,
+      "content": " approved"
+    },
+    {
+      "timestamp_ms": 6099.343,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6099.609,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6099.724,
+      "content": " transferring"
+    },
+    {
+      "timestamp_ms": 6100.998,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 6227.106,
+      "content": " electronically"
+    },
+    {
+      "timestamp_ms": 6227.326,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6227.427,
+      "content": " Do"
+    },
+    {
+      "timestamp_ms": 6227.495,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 6243.096,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 6243.254,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 6250.582,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 6257.004,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 6276.981,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 6330.035,
+      "content": " un"
+    },
+    {
+      "timestamp_ms": 6330.274,
+      "content": "secured"
+    },
+    {
+      "timestamp_ms": 6330.525,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 6432.252,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6432.482,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 6432.58,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 6432.634,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6432.749,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6534.432,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6534.668,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6534.792,
+      "content": "Printing"
+    },
+    {
+      "timestamp_ms": 6636.923,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6636.923,
+      "content": " Dis"
+    },
+    {
+      "timestamp_ms": 6636.923,
+      "content": "posal"
+    },
+    {
+      "timestamp_ms": 6636.923,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6637.203,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6664.489,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6664.489,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6664.489,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 6744.304,
+      "content": " printing"
+    },
+    {
+      "timestamp_ms": 6744.304,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 6744.304,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 6844.028,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 6844.028,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6844.028,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 6844.028,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6844.241,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6844.314,
+      "content": " kept"
+    },
+    {
+      "timestamp_ms": 6844.375,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 6855.686,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6874.139,
+      "content": " left"
+    },
+    {
+      "timestamp_ms": 6885.636,
+      "content": " un"
+    },
+    {
+      "timestamp_ms": 6944.289,
+      "content": "attended"
+    },
+    {
+      "timestamp_ms": 6944.593,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6944.771,
+      "content": " disposed"
+    },
+    {
+      "timestamp_ms": 7053.678,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7053.846,
+      "content": " according"
+    },
+    {
+      "timestamp_ms": 7053.915,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7054.004,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 7054.185,
+      "content": " guidelines"
+    },
+    {
+      "timestamp_ms": 7056.078,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7077.846,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7151.081,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7151.282,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 7151.441,
+      "content": "red"
+    },
+    {
+      "timestamp_ms": 7151.522,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7251.013,
+      "content": " otherwise"
+    },
+    {
+      "timestamp_ms": 7251.228,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 7251.447,
+      "content": " destroy"
+    },
+    {
+      "timestamp_ms": 7251.572,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 7251.654,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 7271.57,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 7284.925,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7353.268,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7353.44,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 7353.525,
+      "content": " longer"
+    },
+    {
+      "timestamp_ms": 7360.737,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 7379.655,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7428.797,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 7429.006,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 7439.307,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7459.978,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7558.738,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7559.016,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7559.202,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7559.361,
+      "content": "Inc"
+    },
+    {
+      "timestamp_ms": 7559.501,
+      "content": "ident"
+    },
+    {
+      "timestamp_ms": 7571.145,
+      "content": " Reporting"
+    },
+    {
+      "timestamp_ms": 7614.968,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7615.287,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7666.119,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7666.341,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7666.418,
+      "content": " Report"
+    },
+    {
+      "timestamp_ms": 7763.163,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 7763.308,
+      "content": " suspected"
+    },
+    {
+      "timestamp_ms": 7763.492,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7763.619,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 7763.699,
+      "content": " breaches"
+    },
+    {
+      "timestamp_ms": 7865.543,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7865.684,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 7865.747,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 7865.801,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 7968.247,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 7968.247,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 7968.247,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7968.247,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7968.488,
+      "content": " designated"
+    },
+    {
+      "timestamp_ms": 7968.566,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 7973.543,
+      "content": " officer"
+    },
+    {
+      "timestamp_ms": 7989.612,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8040.217,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8040.423,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 8056.563,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8089.766,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8089.964,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8104.903,
+      "content": " Maintain"
+    },
+    {
+      "timestamp_ms": 8131.669,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8144.88,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 8168.911,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8181.202,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8200.208,
+      "content": " incidents"
+    },
+    {
+      "timestamp_ms": 8221.739,
+      "content": " involving"
+    },
+    {
+      "timestamp_ms": 8240.017,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 8275.468,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 8292.29,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 8300.419,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8385.011,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 8385.312,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 8385.399,
+      "content": " taken"
+    },
+    {
+      "timestamp_ms": 8385.485,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8390.807,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 8482.75,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8482.895,
+      "content": " issue"
+    },
+    {
+      "timestamp_ms": 8482.962,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8483.021,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8485.168,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8592.127,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8592.37,
+      "content": "Training"
+    },
+    {
+      "timestamp_ms": 8592.502,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8592.623,
+      "content": " Awareness"
+    },
+    {
+      "timestamp_ms": 8592.756,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8600.123,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8684.667,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8684.922,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8685.351,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 8685.545,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 8787.081,
+      "content": " complete"
+    },
+    {
+      "timestamp_ms": 8790.374,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 8790.501,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8790.501,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 8790.594,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8790.668,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 8889.543,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8889.77,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 8889.875,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8889.946,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 8890.003,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 8951.016,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8951.213,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 8951.569,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 8965.27,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 9094.626,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9094.803,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9094.871,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 9094.937,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9094.937,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9095.005,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9096.012,
+      "content": "boarding"
+    },
+    {
+      "timestamp_ms": 9141.893,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 9142.132,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9156.224,
+      "content": " periodically"
+    },
+    {
+      "timestamp_ms": 9197.561,
+      "content": " thereafter"
+    },
+    {
+      "timestamp_ms": 9200.882,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9211.835,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9299.771,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9300.053,
+      "content": " Stay"
+    },
+    {
+      "timestamp_ms": 9300.214,
+      "content": " informed"
+    },
+    {
+      "timestamp_ms": 9300.339,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9311.101,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 9326.176,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9378.692,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9378.83,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 9391.288,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9407.76,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 9421.495,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 9506.5,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9506.633,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9506.697,
+      "content": "Com"
+    },
+    {
+      "timestamp_ms": 9506.751,
+      "content": "pliance"
+    },
+    {
+      "timestamp_ms": 9517.07,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9607.173,
+      "content": " Enforcement"
+    },
+    {
+      "timestamp_ms": 9607.321,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9607.397,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9607.461,
+      "content": "Failure"
+    },
+    {
+      "timestamp_ms": 9612.206,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9709.388,
+      "content": " comply"
+    },
+    {
+      "timestamp_ms": 9709.574,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9709.687,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9709.779,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 9709.921,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 9725.335,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 9811.955,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9812.109,
+      "content": " disciplinary"
+    },
+    {
+      "timestamp_ms": 9812.177,
+      "content": " action"
+    },
+    {
+      "timestamp_ms": 9812.229,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9823.88,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 9901.791,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9901.999,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9902.145,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 9902.223,
+      "content": " termination"
+    },
+    {
+      "timestamp_ms": 9921.452,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9937.448,
+      "content": " employment"
+    },
+    {
+      "timestamp_ms": 9957.474,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 10020.97,
+      "content": " legal"
+    },
+    {
+      "timestamp_ms": 10021.113,
+      "content": " consequences"
+    },
+    {
+      "timestamp_ms": 10021.182,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10031.543,
+      "content": " depending"
+    },
+    {
+      "timestamp_ms": 10031.543,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10035.831,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Policy Document: Handling Internal Only Documents**\n\n**Purpose:**\nThis policy outlines the procedures and responsibilities for employees regarding the handling of documents labeled as \"INTERNAL_ONLY.\" These documents contain sensitive information intended solely for internal use and must be protected to maintain confidentiality and comply with organizational standards and legal requirements.\n\n**Scope:**\nThis policy applies to all employees and contractors who access, handle, or distribute INTERNAL_ONLY documents.\n\n**Definitions:**\n\n- **INTERNAL_ONLY Documents:** Documents explicitly marked with the label \"INTERNAL_ONLY.\" These documents contain sensitive or proprietary information not meant for external dissemination or unauthorized internal distribution.\n\n**Policy Guidelines:**\n\n1. **Identification and Access:**\n   - Employees are responsible for identifying documents labeled as INTERNAL_ONLY. Access to such documents should be restricted to authorized personnel only, based on their need-to-know and job responsibilities.\n   - Ensure that access control measures, such as passwords or security permissions, are in place when storing or sharing INTERNAL_ONLY documents electronically.\n\n2. **Handling and Storage:**\n   - INTERNAL_ONLY documents should be stored securely, both physically and electronically. \n   - Use encrypted storage solutions for digital files and locked cabinets or safes for physical copies.\n   - Do not leave INTERNAL_ONLY documents unattended. Secure them when exiting an area, even for short periods.\n\n3. **Distributing and Sharing:**\n   - Sharing of INTERNAL_ONLY documents should be conducted only within approved channels and with authorized individuals who require access for legitimate business purposes.\n   - Use secure, approved systems for transferring documents electronically. Do not send INTERNAL_ONLY documents via unsecured email or personal devices.\n\n4. **Printing and Disposal:**\n   - When printing INTERNAL_ONLY documents, ensure they are kept secure if left unattended and disposed of according to confidentiality guidelines.\n   - Shred or otherwise securely destroy INTERNAL_ONLY documents that are no longer needed to prevent unauthorized access.\n\n5. **Incident Reporting:**\n   - Report any suspected or actual breaches of INTERNAL_ONLY document security immediately to the designated compliance officer or security team.\n   - Maintain a log of all incidents involving INTERNAL_ONLY documents, including actions taken to address the issue.\n\n6. **Training and Awareness:**\n   - Employees must complete training on document security protocols, including the proper handling of INTERNAL_ONLY documents, as part of their onboarding process and periodically thereafter.\n   - Stay informed of updates to this policy and related procedures.\n\n**Compliance and Enforcement:**\nFailure to comply with this policy may result in disciplinary action, up to and including termination of employment or legal consequences, depending",
+  "response_chars": 2975,
+  "num_chunks": 512,
+  "ttft_ms": 390.735,
+  "total_ms": 10036.155,
+  "model_name": "model-medium"
+}

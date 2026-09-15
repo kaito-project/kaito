@@ -1,0 +1,2071 @@
+{
+  "index": 70,
+  "prompt": "What are microservices and what are the trade-offs compared to monolithic architecture?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 306.233,
+      "content": "Micro"
+    },
+    {
+      "timestamp_ms": 306.371,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 408.106,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 408.268,
+      "content": " mon"
+    },
+    {
+      "timestamp_ms": 408.333,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 408.388,
+      "content": " architectures"
+    },
+    {
+      "timestamp_ms": 408.439,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 416.909,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 472.777,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 473.097,
+      "content": " approaches"
+    },
+    {
+      "timestamp_ms": 479.339,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 493.574,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 612.71,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 613.021,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 613.167,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 613.455,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 613.563,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 613.644,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 626.247,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 715.197,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 715.41,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 715.543,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 715.681,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 720.656,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 817.593,
+      "content": " Understanding"
+    },
+    {
+      "timestamp_ms": 817.936,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 818.108,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 818.207,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 818.283,
+      "content": " advantages"
+    },
+    {
+      "timestamp_ms": 870.877,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 871.039,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 876.804,
+      "content": " disadvantages"
+    },
+    {
+      "timestamp_ms": 895.475,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 912.193,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 931.901,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 951.317,
+      "content": " selection"
+    },
+    {
+      "timestamp_ms": 971.886,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 990.214,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1029.679,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 1029.826,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 1044.912,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 1128.395,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1128.567,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1128.651,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 1128.718,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 1141.235,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1235.611,
+      "content": " enterprise"
+    },
+    {
+      "timestamp_ms": 1235.837,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1235.941,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1236.009,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 1236.063,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 1255.26,
+      "content": " Architecture"
+    },
+    {
+      "timestamp_ms": 1333.403,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1333.538,
+      "content": "Micro"
+    },
+    {
+      "timestamp_ms": 1333.603,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 1333.657,
+      "content": " refer"
+    },
+    {
+      "timestamp_ms": 1431.694,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1431.947,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1432.087,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 1432.206,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 1432.298,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 1446.067,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1534.099,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 1534.233,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1534.298,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1534.353,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1541.252,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1628.896,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 1629.335,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1629.481,
+      "content": " loosely"
+    },
+    {
+      "timestamp_ms": 1629.593,
+      "content": " coupled"
+    },
+    {
+      "timestamp_ms": 1635.772,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1744.871,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1745.016,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 1745.114,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1745.169,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1745.22,
+      "content": " fine"
+    },
+    {
+      "timestamp_ms": 1754.391,
+      "content": "-gr"
+    },
+    {
+      "timestamp_ms": 1770.737,
+      "content": "ained"
+    },
+    {
+      "timestamp_ms": 1841.057,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1841.189,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1841.259,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1845.579,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 1943.452,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1943.596,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 1943.661,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 1943.782,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 1943.894,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2057.03,
+      "content": " organized"
+    },
+    {
+      "timestamp_ms": 2057.239,
+      "content": " around"
+    },
+    {
+      "timestamp_ms": 2057.318,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 2057.381,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 2057.607,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2057.688,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 2151.552,
+      "content": " characteristics"
+    },
+    {
+      "timestamp_ms": 2151.733,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2151.853,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 2151.974,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 2152.094,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 2169.997,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2219.417,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2219.612,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2225.902,
+      "content": "Dec"
+    },
+    {
+      "timestamp_ms": 2354.698,
+      "content": "entral"
+    },
+    {
+      "timestamp_ms": 2354.89,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 2354.97,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2355.292,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2355.401,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 2355.494,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2361.688,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2395.056,
+      "content": " developed"
+    },
+    {
+      "timestamp_ms": 2405.824,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2424.734,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 2561.674,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2561.805,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2561.868,
+      "content": " maintained"
+    },
+    {
+      "timestamp_ms": 2561.922,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 2561.973,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2562.02,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2562.065,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2569.848,
+      "content": "Technology"
+    },
+    {
+      "timestamp_ms": 2595.2,
+      "content": " Diversity"
+    },
+    {
+      "timestamp_ms": 2610.234,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2665.35,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2665.645,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 2681.809,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2688.885,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2763.55,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 2780.658,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 2780.876,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 2781.0,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2788.317,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 2799.432,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2865.588,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2865.821,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 2865.93,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2874.739,
+      "content": " suited"
+    },
+    {
+      "timestamp_ms": 2967.722,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2967.908,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2968.049,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 2968.237,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 2972.038,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 3070.446,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 3070.727,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3070.827,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3070.901,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3070.966,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 3151.17,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 3151.338,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 3151.424,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3151.495,
+      "content": " Individual"
+    },
+    {
+      "timestamp_ms": 3161.896,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 3179.697,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3286.57,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3286.748,
+      "content": " scaled"
+    },
+    {
+      "timestamp_ms": 3286.868,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 3286.953,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 3294.9,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3295.109,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 3376.144,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3376.291,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 3376.378,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3376.448,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 3390.129,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 3480.061,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3480.276,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3480.379,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3480.456,
+      "content": "Res"
+    },
+    {
+      "timestamp_ms": 3491.494,
+      "content": "il"
+    },
+    {
+      "timestamp_ms": 3508.173,
+      "content": "ience"
+    },
+    {
+      "timestamp_ms": 3582.038,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3597.416,
+      "content": " Fail"
+    },
+    {
+      "timestamp_ms": 3597.564,
+      "content": "ures"
+    },
+    {
+      "timestamp_ms": 3597.642,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3603.766,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3617.644,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 3684.593,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 3684.771,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 3684.854,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3696.393,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 3786.992,
+      "content": " impact"
+    },
+    {
+      "timestamp_ms": 3787.155,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 3787.244,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3787.329,
+      "content": " enhancing"
+    },
+    {
+      "timestamp_ms": 3790.546,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 3890.999,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3891.181,
+      "content": " resilience"
+    },
+    {
+      "timestamp_ms": 3891.33,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3891.455,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3891.585,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3905.543,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 3997.765,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 3998.012,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3998.153,
+      "content": " Enables"
+    },
+    {
+      "timestamp_ms": 3998.242,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 3999.324,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4094.279,
+      "content": " independent"
+    },
+    {
+      "timestamp_ms": 4094.421,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 4094.492,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4094.549,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 4094.602,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4197.029,
+      "content": " facilitating"
+    },
+    {
+      "timestamp_ms": 4197.201,
+      "content": " agile"
+    },
+    {
+      "timestamp_ms": 4197.273,
+      "content": " methodologies"
+    },
+    {
+      "timestamp_ms": 4197.327,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4197.376,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4209.936,
+      "content": " Mon"
+    },
+    {
+      "timestamp_ms": 4301.434,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 4301.662,
+      "content": " Architecture"
+    },
+    {
+      "timestamp_ms": 4301.84,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4302.016,
+      "content": "Mon"
+    },
+    {
+      "timestamp_ms": 4306.073,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 4325.393,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 4404.413,
+      "content": " refers"
+    },
+    {
+      "timestamp_ms": 4404.63,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4404.694,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4404.864,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 4503.351,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 4503.484,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4503.548,
+      "content": " building"
+    },
+    {
+      "timestamp_ms": 4503.601,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 4503.65,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 4514.735,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4605.954,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4606.15,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 4606.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4606.301,
+      "content": " indiv"
+    },
+    {
+      "timestamp_ms": 4610.419,
+      "content": "isible"
+    },
+    {
+      "timestamp_ms": 4661.954,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 4662.298,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4666.344,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 4685.507,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 4709.624,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4724.047,
+      "content": " compiled"
+    },
+    {
+      "timestamp_ms": 4749.969,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 4762.107,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 4810.753,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 4810.906,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 4819.38,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4913.717,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 4913.908,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4914.021,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4914.093,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4914.34,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 5015.958,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5016.15,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5016.234,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 5016.321,
+      "content": " executable"
+    },
+    {
+      "timestamp_ms": 5016.456,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5027.703,
+      "content": "Character"
+    },
+    {
+      "timestamp_ms": 5118.901,
+      "content": "istics"
+    },
+    {
+      "timestamp_ms": 5119.04,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5119.107,
+      "content": " mon"
+    },
+    {
+      "timestamp_ms": 5119.161,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 5132.027,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 5141.333,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 5220.62,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5220.78,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5220.861,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5220.941,
+      "content": "Single"
+    },
+    {
+      "timestamp_ms": 5323.939,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 5332.656,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 5332.843,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5332.944,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 5333.124,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 5333.204,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5422.779,
+      "content": " inter"
+    },
+    {
+      "timestamp_ms": 5423.047,
+      "content": "linked"
+    },
+    {
+      "timestamp_ms": 5423.192,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5423.275,
+      "content": " inter"
+    },
+    {
+      "timestamp_ms": 5430.127,
+      "content": "dependent"
+    },
+    {
+      "timestamp_ms": 5450.804,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5465.549,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5528.219,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5535.969,
+      "content": "Unified"
+    },
+    {
+      "timestamp_ms": 5536.252,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 5542.212,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5636.954,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5637.121,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 5637.189,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 5637.246,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5638.923,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 5733.301,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 5733.47,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5733.547,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 5733.607,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5736.101,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5843.856,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 5844.037,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 5844.161,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5844.285,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5844.41,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5851.149,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 5868.89,
+      "content": "impl"
+    },
+    {
+      "timestamp_ms": 5937.907,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 5938.258,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5938.427,
+      "content": " Develop"
+    },
+    {
+      "timestamp_ms": 5945.474,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6040.869,
+      "content": " Straight"
+    },
+    {
+      "timestamp_ms": 6041.153,
+      "content": "forward"
+    },
+    {
+      "timestamp_ms": 6041.428,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 6041.572,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6041.634,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 6146.009,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 6146.21,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6150.283,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 6150.422,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 6150.578,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6152.143,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6172.074,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6197.229,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 6214.66,
+      "content": "asier"
+    },
+    {
+      "timestamp_ms": 6277.078,
+      "content": " Initial"
+    },
+    {
+      "timestamp_ms": 6277.256,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 6277.337,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6331.773,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 6339.506,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6339.665,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6348.486,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 6363.917,
+      "content": " simpler"
+    },
+    {
+      "timestamp_ms": 6382.635,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6401.87,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6449.498,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6449.651,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 6457.271,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 6552.404,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 6552.564,
+      "content": " executable"
+    },
+    {
+      "timestamp_ms": 6552.642,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 6552.705,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6552.895,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6608.643,
+      "content": " Trade"
+    },
+    {
+      "timestamp_ms": 6608.874,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 6757.267,
+      "content": " Between"
+    },
+    {
+      "timestamp_ms": 6757.267,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 6757.534,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 6757.666,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6757.777,
+      "content": " Mon"
+    },
+    {
+      "timestamp_ms": 6757.882,
+      "content": "olithic"
+    },
+    {
+      "timestamp_ms": 6757.984,
+      "content": " Architecture"
+    },
+    {
+      "timestamp_ms": 6758.064,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 6767.989,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 6782.586,
+      "content": " Adv"
+    },
+    {
+      "timestamp_ms": 6859.767,
+      "content": "antages"
+    },
+    {
+      "timestamp_ms": 6859.916,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6859.985,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 6860.041,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 6944.292,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6944.433,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6944.508,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6944.635,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6962.653,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 6975.492,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 7064.513,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 7064.663,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7064.739,
+      "content": " Individual"
+    },
+    {
+      "timestamp_ms": 7064.803,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 7071.253,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7167.065,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7169.779,
+      "content": " scaled"
+    },
+    {
+      "timestamp_ms": 7169.932,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 7170.029,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7170.201,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7184.504,
+      "content": " rest"
+    },
+    {
+      "timestamp_ms": 7202.527,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7277.887,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7278.021,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7278.087,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7278.143,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7371.072,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7371.226,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 7371.318,
+      "content": " advantageous"
+    },
+    {
+      "timestamp_ms": 7371.412,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7374.806,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 7462.464,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 7462.606,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7462.673,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7462.728,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7473.988,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7488.616,
+      "content": "Flex"
+    },
+    {
+      "timestamp_ms": 7546.012,
+      "content": "ibility"
+    },
+    {
+      "timestamp_ms": 7546.193,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7546.285,
+      "content": " Different"
+    },
+    {
+      "timestamp_ms": 7566.522,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 7584.372,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7678.414,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7678.548,
+      "content": " written"
+    },
+    {
+      "timestamp_ms": 7678.616,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7678.67,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7694.73,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 7702.198,
+      "content": " suitable"
+    },
+    {
+      "timestamp_ms": 7716.813,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 7782.707,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7783.003,
+      "content": " technology"
+    },
+    {
+      "timestamp_ms": 7783.159,
+      "content": " stack"
+    },
+    {
+      "timestamp_ms": 7792.0,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7883.87,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7884.035,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7884.11,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7884.166,
+      "content": "Res"
+    },
+    {
+      "timestamp_ms": 7986.572,
+      "content": "il"
+    },
+    {
+      "timestamp_ms": 7986.572,
+      "content": "ience"
+    },
+    {
+      "timestamp_ms": 7986.868,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7987.023,
+      "content": " Failure"
+    },
+    {
+      "timestamp_ms": 7987.176,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7987.288,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 8089.994,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 8099.401,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 8099.734,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 8099.838,
+      "content": " necessarily"
+    },
+    {
+      "timestamp_ms": 8099.907,
+      "content": " bring"
+    },
+    {
+      "timestamp_ms": 8100.139,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 8191.096,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8191.23,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 8191.292,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8191.344,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8194.848,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8296.32,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8296.449,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8296.515,
+      "content": "Development"
+    },
+    {
+      "timestamp_ms": 8296.57,
+      "content": " Speed"
+    },
+    {
+      "timestamp_ms": 8296.637,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8309.015,
+      "content": " Teams"
+    },
+    {
+      "timestamp_ms": 8328.834,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8397.875,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 8398.08,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8398.227,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8405.713,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 8450.601,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 8450.732,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8460.395,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 8504.858,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 8505.009,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8517.556,
+      "content": " cycles"
+    },
+    {
+      "timestamp_ms": 8601.861,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8602.066,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8602.187,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8602.265,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8614.394,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 8702.851,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 8703.099,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8703.217,
+      "content": " Supports"
+    },
+    {
+      "timestamp_ms": 8703.293,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 8707.617,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8805.575,
+      "content": " agile"
+    },
+    {
+      "timestamp_ms": 8805.725,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8805.807,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 8805.87,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8805.928,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 8822.514,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 8899.307,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8899.44,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 8899.508,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8899.661,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 8920.754,
+      "content": " Dis"
+    },
+    {
+      "timestamp_ms": 8937.369,
+      "content": "adv"
+    },
+    {
+      "timestamp_ms": 9010.176,
+      "content": "antages"
+    },
+    {
+      "timestamp_ms": 9010.431,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9010.549,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 9121.783,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 9121.934,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9122.009,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9122.073,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9122.131,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9122.188,
+      "content": "Complex"
+    },
+    {
+      "timestamp_ms": 9134.265,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 9214.405,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9224.018,
+      "content": " Managing"
+    },
+    {
+      "timestamp_ms": 9224.219,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9224.307,
+      "content": " deploying"
+    },
+    {
+      "timestamp_ms": 9224.381,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9244.086,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9299.911,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 9300.096,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 9300.208,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 9321.642,
+      "content": " increases"
+    },
+    {
+      "timestamp_ms": 9338.812,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 9357.465,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9423.757,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 9424.397,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 9424.657,
+      "content": " sophisticated"
+    },
+    {
+      "timestamp_ms": 9444.54,
+      "content": " orchest"
+    },
+    {
+      "timestamp_ms": 9458.818,
+      "content": "ration"
+    },
+    {
+      "timestamp_ms": 9471.839,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 9491.521,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 9510.587,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 9540.576,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9552.618,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9573.71,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9586.653,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9608.519,
+      "content": "Network"
+    },
+    {
+      "timestamp_ms": 9628.615,
+      "content": " Over"
+    },
+    {
+      "timestamp_ms": 9643.983,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 9662.837,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9726.116,
+      "content": " Inter"
+    },
+    {
+      "timestamp_ms": 9726.329,
+      "content": "-service"
+    },
+    {
+      "timestamp_ms": 9726.464,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 9740.13,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 9835.474,
+      "content": " occurs"
+    },
+    {
+      "timestamp_ms": 9835.636,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 9835.712,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9835.844,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9835.985,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9931.191,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 9931.379,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9931.529,
+      "content": " introduce"
+    },
+    {
+      "timestamp_ms": 9931.671,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 9931.792,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10009.808,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 10010.05,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 10010.158,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 10136.726,
+      "content": "-hand"
+    },
+    {
+      "timestamp_ms": 10136.726,
+      "content": "ling"
+    },
+    {
+      "timestamp_ms": 10136.726,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10136.726,
+      "type": "done"
+    }
+  ],
+  "full_response": "Microservices and monolithic architectures are two different approaches to software development, particularly in how software applications are structured and deployed. Understanding their differences, advantages, and disadvantages can guide the selection of the most appropriate architecture for a given project or enterprise.\n\n### Microservices Architecture:\n\nMicroservices refer to a software development technique that structures an application as a collection of loosely coupled services. These services are fine-grained, and each service is independently deployable, organized around business capabilities.\n\nKey characteristics of microservices include:\n- **Decentralized**: Each service can be developed, deployed, and maintained independently.\n- **Technology Diversity**: Each service can use different programming languages, frameworks, or databases as suited to the service’s specific requirements.\n- **Scalability**: Individual services can be scaled independently without the need to scale the entire application.\n- **Resilience**: Failures in one service often do not directly impact others, enhancing overall system resilience.\n- **Continuous Deployment**: Enables faster and independent deployment of services, facilitating agile methodologies.\n\n### Monolithic Architecture:\n\nMonolithic architecture refers to a traditional way of building software applications as a single, indivisible unit. All functionality is compiled together into one large codebase, which is deployed as a single executable.\n\nCharacteristics of monolithic architecture include:\n- **Single Codebase**: All components are interlinked and interdependent.\n- **Unified Deployment**: The entire application is deployed together, often as a single unit.\n- **Simpler to Develop**: Straightforward development and testing processes for smaller applications.\n- **Easier Initial Deployment**: Deployment process is generally simpler, as it involves only one executable file.\n\n### Trade-offs Between Microservices and Monolithic Architecture:\n\n#### Advantages of Microservices:\n1. **Scalability**: Individual components can be scaled independently of the rest of the system. This is particularly advantageous in cloud computing.\n2. **Flexibility**: Different services can be written in the most suitable language or technology stack.\n3. **Resilience**: Failure in one service doesn't necessarily bring down the entire system.\n4. **Development Speed**: Teams can work on different services independently, enabling faster development cycles.\n5. **Continuous Deployment**: Supports modern, agile development practices with continuous integration and deployment.\n\n#### Disadvantages of Microservices:\n1. **Complexity**: Managing, deploying, and monitoring multiple services increases complexity, often requiring sophisticated orchestration tools like Kubernetes.\n2. **Network Overhead**: Inter-service communication typically occurs over a network, which can introduce latency and require robust error-handling",
+  "response_chars": 2982,
+  "num_chunks": 512,
+  "ttft_ms": 306.233,
+  "total_ms": 10137.098,
+  "model_name": "model-medium"
+}

@@ -1,0 +1,979 @@
+{
+  "index": 87,
+  "prompt": "Write a sample insurance claim form with the policyholder's name, policy number, SSN, phone number, email, and description of the incident.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 2073.938,
+      "content": "Insurance"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Claim"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Form"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "[s"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "igned"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Policy"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "holder"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "Policy"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " ABC"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "Social"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "678"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 2073.938,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "-mail"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " john"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "mith"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " Insurance"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " Policy"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " January"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "Tele"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "communications"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " Home"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "owners"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " Insurance"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "Plan"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2172.827,
+      "content": "560"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": "052"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": "67"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": "):\n\n"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": "Description"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": "Provide"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " incident"
+    },
+    {
+      "timestamp_ms": 2740.434,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": " prompted"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": " claim"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": ".]\n\n"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": "Additional"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2740.678,
+      "content": "Documentation"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " Attached"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "Required"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "?"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " Explain"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "Declared"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " Cash"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " Settlement"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "800"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": "Instructions"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " Complete"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " sign"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " attached"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " copy"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " claim"
+    },
+    {
+      "timestamp_ms": 3475.56,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": "We"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " obligated"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " claims"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " filed"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " year"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " date"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " accident"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " claim"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " filed"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": "].\n\n"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": "Policy"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": "holder"
+    },
+    {
+      "timestamp_ms": 4084.109,
+      "content": " Signature"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " __________________________________"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "__"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " ______"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "___"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " ____"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "__/"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "____"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "Please"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " fill"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " section"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " instructed"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " insurance"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 4716.245,
+      "content": "These"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " sections"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " above"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " included"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": "-life"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " insurance"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " claim"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5043.773,
+      "content": " Depending"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " insurance"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 5424.379,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " sections"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " Always"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " insurance"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": " broker"
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5667.44,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5702.582,
+      "type": "done"
+    }
+  ],
+  "full_response": "Insurance Claim Form\n\n[signed] Policyholder Name: John Smith  \n[date]\n\nPolicy Number: ABC123456789  \n\nSocial Security Number: 123-45-6789\n\nPhone Number: (123) 456-7890  \nE-mail: john.smith@example.com\n\nDate of Insurance Policy: January 1, 2020  \n\nTelecommunications  Homeowners Insurance (Plan ID: 56005267):\n\nDescription of Incident:  \n\n[Provide a detailed description of the incident here prompted the claim.]\n\n[Additional Information/Documentation Attached/Required? Explain]\n\nDeclared Cash Settlement Request: $800.00\n\nInstructions: Complete, sign, and return the attached copy of this claim form.\n\nWe are obligated to process the claims filed within the year from the date of the accident. This claim was filed on [date].\n\nPolicyholder Signature: ____________________________________ _________ ____  \nDate: __/__/____\n\n(Please fill out this section as instructed by the insurance company)\n\nThese sections above are generally included on a real-life insurance claim form. Depending on your insurance company or policy, there might be additional or different sections. Always follow the instructions provided by your insurance company or broker.",
+  "response_chars": 1148,
+  "num_chunks": 239,
+  "ttft_ms": 2073.938,
+  "total_ms": 5855.494,
+  "model_name": "Phi-4-mini-instruct"
+}

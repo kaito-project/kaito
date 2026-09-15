@@ -1,0 +1,1491 @@
+{
+  "index": 23,
+  "prompt": "Describe the CAP theorem and its implications for distributed database design.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1054.099,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " CAP"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " Brewer"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " states"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 1054.099,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " Availability"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " profound"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " implications"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": "Consistency"
+    },
+    {
+      "timestamp_ms": 1590.909,
+      "content": " refers"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " guarantee"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " see"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2164.746,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " transaction"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2165.078,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " instantly"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " reflected"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": "Availability"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 2881.265,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": "-re"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": "udi"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2881.972,
+      "content": " Even"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " failure"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " serve"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": "Partition"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " implies"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " continues"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3392.154,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " despite"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " arbitrary"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " delays"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " caused"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": "Imp"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": "lications"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " CAP"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 3987.249,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": ":\n\n\n"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " Trade"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " Since"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " achieve"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4314.601,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " properties"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " designers"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " informed"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " choices"
+    },
+    {
+      "timestamp_ms": 4730.909,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " Availability"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 5157.142,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " engineers"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " prefer"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " opts"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " having"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": "availability"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6256.39,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " prioritized"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " Dynamo"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": "-off"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " offering"
+    },
+    {
+      "timestamp_ms": 6257.008,
+      "content": " eventual"
+    },
+    {
+      "timestamp_ms": 6707.175,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 6707.175,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 6707.175,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6707.175,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6707.175,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 6707.175,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " assumed"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " assumes"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " though"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " rare"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " prolonged"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " period"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " Hence"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6966.836,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " recover"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " tolerate"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " events"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " losing"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " CAP"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " serves"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " guideline"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " architect"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7533.059,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " under"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " presence"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " disruptions"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 8261.426,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " suits"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8545.996,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8656.094,
+      "type": "done"
+    }
+  ],
+  "full_response": "The CAP theorem, also known as Brewer's theorem, states that a distributed system can only simultaneously provide two out of the following three guarantees: Consistency, Availability, and Partition tolerance. This theorem has profound implications for the design of distributed databases.\n\n\nConsistency refers to the guarantee that all nodes in the distributed system see the same data at the same. In a consistent system, when a transaction is made at one node, it will instantly be reflected across all other nodes.\n\n\nAvailability means that every request a response that has non-repudiation. Even in the case of a node failure, other nodes in the network can continue to serve requests.\n\n\nPartition tolerance implies the system continues to operate despite arbitrary message loss or delays between nodes, which is caused by network failures.\n\n\nImplications of the CAP theorem for distributed database design include:\n\n\n1. Trade-offs: Since a system cannot achieve all three properties simultaneously, database designers must make informed choices based on the specific needs of their applications.\n\n\n2. Consistency vs. Availability: For systems where the distribution network is expected to keep partitions to a minimum, engineers might prefer a system that opts for consistency. However, if having a high-availability system is crucial, and network partitions are common, availability may be prioritized. Systems such as Amazon's Dynamo make this trade-off by offering eventual consistency.\n\n\n3. Partition tolerance is assumed: The design assumes that partitions, though rare, are a part of networked systems for a prolonged period. Hence, applications are typically built to recover from or tolerate these events without losing critical functionality.\n\n\nThe CAP theorem serves as a guideline when architecting the behavior of distributed databases under the presence of network partitions or other disruptions. Each distributed system needs to consider the trade-offs between consistency, availability, and partition tolerance to ensure that it suits the requirements and context of its intended application.",
+  "response_chars": 2113,
+  "num_chunks": 367,
+  "ttft_ms": 1054.099,
+  "total_ms": 8685.026,
+  "model_name": "Phi-4-mini-instruct"
+}

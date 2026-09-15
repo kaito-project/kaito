@@ -1,0 +1,799 @@
+{
+  "index": 52,
+  "prompt": "Explain how a hash table works and analyze its time complexity.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 548.147,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": " **How a"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": " Hash Table Works**\n\n"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": "A **hash table"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": "** ("
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": "also called"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": " a hash"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": " map) is a"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": " data structure that stores"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": " key-value pairs and"
+    },
+    {
+      "timestamp_ms": 548.147,
+      "content": " provides efficient insertion"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": ", deletion"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": ", and lookup operations"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": ". It"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": " works by using"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": " a **hash function"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": "** to compute an"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": " index (or"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": "hash code"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": "\") into"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": " an array of"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": "buckets**"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": " (or slots"
+    },
+    {
+      "timestamp_ms": 823.237,
+      "content": "), where the"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " desired value can be"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": ".\n\n#### **Key"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " Components:**\n1."
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " **Hash Function"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": "**\n   - Takes"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " key as"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " input and computes"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " an integer"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": "hash code"
+    },
+    {
+      "timestamp_ms": 1061.675,
+      "content": ") that determines"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": " the index where"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": " the value"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": " should be stored.\n"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": "   - A"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": " good hash function"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": "     - Distributes"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": " keys uniformly across"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": " buckets ("
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": "minimizes collisions"
+    },
+    {
+      "timestamp_ms": 1329.65,
+      "content": ").\n     - Is"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " deterministic"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " (same"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " → same hash"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": ").\n     - Is"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " fast to"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " compute.\n\n2."
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " **Buckets ("
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": "Array of"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " Slots)**\n  "
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " - Each bucket"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " holds a"
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": " key-value pair ("
+    },
+    {
+      "timestamp_ms": 1541.427,
+      "content": "or a linked"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " list/"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": "other"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " structure in"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " case of collisions).\n\n"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": "3. **Collision"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " Handling**\n   -"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": "Separ"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": "ate Chaining"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " Each bucket contains"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " a linked"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " list (or"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": " tree"
+    },
+    {
+      "timestamp_ms": 1824.635,
+      "content": ") of entries"
+    },
+    {
+      "timestamp_ms": 1947.108,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1947.108,
+      "content": " hash to the same"
+    },
+    {
+      "timestamp_ms": 1947.108,
+      "content": " index.\n   -"
+    },
+    {
+      "timestamp_ms": 1947.108,
+      "content": " **Open"
+    },
+    {
+      "timestamp_ms": 1947.108,
+      "content": " Addressing:** If"
+    },
+    {
+      "timestamp_ms": 1947.108,
+      "content": " a collision"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": " occurs, the"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": " probes"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": " the next available slot"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": " linear probing"
+    },
+    {
+      "timestamp_ms": 2045.268,
+      "content": ", quadratic"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": " probing,"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": " or double has"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": "hing).\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": " **Operations"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": " Time Complexity**\n\n"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": "| **Operation"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": "** | **Average"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": " Case** | **"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": "Worst Case**"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": " | **Explanation"
+    },
+    {
+      "timestamp_ms": 2204.593,
+      "content": "** |\n|------------"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "--|----------------"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "|----------------|"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "----------------"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "|\n| **Insert"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "   | **"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "O(1)**"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "       | **"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "O(n)**      "
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": " | Hash"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": " function computes index"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": " in O(1"
+    },
+    {
+      "timestamp_ms": 2455.401,
+      "content": "). If collisions"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " occur, insertion"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " may degrade"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " to O(n)"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " worst"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " case"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " (all"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": " collide). |\n"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": "| **Lookup"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": "**   | **"
+    },
+    {
+      "timestamp_ms": 2660.397,
+      "content": "O(1)**"
+    },
+    {
+      "timestamp_ms": 2762.878,
+      "content": "       | **O"
+    },
+    {
+      "timestamp_ms": 2762.878,
+      "content": "(n)**      "
+    },
+    {
+      "timestamp_ms": 2762.878,
+      "content": " | Hash"
+    },
+    {
+      "timestamp_ms": 2762.878,
+      "content": " function loc"
+    },
+    {
+      "timestamp_ms": 2762.878,
+      "content": "ates bucket"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " in O(1"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": "). If many"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " collisions"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " lookup"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " may scan"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " linked list/tree"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": "O(n)"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " worst case). |\n"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": "| **Delete"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": "**   | **"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": "O(1)**"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": "       | **O"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": "(n)**       |"
+    },
+    {
+      "timestamp_ms": 3175.075,
+      "content": " Similar to lookup"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " finding"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " the key, deletion"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " O(1)"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " (or O(log"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " n) if using"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " a tree for"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " ch"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": "aining). |\n\n"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": "#### **Why"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " Average"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " Case is"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " O(1)?"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": "**\n- A"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 3376.927,
+      "content": "-designed hash table"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " with a"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " good hash function and"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " resizing ("
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": "load"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " factor"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": ") ensures that"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " most operations"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " constant"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " time.\n- **"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": "Load"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " Factor"
+    },
+    {
+      "timestamp_ms": 3586.539,
+      "content": " (λ)**"
+    },
+    {
+      "timestamp_ms": 3688.872,
+      "content": " = ("
+    },
+    {
+      "timestamp_ms": 3688.872,
+      "content": "Number of entries"
+    },
+    {
+      "timestamp_ms": 3787.478,
+      "content": ") / (Number"
+    },
+    {
+      "timestamp_ms": 3787.478,
+      "content": " of buckets)\n"
+    },
+    {
+      "timestamp_ms": 3787.478,
+      "content": "  - If λ"
+    },
+    {
+      "timestamp_ms": 3787.478,
+      "content": " > threshold"
+    },
+    {
+      "timestamp_ms": 3787.478,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3787.478,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3787.478,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3787.703,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **How a Hash Table Works**\n\nA **hash table** (also called a hash map) is a data structure that stores key-value pairs and provides efficient insertion, deletion, and lookup operations. It works by using a **hash function** to compute an index (or \"hash code\") into an array of **buckets** (or slots), where the desired value can be found.\n\n#### **Key Components:**\n1. **Hash Function**\n   - Takes a key as input and computes an integer (hash code) that determines the index where the value should be stored.\n   - A good hash function:\n     - Distributes keys uniformly across buckets (minimizes collisions).\n     - Is deterministic (same key → same hash).\n     - Is fast to compute.\n\n2. **Buckets (Array of Slots)**\n   - Each bucket holds a key-value pair (or a linked list/other structure in case of collisions).\n\n3. **Collision Handling**\n   - **Separate Chaining:** Each bucket contains a linked list (or tree) of entries that hash to the same index.\n   - **Open Addressing:** If a collision occurs, the algorithm probes for the next available slot (e.g., linear probing, quadratic probing, or double hashing).\n\n---\n\n### **Operations & Time Complexity**\n\n| **Operation** | **Average Case** | **Worst Case** | **Explanation** |\n|--------------|----------------|----------------|----------------|\n| **Insert**   | **O(1)**       | **O(n)**       | Hash function computes index in O(1). If collisions occur, insertion may degrade to O(n) in worst case (all keys collide). |\n| **Lookup**   | **O(1)**       | **O(n)**       | Hash function locates bucket in O(1). If many collisions, lookup may scan a linked list/tree (O(n) in worst case). |\n| **Delete**   | **O(1)**       | **O(n)**       | Similar to lookup; after finding the key, deletion is O(1) (or O(log n) if using a tree for chaining). |\n\n#### **Why Average Case is O(1)?**\n- A well-designed hash table with a good hash function and proper resizing (load factor management) ensures that most operations take constant time.\n- **Load Factor (λ)** = (Number of entries) / (Number of buckets)\n  - If λ > threshold (e.g., ",
+  "response_chars": 2081,
+  "num_chunks": 194,
+  "ttft_ms": 548.147,
+  "total_ms": 3790.015,
+  "model_name": "Mistral-Large-3"
+}

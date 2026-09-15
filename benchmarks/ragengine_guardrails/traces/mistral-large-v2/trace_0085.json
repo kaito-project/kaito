@@ -1,0 +1,863 @@
+{
+  "index": 85,
+  "prompt": "Describe the publish-subscribe messaging pattern and give examples of its use.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 870.206,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": " **Publish"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "-S"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "ubscribe ("
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "Pub"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "-Sub) Mess"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "aging Pattern"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "**\n\nThe **publish"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "-subscribe (Pub"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "-Sub)** pattern"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": " is a messaging"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": " paradigm"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": " where send"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "ers (**"
+    },
+    {
+      "timestamp_ms": 870.206,
+      "content": "publishers**)"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": " not send"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": " messages directly to specific"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": " receivers (**"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": "scribers**). Instead"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": ", messages"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": " are categorized"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": " into **top"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": "ics** (or"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 1303.877,
+      "content": "), and subscribers"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " express"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " interest"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " in one"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " or more topics to"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " receive relevant"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " messages.\n\n"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": "#### **Key Characteristics"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": ":**\n1. **"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": "Decoupling"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " – Publishers and subscribers"
+    },
+    {
+      "timestamp_ms": 1666.406,
+      "content": " are unaware"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": " of each other,"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": " improving"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": " scal"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": "ability and"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": " flexibility.\n2."
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": " **Many"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": "-to-M"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": "any Communication"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": "** – Multiple"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": " publishers can send"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": " messages to a topic"
+    },
+    {
+      "timestamp_ms": 2056.881,
+      "content": ", and multiple"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " subscribers can receive"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": ".\n3"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": ". **Event"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": "-Driven**"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " – Sub"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": "scribers react"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " to messages as"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " they arrive"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": ".\n4. **"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": "Asynchronous**"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " – Publishers"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " and subscribers"
+    },
+    {
+      "timestamp_ms": 2469.068,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " waiting"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " for responses"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": ".\n\n####"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " **How It Works"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": ":**\n1. **"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": "Publishers** send"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " messages to a **"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": "broker**"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " (message"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " broker or"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " event"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " bus)"
+    },
+    {
+      "timestamp_ms": 2969.02,
+      "content": " under a"
+    },
+    {
+      "timestamp_ms": 3080.197,
+      "content": " specific topic.\n2"
+    },
+    {
+      "timestamp_ms": 3080.197,
+      "content": ". The"
+    },
+    {
+      "timestamp_ms": 3080.197,
+      "content": " **bro"
+    },
+    {
+      "timestamp_ms": 3080.197,
+      "content": "ker** filters"
+    },
+    {
+      "timestamp_ms": 3080.197,
+      "content": " and distributes messages"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": " to all"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": " **subscribers"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": "** who"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": " registered interest"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": " in that topic.\n"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": "3. **Sub"
+    },
+    {
+      "timestamp_ms": 3376.063,
+      "content": "scribers** process"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " messages they"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " receive.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " **Examples"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " of Pub-Sub"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " Cases**\n\n#### **"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": "1. Real-Time"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": "ifications ("
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": "e.g., Social"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " Media, News"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": " Apps"
+    },
+    {
+      "timestamp_ms": 3703.235,
+      "content": ")**\n- **Example"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": ":** Twitter"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": ", Facebook"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": ", or"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " news apps"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": ".\n- **How"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " it works:**\n "
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " - A user"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": "scri"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": "bes** to"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " topics like \"Sports"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": ",\""
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " \"Te"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": "chnology,\" or"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " specific user’s"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": " posts"
+    },
+    {
+      "timestamp_ms": 4296.513,
+      "content": ".\n  - When"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " a new"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " post"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " is published under"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " topic, all"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " subscribers receive it"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": " real time"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": ".\n\n#### **2"
+    },
+    {
+      "timestamp_ms": 4603.561,
+      "content": ". Io"
+    },
+    {
+      "timestamp_ms": 4708.724,
+      "content": "T ("
+    },
+    {
+      "timestamp_ms": 4708.724,
+      "content": "Internet"
+    },
+    {
+      "timestamp_ms": 4708.724,
+      "content": " of Things"
+    },
+    {
+      "timestamp_ms": 4708.724,
+      "content": ") Systems"
+    },
+    {
+      "timestamp_ms": 4708.724,
+      "content": "**\n- **Example"
+    },
+    {
+      "timestamp_ms": 4708.724,
+      "content": ":** Smart"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " home devices"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " temperature"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " sensors, security"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " cameras"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": ").\n- **How"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " it works:**\n "
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " - A temperature"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " sensor **"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": "publishes** readings"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " to a topic"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": " like `"
+    },
+    {
+      "timestamp_ms": 5092.425,
+      "content": "home/l"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": "iving_room"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": "/temperature`.\n "
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " - A"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " smart thermostat and"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " a mobile"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " app **"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": "subscribe"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": "** to this"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " topic to"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " adjust"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " or display"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": ".\n\n#### **3"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": ". Stock"
+    },
+    {
+      "timestamp_ms": 5483.106,
+      "content": " Market Data"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": " Fe"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": "eds"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": "**\n- **Example"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": ":** Financial"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": " trading platforms"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": ".\n- **How"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": " it works:**\n "
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": " - Stock exchanges"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": "publish** real"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": "-time price"
+    },
+    {
+      "timestamp_ms": 5835.78,
+      "content": " updates to"
+    },
+    {
+      "timestamp_ms": 5836.13,
+      "content": " topics like `NA"
+    },
+    {
+      "timestamp_ms": 5836.13,
+      "content": "SDA"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": "Q/A"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": "APL`"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": "Apple"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " stock).\n  -"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " Trading algorithms"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " and dash"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": "boards **subscribe"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": "** to relevant"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " stocks"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " to make"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " decisions"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": ".\n\n#### **4"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": ". Log"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " Event Processing"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": " (e"
+    },
+    {
+      "timestamp_ms": 6358.17,
+      "content": ".g., Monitoring"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "content": ")**\n- **Example"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "content": ":** Cloud monitoring"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "content": " (AWS"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "content": "Watch, Google"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "content": " Cloud Pub"
+    },
+    {
+      "timestamp_ms": 6447.431,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6456.756,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Publish-Subscribe (Pub-Sub) Messaging Pattern**\n\nThe **publish-subscribe (Pub-Sub)** pattern is a messaging paradigm where senders (**publishers**) do not send messages directly to specific receivers (**subscribers**). Instead, messages are categorized into **topics** (or channels), and subscribers express interest in one or more topics to receive relevant messages.\n\n#### **Key Characteristics:**\n1. **Decoupling** – Publishers and subscribers are unaware of each other, improving scalability and flexibility.\n2. **Many-to-Many Communication** – Multiple publishers can send messages to a topic, and multiple subscribers can receive them.\n3. **Event-Driven** – Subscribers react to messages as they arrive.\n4. **Asynchronous** – Publishers and subscribers operate independently without waiting for responses.\n\n#### **How It Works:**\n1. **Publishers** send messages to a **broker** (message broker or event bus) under a specific topic.\n2. The **broker** filters and distributes messages to all **subscribers** who have registered interest in that topic.\n3. **Subscribers** process the messages they receive.\n\n---\n\n### **Examples of Pub-Sub Use Cases**\n\n#### **1. Real-Time Notifications (e.g., Social Media, News Apps)**\n- **Example:** Twitter, Facebook, or news apps.\n- **How it works:**\n  - A user **subscribes** to topics like \"Sports,\" \"Technology,\" or a specific user’s posts.\n  - When a new post is published under that topic, all subscribers receive it in real time.\n\n#### **2. IoT (Internet of Things) Systems**\n- **Example:** Smart home devices (e.g., temperature sensors, security cameras).\n- **How it works:**\n  - A temperature sensor **publishes** readings to a topic like `home/living_room/temperature`.\n  - A smart thermostat and a mobile app **subscribe** to this topic to adjust settings or display updates.\n\n#### **3. Stock Market Data Feeds**\n- **Example:** Financial trading platforms.\n- **How it works:**\n  - Stock exchanges **publish** real-time price updates to topics like `NASDAQ/AAPL` (Apple stock).\n  - Trading algorithms and dashboards **subscribe** to relevant stocks to make decisions.\n\n#### **4. Log & Event Processing (e.g., Monitoring Systems)**\n- **Example:** Cloud monitoring (AWS CloudWatch, Google Cloud Pub",
+  "response_chars": 2251,
+  "num_chunks": 210,
+  "ttft_ms": 870.206,
+  "total_ms": 6549.692,
+  "model_name": "Mistral-Large-3"
+}

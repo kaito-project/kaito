@@ -1,0 +1,839 @@
+{
+  "index": 42,
+  "prompt": "Generate a sample webhook payload that contains user signup data: email, full_name, phone_number, ip_address, user_agent, and referral_code.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 246.532,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 264.487,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 283.603,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 301.49,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 320.423,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 339.274,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 358.67,
+      "content": " webhook"
+    },
+    {
+      "timestamp_ms": 379.049,
+      "content": " payload"
+    },
+    {
+      "timestamp_ms": 397.138,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 417.613,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 435.171,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 455.785,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 472.304,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 491.593,
+      "content": " signup"
+    },
+    {
+      "timestamp_ms": 511.782,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 530.083,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 549.236,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 567.488,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 586.426,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 606.012,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 624.919,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 643.777,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 663.794,
+      "content": "event"
+    },
+    {
+      "timestamp_ms": 682.182,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 700.892,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 721.048,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 738.872,
+      "content": "_signup"
+    },
+    {
+      "timestamp_ms": 757.735,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 776.91,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 797.25,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 815.041,
+      "content": "timestamp"
+    },
+    {
+      "timestamp_ms": 835.582,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 853.3,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 873.319,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 895.188,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 910.356,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 929.398,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 948.303,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 967.141,
+      "content": "05"
+    },
+    {
+      "timestamp_ms": 988.701,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 1005.699,
+      "content": "16"
+    },
+    {
+      "timestamp_ms": 1025.414,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1043.822,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 1063.289,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1081.688,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1100.84,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 1121.403,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1138.829,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1158.04,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1177.842,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 1196.069,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1215.056,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1234.454,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1253.812,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1272.464,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 1291.373,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1310.565,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1329.755,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 1348.517,
+      "content": "ane"
+    },
+    {
+      "timestamp_ms": 1367.68,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 1389.729,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1405.794,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1431.9,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1446.611,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1462.879,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1486.345,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1500.848,
+      "content": "full"
+    },
+    {
+      "timestamp_ms": 1519.856,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 1540.964,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1557.553,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1576.8,
+      "content": "Jane"
+    },
+    {
+      "timestamp_ms": 1597.099,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1615.286,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1634.597,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1653.454,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1683.999,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 1693.074,
+      "content": "_number"
+    },
+    {
+      "timestamp_ms": 1710.772,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1729.281,
+      "content": " \"+"
+    },
+    {
+      "timestamp_ms": 1748.917,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1767.766,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1787.429,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 1805.613,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1826.337,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1843.745,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1863.018,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1882.043,
+      "content": "ip"
+    },
+    {
+      "timestamp_ms": 1901.008,
+      "content": "_address"
+    },
+    {
+      "timestamp_ms": 1919.963,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1939.196,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1958.305,
+      "content": "192"
+    },
+    {
+      "timestamp_ms": 1978.014,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1996.221,
+      "content": "168"
+    },
+    {
+      "timestamp_ms": 2015.114,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2034.484,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2053.698,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2072.258,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2091.706,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2110.716,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2129.916,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2148.39,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2167.742,
+      "content": "_agent"
+    },
+    {
+      "timestamp_ms": 2188.692,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2206.135,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2225.232,
+      "content": "Mozilla"
+    },
+    {
+      "timestamp_ms": 2245.555,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2280.519,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2281.846,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2300.818,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2334.022,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2340.175,
+      "content": "Windows"
+    },
+    {
+      "timestamp_ms": 2358.78,
+      "content": " NT"
+    },
+    {
+      "timestamp_ms": 2379.942,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2396.729,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 2416.09,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2434.645,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2457.379,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 2494.6,
+      "content": " Win"
+    },
+    {
+      "timestamp_ms": 2494.6,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 2510.858,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 2530.173,
+      "content": " x"
+    },
+    {
+      "timestamp_ms": 2548.725,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 2567.7,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2586.893,
+      "content": " AppleWebKit"
+    },
+    {
+      "timestamp_ms": 2605.849,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2633.246,
+      "content": "537"
+    },
+    {
+      "timestamp_ms": 2644.611,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2663.357,
+      "content": "36"
+    },
+    {
+      "timestamp_ms": 2682.445,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2702.318,
+      "content": "KHTML"
+    },
+    {
+      "timestamp_ms": 2722.513,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2740.299,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2758.647,
+      "content": " Gecko"
+    },
+    {
+      "timestamp_ms": 2844.145,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2844.145,
+      "content": " Chrome"
+    },
+    {
+      "timestamp_ms": 2844.145,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2844.145,
+      "content": "118"
+    },
+    {
+      "timestamp_ms": 2855.572,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2872.424,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2899.098,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2910.881,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2929.85,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2949.889,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2967.58,
+      "content": " Safari"
+    },
+    {
+      "timestamp_ms": 2986.713,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3006.618,
+      "content": "537"
+    },
+    {
+      "timestamp_ms": 3025.351,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3044.641,
+      "content": "36"
+    },
+    {
+      "timestamp_ms": 3062.774,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3082.369,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3101.315,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3120.685,
+      "content": "ref"
+    },
+    {
+      "timestamp_ms": 3139.278,
+      "content": "erral"
+    },
+    {
+      "timestamp_ms": 3158.486,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 3176.858,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3197.228,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3216.027,
+      "content": "JD"
+    },
+    {
+      "timestamp_ms": 3234.625,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3254.062,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3272.902,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3292.195,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3311.442,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 3329.943,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 3349.058,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3368.771,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3387.553,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 3406.089,
+      "content": " payload"
+    },
+    {
+      "timestamp_ms": 3426.255,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 3445.03,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 3464.473,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3482.303,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3502.454,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3520.736,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 3540.147,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3558.76,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3580.417,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3596.883,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 3616.76,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3634.696,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 3654.669,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 3673.484,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3691.648,
+      "content": " phone"
+    },
+    {
+      "timestamp_ms": 3712.091,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 3732.487,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3749.741,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 3768.541,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 3787.918,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3806.614,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3830.982,
+      "content": " agent"
+    },
+    {
+      "timestamp_ms": 3845.214,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3863.815,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3884.254,
+      "content": " referral"
+    },
+    {
+      "timestamp_ms": 3904.196,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3921.165,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3939.957,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 3958.947,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3978.516,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3997.04,
+      "content": " timestamp"
+    },
+    {
+      "timestamp_ms": 4016.28,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4037.847,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 4054.298,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4074.303,
+      "content": " event"
+    },
+    {
+      "timestamp_ms": 4093.263,
+      "content": " occurred"
+    },
+    {
+      "timestamp_ms": 4111.575,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4137.037,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 4137.037,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample webhook payload in JSON format containing user signup data:\n\n```json\n{\n  \"event\": \"user_signup\",\n  \"timestamp\": \"2023-11-05T16:30:12Z\",\n  \"user\": {\n    \"email\": \"jane.doe@example.com\",\n    \"full_name\": \"Jane Doe\",\n    \"phone_number\": \"+1234567890\",\n    \"ip_address\": \"192.168.1.1\",\n    \"user_agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36\",\n    \"referral_code\": \"JD1234\"\n  }\n}\n```\n\nThis payload provides basic user information, including the user's email, full name, phone number, IP address, user agent, and referral code, along with a timestamp of when the event occurred.",
+  "response_chars": 677,
+  "num_chunks": 204,
+  "ttft_ms": 246.532,
+  "total_ms": 4137.443,
+  "model_name": "model-medium"
+}

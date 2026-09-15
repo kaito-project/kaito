@@ -1,0 +1,799 @@
+{
+  "index": 83,
+  "prompt": "What is rate limiting and what algorithms are commonly used to implement it?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 970.104,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " **Rate"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " Limiting**\n"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": "**Rate"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": "** is a"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " used to control the"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " amount"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " of incoming or"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " outgoing traffic to"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": " from a network"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": ", server"
+    },
+    {
+      "timestamp_ms": 970.104,
+      "content": ", or API"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " a specific time window"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": ". It"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " helps prevent abuse"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": ", ensures"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " fair"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " resource usage, and"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " protects"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " from being"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " overwhelmed by too"
+    },
+    {
+      "timestamp_ms": 1427.319,
+      "content": " many requests (e"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": ".g., DDo"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": "S attacks"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": ", brute"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": "-force attacks,"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": " or excessive API calls"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": ").\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": "### **Common"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": " Cases for"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": " Rate Limiting**\n"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": "1. **API"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": "s** –"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": " Prevent abuse"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1936.814,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": " number of requests per"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": " user/IP"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": ".\n2. **"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": "Web Serv"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": "ers** – Protect"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": " against D"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": "DoS attacks by"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": " thrott"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": "ling excessive"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": ".\n3"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": ". **Login"
+    },
+    {
+      "timestamp_ms": 2432.731,
+      "content": " Systems** – Prevent"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " brute-force attacks by"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " limiting login"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " attempts.\n4."
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " **Payment"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " Gate"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": "ways** – Control"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " transaction"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " rates to prevent fraud"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": ".\n5. **"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": "Microservices**"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " – Ensure"
+    },
+    {
+      "timestamp_ms": 3339.774,
+      "content": " fair resource distribution among"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": " services.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": " **Common Rate"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": " Limiting Algorithms"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": "Several algorithms"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": " are used to implement"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": " rate limiting, each"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": " with trade"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": "-offs in"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 3441.551,
+      "content": ", memory"
+    },
+    {
+      "timestamp_ms": 3611.64,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 3611.64,
+      "content": ", and computational"
+    },
+    {
+      "timestamp_ms": 3611.64,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 3611.64,
+      "content": ".\n\n#### **1"
+    },
+    {
+      "timestamp_ms": 3611.64,
+      "content": ". Fixed Window"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " (or"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " Fixed"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " Window Counter"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": ")**\n- **How"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " it works**:\n "
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " - Time"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " is divided into fixed"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " intervals"
+    },
+    {
+      "timestamp_ms": 3968.5,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " 1 minute"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": "  - A"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " counter tracks"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " requests in"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " current window.\n "
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " - If the"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " counter"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " exceeds the"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " limit, requests"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " are rejected.\n-"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": " **Pro"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": "s**:\n"
+    },
+    {
+      "timestamp_ms": 4557.05,
+      "content": "  - Simple to"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " implement.\n  -"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " Low memory usage.\n"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "- **Cons**:\n"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "  - **Bur"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "st traffic"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " at window"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " edges ("
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "e.g., "
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "100 requests"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " at 1:"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "9 and"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " 1"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "00 at "
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "2:00"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " →"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": "200 in"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " 2"
+    },
+    {
+      "timestamp_ms": 5045.339,
+      "content": " seconds).\n  -"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": " precise for"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": " short"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": " bursts"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": ".\n- **Example"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": "**:\n  -"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": " Allow "
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": "100 requests"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": " per minute per"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": " user.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 5404.78,
+      "content": "2. Sl"
+    },
+    {
+      "timestamp_ms": 5525.057,
+      "content": "iding Window Log"
+    },
+    {
+      "timestamp_ms": 5525.057,
+      "content": "**\n- **How"
+    },
+    {
+      "timestamp_ms": 5525.057,
+      "content": " it works**:\n "
+    },
+    {
+      "timestamp_ms": 5525.057,
+      "content": " - Tracks the"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " timestamp"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " of every"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " request in a log"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": ".\n  - For"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " each new"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " request, old"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " timestamps"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " (outside the current"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " window) are removed"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": ".\n  - If"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " the remaining"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " count"
+    },
+    {
+      "timestamp_ms": 5939.54,
+      "content": " exceeds"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " the limit, the"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " request is rejected.\n"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": "- **Pro"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": "s**:\n  -"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " Very accurate"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " (no burst"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": ").\n-"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " **Cons**:\n "
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " - High"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " memory usage (st"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": "ores all"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " timestamps).\n  -"
+    },
+    {
+      "timestamp_ms": 6348.637,
+      "content": " Comput"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": "ationally"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": " expensive (requires"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": " sorting/de"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": "leting old"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": " logs).\n- **"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": "Example**:\n  -"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": " Allow"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": " 100"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": " requests in"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": " the last 6"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": "0 seconds"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": ".\n\n#### **3"
+    },
+    {
+      "timestamp_ms": 6723.421,
+      "content": ". Sliding Window"
+    },
+    {
+      "timestamp_ms": 6773.637,
+      "content": " Counter"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": " (Hy"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": "brid Approach)**\n-"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": " **How it works"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": "**:\n  - Comb"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": "ines **"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": "Fixed Window** and"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": " **Sl"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": "iding Log"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7019.558,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7081.214,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Rate Limiting**\n**Rate limiting** is a technique used to control the amount of incoming or outgoing traffic to or from a network, server, or API within a specific time window. It helps prevent abuse, ensures fair resource usage, and protects systems from being overwhelmed by too many requests (e.g., DDoS attacks, brute-force attacks, or excessive API calls).\n\n---\n\n### **Common Use Cases for Rate Limiting**\n1. **APIs** – Prevent abuse by limiting the number of requests per user/IP.\n2. **Web Servers** – Protect against DDoS attacks by throttling excessive traffic.\n3. **Login Systems** – Prevent brute-force attacks by limiting login attempts.\n4. **Payment Gateways** – Control transaction rates to prevent fraud.\n5. **Microservices** – Ensure fair resource distribution among services.\n\n---\n\n### **Common Rate Limiting Algorithms**\nSeveral algorithms are used to implement rate limiting, each with trade-offs in accuracy, memory usage, and computational overhead.\n\n#### **1. Fixed Window (or Fixed Window Counter)**\n- **How it works**:\n  - Time is divided into fixed intervals (e.g., 1 minute).\n  - A counter tracks requests in the current window.\n  - If the counter exceeds the limit, requests are rejected.\n- **Pros**:\n  - Simple to implement.\n  - Low memory usage.\n- **Cons**:\n  - **Burst traffic** at window edges (e.g., 100 requests at 1:59 and 100 at 2:00 → 200 in 2 seconds).\n  - Not precise for short bursts.\n- **Example**:\n  - Allow 100 requests per minute per user.\n\n#### **2. Sliding Window Log**\n- **How it works**:\n  - Tracks the timestamp of every request in a log.\n  - For each new request, old timestamps (outside the current window) are removed.\n  - If the remaining count exceeds the limit, the request is rejected.\n- **Pros**:\n  - Very accurate (no burst issues).\n- **Cons**:\n  - High memory usage (stores all timestamps).\n  - Computationally expensive (requires sorting/deleting old logs).\n- **Example**:\n  - Allow 100 requests in the last 60 seconds.\n\n#### **3. Sliding Window Counter (Hybrid Approach)**\n- **How it works**:\n  - Combines **Fixed Window** and **Sliding Log**",
+  "response_chars": 2106,
+  "num_chunks": 194,
+  "ttft_ms": 970.104,
+  "total_ms": 7082.368,
+  "model_name": "Mistral-Large-3"
+}

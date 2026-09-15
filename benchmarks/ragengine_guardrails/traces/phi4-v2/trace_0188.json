@@ -1,0 +1,535 @@
+{
+  "index": 188,
+  "prompt": "Generate a sample employee directory entry with name, work email, personal email, office phone, cell phone, and employee ID.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 388.586,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 388.756,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 388.829,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 388.882,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 391.461,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 448.953,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 449.123,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 449.207,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 490.371,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 490.623,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 592.225,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 601.796,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 601.971,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 602.118,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 602.211,
+      "content": "Employee"
+    },
+    {
+      "timestamp_ms": 602.395,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 695.514,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 695.678,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 695.845,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 695.974,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 697.045,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 797.64,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 797.955,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 798.183,
+      "content": "Work"
+    },
+    {
+      "timestamp_ms": 798.291,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 798.36,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 812.264,
+      "content": " john"
+    },
+    {
+      "timestamp_ms": 900.394,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 900.682,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 913.441,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 913.441,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 913.586,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 926.125,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1001.93,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1002.089,
+      "content": "Personal"
+    },
+    {
+      "timestamp_ms": 1002.169,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 1006.308,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1020.873,
+      "content": " j"
+    },
+    {
+      "timestamp_ms": 1104.304,
+      "content": "oh"
+    },
+    {
+      "timestamp_ms": 1104.468,
+      "content": "nd"
+    },
+    {
+      "timestamp_ms": 1104.607,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1104.692,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1118.251,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1206.77,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1207.061,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1207.199,
+      "content": "Office"
+    },
+    {
+      "timestamp_ms": 1207.297,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1211.798,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1309.646,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1309.831,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1309.911,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1309.994,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1310.165,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1328.69,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1344.408,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 1371.406,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1382.954,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1402.993,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1420.431,
+      "content": "Cell"
+    },
+    {
+      "timestamp_ms": 1514.008,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1514.308,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1514.446,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1514.514,
+      "content": "098"
+    },
+    {
+      "timestamp_ms": 1521.939,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1537.908,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1617.0,
+      "content": "765"
+    },
+    {
+      "timestamp_ms": 1617.215,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1617.341,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 1617.412,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1630.753,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1718.91,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1719.043,
+      "content": "Employee"
+    },
+    {
+      "timestamp_ms": 1719.108,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 1719.161,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1726.828,
+      "content": " JD"
+    },
+    {
+      "timestamp_ms": 1823.618,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1823.758,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 1823.83,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 1823.89,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1823.94,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1839.362,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 1924.678,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1924.842,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1924.915,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 1924.972,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 1934.754,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 2031.543,
+      "content": " placeholder"
+    },
+    {
+      "timestamp_ms": 2031.743,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2031.832,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2031.893,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 2032.269,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 2128.433,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 2128.582,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 2128.658,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 2131.167,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2131.327,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 2231.734,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2235.44,
+      "content": " collect"
+    },
+    {
+      "timestamp_ms": 2235.677,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2235.811,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2235.888,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 2240.228,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2333.742,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2333.889,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2333.969,
+      "content": " according"
+    },
+    {
+      "timestamp_ms": 2334.095,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2334.847,
+      "content": " privacy"
+    },
+    {
+      "timestamp_ms": 2435.87,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2436.093,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 2436.215,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 2436.282,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2436.344,
+      "content": " Additionally"
+    },
+    {
+      "timestamp_ms": 2449.222,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2538.342,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2538.508,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2538.576,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 2538.627,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2551.626,
+      "content": " differentiate"
+    },
+    {
+      "timestamp_ms": 2564.296,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 2743.093,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2743.093,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 2743.093,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 2743.093,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 2743.281,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2743.36,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 2743.422,
+      "content": "-related"
+    },
+    {
+      "timestamp_ms": 2743.482,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2743.533,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2756.806,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 2756.806,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample employee directory entry in a common format:\n\n---\n\n**Employee Name:** John A. Doe  \n**Work Email:** john.doe@company.com  \n**Personal Email:** johndoe@example.com  \n**Office Phone:** (123) 456-7890  \n**Cell Phone:** (098) 765-4321  \n**Employee ID:** JD12345  \n\n---\n\n**Note:** This sample entry uses placeholder information. When creating actual employee entries, ensure you collect and use accurate and secure information according to privacy and company policies. Additionally, it's important to differentiate between and securely handle personal and work-related information.",
+  "response_chars": 593,
+  "num_chunks": 128,
+  "ttft_ms": 388.586,
+  "total_ms": 2761.998,
+  "model_name": "model-medium"
+}

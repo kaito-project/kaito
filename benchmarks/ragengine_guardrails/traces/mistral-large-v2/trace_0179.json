@@ -1,0 +1,911 @@
+{
+  "index": 179,
+  "prompt": "What are the key features of Rust that make it suitable for systems programming?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1228.094,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": "ust is a modern"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": " systems programming language"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": ", safety, and"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": " conc"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": "urrency. Its"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": " key features make"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": " it particularly well"
+    },
+    {
+      "timestamp_ms": 1228.094,
+      "content": "-suited for systems"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " programming, where"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": "-level control,"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": ", and reliability are"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " critical. Here are"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " the most"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " important features:\n\n###"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": "1. **Memory"
+    },
+    {
+      "timestamp_ms": 1941.727,
+      "content": " Safety Without"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " Gar"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": "bage Collection"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": "**\n   - **"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": "Ownership Model"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": "**: Rust enforces"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " rules"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " compile time using"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " ownership system. Each"
+    },
+    {
+      "timestamp_ms": 2556.971,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " has a"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " single owner, and"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " is automatically"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " freed when the"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " owner goes out of"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " scope.\n   -"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " **B"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": "orrow Check"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": "er**: The"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " compiler checks"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " references"
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3100.07,
+      "content": "borrows) to"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": " ensure they are valid"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": " preventing data races"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": " dangling pointers"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": ", and other memory"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": "-related bugs"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": ".\n   - **"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": "No Gar"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": "bage Collector"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": "**: Unlike languages"
+    },
+    {
+      "timestamp_ms": 3788.114,
+      "content": " like Java"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " or Go, Rust"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": "’t rely"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " on a garbage"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " collector, making it"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " predictable"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " efficient for low-l"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": "atency systems"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": ".\n\n### 2"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": ". **Zero"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": "-Cost"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": " Abstractions"
+    },
+    {
+      "timestamp_ms": 4399.752,
+      "content": "**\n   - Rust"
+    },
+    {
+      "timestamp_ms": 4605.125,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 4605.125,
+      "content": " high-level abstra"
+    },
+    {
+      "timestamp_ms": 4605.125,
+      "content": "ctions (e.g"
+    },
+    {
+      "timestamp_ms": 4605.125,
+      "content": "., iter"
+    },
+    {
+      "timestamp_ms": 4605.125,
+      "content": "ators, traits"
+    },
+    {
+      "timestamp_ms": 4605.125,
+      "content": ") that compile"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": " to efficient"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": " machine code,"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": " often as"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": "ant as hand"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": "-written C or"
+    },
+    {
+      "timestamp_ms": 5026.433,
+      "content": " C++.\n  "
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " - Example: `"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": "for` loops over"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " collections"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " are as"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " fast as manual"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " indexing"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": ".\n\n### 3"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": ". **Fear"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": "less Conc"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": "urrency**\n   -"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": "’s ownership"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5691.006,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " data races at"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " compile time, making"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " programming safer"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " easier.\n"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": "   - Thread"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": "s can"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " data safely using"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " like `Arc"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " (atomic"
+    },
+    {
+      "timestamp_ms": 6756.272,
+      "content": " reference counting"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": ") and `Mutex"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": "` (mut"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": "ual exclusion"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": ").\n   - Example"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": ": The"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": " compiler catches"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": " race"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": " conditions like"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 7276.992,
+      "content": " threads"
+    },
+    {
+      "timestamp_ms": 7339.745,
+      "content": " modifying the"
+    },
+    {
+      "timestamp_ms": 7339.745,
+      "content": " same data without synchronization"
+    },
+    {
+      "timestamp_ms": 7339.745,
+      "content": ".\n\n### 4"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": ". **Performance"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": "   - Rust is"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " fast as C"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": "/C"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": "++ due to:\n"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": "     - No runtime"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " garbage collector"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": ".\n     - Min"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": "imal runtime"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": ".g., no"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " exceptions"
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8292.656,
+      "content": " just pan"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": "ics for"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " unre"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": "coverable errors"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": ").\n     - LL"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": "VM-based"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " optimizations (same"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " backend"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " as Cl"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": "ang).\n   -"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " Fine"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": "-grained"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " control over memory layout"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " `#["
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": "repr(C"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": ")]` for"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": " F"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": "FI or"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": " `#["
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": "repr(p"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": "acked"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": ")]` for compact"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": " struct"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": ").\n\n### 5"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": ". **Low"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": "Level Control**\n  "
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": " - **"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": "Direct Memory"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": " Access**: Rust allows"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": " pointer"
+    },
+    {
+      "timestamp_ms": 10514.614,
+      "content": " arithmetic"
+    },
+    {
+      "timestamp_ms": 11260.962,
+      "content": " (via"
+    },
+    {
+      "timestamp_ms": 11260.962,
+      "content": " `unsafe` blocks"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": ") when"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": " needed, but encourages"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": " safe alternatives"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": ".\n   - **"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": "Inline"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": "**: Sup"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": "ports `asm"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": "!` macro"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": " for writing assembly"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": " code directly"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": "   - **No"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": " Hidden"
+    },
+    {
+      "timestamp_ms": 11938.344,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " Flow"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": "**: Unlike"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " with implicit"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " allocations"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " checks, Rust"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " gives"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " you explicit"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " control.\n\n### "
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": "6. **Error"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " Handling**\n   -"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": "No"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": " Ex"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "content": "ceptions"
+    },
+    {
+      "timestamp_ms": 12699.832,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 12700.144,
+      "type": "done"
+    }
+  ],
+  "full_response": "Rust is a modern systems programming language designed for performance, safety, and concurrency. Its key features make it particularly well-suited for systems programming, where low-level control, efficiency, and reliability are critical. Here are the most important features:\n\n### 1. **Memory Safety Without Garbage Collection**\n   - **Ownership Model**: Rust enforces strict rules for memory management at compile time using its ownership system. Each value has a single owner, and memory is automatically freed when the owner goes out of scope.\n   - **Borrow Checker**: The compiler checks references (borrows) to ensure they are valid, preventing data races, dangling pointers, and other memory-related bugs.\n   - **No Garbage Collector**: Unlike languages like Java or Go, Rust doesn’t rely on a garbage collector, making it predictable and efficient for low-latency systems.\n\n### 2. **Zero-Cost Abstractions**\n   - Rust allows high-level abstractions (e.g., iterators, traits) that compile down to efficient machine code, often as performant as hand-written C or C++.\n   - Example: `for` loops over collections are as fast as manual indexing.\n\n### 3. **Fearless Concurrency**\n   - Rust’s ownership and type systems prevent data races at compile time, making concurrent programming safer and easier.\n   - Threads can share data safely using mechanisms like `Arc` (atomic reference counting) and `Mutex` (mutual exclusion).\n   - Example: The compiler catches race conditions like two threads modifying the same data without synchronization.\n\n### 4. **Performance**\n   - Rust is as fast as C/C++ due to:\n     - No runtime or garbage collector overhead.\n     - Minimal runtime (e.g., no exceptions, just panics for unrecoverable errors).\n     - LLVM-based optimizations (same backend as Clang).\n   - Fine-grained control over memory layout (e.g., `#[repr(C)]` for FFI or `#[repr(packed)]` for compact structs).\n\n### 5. **Low-Level Control**\n   - **Direct Memory Access**: Rust allows pointer arithmetic (via `unsafe` blocks) when needed, but encourages safe alternatives.\n   - **Inline Assembly**: Supports `asm!` macro for writing assembly code directly.\n   - **No Hidden Control Flow**: Unlike languages with implicit allocations or runtime checks, Rust gives you explicit control.\n\n### 6. **Error Handling**\n   - **No Exceptions",
+  "response_chars": 2333,
+  "num_chunks": 222,
+  "ttft_ms": 1228.094,
+  "total_ms": 12810.795,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,2071 @@
+{
+  "index": 220,
+  "prompt": "Write a brief history of cloud computing from mainframes to serverless.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 405.197,
+      "content": "Cloud"
+    },
+    {
+      "timestamp_ms": 405.329,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 405.392,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 405.445,
+      "content": " evolved"
+    },
+    {
+      "timestamp_ms": 405.496,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 405.545,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 415.275,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 468.259,
+      "content": " era"
+    },
+    {
+      "timestamp_ms": 468.421,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 486.128,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 492.849,
+      "content": "frames"
+    },
+    {
+      "timestamp_ms": 610.525,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 610.728,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 610.794,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 610.849,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 610.9,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 610.962,
+      "content": " architectures"
+    },
+    {
+      "timestamp_ms": 625.52,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 712.631,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 712.867,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 712.999,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 713.091,
+      "content": " brief"
+    },
+    {
+      "timestamp_ms": 717.37,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 827.393,
+      "content": " outlining"
+    },
+    {
+      "timestamp_ms": 827.601,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 827.728,
+      "content": " transformation"
+    },
+    {
+      "timestamp_ms": 827.807,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 827.873,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 832.279,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 916.777,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 916.931,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 917.007,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 917.076,
+      "content": "Main"
+    },
+    {
+      "timestamp_ms": 933.153,
+      "content": "frames"
+    },
+    {
+      "timestamp_ms": 948.443,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 967.08,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 988.879,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1018.517,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1024.692,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1103.723,
+      "content": "196"
+    },
+    {
+      "timestamp_ms": 1103.898,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1104.072,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1104.21,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1128.13,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1139.398,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1156.84,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1224.511,
+      "content": "Early"
+    },
+    {
+      "timestamp_ms": 1224.774,
+      "content": " Begin"
+    },
+    {
+      "timestamp_ms": 1224.92,
+      "content": "nings"
+    },
+    {
+      "timestamp_ms": 1232.525,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1326.732,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 1326.952,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1327.05,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1327.155,
+      "content": " roots"
+    },
+    {
+      "timestamp_ms": 1343.501,
+      "content": " trace"
+    },
+    {
+      "timestamp_ms": 1354.142,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 1366.753,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1429.193,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1429.371,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1538.52,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1538.694,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1538.792,
+      "content": "frames"
+    },
+    {
+      "timestamp_ms": 1538.922,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1539.02,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1539.375,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1544.171,
+      "content": "195"
+    },
+    {
+      "timestamp_ms": 1557.448,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1581.681,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1596.838,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1617.995,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1736.456,
+      "content": "196"
+    },
+    {
+      "timestamp_ms": 1736.647,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1736.719,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1736.776,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1736.83,
+      "content": " Large"
+    },
+    {
+      "timestamp_ms": 1736.88,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1762.433,
+      "content": " centralized"
+    },
+    {
+      "timestamp_ms": 1769.462,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 1838.698,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 1838.864,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1838.939,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 1841.972,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1941.712,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 1941.855,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 1941.925,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 1941.998,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 1942.066,
+      "content": "-sharing"
+    },
+    {
+      "timestamp_ms": 1974.496,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 2045.814,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2045.814,
+      "content": " Companies"
+    },
+    {
+      "timestamp_ms": 2045.814,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 2045.814,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 2146.029,
+      "content": "frame"
+    },
+    {
+      "timestamp_ms": 2146.248,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2146.423,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 2146.638,
+      "content": "-effect"
+    },
+    {
+      "timestamp_ms": 2146.775,
+      "content": "ively"
+    },
+    {
+      "timestamp_ms": 2152.05,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2248.155,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 2248.328,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2248.427,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 2248.493,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2248.547,
+      "content": " remote"
+    },
+    {
+      "timestamp_ms": 2261.451,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 2360.715,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2360.985,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 2361.105,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2361.233,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2361.501,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2378.508,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2400.437,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 2417.61,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2434.773,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 2567.617,
+      "content": " Model"
+    },
+    {
+      "timestamp_ms": 2567.861,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2568.037,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 2568.172,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2568.265,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 2568.341,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2568.41,
+      "content": "199"
+    },
+    {
+      "timestamp_ms": 2586.846,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2610.712,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 2657.537,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2657.747,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2663.939,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2683.616,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2760.612,
+      "content": "Development"
+    },
+    {
+      "timestamp_ms": 2760.812,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2760.943,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 2773.351,
+      "content": " technology"
+    },
+    {
+      "timestamp_ms": 2776.953,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 2813.679,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2824.905,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2834.553,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 2965.941,
+      "content": "-server"
+    },
+    {
+      "timestamp_ms": 2965.941,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 2966.102,
+      "content": " emerged"
+    },
+    {
+      "timestamp_ms": 2966.215,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2966.361,
+      "content": " Individual"
+    },
+    {
+      "timestamp_ms": 2966.437,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 2967.269,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2986.612,
+      "content": "clients"
+    },
+    {
+      "timestamp_ms": 3012.269,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3028.222,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 3068.933,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3069.092,
+      "content": " centralized"
+    },
+    {
+      "timestamp_ms": 3081.269,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 3140.575,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3140.805,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3144.531,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 3272.454,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3272.597,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3272.679,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3272.744,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3275.664,
+      "content": " era"
+    },
+    {
+      "timestamp_ms": 3275.791,
+      "content": " saw"
+    },
+    {
+      "timestamp_ms": 3275.86,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3292.435,
+      "content": " proliferation"
+    },
+    {
+      "timestamp_ms": 3311.727,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3375.909,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 3376.092,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 3376.198,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3386.608,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3478.664,
+      "content": " corporations"
+    },
+    {
+      "timestamp_ms": 3478.819,
+      "content": " began"
+    },
+    {
+      "timestamp_ms": 3478.897,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3478.952,
+      "content": " realize"
+    },
+    {
+      "timestamp_ms": 3482.048,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3579.269,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 3579.411,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3579.483,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 3579.538,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 3595.383,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 3602.157,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3615.188,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3681.959,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3682.173,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3682.276,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3690.508,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3758.308,
+      "content": "Internet"
+    },
+    {
+      "timestamp_ms": 3758.541,
+      "content": " Growth"
+    },
+    {
+      "timestamp_ms": 3758.665,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3766.646,
+      "content": " Early"
+    },
+    {
+      "timestamp_ms": 3889.548,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 3889.737,
+      "content": " Concepts"
+    },
+    {
+      "timestamp_ms": 3889.82,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3889.884,
+      "content": "199"
+    },
+    {
+      "timestamp_ms": 3889.94,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3889.992,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 3901.643,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3988.519,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3988.661,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3988.813,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3988.97,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 4091.843,
+      "content": "rel"
+    },
+    {
+      "timestamp_ms": 4092.231,
+      "content": "iminary"
+    },
+    {
+      "timestamp_ms": 4092.39,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 4092.39,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 4092.545,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4092.644,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 4195.075,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4195.279,
+      "content": " rise"
+    },
+    {
+      "timestamp_ms": 4195.436,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4195.584,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4195.71,
+      "content": " internet"
+    },
+    {
+      "timestamp_ms": 4205.524,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4296.265,
+      "content": " groundwork"
+    },
+    {
+      "timestamp_ms": 4296.467,
+      "content": " began"
+    },
+    {
+      "timestamp_ms": 4296.639,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4401.779,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 4401.779,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 4401.779,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 4401.779,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 4401.779,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 4401.974,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4402.046,
+      "content": " Commercial"
+    },
+    {
+      "timestamp_ms": 4500.738,
+      "content": " internet"
+    },
+    {
+      "timestamp_ms": 4510.779,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 4510.898,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4510.963,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 4511.018,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 4511.066,
+      "content": " started"
+    },
+    {
+      "timestamp_ms": 4603.413,
+      "content": " facilitating"
+    },
+    {
+      "timestamp_ms": 4603.619,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4603.709,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 4603.818,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4605.239,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 4705.937,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4706.153,
+      "content": " central"
+    },
+    {
+      "timestamp_ms": 4706.246,
+      "content": " locations"
+    },
+    {
+      "timestamp_ms": 4706.32,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4706.385,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 4720.841,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 4812.015,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 4812.312,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4812.394,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 4812.458,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4815.492,
+      "content": " launched"
+    },
+    {
+      "timestamp_ms": 4911.287,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4911.476,
+      "content": " Simple"
+    },
+    {
+      "timestamp_ms": 4911.568,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 4911.64,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 4911.705,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5018.874,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 5019.019,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5019.086,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5019.177,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5019.283,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5025.948,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5115.211,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5115.357,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5115.547,
+      "content": " marking"
+    },
+    {
+      "timestamp_ms": 5115.664,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5178.911,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 5179.055,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 5179.132,
+      "content": " towards"
+    },
+    {
+      "timestamp_ms": 5179.22,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5217.721,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 5217.893,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5334.198,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5334.198,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5334.401,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5334.559,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5334.633,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5334.691,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 5533.005,
+      "content": "ise"
+    },
+    {
+      "timestamp_ms": 5533.21,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5533.307,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 5533.381,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 5533.453,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5533.507,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5533.555,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5540.253,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5540.394,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5540.479,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5540.548,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5563.921,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5629.592,
+      "content": "Infrastructure"
+    },
+    {
+      "timestamp_ms": 5629.725,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5629.79,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5635.954,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 5729.713,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5729.996,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 5730.245,
+      "content": "aaS"
+    },
+    {
+      "timestamp_ms": 5730.336,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 5730.526,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5832.645,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 5832.791,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5832.859,
+      "content": " followed"
+    },
+    {
+      "timestamp_ms": 5832.921,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5833.052,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 5845.883,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 5882.545,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5886.421,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 5906.236,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 6037.079,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 6048.89,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6049.082,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 6049.166,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 6049.248,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6049.313,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 6049.388,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 6055.559,
+      "content": "aaS"
+    },
+    {
+      "timestamp_ms": 6148.246,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6148.415,
+      "content": " offering"
+    },
+    {
+      "timestamp_ms": 6148.569,
+      "content": " virtual"
+    },
+    {
+      "timestamp_ms": 6148.723,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 6241.724,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 6241.896,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 6251.008,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 6251.131,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6251.209,
+      "content": " internet"
+    },
+    {
+      "timestamp_ms": 6251.267,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6268.57,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6351.385,
+      "content": " eliminated"
+    },
+    {
+      "timestamp_ms": 6351.535,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6351.612,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 6351.676,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6361.571,
+      "content": " companies"
+    },
+    {
+      "timestamp_ms": 6446.356,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6446.51,
+      "content": " invest"
+    },
+    {
+      "timestamp_ms": 6446.716,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6446.841,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 6463.387,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 6486.6,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6548.983,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6549.363,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6549.523,
+      "content": "Platform"
+    },
+    {
+      "timestamp_ms": 6551.474,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6653.227,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6653.481,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 6653.61,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6653.694,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 6653.854,
+      "content": "aaS"
+    },
+    {
+      "timestamp_ms": 6666.037,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 6754.351,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6754.539,
+      "content": " P"
+    },
+    {
+      "timestamp_ms": 6754.632,
+      "content": "aaS"
+    },
+    {
+      "timestamp_ms": 6754.699,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 6760.633,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6856.976,
+      "content": " platform"
+    },
+    {
+      "timestamp_ms": 6857.202,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 6857.291,
+      "content": " customers"
+    },
+    {
+      "timestamp_ms": 6857.353,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6857.408,
+      "content": " develop"
+    },
+    {
+      "timestamp_ms": 6958.842,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6967.992,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 6968.137,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6968.227,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6968.339,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 6971.137,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7061.311,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 7061.442,
+      "content": " dealing"
+    },
+    {
+      "timestamp_ms": 7061.508,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7061.56,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7065.324,
+      "content": " underlying"
+    },
+    {
+      "timestamp_ms": 7163.686,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 7163.876,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7163.994,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7164.086,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7164.168,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7269.899,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7270.121,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7270.222,
+      "content": "Software"
+    },
+    {
+      "timestamp_ms": 7270.289,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7270.371,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7276.987,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 7328.727,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7328.946,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 7338.519,
+      "content": "aaS"
+    },
+    {
+      "timestamp_ms": 7352.904,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7471.548,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7471.91,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 7472.054,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7472.152,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7472.22,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7472.275,
+      "content": "201"
+    },
+    {
+      "timestamp_ms": 7486.258,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7573.576,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7573.75,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7573.855,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7573.926,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7582.228,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7675.71,
+      "content": "Popular"
+    },
+    {
+      "timestamp_ms": 7676.067,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 7676.163,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7676.335,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 7685.932,
+      "content": "aaS"
+    },
+    {
+      "timestamp_ms": 7696.307,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 7814.112,
+      "content": " democrat"
+    },
+    {
+      "timestamp_ms": 7814.273,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 7814.347,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7814.411,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7814.464,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 7841.588,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7841.84,
+      "content": " offering"
+    },
+    {
+      "timestamp_ms": 7853.569,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7867.648,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 7986.218,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7986.35,
+      "content": " internet"
+    },
+    {
+      "timestamp_ms": 7986.598,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7986.598,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 7986.767,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7986.859,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 8000.919,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8087.946,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8195.138,
+      "content": "-pre"
+    },
+    {
+      "timestamp_ms": 8195.138,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 8195.138,
+      "content": "ises"
+    },
+    {
+      "timestamp_ms": 8195.138,
+      "content": " installations"
+    },
+    {
+      "timestamp_ms": 8195.138,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8195.138,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 8206.221,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 8206.221,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 8206.221,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 8291.687,
+      "content": " Gmail"
+    },
+    {
+      "timestamp_ms": 8291.687,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8291.915,
+      "content": " Salesforce"
+    },
+    {
+      "timestamp_ms": 8292.058,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8292.187,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8306.491,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 8392.376,
+      "content": " Office"
+    },
+    {
+      "timestamp_ms": 8392.529,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8392.595,
+      "content": "365"
+    },
+    {
+      "timestamp_ms": 8392.651,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8405.066,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 8421.797,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 8473.503,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8473.789,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8483.859,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8497.305,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8527.602,
+      "content": "Cloud"
+    },
+    {
+      "timestamp_ms": 8538.445,
+      "content": "-N"
+    },
+    {
+      "timestamp_ms": 8570.446,
+      "content": "ative"
+    },
+    {
+      "timestamp_ms": 8589.909,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8598.857,
+      "content": " Micro"
+    },
+    {
+      "timestamp_ms": 8612.216,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 8700.377,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8704.052,
+      "content": "201"
+    },
+    {
+      "timestamp_ms": 8704.248,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8704.338,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8705.66,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8744.788,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8905.226,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8905.365,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8905.365,
+      "content": "Micro"
+    },
+    {
+      "timestamp_ms": 8905.365,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 8905.365,
+      "content": " Architecture"
+    },
+    {
+      "timestamp_ms": 8905.47,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8905.526,
+      "content": " Companies"
+    },
+    {
+      "timestamp_ms": 8905.58,
+      "content": " started"
+    },
+    {
+      "timestamp_ms": 8905.626,
+      "content": " adopting"
+    },
+    {
+      "timestamp_ms": 8915.902,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 9007.008,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 9007.248,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9007.387,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 9007.508,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9011.159,
+      "content": " gran"
+    },
+    {
+      "timestamp_ms": 9109.685,
+      "content": "ular"
+    },
+    {
+      "timestamp_ms": 9109.843,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 9109.919,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9109.987,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 9110.041,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 9211.804,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9212.0,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 9212.085,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9212.148,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 9212.201,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 9314.36,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9314.526,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9314.597,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9314.654,
+      "content": "Dev"
+    },
+    {
+      "timestamp_ms": 9314.705,
+      "content": "Ops"
+    },
+    {
+      "timestamp_ms": 9316.767,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9416.973,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 9417.258,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 9417.349,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 9417.435,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 9417.772,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 9431.689,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9518.988,
+      "content": "CI"
+    },
+    {
+      "timestamp_ms": 9519.135,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 9519.21,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 9519.279,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 9527.734,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9621.354,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 9621.485,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 9621.547,
+      "content": " streamlined"
+    },
+    {
+      "timestamp_ms": 9826.912,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9826.912,
+      "content": " accelerated"
+    },
+    {
+      "timestamp_ms": 9826.912,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 9826.912,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9826.912,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9826.912,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 9826.912,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 9827.153,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9827.227,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9827.286,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9827.337,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 9836.233,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9836.357,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9854.151,
+      "content": "Platform"
+    },
+    {
+      "timestamp_ms": 9910.236,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9910.46,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9910.548,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 10031.476,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10031.729,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 10031.826,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10031.894,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 10046.913,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10047.04,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 10047.118,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 10047.118,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10047.118,
+      "type": "done"
+    }
+  ],
+  "full_response": "Cloud computing has evolved significantly from the era of mainframes to the modern serverless architectures. Here's a brief history outlining this transformation:\n\n### 1. **Mainframes (1950s-1960s)**\n- **Early Beginnings**: Cloud computing's roots trace back to the use of mainframes in the 1950s and 1960s. Large, centralized computers provided computing power to multiple users via time-sharing systems. Companies distributed mainframe access cost-effectively, setting the stage for remote computing.\n\n### 2. **Client-Server Model (1970s-1990s)**\n- **Development**: As technology advanced, the client-server model emerged. Individual devices (clients) connected to centralized servers to access programs and data. This era saw the proliferation of personal computers, and corporations began to realize the potential of distributed computing networks.\n\n### 3. **Internet Growth and Early Cloud Concepts (1990s)**\n- **Preliminary Cloud Services**: With the rise of the internet, groundwork began for what would become cloud computing. Commercial internet services and email services started facilitating data storage and processing at central locations. Amazon Web Services (AWS) launched its Simple Storage Service (S3) in 2006, marking a significant step towards the cloud.\n\n### 4. **Rise of Cloud Services (2000s)**\n- **Infrastructure as a Service (IaaS)**: AWS, followed by Microsoft Azure and Google Cloud Platform (GCP), introduced IaaS, offering virtualized computing resources over the internet. This eliminated the need for companies to invest in physical hardware.\n- **Platform as a Service (PaaS)**: PaaS provided a platform allowing customers to develop, run, and manage applications without dealing with the underlying infrastructure.\n\n### 5. **Software as a Service (SaaS) (2000s-2010s)**\n- **Popularization**: SaaS further democratized access to software by offering applications over the internet, reducing the need for on-premises installations. Notable examples include Gmail, Salesforce, and Microsoft Office 365.\n  \n### 6. **Cloud-Native and Microservices (2010s)**\n- **Microservices Architecture**: Companies started adopting microservices, enabling more granular scaling and faster deployment of applications within cloud environments.\n- **DevOps and Continuous Integration/Continuous Deployment (CI/CD)**: These practices streamlined and accelerated software development within cloud frameworks.\n\n### 7. **Platform as a Service 2.0 and Serverless",
+  "response_chars": 2469,
+  "num_chunks": 512,
+  "ttft_ms": 405.197,
+  "total_ms": 10053.3,
+  "model_name": "model-medium"
+}

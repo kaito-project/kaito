@@ -1,0 +1,2071 @@
+{
+  "index": 24,
+  "prompt": "Explain the concept of immutable infrastructure and its advantages.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 270.612,
+      "content": "Immutable"
+    },
+    {
+      "timestamp_ms": 288.288,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 307.074,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 325.321,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 503.278,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 503.559,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 503.68,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 503.789,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 503.902,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 511.57,
+      "content": " deploying"
+    },
+    {
+      "timestamp_ms": 511.742,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 511.866,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 511.957,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 516.677,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 583.322,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 583.561,
+      "content": " replaced"
+    },
+    {
+      "timestamp_ms": 583.707,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 593.149,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 612.013,
+      "content": " updated"
+    },
+    {
+      "timestamp_ms": 644.423,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 650.817,
+      "content": " place"
+    },
+    {
+      "timestamp_ms": 983.897,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 986.134,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 986.369,
+      "content": " idea"
+    },
+    {
+      "timestamp_ms": 986.641,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 986.8,
+      "content": " grounded"
+    },
+    {
+      "timestamp_ms": 986.968,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 987.12,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 987.365,
+      "content": " belief"
+    },
+    {
+      "timestamp_ms": 987.604,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 987.691,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 987.754,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 987.809,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 987.861,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 987.91,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 987.958,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 988.003,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 988.05,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 992.57,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1011.105,
+      "content": " immutable"
+    },
+    {
+      "timestamp_ms": 1267.792,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1271.345,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 1271.505,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 1271.609,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 1271.675,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " changed"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1381.771,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 1382.032,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1382.122,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1382.187,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1393.012,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1415.027,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 1431.32,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1448.643,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 1803.627,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1803.828,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 1803.931,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1804.011,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 1804.069,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1804.12,
+      "content": " old"
+    },
+    {
+      "timestamp_ms": 1804.167,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 1811.36,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1811.527,
+      "content": " retired"
+    },
+    {
+      "timestamp_ms": 1811.655,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1811.746,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1811.937,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1812.048,
+      "content": " Characteristics"
+    },
+    {
+      "timestamp_ms": 1812.133,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1812.211,
+      "content": " Immutable"
+    },
+    {
+      "timestamp_ms": 1812.286,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 1812.36,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1812.43,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1812.501,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1870.476,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1870.619,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 1883.217,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 1889.815,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1942.623,
+      "content": " Servers"
+    },
+    {
+      "timestamp_ms": 1942.804,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1965.101,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 1971.056,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1991.471,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2003.919,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 2019.86,
+      "content": "-defined"
+    },
+    {
+      "timestamp_ms": 2040.023,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 2060.043,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2090.841,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 2103.627,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2120.687,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 2135.825,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 2154.76,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 2177.33,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 2195.401,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2213.295,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2406.799,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 2406.966,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2407.038,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2407.094,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2407.145,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 2407.193,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 2407.241,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2407.287,
+      "content": " eliminating"
+    },
+    {
+      "timestamp_ms": 2407.336,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 2407.379,
+      "content": " variability"
+    },
+    {
+      "timestamp_ms": 2420.761,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 2445.022,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 2637.311,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2637.444,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 2637.509,
+      "content": " mutable"
+    },
+    {
+      "timestamp_ms": 2637.564,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 2637.617,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2637.664,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 2637.708,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2644.385,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2644.617,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2644.759,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 2650.342,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 2671.243,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3220.491,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3220.665,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3220.734,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 3220.79,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3220.84,
+      "content": " akin"
+    },
+    {
+      "timestamp_ms": 3220.886,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3220.93,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3220.974,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3221.019,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3221.062,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3221.104,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 3221.159,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 3221.221,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3221.323,
+      "content": " kept"
+    },
+    {
+      "timestamp_ms": 3221.393,
+      "content": " under"
+    },
+    {
+      "timestamp_ms": 3221.48,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 3221.642,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 3221.767,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3221.857,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 3221.99,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3222.096,
+      "content": " tracking"
+    },
+    {
+      "timestamp_ms": 3222.17,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 3222.17,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3222.356,
+      "content": " rolling"
+    },
+    {
+      "timestamp_ms": 3222.836,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 3223.439,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3223.571,
+      "content": " previous"
+    },
+    {
+      "timestamp_ms": 3223.72,
+      "content": " states"
+    },
+    {
+      "timestamp_ms": 3236.58,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 3246.093,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 3270.145,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3281.939,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3301.288,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3319.946,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3476.663,
+      "content": "Deployment"
+    },
+    {
+      "timestamp_ms": 3476.829,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3476.897,
+      "content": " Changes"
+    },
+    {
+      "timestamp_ms": 3476.965,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3477.129,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 3477.237,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3477.317,
+      "content": " achieved"
+    },
+    {
+      "timestamp_ms": 3477.458,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3487.674,
+      "content": " deploying"
+    },
+    {
+      "timestamp_ms": 3506.933,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3526.217,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3576.093,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 3576.236,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3584.111,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3640.32,
+      "content": " upgraded"
+    },
+    {
+      "timestamp_ms": 3640.475,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 3640.55,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3704.308,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 3704.576,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 3704.743,
+      "content": " modifying"
+    },
+    {
+      "timestamp_ms": 3715.743,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 3766.432,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 3766.578,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3775.168,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3797.629,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3828.001,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3830.647,
+      "content": "Automation"
+    },
+    {
+      "timestamp_ms": 3983.094,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3983.336,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3983.477,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3983.593,
+      "content": " relies"
+    },
+    {
+      "timestamp_ms": 3983.697,
+      "content": " heavily"
+    },
+    {
+      "timestamp_ms": 3983.797,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3983.872,
+      "content": " automation"
+    },
+    {
+      "timestamp_ms": 3983.919,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 4069.783,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4069.783,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 4069.932,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4069.995,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 4079.217,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 4098.052,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4262.52,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 4262.678,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 4262.743,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4262.799,
+      "content": "CI"
+    },
+    {
+      "timestamp_ms": 4262.847,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4262.892,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 4262.938,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4268.017,
+      "content": " pipelines"
+    },
+    {
+      "timestamp_ms": 4268.148,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4306.293,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4310.907,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 4417.107,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4417.255,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 4417.326,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4417.383,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4417.435,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 4424.899,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 4439.957,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4460.28,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4477.622,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4673.624,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4673.829,
+      "content": "Roll"
+    },
+    {
+      "timestamp_ms": 4673.922,
+      "content": "backs"
+    },
+    {
+      "timestamp_ms": 4673.994,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4674.043,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 4674.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4674.153,
+      "content": " event"
+    },
+    {
+      "timestamp_ms": 4681.186,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4681.305,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4681.373,
+      "content": " failure"
+    },
+    {
+      "timestamp_ms": 4687.599,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4713.545,
+      "content": " rollback"
+    },
+    {
+      "timestamp_ms": 4727.401,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4829.241,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4839.628,
+      "content": " previous"
+    },
+    {
+      "timestamp_ms": 4839.881,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 4840.031,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4840.157,
+      "content": " straightforward"
+    },
+    {
+      "timestamp_ms": 4840.422,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4921.263,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 4921.487,
+      "content": " risky"
+    },
+    {
+      "timestamp_ms": 4921.572,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4922.845,
+      "content": " Failure"
+    },
+    {
+      "timestamp_ms": 4936.246,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4956.669,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4974.95,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 5023.495,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5023.725,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5034.749,
+      "content": " pose"
+    },
+    {
+      "timestamp_ms": 5053.09,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5079.23,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 5091.063,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 5108.006,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5126.07,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5150.489,
+      "content": " entirely"
+    },
+    {
+      "timestamp_ms": 5224.856,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 5225.049,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 5225.138,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5225.241,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5240.939,
+      "content": " Adv"
+    },
+    {
+      "timestamp_ms": 5259.459,
+      "content": "antages"
+    },
+    {
+      "timestamp_ms": 5279.102,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5414.244,
+      "content": " Immutable"
+    },
+    {
+      "timestamp_ms": 5414.455,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 5414.523,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5414.581,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5414.632,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5414.681,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5505.802,
+      "content": "Rel"
+    },
+    {
+      "timestamp_ms": 5505.802,
+      "content": "iability"
+    },
+    {
+      "timestamp_ms": 5505.802,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5505.802,
+      "content": " Stability"
+    },
+    {
+      "timestamp_ms": 5505.802,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5510.376,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 5526.562,
+      "content": " avoiding"
+    },
+    {
+      "timestamp_ms": 5560.301,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5567.61,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5582.763,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5653.525,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 5653.658,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 5653.727,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5678.516,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5678.752,
+      "content": " risks"
+    },
+    {
+      "timestamp_ms": 5698.603,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 5780.884,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5790.003,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 5790.138,
+      "content": " drift"
+    },
+    {
+      "timestamp_ms": 5790.203,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5792.411,
+      "content": " inconsistencies"
+    },
+    {
+      "timestamp_ms": 5813.128,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5833.636,
+      "content": " greatly"
+    },
+    {
+      "timestamp_ms": 5855.206,
+      "content": " reduced"
+    },
+    {
+      "timestamp_ms": 5871.411,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5891.276,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 5907.975,
+      "content": " instances"
+    },
+    {
+      "timestamp_ms": 5933.485,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5949.167,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5980.953,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 5989.518,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6005.022,
+      "content": " behave"
+    },
+    {
+      "timestamp_ms": 6028.066,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6045.771,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 6063.203,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6085.392,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6100.023,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6117.93,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6252.742,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 6252.912,
+      "content": "implified"
+    },
+    {
+      "timestamp_ms": 6255.462,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 6255.653,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6255.747,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 6255.826,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 6255.887,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 6271.818,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6293.304,
+      "content": " straightforward"
+    },
+    {
+      "timestamp_ms": 6312.909,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6334.264,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 6348.169,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6560.242,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 6560.409,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 6560.49,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6560.543,
+      "content": " individual"
+    },
+    {
+      "timestamp_ms": 6560.591,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6560.638,
+      "content": " administration"
+    },
+    {
+      "timestamp_ms": 6560.685,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6560.731,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6560.774,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6560.816,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 6565.186,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 6576.061,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6663.946,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 6664.089,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6664.155,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6664.208,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6675.286,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6693.12,
+      "content": "Fast"
+    },
+    {
+      "timestamp_ms": 6739.779,
+      "content": " Recovery"
+    },
+    {
+      "timestamp_ms": 6740.025,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6753.0,
+      "content": " Roll"
+    },
+    {
+      "timestamp_ms": 6772.538,
+      "content": "back"
+    },
+    {
+      "timestamp_ms": 6893.324,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6893.542,
+      "content": " Recovery"
+    },
+    {
+      "timestamp_ms": 6893.623,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6893.688,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 6893.746,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6893.8,
+      "content": " unwanted"
+    },
+    {
+      "timestamp_ms": 6903.916,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6918.003,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6971.659,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 6972.059,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 6978.462,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7005.309,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7022.256,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 7044.395,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 7061.288,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7076.524,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7095.531,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 7111.324,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7131.612,
+      "content": " roll"
+    },
+    {
+      "timestamp_ms": 7312.649,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 7312.865,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7320.48,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7320.673,
+      "content": " previous"
+    },
+    {
+      "timestamp_ms": 7320.77,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 7320.903,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7321.045,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 7321.173,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7321.262,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7321.357,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 7339.308,
+      "content": "asier"
+    },
+    {
+      "timestamp_ms": 7438.695,
+      "content": " Scal"
+    },
+    {
+      "timestamp_ms": 7439.015,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 7439.161,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7439.283,
+      "content": " Scaling"
+    },
+    {
+      "timestamp_ms": 7439.383,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 7504.548,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7504.867,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7505.119,
+      "content": " predictable"
+    },
+    {
+      "timestamp_ms": 7515.192,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7693.65,
+      "content": " manageable"
+    },
+    {
+      "timestamp_ms": 7693.83,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 7693.896,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7693.952,
+      "content": " instances"
+    },
+    {
+      "timestamp_ms": 7694.003,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7694.056,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 7694.103,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7694.148,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 7694.193,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7706.744,
+      "content": " tested"
+    },
+    {
+      "timestamp_ms": 7721.764,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 7756.195,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7769.295,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7784.021,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7796.399,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7823.84,
+      "content": "Enh"
+    },
+    {
+      "timestamp_ms": 7834.835,
+      "content": "anced"
+    },
+    {
+      "timestamp_ms": 7855.677,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 7874.221,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7893.221,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 7922.581,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 7930.413,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7982.494,
+      "content": " patches"
+    },
+    {
+      "timestamp_ms": 7982.709,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7995.177,
+      "content": " systematically"
+    },
+    {
+      "timestamp_ms": 8011.167,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 8073.358,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8073.763,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8073.932,
+      "content": " images"
+    },
+    {
+      "timestamp_ms": 8089.878,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8100.594,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 8187.957,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8188.132,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 8188.197,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8188.255,
+      "content": " vulnerabilities"
+    },
+    {
+      "timestamp_ms": 8201.735,
+      "content": " persist"
+    },
+    {
+      "timestamp_ms": 8248.365,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 8248.557,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 8254.496,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8278.837,
+      "content": " outdated"
+    },
+    {
+      "timestamp_ms": 8295.631,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 8313.444,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8330.539,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8359.282,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8376.374,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8395.897,
+      "content": "Improved"
+    },
+    {
+      "timestamp_ms": 8409.246,
+      "content": " Collaboration"
+    },
+    {
+      "timestamp_ms": 8425.633,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8531.501,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 8531.663,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8531.738,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 8531.806,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 8531.864,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8541.819,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 8633.774,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8634.024,
+      "content": " collabor"
+    },
+    {
+      "timestamp_ms": 8634.188,
+      "content": "atively"
+    },
+    {
+      "timestamp_ms": 8634.315,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8635.209,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8718.181,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 8729.613,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8729.83,
+      "content": " treated"
+    },
+    {
+      "timestamp_ms": 8729.938,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8746.84,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 8754.576,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 8772.31,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8840.858,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8841.038,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8841.105,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8851.649,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 8872.633,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 8890.439,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8904.348,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 8921.455,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 8939.326,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 9016.845,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9016.975,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 9017.038,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9017.092,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9073.143,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 9073.332,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 9079.696,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9092.791,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 9114.107,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9211.947,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 9212.238,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 9212.362,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9212.445,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9212.507,
+      "content": " tracked"
+    },
+    {
+      "timestamp_ms": 9226.505,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9244.201,
+      "content": " reviewed"
+    },
+    {
+      "timestamp_ms": 9264.466,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9287.867,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9303.811,
+      "content": " aud"
+    },
+    {
+      "timestamp_ms": 9324.046,
+      "content": "ited"
+    },
+    {
+      "timestamp_ms": 9343.655,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 9375.799,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 9378.768,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9519.303,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 9519.528,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9519.771,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 9519.896,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9519.981,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9520.043,
+      "content": "While"
+    },
+    {
+      "timestamp_ms": 9520.095,
+      "content": " immutable"
+    },
+    {
+      "timestamp_ms": 9535.728,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 9556.515,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 9568.543,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 9588.086,
+      "content": " advantages"
+    },
+    {
+      "timestamp_ms": 9615.52,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9627.538,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9710.525,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 9710.808,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 9710.913,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9710.982,
+      "content": " paradigm"
+    },
+    {
+      "timestamp_ms": 9723.729,
+      "content": " shift"
+    },
+    {
+      "timestamp_ms": 9741.494,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10024.366,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 10024.366,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10024.366,
+      "content": " priorit"
+    },
+    {
+      "timestamp_ms": 10024.366,
+      "content": "izing"
+    },
+    {
+      "timestamp_ms": 10024.366,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 10024.568,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10024.648,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 10024.714,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10025.861,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 10026.058,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 10026.16,
+      "content": " creation"
+    },
+    {
+      "timestamp_ms": 10026.354,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10026.478,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 10026.587,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10026.587,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10026.587,
+      "type": "done"
+    }
+  ],
+  "full_response": "Immutable infrastructure is a modern approach to managing and deploying IT environments where servers are replaced rather than updated in place. The idea is grounded in the belief that servers (or any infrastructure components) should be immutable, meaning they cannot be changed after they have been deployed. If changes are needed, a new server image is created and deployed, while the old one is retired.\n\n### Key Characteristics of Immutable Infrastructure:\n1. **Consistency:** Servers are deployed from a pre-defined image and do not change state after deployment. This ensures that the environment remains consistent, eliminating many variability issues common in traditional mutable systems.\n   \n2. **Version Control:** The server images, akin to code, can be versioned and kept under version control, allowing for tracking changes and rolling back to previous states if needed.\n\n3. **Deployment:** Changes or updates are achieved by deploying a new instance with the upgraded image, rather than modifying existing servers.\n\n4. **Automation:** The process relies heavily on automation tools, such as continuous integration and continuous deployment (CI/CD) pipelines, to create, test, and deploy images.\n\n5. **Rollbacks:** In the event of a failure, rollback to a previous image is straightforward and less risky. Failure of an instance does not pose a risk since it is entirely replaceable.\n\n### Advantages of Immutable Infrastructure:\n1. **Reliability and Stability:** By avoiding changes to a running server, the risks associated with configuration drift and inconsistencies are greatly reduced. Server instances are more reliable and behave as expected.\n\n2. **Simplified Management:** Infrastructure management becomes more straightforward as there's less focus on individual server administration and more on image development and deployment.\n\n3. **Fast Recovery and Rollback:** Recovery from failures or unwanted changes is efficient because you can quickly deploy a new instance or roll back to a previous image.\n\n4. **Easier Scalability:** Scaling infrastructure is more predictable and manageable since new instances are built using known, tested images.\n\n5. **Enhanced Security:** Security updates and patches are systematically applied to new images, reducing the risk of vulnerabilities persisting due to outdated configurations.\n\n6. **Improved Collaboration:** Development and operations teams can work more collaboratively, as infrastructure is treated more like application code that can be versioned and managed through code.\n\n7. **Version Control of Environment:** Environment configurations can be tracked, reviewed, and audited over time, similar to software development.\n\nWhile immutable infrastructure offers significant advantages, it also requires a paradigm shift in operations, prioritizing tools and processes that support image creation, testing,",
+  "response_chars": 2880,
+  "num_chunks": 512,
+  "ttft_ms": 270.612,
+  "total_ms": 10026.94,
+  "model_name": "model-medium"
+}

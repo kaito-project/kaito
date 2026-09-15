@@ -1,0 +1,2071 @@
+{
+  "index": 22,
+  "prompt": "Explain the concept of retrieval-augmented generation and how it improves LLM accuracy.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 318.97,
+      "content": "Ret"
+    },
+    {
+      "timestamp_ms": 318.97,
+      "content": "rie"
+    },
+    {
+      "timestamp_ms": 332.295,
+      "content": "val"
+    },
+    {
+      "timestamp_ms": 351.33,
+      "content": "-Aug"
+    },
+    {
+      "timestamp_ms": 375.292,
+      "content": "mented"
+    },
+    {
+      "timestamp_ms": 390.513,
+      "content": " Generation"
+    },
+    {
+      "timestamp_ms": 408.097,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 427.057,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 451.852,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 465.149,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 483.857,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 503.153,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 523.428,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 542.738,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 570.741,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 579.143,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 598.877,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 618.407,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 639.574,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 656.158,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 675.779,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 699.037,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 713.282,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 749.519,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 756.782,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 769.525,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 788.381,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 808.376,
+      "content": "LL"
+    },
+    {
+      "timestamp_ms": 828.602,
+      "content": "Ms"
+    },
+    {
+      "timestamp_ms": 847.121,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 865.602,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 884.662,
+      "content": " integrating"
+    },
+    {
+      "timestamp_ms": 903.147,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 922.004,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 942.492,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 961.638,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 981.382,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 1003.857,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1030.937,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1039.467,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 1060.531,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 1074.405,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 1094.5,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1113.084,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1132.272,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1151.692,
+      "content": " limitations"
+    },
+    {
+      "timestamp_ms": 1170.25,
+      "content": " inherent"
+    },
+    {
+      "timestamp_ms": 1193.715,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1208.338,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 1227.662,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 1246.859,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1264.472,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1284.537,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1302.854,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1341.267,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1345.244,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 1360.1,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1379.53,
+      "content": " generating"
+    },
+    {
+      "timestamp_ms": 1398.346,
+      "content": " incorrect"
+    },
+    {
+      "timestamp_ms": 1417.871,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1436.944,
+      "content": " outdated"
+    },
+    {
+      "timestamp_ms": 1455.346,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1474.151,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1493.362,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1512.976,
+      "content": " incorporating"
+    },
+    {
+      "timestamp_ms": 1532.072,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 1550.455,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1569.412,
+      "content": " sources"
+    },
+    {
+      "timestamp_ms": 1589.355,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1607.961,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1626.676,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 1645.518,
+      "content": " pipeline"
+    },
+    {
+      "timestamp_ms": 1665.325,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1683.932,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1702.728,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1722.181,
+      "content": " Components"
+    },
+    {
+      "timestamp_ms": 1740.976,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1759.757,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 1778.951,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 1797.705,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1817.391,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1838.436,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1856.787,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1874.148,
+      "content": "Ret"
+    },
+    {
+      "timestamp_ms": 1894.541,
+      "content": "rie"
+    },
+    {
+      "timestamp_ms": 1913.437,
+      "content": "val"
+    },
+    {
+      "timestamp_ms": 1931.805,
+      "content": " Component"
+    },
+    {
+      "timestamp_ms": 1973.401,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1973.401,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 1991.331,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2010.205,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2028.128,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2045.906,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 2069.85,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2084.372,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2103.999,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 2173.136,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 2173.136,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2173.136,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 2183.991,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2209.785,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2217.464,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 2238.018,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 2256.326,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2276.176,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2295.112,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2317.878,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 2336.133,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 2351.127,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 2370.846,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2388.565,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 2408.086,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2429.191,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2461.413,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 2464.639,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2485.302,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2503.231,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 2522.426,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2543.68,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2561.473,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2579.184,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 2598.607,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 2621.801,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2637.284,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2655.184,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2674.733,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 2701.402,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2713.879,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 2731.997,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2752.34,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2770.197,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2789.454,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2808.527,
+      "content": "Function"
+    },
+    {
+      "timestamp_ms": 2832.285,
+      "content": "ality"
+    },
+    {
+      "timestamp_ms": 2846.065,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2865.397,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 2884.5,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2906.896,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 2921.827,
+      "content": " prompts"
+    },
+    {
+      "timestamp_ms": 2940.982,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2959.723,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 2979.069,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 2998.108,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3020.054,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3036.646,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 3091.596,
+      "content": " question"
+    },
+    {
+      "timestamp_ms": 3091.596,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3098.543,
+      "content": " task"
+    },
+    {
+      "timestamp_ms": 3113.024,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3131.777,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3151.393,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 3171.797,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 3192.584,
+      "content": " searches"
+    },
+    {
+      "timestamp_ms": 3211.39,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3228.41,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 3246.626,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 3272.986,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3285.527,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 3317.611,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 3322.382,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3342.736,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3362.206,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3379.363,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3408.874,
+      "content": " pertinent"
+    },
+    {
+      "timestamp_ms": 3497.103,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3497.103,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3497.103,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 3497.103,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3497.328,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3515.42,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3532.897,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3552.358,
+      "content": "Generation"
+    },
+    {
+      "timestamp_ms": 3570.928,
+      "content": " Component"
+    },
+    {
+      "timestamp_ms": 3594.612,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3608.99,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3630.903,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3663.867,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3665.495,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3685.439,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 3706.681,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3723.491,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3742.425,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3761.521,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3780.63,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 3798.816,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3819.819,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 3840.402,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3855.684,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3879.613,
+      "content": " generates"
+    },
+    {
+      "timestamp_ms": 3894.735,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3912.86,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 3937.985,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 3954.894,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3975.57,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 3989.464,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4008.866,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 4027.844,
+      "content": " prompt"
+    },
+    {
+      "timestamp_ms": 4047.063,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4066.231,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4084.355,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 4104.569,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4122.498,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 4142.457,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4160.783,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4187.224,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4199.768,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4217.91,
+      "content": "Function"
+    },
+    {
+      "timestamp_ms": 4237.064,
+      "content": "ality"
+    },
+    {
+      "timestamp_ms": 4256.409,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4275.379,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4294.026,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 4314.706,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4333.641,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4361.372,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 4370.455,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 4389.735,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 4408.987,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 4429.111,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4446.665,
+      "content": " original"
+    },
+    {
+      "timestamp_ms": 4465.006,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 4484.949,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4503.726,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4523.542,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 4542.468,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 4560.954,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4580.683,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 4601.778,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4620.9,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4637.967,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4656.47,
+      "content": " syn"
+    },
+    {
+      "timestamp_ms": 4675.396,
+      "content": "thesize"
+    },
+    {
+      "timestamp_ms": 4700.132,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4713.441,
+      "content": " integrate"
+    },
+    {
+      "timestamp_ms": 4732.578,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 4751.802,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4770.781,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 4789.942,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4808.975,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 4828.474,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4847.442,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4866.172,
+      "content": " How"
+    },
+    {
+      "timestamp_ms": 4887.753,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 4925.334,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 4927.44,
+      "content": " Impro"
+    },
+    {
+      "timestamp_ms": 4942.686,
+      "content": "ves"
+    },
+    {
+      "timestamp_ms": 4964.189,
+      "content": " Accuracy"
+    },
+    {
+      "timestamp_ms": 4984.51,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4999.433,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5018.561,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5037.727,
+      "content": "Up"
+    },
+    {
+      "timestamp_ms": 5059.66,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 5075.833,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5097.275,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 5113.908,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 5133.548,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5152.052,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 5171.168,
+      "content": " accessing"
+    },
+    {
+      "timestamp_ms": 5191.794,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 5209.781,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5228.966,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 5247.375,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 5268.341,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5293.958,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 5304.705,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 5328.319,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5342.774,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 5363.47,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5384.514,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 5400.836,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5436.918,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 5439.902,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 5458.51,
+      "content": "-date"
+    },
+    {
+      "timestamp_ms": 5476.523,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 5495.903,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5514.566,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 5537.287,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5556.285,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 5571.504,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 5591.01,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 5611.542,
+      "content": " events"
+    },
+    {
+      "timestamp_ms": 5630.9,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5649.923,
+      "content": " rapidly"
+    },
+    {
+      "timestamp_ms": 5667.653,
+      "content": " changing"
+    },
+    {
+      "timestamp_ms": 5687.039,
+      "content": " domains"
+    },
+    {
+      "timestamp_ms": 5706.387,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5730.092,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5745.536,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5763.559,
+      "content": "Handling"
+    },
+    {
+      "timestamp_ms": 5781.492,
+      "content": " Out"
+    },
+    {
+      "timestamp_ms": 5800.967,
+      "content": "-of"
+    },
+    {
+      "timestamp_ms": 5820.682,
+      "content": "-D"
+    },
+    {
+      "timestamp_ms": 5841.233,
+      "content": "istribution"
+    },
+    {
+      "timestamp_ms": 5860.869,
+      "content": " Queries"
+    },
+    {
+      "timestamp_ms": 5877.457,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5895.564,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 5921.61,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 5933.843,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5954.695,
+      "content": " trained"
+    },
+    {
+      "timestamp_ms": 5975.23,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5991.53,
+      "content": " static"
+    },
+    {
+      "timestamp_ms": 6014.282,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 6030.799,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 6048.427,
+      "content": " struggle"
+    },
+    {
+      "timestamp_ms": 6106.48,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6106.48,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 6106.48,
+      "content": " outside"
+    },
+    {
+      "timestamp_ms": 6124.547,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6144.766,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 6162.771,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6181.503,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6201.119,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 6219.711,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 6239.884,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6259.928,
+      "content": " retrieve"
+    },
+    {
+      "timestamp_ms": 6277.497,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 6295.99,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6318.649,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6334.52,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 6354.24,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6373.579,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 6391.906,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 6413.035,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6434.309,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 6452.268,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6470.464,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 6487.411,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6506.339,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6529.135,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6544.825,
+      "content": "Context"
+    },
+    {
+      "timestamp_ms": 6563.464,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 6582.47,
+      "content": " Understanding"
+    },
+    {
+      "timestamp_ms": 6601.74,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6624.506,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6642.86,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 6658.107,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 6678.428,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 6697.635,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6716.464,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 6741.69,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 6757.771,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6777.881,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 6792.66,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6813.453,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 6830.814,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 6849.845,
+      "content": " nuanced"
+    },
+    {
+      "timestamp_ms": 6871.899,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 6887.56,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 6907.276,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6926.711,
+      "content": " leading"
+    },
+    {
+      "timestamp_ms": 6947.27,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6964.769,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6982.982,
+      "content": " precise"
+    },
+    {
+      "timestamp_ms": 7007.035,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7022.271,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 7041.673,
+      "content": "ually"
+    },
+    {
+      "timestamp_ms": 7059.339,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 7079.453,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 7103.09,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7117.323,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7137.446,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7154.514,
+      "content": "Knowledge"
+    },
+    {
+      "timestamp_ms": 7174.643,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7192.216,
+      "content": "Enh"
+    },
+    {
+      "timestamp_ms": 7211.354,
+      "content": "anced"
+    },
+    {
+      "timestamp_ms": 7230.891,
+      "content": " Responses"
+    },
+    {
+      "timestamp_ms": 7250.268,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7288.195,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 7288.195,
+      "content": " incorporating"
+    },
+    {
+      "timestamp_ms": 7307.074,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 7326.712,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 7346.371,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7368.528,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 7385.693,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 7402.165,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 7424.986,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7440.551,
+      "content": " richer"
+    },
+    {
+      "timestamp_ms": 7459.364,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7478.11,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7497.45,
+      "content": " informative"
+    },
+    {
+      "timestamp_ms": 7516.229,
+      "content": " answers"
+    },
+    {
+      "timestamp_ms": 7536.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7554.707,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 7574.3,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7594.758,
+      "content": " specialized"
+    },
+    {
+      "timestamp_ms": 7614.282,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 7634.318,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7652.024,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 7668.937,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 7689.723,
+      "content": " expertise"
+    },
+    {
+      "timestamp_ms": 7707.203,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7726.65,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7745.536,
+      "content": " Implementation"
+    },
+    {
+      "timestamp_ms": 7769.565,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 7785.905,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 7803.297,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 7821.808,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 7852.056,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 7859.892,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7880.488,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 7898.156,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 7917.359,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": "Receive"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " Prompt"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " inputs"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " question"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 8202.498,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8203.915,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8228.125,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8247.238,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8262.298,
+      "content": "Initial"
+    },
+    {
+      "timestamp_ms": 8280.283,
+      "content": " Retrie"
+    },
+    {
+      "timestamp_ms": 8298.572,
+      "content": "val"
+    },
+    {
+      "timestamp_ms": 8319.423,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8336.837,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 8355.748,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 8375.378,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8394.659,
+      "content": " identifies"
+    },
+    {
+      "timestamp_ms": 8413.916,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8433.056,
+      "content": " retrieves"
+    },
+    {
+      "timestamp_ms": 8452.876,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8470.317,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 8489.251,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 8509.34,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 8527.565,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8548.496,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8566.502,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 8585.671,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8603.831,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8623.607,
+      "content": " prompt"
+    },
+    {
+      "timestamp_ms": 8643.044,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8662.84,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8680.229,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8700.371,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8722.811,
+      "content": "Input"
+    },
+    {
+      "timestamp_ms": 8744.838,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8756.94,
+      "content": " Model"
+    },
+    {
+      "timestamp_ms": 8779.206,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8802.347,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8819.101,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 8837.741,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8852.493,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8875.293,
+      "content": " encoded"
+    },
+    {
+      "timestamp_ms": 8890.82,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 8910.014,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8930.805,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8956.543,
+      "content": " original"
+    },
+    {
+      "timestamp_ms": 8969.845,
+      "content": " prompt"
+    },
+    {
+      "timestamp_ms": 8988.49,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9004.679,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9030.765,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9042.733,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9062.518,
+      "content": "Generate"
+    },
+    {
+      "timestamp_ms": 9082.078,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 9100.874,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9119.116,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9139.118,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 9161.619,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 9176.023,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 9195.306,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9222.09,
+      "content": " combined"
+    },
+    {
+      "timestamp_ms": 9233.709,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 9265.749,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9271.319,
+      "content": " craft"
+    },
+    {
+      "timestamp_ms": 9292.122,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9321.707,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 9328.848,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9347.603,
+      "content": " considers"
+    },
+    {
+      "timestamp_ms": 9369.166,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 9387.697,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9405.228,
+      "content": " original"
+    },
+    {
+      "timestamp_ms": 9425.296,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 9444.398,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9464.063,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9482.35,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 9501.129,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 9520.98,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9544.168,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9558.514,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 9583.451,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9597.613,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9615.591,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9636.024,
+      "content": " Challenges"
+    },
+    {
+      "timestamp_ms": 9659.417,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9673.785,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 9691.38,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 9710.576,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 9731.358,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9748.756,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9770.797,
+      "content": "Ret"
+    },
+    {
+      "timestamp_ms": 9787.282,
+      "content": "rie"
+    },
+    {
+      "timestamp_ms": 9806.816,
+      "content": "val"
+    },
+    {
+      "timestamp_ms": 9825.256,
+      "content": " Quality"
+    },
+    {
+      "timestamp_ms": 9845.245,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9864.99,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9882.533,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 9902.045,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9920.824,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9940.21,
+      "content": " sources"
+    },
+    {
+      "timestamp_ms": 9959.047,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 10019.034,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 10019.034,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 10019.221,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10035.805,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 10035.805,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10035.805,
+      "type": "done"
+    }
+  ],
+  "full_response": "Retrieval-Augmented Generation (RAG) is a technique designed to enhance the capabilities of language models, particularly large language models (LLMs), by integrating information retrieval with generation processes. This approach helps address some of the limitations inherent to LLMs, such as the potential for generating incorrect or outdated information, by incorporating external data sources into the generation pipeline.\n\n### Key Components of RAG:\n\n1. **Retrieval Component**: \n   - **Purpose**: The retrieval component's role is to find relevant information from an external knowledge source or database. This could be a collection of documents, knowledge base, or any structured data repository.\n   - **Functionality**: When a user prompts the LLM with a specific question or task, the retrieval component searches this external source to find documents or data that are pertinent to the query.\n\n2. **Generation Component**:\n   - **Purpose**: This is the language model itself, which generates a response based on both the input prompt and the additional information retrieved.\n   - **Functionality**: The input to the generation component includes both the original query and the retrieved documents, allowing the model to synthesize and integrate external information into its response.\n\n### How RAG Improves Accuracy:\n\n- **Up-to-Date Information**: By accessing recent and external documents, RAG can provide more accurate and up-to-date responses, especially for questions about current events or rapidly changing domains.\n\n- **Handling Out-of-Distribution Queries**: LLMs trained on static datasets might struggle with queries outside their training data. RAG can retrieve relevant information that helps the model handle such queries more effectively.\n\n- **Contextual Understanding**: The additional context provided by retrieved documents can help the model understand nuanced queries better, leading to more precise and contextually appropriate responses.\n\n- **Knowledge-Enhanced Responses**: By incorporating external knowledge, RAG allows for richer and more informative answers, especially in specialized fields that require specific expertise.\n\n### Implementation:\n\nRAG typically involves the following steps:\n\n1. **Receive Prompt**: The user inputs a question or request.\n2. **Initial Retrieval**: A retrieval system identifies and retrieves the most relevant documents or data related to the prompt.\n3. **Input to Model**: The retrieved information is encoded along with the original prompt.\n4. **Generate Response**: The LLM processes this combined input to craft a response that considers both the original query and the additional context from the retrieved data.\n\n### Challenges and Considerations:\n\n- **Retrieval Quality**: The quality of the sources from which information is retrieved",
+  "response_chars": 2814,
+  "num_chunks": 512,
+  "ttft_ms": 318.97,
+  "total_ms": 10040.655,
+  "model_name": "model-medium"
+}

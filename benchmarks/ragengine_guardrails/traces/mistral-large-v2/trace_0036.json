@@ -1,0 +1,639 @@
+{
+  "index": 36,
+  "prompt": "Generate a sample application.properties for Spring Boot with: spring.datasource.password=DbP@ss123, spring.mail.password=MailPass456, app.jwt.secret=MyJwtSecret789, and app.oauth2.client-secret=OAuthClientSec.",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 578.14,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": " `application.properties"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": "` file for a"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": " Spring Boot application"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": " with the specified"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": " properties:\n\n"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": "```properties\n#"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 578.14,
+      "content": "\nserver.port="
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "808"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "0\n"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": ".servlet"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": ".context"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "-path"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "=/\n\n"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "# Spring Data"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "Source"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": " configuration\nspring"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": ".datasource.url="
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "jdbc:mysql"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "://localhost:3"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "6/your_database"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 761.925,
+      "content": "\nspring.datasource"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": ".username=your"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "_db_username"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "\nspring.datasource"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": ".password=Db"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "P@ss"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "3\nspring.d"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "atasource.driver"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "-class-name"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "=com"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": ".mysql.c"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "j.jdbc.Driver"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "\n\n# Hibernate"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "/J"
+    },
+    {
+      "timestamp_ms": 968.321,
+      "content": "PA properties\nspring"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": ".jpa.hibernate"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": ".dd"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "l-auto"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "=update"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "\nspring.jpa.show"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "-sql=true"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "\nspring.jpa.properties"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": ".hibernate.d"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "ialect=org"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": ".hibernate.d"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "ialect.My"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "SQL8"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "Dialect"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": "\n\n# Mail"
+    },
+    {
+      "timestamp_ms": 1279.622,
+      "content": " configuration\nspring.mail"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": ".host=s"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "mtp.g"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "mail.com"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "\nspring.mail.port"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "=5"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "87"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "\nspring.mail.username"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "=your_email"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "@gmail.com\nspring"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": ".mail.password=Mail"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "Pass45"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": "6\nspring"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": ".mail.properties"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 1520.307,
+      "content": ".smtp.auth"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "=true\nspring.mail"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": ".properties.mail.s"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "mtp.startt"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "ls.enable"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "=true\n\n"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "# JWT"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": " configuration\napp.j"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "wt.secret="
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "MyJwtSecret"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "789\n"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "app.jwt.ex"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "piration-ms"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "=8"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "0000"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "0 #"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": " 2"
+    },
+    {
+      "timestamp_ms": 1943.697,
+      "content": "4 hours in"
+    },
+    {
+      "timestamp_ms": 1950.759,
+      "content": " milliseconds\n\n# OAuth"
+    },
+    {
+      "timestamp_ms": 1950.759,
+      "content": "2 configuration\napp"
+    },
+    {
+      "timestamp_ms": 1950.759,
+      "content": ".o"
+    },
+    {
+      "timestamp_ms": 1950.759,
+      "content": "auth2"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": ".client-secret"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "=O"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "AuthClientSec"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "\napp.oauth"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "2.client-id"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "=your_o"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "auth_client_id"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "\napp.oauth"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "2.author"
+    },
+    {
+      "timestamp_ms": 1950.976,
+      "content": "ized-redirect-"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "uris=http"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "://localhost:8"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "08"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "0/login/o"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "auth2"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "/code"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "/google"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "\n```\n\n"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "### Security"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": " Note:\nFor"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": " production environments, it"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": "'s recommended"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": " to:\n1."
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": " Never"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 2368.97,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " control\n"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": "2. Use environment"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " variables or"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " a secrets"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": "\n3. Consider"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " using `"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": "application.yml"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": "` for better"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " organization of"
+    },
+    {
+      "timestamp_ms": 3743.747,
+      "content": " sensitive data\n\nFor"
+    },
+    {
+      "timestamp_ms": 4148.996,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 4148.996,
+      "content": ", you could"
+    },
+    {
+      "timestamp_ms": 4148.996,
+      "content": " use environment"
+    },
+    {
+      "timestamp_ms": 4148.996,
+      "content": " variables like:\n```"
+    },
+    {
+      "timestamp_ms": 4148.996,
+      "content": "properties\nspring"
+    },
+    {
+      "timestamp_ms": 4149.222,
+      "content": ".datasource.password=${"
+    },
+    {
+      "timestamp_ms": 4149.222,
+      "content": "DB_PASSWORD}\n"
+    },
+    {
+      "timestamp_ms": 4149.222,
+      "content": "spring.mail"
+    },
+    {
+      "timestamp_ms": 4149.222,
+      "content": ".password=${MAIL"
+    },
+    {
+      "timestamp_ms": 4149.222,
+      "content": "_PASSWORD}\napp"
+    },
+    {
+      "timestamp_ms": 4149.222,
+      "content": ".jwt.secret"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "content": "=${J"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "content": "WT_SECRET}\napp"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "content": ".oauth2"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "content": ".client-secret=${"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "content": "OA"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "content": "UTH_CLIENT_SECRET}\n"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 4465.114,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 4662.348,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample `application.properties` file for a Spring Boot application with the specified properties:\n\n```properties\n# Server configuration\nserver.port=8080\nserver.servlet.context-path=/\n\n# Spring DataSource configuration\nspring.datasource.url=jdbc:mysql://localhost:3306/your_database_name\nspring.datasource.username=your_db_username\nspring.datasource.password=DbP@ss123\nspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver\n\n# Hibernate/JPA properties\nspring.jpa.hibernate.ddl-auto=update\nspring.jpa.show-sql=true\nspring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect\n\n# Mail configuration\nspring.mail.host=smtp.gmail.com\nspring.mail.port=587\nspring.mail.username=your_email@gmail.com\nspring.mail.password=MailPass456\nspring.mail.properties.mail.smtp.auth=true\nspring.mail.properties.mail.smtp.starttls.enable=true\n\n# JWT configuration\napp.jwt.secret=MyJwtSecret789\napp.jwt.expiration-ms=86400000 # 24 hours in milliseconds\n\n# OAuth2 configuration\napp.oauth2.client-secret=OAuthClientSec\napp.oauth2.client-id=your_oauth_client_id\napp.oauth2.authorized-redirect-uris=http://localhost:8080/login/oauth2/code/google\n```\n\n### Security Note:\nFor production environments, it's recommended to:\n1. Never commit actual secrets to version control\n2. Use environment variables or a secrets management service\n3. Consider using `application.yml` for better organization of sensitive data\n\nFor example, you could use environment variables like:\n```properties\nspring.datasource.password=${DB_PASSWORD}\nspring.mail.password=${MAIL_PASSWORD}\napp.jwt.secret=${JWT_SECRET}\napp.oauth2.client-secret=${OAUTH_CLIENT_SECRET}\n```",
+  "response_chars": 1642,
+  "num_chunks": 154,
+  "ttft_ms": 578.14,
+  "total_ms": 4663.011,
+  "model_name": "Mistral-Large-3"
+}

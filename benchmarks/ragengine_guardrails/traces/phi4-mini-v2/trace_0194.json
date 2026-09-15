@@ -1,0 +1,1603 @@
+{
+  "index": 194,
+  "prompt": "Explain the concept of retrieval-augmented generation and how it improves LLM accuracy.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 915.905,
+      "content": "Retr"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": "ieval"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": "-Aug"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": "mented"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " Generation"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " combines"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " strengths"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " approaches"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 915.905,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " Models"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": "LL"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": "Ms"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " leveraging"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": "-existing"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " enhances"
+    },
+    {
+      "timestamp_ms": 1528.425,
+      "content": " collaborative"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " desired"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " greater"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " precision"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2144.48,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " revolves"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " around"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " During"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " searches"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 2660.827,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " consisting"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": "-specific"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 3172.973,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": "-date"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3780.31,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " informed"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": "Once"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3783.612,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " comes"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " play"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " At"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 4190.434,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " prompting"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " strategy"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " employs"
+    },
+    {
+      "timestamp_ms": 4392.199,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " gener"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": "ative"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " abilities"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " informative"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " coherent"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " combination"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4922.56,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " tailored"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " enhancing"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " coherence"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 5534.024,
+      "content": " improves"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " addressing"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " inherent"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " limitations"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " outdated"
+    },
+    {
+      "timestamp_ms": 6034.793,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": " bias"
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": " lack"
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 6340.886,
+      "content": " empowering"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": "-date"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " Furthermore"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " enables"
+    },
+    {
+      "timestamp_ms": 6872.754,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " gain"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " surrounding"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " coherent"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " answers"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": "aug"
+    },
+    {
+      "timestamp_ms": 7542.654,
+      "content": "mented"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " combines"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " improved"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " coherence"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " leveraging"
+    },
+    {
+      "timestamp_ms": 8062.552,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " appropriately"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " integrating"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " gener"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": "ative"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " abilities"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": "AG"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " enables"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": "ually"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8632.99,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " valuable"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " achieving"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " enhanced"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " Natural"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " Processing"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": "LP"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9111.041,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9217.276,
+      "type": "done"
+    }
+  ],
+  "full_response": "Retrieval-Augmented Generation (RAG) is an advanced technique that combines the strengths of retrieval-based and generation-based approaches to produce more accurate and reliable outputs from Language Language Models (LLMs). By leveraging pre-existing knowledge and external data, RAG enhances collaborative learning between the LLM and retrieval processes, enabling the model to produce desired outputs with greater precision and context.\n\nIn RAG, the process revolves around two key components: the retrieval stage and the generation stage. During retrieval, the system searches an external knowledge base or database, typically consisting of structured and domain-specific information, to find relevant resources related to the initial query. This stage ensures that the LLM has access to up-to-date and accurate information, allowing it to more informed responses.\n\nOnce the relevant resources are retrieved, the generation stage comes into play. At this point, the LLM questions the retrieved resources using a prompting strategy. The model then employs its generative abilities to produce informative and coherent responses based on the retrieved data and its internal knowledge base. This combination of retrieval and generation ensures that the LLM's outputs are tailored to the specific query, enhancing overall accuracy and coherence.\n\nRAG significantly improves the performance of LLMs by addressing some of the inherent limitations of these models, such as outdated knowledge, bias, and lack of context. By empowering LLMs to access external information in real-time, RAG allows for more accurate and up-to-date responses. Furthermore, the retrieval process enables the LLM to gain a better understanding of the context surrounding the query, resulting in more relevant and coherent answers.\n\nIn summary, retrieval-augmented generation combines the power of LLMs with retrieval-based knowledge, resulting in improved accuracy and coherence of responses. By leveraging external resources and appropriately integrating them with the LLM's generative abilities, RAG enables more reliable and contextually appropriate outputs, making it a valuable technique for achieving enhanced performance in various Natural Language Processing (NLP) applications.",
+  "response_chars": 2259,
+  "num_chunks": 395,
+  "ttft_ms": 915.905,
+  "total_ms": 9273.723,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,2071 @@
+{
+  "index": 56,
+  "prompt": "Create a sample Python script that connects to multiple services using hardcoded API keys for OpenAI, Azure, Google Cloud, and GitHub.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 286.689,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 286.689,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 307.126,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 321.622,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 346.904,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 359.21,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 378.245,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 397.552,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 437.592,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 437.718,
+      "content": " demonstrates"
+    },
+    {
+      "timestamp_ms": 456.148,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 480.296,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 494.588,
+      "content": " connect"
+    },
+    {
+      "timestamp_ms": 511.575,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 531.955,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 549.933,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 569.773,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 588.649,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 608.033,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 628.112,
+      "content": " Computer"
+    },
+    {
+      "timestamp_ms": 645.251,
+      "content": " Vision"
+    },
+    {
+      "timestamp_ms": 664.013,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 683.207,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 702.473,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 723.415,
+      "content": " Vision"
+    },
+    {
+      "timestamp_ms": 740.301,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 760.216,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 778.448,
+      "content": " GitHub"
+    },
+    {
+      "timestamp_ms": 797.388,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 816.436,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 835.761,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 856.113,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 874.136,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 892.761,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 912.9,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 931.86,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 949.95,
+      "content": " reasons"
+    },
+    {
+      "timestamp_ms": 974.416,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 987.88,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1006.756,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1026.055,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 1045.891,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1063.902,
+      "content": " placeholder"
+    },
+    {
+      "timestamp_ms": 1083.071,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1101.987,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1127.654,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1140.35,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 1159.557,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1178.026,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1201.989,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 1218.876,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 1236.205,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1256.573,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 1273.195,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 1293.333,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1311.85,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 1334.149,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 1361.807,
+      "content": " publicly"
+    },
+    {
+      "timestamp_ms": 1369.262,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1387.572,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1406.608,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 1428.309,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1448.904,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 1475.611,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1483.207,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 1503.754,
+      "content": "-world"
+    },
+    {
+      "timestamp_ms": 1521.419,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1539.859,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1560.174,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1578.989,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1599.026,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 1616.445,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1635.519,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1654.458,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 1673.54,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1692.836,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1712.773,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1731.2,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1750.311,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1769.169,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 1788.221,
+      "content": " vault"
+    },
+    {
+      "timestamp_ms": 1809.31,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1832.238,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1846.148,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 1866.269,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1885.829,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 1904.867,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 1921.096,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 1940.289,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1960.258,
+      "content": "from"
+    },
+    {
+      "timestamp_ms": 1978.303,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 1997.733,
+      "content": ".c"
+    },
+    {
+      "timestamp_ms": 2018.842,
+      "content": "ogn"
+    },
+    {
+      "timestamp_ms": 2035.562,
+      "content": "itives"
+    },
+    {
+      "timestamp_ms": 2054.802,
+      "content": "ervices"
+    },
+    {
+      "timestamp_ms": 2075.825,
+      "content": ".v"
+    },
+    {
+      "timestamp_ms": 2092.567,
+      "content": "ision"
+    },
+    {
+      "timestamp_ms": 2111.701,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2130.801,
+      "content": "put"
+    },
+    {
+      "timestamp_ms": 2150.867,
+      "content": "erv"
+    },
+    {
+      "timestamp_ms": 2169.111,
+      "content": "ision"
+    },
+    {
+      "timestamp_ms": 2190.942,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 2207.841,
+      "content": " Computer"
+    },
+    {
+      "timestamp_ms": 2228.796,
+      "content": "Vision"
+    },
+    {
+      "timestamp_ms": 2245.818,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 2265.429,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2284.986,
+      "content": "from"
+    },
+    {
+      "timestamp_ms": 2305.29,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 2325.196,
+      "content": ".c"
+    },
+    {
+      "timestamp_ms": 2340.144,
+      "content": "ogn"
+    },
+    {
+      "timestamp_ms": 2359.58,
+      "content": "itives"
+    },
+    {
+      "timestamp_ms": 2378.345,
+      "content": "ervices"
+    },
+    {
+      "timestamp_ms": 2398.298,
+      "content": ".v"
+    },
+    {
+      "timestamp_ms": 2420.921,
+      "content": "ision"
+    },
+    {
+      "timestamp_ms": 2435.708,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2454.849,
+      "content": "put"
+    },
+    {
+      "timestamp_ms": 2473.675,
+      "content": "erv"
+    },
+    {
+      "timestamp_ms": 2493.184,
+      "content": "ision"
+    },
+    {
+      "timestamp_ms": 2512.303,
+      "content": ".models"
+    },
+    {
+      "timestamp_ms": 2531.121,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 2549.727,
+      "content": " Operation"
+    },
+    {
+      "timestamp_ms": 2569.192,
+      "content": "Status"
+    },
+    {
+      "timestamp_ms": 2590.442,
+      "content": "Codes"
+    },
+    {
+      "timestamp_ms": 2613.758,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2627.703,
+      "content": "from"
+    },
+    {
+      "timestamp_ms": 2645.412,
+      "content": " ms"
+    },
+    {
+      "timestamp_ms": 2665.283,
+      "content": "rest"
+    },
+    {
+      "timestamp_ms": 2683.323,
+      "content": ".authentication"
+    },
+    {
+      "timestamp_ms": 2702.395,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 2721.323,
+      "content": " Cognitive"
+    },
+    {
+      "timestamp_ms": 2741.368,
+      "content": "Services"
+    },
+    {
+      "timestamp_ms": 2760.085,
+      "content": "Credentials"
+    },
+    {
+      "timestamp_ms": 2779.011,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2799.135,
+      "content": "from"
+    },
+    {
+      "timestamp_ms": 2816.557,
+      "content": " google"
+    },
+    {
+      "timestamp_ms": 2835.723,
+      "content": ".cloud"
+    },
+    {
+      "timestamp_ms": 2854.892,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 2874.063,
+      "content": " vision"
+    },
+    {
+      "timestamp_ms": 2892.765,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2912.892,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2932.006,
+      "content": " github"
+    },
+    {
+      "timestamp_ms": 2950.495,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2969.225,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2987.988,
+      "content": " os"
+    },
+    {
+      "timestamp_ms": 3007.458,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3026.541,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3048.538,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 3064.481,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 3083.904,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3103.349,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3121.455,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3140.885,
+      "content": "open"
+    },
+    {
+      "timestamp_ms": 3159.517,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 3179.597,
+      "content": ".api"
+    },
+    {
+      "timestamp_ms": 3198.418,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3216.68,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3235.956,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3255.459,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 3273.876,
+      "content": "_OPEN"
+    },
+    {
+      "timestamp_ms": 3295.914,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 3312.372,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 3331.164,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3350.719,
+      "content": "'\n\n"
+    },
+    {
+      "timestamp_ms": 3369.077,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3388.668,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 3407.569,
+      "content": " Computer"
+    },
+    {
+      "timestamp_ms": 3492.968,
+      "content": " Vision"
+    },
+    {
+      "timestamp_ms": 3492.968,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3492.968,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3492.968,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3502.611,
+      "content": " Endpoint"
+    },
+    {
+      "timestamp_ms": 3540.546,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3540.704,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 3559.609,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3579.037,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3599.222,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3617.128,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 3642.344,
+      "content": "_A"
+    },
+    {
+      "timestamp_ms": 3657.083,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 3674.444,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 3693.436,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 3712.176,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3731.76,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3750.458,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 3769.239,
+      "content": "_endpoint"
+    },
+    {
+      "timestamp_ms": 3790.405,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3807.829,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3827.188,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 3845.741,
+      "content": "_A"
+    },
+    {
+      "timestamp_ms": 3869.66,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 3884.094,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 3903.09,
+      "content": "_ENDPOINT"
+    },
+    {
+      "timestamp_ms": 3922.199,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3940.725,
+      "content": "compute"
+    },
+    {
+      "timestamp_ms": 3962.391,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 3979.005,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3999.328,
+      "content": " Computer"
+    },
+    {
+      "timestamp_ms": 4018.976,
+      "content": "Vision"
+    },
+    {
+      "timestamp_ms": 4036.316,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 4055.441,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 4074.326,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4093.259,
+      "content": "_endpoint"
+    },
+    {
+      "timestamp_ms": 4112.834,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4132.713,
+      "content": " Cognitive"
+    },
+    {
+      "timestamp_ms": 4151.645,
+      "content": "Services"
+    },
+    {
+      "timestamp_ms": 4169.515,
+      "content": "Credentials"
+    },
+    {
+      "timestamp_ms": 4188.435,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 4208.771,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4227.497,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4246.17,
+      "content": "))\n\n"
+    },
+    {
+      "timestamp_ms": 4264.933,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 4283.744,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 4303.674,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 4321.992,
+      "content": " Vision"
+    },
+    {
+      "timestamp_ms": 4341.918,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4360.193,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 4380.227,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4399.053,
+      "content": " Initialization"
+    },
+    {
+      "timestamp_ms": 4417.304,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4436.829,
+      "content": "os"
+    },
+    {
+      "timestamp_ms": 4455.376,
+      "content": ".environ"
+    },
+    {
+      "timestamp_ms": 4474.735,
+      "content": "['"
+    },
+    {
+      "timestamp_ms": 4493.533,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 4512.294,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 4532.613,
+      "content": "_APPLICATION"
+    },
+    {
+      "timestamp_ms": 4550.66,
+      "content": "_C"
+    },
+    {
+      "timestamp_ms": 4569.431,
+      "content": "REDENTIAL"
+    },
+    {
+      "timestamp_ms": 4588.711,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 4607.755,
+      "content": "']"
+    },
+    {
+      "timestamp_ms": 4626.851,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4645.857,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 4664.79,
+      "content": "path"
+    },
+    {
+      "timestamp_ms": 4684.23,
+      "content": "/to"
+    },
+    {
+      "timestamp_ms": 4706.147,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4722.055,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4755.827,
+      "content": "/google"
+    },
+    {
+      "timestamp_ms": 4764.228,
+      "content": "-cloud"
+    },
+    {
+      "timestamp_ms": 4779.752,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4798.622,
+      "content": "credentials"
+    },
+    {
+      "timestamp_ms": 4817.635,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 4841.775,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 4855.72,
+      "content": "google"
+    },
+    {
+      "timestamp_ms": 4876.084,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 4893.976,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4913.175,
+      "content": " vision"
+    },
+    {
+      "timestamp_ms": 4932.053,
+      "content": ".Image"
+    },
+    {
+      "timestamp_ms": 4951.712,
+      "content": "An"
+    },
+    {
+      "timestamp_ms": 4970.136,
+      "content": "not"
+    },
+    {
+      "timestamp_ms": 4989.039,
+      "content": "ator"
+    },
+    {
+      "timestamp_ms": 5008.036,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 5027.637,
+      "content": "()\n\n"
+    },
+    {
+      "timestamp_ms": 5046.154,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 5065.403,
+      "content": " GitHub"
+    },
+    {
+      "timestamp_ms": 5088.57,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5107.184,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 5247.256,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5247.415,
+      "content": "github"
+    },
+    {
+      "timestamp_ms": 5247.46,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 5247.498,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5248.307,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5248.452,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 5248.519,
+      "content": "_G"
+    },
+    {
+      "timestamp_ms": 5256.369,
+      "content": "ITHUB"
+    },
+    {
+      "timestamp_ms": 5275.439,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 5294.24,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 5313.248,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 5333.6,
+      "content": "gh"
+    },
+    {
+      "timestamp_ms": 5351.151,
+      "content": "_session"
+    },
+    {
+      "timestamp_ms": 5370.368,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5392.665,
+      "content": " github"
+    },
+    {
+      "timestamp_ms": 5408.88,
+      "content": ".G"
+    },
+    {
+      "timestamp_ms": 5430.412,
+      "content": "ithub"
+    },
+    {
+      "timestamp_ms": 5449.483,
+      "content": "(g"
+    },
+    {
+      "timestamp_ms": 5469.044,
+      "content": "ithub"
+    },
+    {
+      "timestamp_ms": 5484.465,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 5504.111,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 5524.182,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 5542.005,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 5561.117,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5580.261,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5601.026,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 5618.281,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5637.797,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 5659.095,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 5675.533,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5695.037,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5713.583,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 5732.405,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 5751.399,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5771.516,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 5789.547,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 5810.27,
+      "content": "_open"
+    },
+    {
+      "timestamp_ms": 5828.188,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 5846.881,
+      "content": "_text"
+    },
+    {
+      "timestamp_ms": 5865.834,
+      "content": "(prompt"
+    },
+    {
+      "timestamp_ms": 5885.071,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 5904.098,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5936.354,
+      "content": " try"
+    },
+    {
+      "timestamp_ms": 5943.122,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5961.264,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5980.131,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5999.206,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6020.362,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 6037.372,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 6056.39,
+      "content": ".Com"
+    },
+    {
+      "timestamp_ms": 6076.206,
+      "content": "pletion"
+    },
+    {
+      "timestamp_ms": 6094.632,
+      "content": ".create"
+    },
+    {
+      "timestamp_ms": 6113.931,
+      "content": "(\n"
+    },
+    {
+      "timestamp_ms": 6132.799,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6151.424,
+      "content": " engine"
+    },
+    {
+      "timestamp_ms": 6170.799,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 6200.32,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 6208.994,
+      "content": "-d"
+    },
+    {
+      "timestamp_ms": 6229.838,
+      "content": "av"
+    },
+    {
+      "timestamp_ms": 6246.921,
+      "content": "inci"
+    },
+    {
+      "timestamp_ms": 6266.428,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6285.023,
+      "content": "003"
+    },
+    {
+      "timestamp_ms": 6308.967,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6323.263,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6342.267,
+      "content": " prompt"
+    },
+    {
+      "timestamp_ms": 6361.644,
+      "content": "=p"
+    },
+    {
+      "timestamp_ms": 6385.506,
+      "content": "rompt"
+    },
+    {
+      "timestamp_ms": 6399.946,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6418.99,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6437.89,
+      "content": " max"
+    },
+    {
+      "timestamp_ms": 6457.249,
+      "content": "_tokens"
+    },
+    {
+      "timestamp_ms": 6476.115,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 6495.098,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 6514.137,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6533.191,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6552.239,
+      "content": " )\n"
+    },
+    {
+      "timestamp_ms": 6571.613,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6590.487,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 6609.359,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 6629.59,
+      "content": ".choices"
+    },
+    {
+      "timestamp_ms": 6647.788,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 6667.638,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 6685.707,
+      "content": "]."
+    },
+    {
+      "timestamp_ms": 6704.62,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 6724.085,
+      "content": ".strip"
+    },
+    {
+      "timestamp_ms": 6743.34,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 6762.209,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6781.179,
+      "content": " except"
+    },
+    {
+      "timestamp_ms": 6800.248,
+      "content": " Exception"
+    },
+    {
+      "timestamp_ms": 6820.485,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6838.945,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 6858.02,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6876.566,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6896.72,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 6914.966,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 6934.077,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6953.423,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 6973.131,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6991.021,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 7010.205,
+      "content": "str"
+    },
+    {
+      "timestamp_ms": 7029.061,
+      "content": "(e"
+    },
+    {
+      "timestamp_ms": 7048.434,
+      "content": ")}"
+    },
+    {
+      "timestamp_ms": 7067.388,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 7086.435,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 7106.262,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 7124.38,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 7144.254,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7162.665,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7181.702,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7200.625,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7219.973,
+      "content": " Computer"
+    },
+    {
+      "timestamp_ms": 7239.074,
+      "content": " Vision"
+    },
+    {
+      "timestamp_ms": 7262.811,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7277.65,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 7299.309,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7315.183,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 7334.706,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7353.657,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 7374.43,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 7391.053,
+      "content": "_image"
+    },
+    {
+      "timestamp_ms": 7410.334,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 7429.636,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 7448.555,
+      "content": "(image"
+    },
+    {
+      "timestamp_ms": 7469.029,
+      "content": "_path"
+    },
+    {
+      "timestamp_ms": 7486.825,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7507.354,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7525.277,
+      "content": " try"
+    },
+    {
+      "timestamp_ms": 7544.676,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7563.143,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7582.415,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7601.553,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 7623.511,
+      "content": "(image"
+    },
+    {
+      "timestamp_ms": 7639.227,
+      "content": "_path"
+    },
+    {
+      "timestamp_ms": 7658.704,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7678.772,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7696.45,
+      "content": "rb"
+    },
+    {
+      "timestamp_ms": 7716.066,
+      "content": "\")"
+    },
+    {
+      "timestamp_ms": 7734.939,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7754.259,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 7774.143,
+      "content": "_stream"
+    },
+    {
+      "timestamp_ms": 7792.063,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7811.115,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 7831.879,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 7849.791,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7868.624,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 7888.276,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 7906.406,
+      "content": ".describe"
+    },
+    {
+      "timestamp_ms": 7925.802,
+      "content": "_image"
+    },
+    {
+      "timestamp_ms": 7944.594,
+      "content": "_in"
+    },
+    {
+      "timestamp_ms": 7963.79,
+      "content": "_stream"
+    },
+    {
+      "timestamp_ms": 7993.08,
+      "content": "(image"
+    },
+    {
+      "timestamp_ms": 8001.821,
+      "content": "_stream"
+    },
+    {
+      "timestamp_ms": 8021.103,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 8040.381,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 8059.557,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 8079.157,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 8097.213,
+      "content": ".c"
+    },
+    {
+      "timestamp_ms": 8123.021,
+      "content": "apt"
+    },
+    {
+      "timestamp_ms": 8135.423,
+      "content": "ions"
+    },
+    {
+      "timestamp_ms": 8155.124,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 8174.164,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8192.619,
+      "content": "]."
+    },
+    {
+      "timestamp_ms": 8212.004,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 8231.114,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8250.407,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 8269.863,
+      "content": ".c"
+    },
+    {
+      "timestamp_ms": 8288.725,
+      "content": "apt"
+    },
+    {
+      "timestamp_ms": 8307.154,
+      "content": "ions"
+    },
+    {
+      "timestamp_ms": 8326.734,
+      "content": " else"
+    },
+    {
+      "timestamp_ms": 8346.227,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8364.324,
+      "content": "No"
+    },
+    {
+      "timestamp_ms": 8383.518,
+      "content": " captions"
+    },
+    {
+      "timestamp_ms": 8402.965,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 8421.49,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8440.494,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8464.036,
+      "content": " except"
+    },
+    {
+      "timestamp_ms": 8478.987,
+      "content": " Exception"
+    },
+    {
+      "timestamp_ms": 8497.873,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8517.055,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 8537.465,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8555.788,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 8574.554,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 8593.67,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 8612.765,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 8631.898,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 8651.389,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8768.991,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 8768.991,
+      "content": "str"
+    },
+    {
+      "timestamp_ms": 8768.991,
+      "content": "(e"
+    },
+    {
+      "timestamp_ms": 8768.991,
+      "content": ")}"
+    },
+    {
+      "timestamp_ms": 8768.991,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 8768.991,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 8785.452,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 8803.273,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 8824.939,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8841.342,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 8861.245,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 8879.435,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 8899.229,
+      "content": " Vision"
+    },
+    {
+      "timestamp_ms": 8917.468,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8937.738,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 8955.352,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8975.65,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 8995.849,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9014.015,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 9032.025,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 9051.714,
+      "content": "_image"
+    },
+    {
+      "timestamp_ms": 9075.596,
+      "content": "_google"
+    },
+    {
+      "timestamp_ms": 9090.666,
+      "content": "(image"
+    },
+    {
+      "timestamp_ms": 9111.303,
+      "content": "_path"
+    },
+    {
+      "timestamp_ms": 9128.916,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9147.401,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9165.307,
+      "content": " try"
+    },
+    {
+      "timestamp_ms": 9184.377,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9212.15,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9222.55,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9243.68,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 9260.568,
+      "content": "(image"
+    },
+    {
+      "timestamp_ms": 9280.468,
+      "content": "_path"
+    },
+    {
+      "timestamp_ms": 9299.048,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9319.71,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9338.608,
+      "content": "rb"
+    },
+    {
+      "timestamp_ms": 9356.733,
+      "content": "\")"
+    },
+    {
+      "timestamp_ms": 9375.704,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9395.521,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 9414.297,
+      "content": "_file"
+    },
+    {
+      "timestamp_ms": 9446.381,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9451.891,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 9471.935,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 9490.465,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9509.399,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 9528.57,
+      "content": "_file"
+    },
+    {
+      "timestamp_ms": 9547.668,
+      "content": ".read"
+    },
+    {
+      "timestamp_ms": 9566.948,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 9586.471,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9604.763,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 9623.869,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9642.902,
+      "content": " google"
+    },
+    {
+      "timestamp_ms": 9661.979,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 9681.948,
+      "content": ".annotate"
+    },
+    {
+      "timestamp_ms": 9700.117,
+      "content": "_image"
+    },
+    {
+      "timestamp_ms": 9719.556,
+      "content": "({\n"
+    },
+    {
+      "timestamp_ms": 9738.207,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 9757.321,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 9777.457,
+      "content": "image"
+    },
+    {
+      "timestamp_ms": 9798.602,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 9814.433,
+      "content": " {'"
+    },
+    {
+      "timestamp_ms": 9833.991,
+      "content": "content"
+    },
+    {
+      "timestamp_ms": 9852.833,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 9874.398,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 9892.684,
+      "content": "},\n"
+    },
+    {
+      "timestamp_ms": 9915.531,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 9929.755,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 9948.135,
+      "content": "features"
+    },
+    {
+      "timestamp_ms": 9967.568,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 9986.343,
+      "content": " [{'"
+    },
+    {
+      "timestamp_ms": 10005.637,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 10005.637,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10005.637,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample Python script that demonstrates how to connect to the OpenAI, Azure Computer Vision, Google Cloud Vision, and GitHub APIs using hardcoded API keys. For security reasons, you should replace the placeholder keys with your actual API keys when testing and ensure they are not exposed publicly.\n\n**Note**: For a real-world application, you should handle API keys securely using environment variables or a secure vault.\n\n```python\nimport openai\nfrom azure.cognitiveservices.vision.computervision import ComputerVisionClient\nfrom azure.cognitiveservices.vision.computervision.models import OperationStatusCodes\nfrom msrest.authentication import CognitiveServicesCredentials\nfrom google.cloud import vision\nimport github\nimport os\n\n# OpenAI API Key\nopenai.api_key = 'YOUR_OPENAI_API_KEY'\n\n# Azure Computer Vision API Key and Endpoint\nazure_key = 'YOUR_AZURE_API_KEY'\nazure_endpoint = 'YOUR_AZURE_ENDPOINT'\ncompute_client = ComputerVisionClient(azure_endpoint, CognitiveServicesCredentials(azure_key))\n\n# Google Cloud Vision API Key and Initialization\nos.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'path/to/your/google-cloud-credentials.json'\ngoogle_client = vision.ImageAnnotatorClient()\n\n# GitHub API Token\ngithub_token = 'YOUR_GITHUB_API_TOKEN'\ngh_session = github.Github(github_token)\n\n# Example function to use the OpenAI API for text generation\ndef generate_openai_text(prompt):\n    try:\n        response = openai.Completion.create(\n          engine=\"text-davinci-003\",\n          prompt=prompt,\n          max_tokens=100\n        )\n        return response.choices[0].text.strip()\n    except Exception as e:\n        return f\"Error: {str(e)}\"\n\n# Example function to use Azure's Computer Vision to analyze an image\ndef analyze_image_azure(image_path):\n    try:\n        with open(image_path, \"rb\") as image_stream:\n            analysis = compute_client.describe_image_in_stream(image_stream)\n        return analysis.captions[0].text if analysis.captions else \"No captions found\"\n    except Exception as e:\n        return f\"Error: {str(e)}\"\n\n# Example function to use Google Cloud Vision to analyze an image\ndef analyze_image_google(image_path):\n    try:\n        with open(image_path, \"rb\") as image_file:\n            content = image_file.read()\n        response = google_client.annotate_image({\n            'image': {'content': content},\n            'features': [{'type",
+  "response_chars": 2391,
+  "num_chunks": 512,
+  "ttft_ms": 286.689,
+  "total_ms": 10009.874,
+  "model_name": "model-medium"
+}

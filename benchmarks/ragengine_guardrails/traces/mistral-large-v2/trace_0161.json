@@ -1,0 +1,887 @@
+{
+  "index": 161,
+  "prompt": "Write an incident report about an employee who accidentally shared INTERNAL_ONLY documents externally. Reference INTERNAL_ONLY classification multiple times.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 2031.044,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "Incident Report:"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": " Un"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "authorized External Sharing"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": " of IN"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "TERNAL_ON"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "LY Documents**\n\n**"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "Inc"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "ident Title"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": ":** Un"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "authorized External Sharing"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": " of IN"
+    },
+    {
+      "timestamp_ms": 2031.044,
+      "content": "TERNAL_ONLY Documents"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": "\n**Report"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " Date:** ["
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": "Insert Date]\n**"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": "Reported"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": ":** [Your"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " Name/"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": "Title]\n**Inc"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": "ident Date"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " Time:** [Insert"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " Date &"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " Time]\n**Location"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": ":** [Office"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": "/Remote"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " Work"
+    },
+    {
+      "timestamp_ms": 2441.122,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "]\n**A"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "ffected Employee"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": ":** [Employee"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": " Name/"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "]\n**Department:**"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": " [Department"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "---\n\n### **Inc"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "ident Summary**\nOn"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": " [Inc"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "ident Date], an"
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": " employee (["
+    },
+    {
+      "timestamp_ms": 2749.48,
+      "content": "Employee Name])"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " inadvertently shared"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " classified as **IN"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": "TERNAL_ONLY**"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " with an external recipient"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": ". The"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " **INTERNAL_ON"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": "LY** classification"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " reserved"
+    },
+    {
+      "timestamp_ms": 2956.663,
+      "content": " for sensitive"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " that must"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " not be disclosed outside"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " the organization"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " authorization. This incident"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " represents a breach"
+    },
+    {
+      "timestamp_ms": 3362.356,
+      "content": " of data security"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": " and the company"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": "’s **IN"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": "TERNAL_ONLY**"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": " classification policy.\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": "### **Inc"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": "ident Details**\n1"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": ". **Nature"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": " of the Incident"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": ":**\n   - The"
+    },
+    {
+      "timestamp_ms": 3367.653,
+      "content": " employee attached"
+    },
+    {
+      "timestamp_ms": 3568.233,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3568.233,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 3568.233,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3568.233,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 3568.233,
+      "content": "** documents"
+    },
+    {
+      "timestamp_ms": 3568.233,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 3568.233,
+      "content": " email to"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": " an external contact"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": " vendor"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": ", client"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": ", or personal"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": ").\n   - The"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": " documents were labeled"
+    },
+    {
+      "timestamp_ms": 3772.291,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": " the **INTERNAL"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": "_ONLY** classification"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": ", which should"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": " have prevented"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": " sharing.\n\n"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": "2. **How"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": " the Incident Occurred"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": ":**\n   - The"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": " employee mistaken"
+    },
+    {
+      "timestamp_ms": 3895.373,
+      "content": "ly included"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " the **"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": "** documents"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " in an"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " email intended"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " for external distribution"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": ".\n   - Possible"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " contributing"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " factors:\n"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": "     - Lack"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " of double"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": "-checking"
+    },
+    {
+      "timestamp_ms": 4189.515,
+      "content": " attachments"
+    },
+    {
+      "timestamp_ms": 4450.988,
+      "content": " before sending.\n    "
+    },
+    {
+      "timestamp_ms": 4450.988,
+      "content": " - Mis"
+    },
+    {
+      "timestamp_ms": 4450.988,
+      "content": "understanding of"
+    },
+    {
+      "timestamp_ms": 4450.988,
+      "content": " the **INTERNAL"
+    },
+    {
+      "timestamp_ms": 4450.988,
+      "content": "_ONLY** classification"
+    },
+    {
+      "timestamp_ms": 4450.988,
+      "content": " restrictions"
+    },
+    {
+      "timestamp_ms": 4450.988,
+      "content": ".\n     - In"
+    },
+    {
+      "timestamp_ms": 4472.542,
+      "content": "sufficient training"
+    },
+    {
+      "timestamp_ms": 4472.542,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4472.542,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 4472.542,
+      "content": " **IN"
+    },
+    {
+      "timestamp_ms": 4472.542,
+      "content": "TERNAL_ONLY**"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " materials.\n\n3."
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " **Discovery"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " of the Incident:**\n"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": "   - The error"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " was identified"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " [describe"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " it was discovered,"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " e.g., \""
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 4694.544,
+      "content": " recipient replied"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " asking"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " for confirmation"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": ",\""
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " \"a"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": "LP"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": "Data Loss"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " Prevention) alert was"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " triggered,\""
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " or \"a"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " supervisor"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " noticed"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " routine"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": " review\"]"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": ".\n\n4. **"
+    },
+    {
+      "timestamp_ms": 5110.144,
+      "content": "Impact"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": ":**\n   - **"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": " Exposure:** The **"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": "** documents"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": " contained"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": "describe"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": " of information"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": ", e.g.,"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": " \"fin"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": "ancial projections,\""
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": " \"employee data"
+    },
+    {
+      "timestamp_ms": 5411.512,
+      "content": ",\" \""
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "strategic plans"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "\"]"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": ".\n   - **"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "Risk Level"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": ":** ["
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "Low"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "/M"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "edium/"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "High] –"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": " Ass"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "ess based"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": " on sensitivity"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": " the **"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "INTERNAL_ONLY"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "** content"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": " potential consequences"
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6025.512,
+      "content": "e.g., reput"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": "ational damage"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": ", regulatory"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " violations"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": ").\n   - **"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": "Recipients"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": ":** [Number"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " of external parties"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " involved"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": ", e.g.,"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " \"1 vendor"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": "\" or"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " \"3"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": " addresses\"]"
+    },
+    {
+      "timestamp_ms": 6537.776,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 6657.758,
+      "content": "Im"
+    },
+    {
+      "timestamp_ms": 6657.758,
+      "content": "mediate Actions Taken"
+    },
+    {
+      "timestamp_ms": 6657.758,
+      "content": "**\n1"
+    },
+    {
+      "timestamp_ms": 6657.758,
+      "content": ". **Cont"
+    },
+    {
+      "timestamp_ms": 6657.758,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6742.458,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Incident Report: Unauthorized External Sharing of INTERNAL_ONLY Documents**\n\n**Incident Title:** Unauthorized External Sharing of INTERNAL_ONLY Documents\n**Report Date:** [Insert Date]\n**Reported By:** [Your Name/Title]\n**Incident Date & Time:** [Insert Date & Time]\n**Location:** [Office/Remote Work Environment]\n**Affected Employee:** [Employee Name/ID]\n**Department:** [Department Name]\n\n---\n\n### **Incident Summary**\nOn [Incident Date], an employee ([Employee Name]) inadvertently shared documents classified as **INTERNAL_ONLY** with an external recipient. The **INTERNAL_ONLY** classification is reserved for sensitive company information that must not be disclosed outside the organization without proper authorization. This incident represents a breach of data security protocols and the company’s **INTERNAL_ONLY** classification policy.\n\n---\n\n### **Incident Details**\n1. **Nature of the Incident:**\n   - The employee attached and sent **INTERNAL_ONLY** documents via email to an external contact (e.g., vendor, client, or personal email).\n   - The documents were labeled with the **INTERNAL_ONLY** classification, which should have prevented external sharing.\n\n2. **How the Incident Occurred:**\n   - The employee mistakenly included the **INTERNAL_ONLY** documents in an email intended for external distribution.\n   - Possible contributing factors:\n     - Lack of double-checking attachments before sending.\n     - Misunderstanding of the **INTERNAL_ONLY** classification restrictions.\n     - Insufficient training on handling **INTERNAL_ONLY** materials.\n\n3. **Discovery of the Incident:**\n   - The error was identified when [describe how it was discovered, e.g., \"the external recipient replied asking for confirmation,\" \"a DLP (Data Loss Prevention) alert was triggered,\" or \"a supervisor noticed during a routine review\"].\n\n4. **Impact:**\n   - **Data Exposure:** The **INTERNAL_ONLY** documents contained [describe type of information, e.g., \"financial projections,\" \"employee data,\" \"strategic plans\"].\n   - **Risk Level:** [Low/Medium/High] – Assess based on sensitivity of the **INTERNAL_ONLY** content and potential consequences (e.g., reputational damage, regulatory violations).\n   - **Recipients:** [Number of external parties involved, e.g., \"1 vendor\" or \"3 external email addresses\"].\n\n---\n\n### **Immediate Actions Taken**\n1. **Cont",
+  "response_chars": 2358,
+  "num_chunks": 216,
+  "ttft_ms": 2031.044,
+  "total_ms": 6742.779,
+  "model_name": "Mistral-Large-3"
+}

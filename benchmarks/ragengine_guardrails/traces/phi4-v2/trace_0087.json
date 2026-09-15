@@ -1,0 +1,1155 @@
+{
+  "index": 87,
+  "prompt": "Return a JSON array of 5 fictional users, each with fields: id, name, email, phone, role, department. Format as valid JSON only.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 321.37,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 327.986,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 346.449,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 415.276,
+      "content": "[\n"
+    },
+    {
+      "timestamp_ms": 415.542,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 415.829,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 418.246,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 532.168,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 532.32,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 532.477,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 532.582,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 532.656,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 535.241,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 598.194,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 598.418,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 598.519,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 620.637,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 627.929,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 716.116,
+      "content": "Alice"
+    },
+    {
+      "timestamp_ms": 716.362,
+      "content": " Johnson"
+    },
+    {
+      "timestamp_ms": 716.509,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 716.63,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 722.945,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 743.353,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 770.33,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 784.536,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 820.772,
+      "content": "alice"
+    },
+    {
+      "timestamp_ms": 820.973,
+      "content": ".j"
+    },
+    {
+      "timestamp_ms": 919.983,
+      "content": "ohn"
+    },
+    {
+      "timestamp_ms": 920.116,
+      "content": "son"
+    },
+    {
+      "timestamp_ms": 920.203,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 920.286,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 920.372,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 933.22,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 951.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1025.715,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 1025.991,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1026.078,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1027.946,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 1088.909,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1089.045,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1089.11,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 1102.403,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1229.003,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1229.255,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1229.363,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 1229.471,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1229.553,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1229.616,
+      "content": "Manager"
+    },
+    {
+      "timestamp_ms": 1235.701,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1279.59,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1279.728,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1432.685,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 1432.821,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1432.981,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1433.076,
+      "content": "Sales"
+    },
+    {
+      "timestamp_ms": 1433.154,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1433.223,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1433.286,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 1433.349,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1445.958,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1534.509,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1534.706,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1534.792,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 1534.857,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1540.725,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1637.428,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1637.656,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1637.868,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1637.993,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1638.314,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1709.57,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1709.71,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1709.816,
+      "content": "Bob"
+    },
+    {
+      "timestamp_ms": 1714.265,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 1745.584,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1755.407,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1797.385,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1797.569,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 1814.002,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1829.712,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1848.881,
+      "content": "bob"
+    },
+    {
+      "timestamp_ms": 1944.23,
+      "content": ".sm"
+    },
+    {
+      "timestamp_ms": 1950.985,
+      "content": "ith"
+    },
+    {
+      "timestamp_ms": 1951.121,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1951.201,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1951.362,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1960.653,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2030.362,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2030.522,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 2030.686,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2044.407,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2056.688,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 2155.818,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2155.97,
+      "content": "567"
+    },
+    {
+      "timestamp_ms": 2156.04,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 2156.097,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2160.147,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2174.31,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2188.679,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 2250.978,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2251.138,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2251.283,
+      "content": "Developer"
+    },
+    {
+      "timestamp_ms": 2355.088,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2355.234,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2355.302,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2355.362,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 2355.415,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2359.461,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2480.916,
+      "content": "Engineering"
+    },
+    {
+      "timestamp_ms": 2481.131,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2481.244,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2481.365,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2481.454,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2481.543,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2494.107,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2576.446,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2576.641,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 2576.719,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2583.91,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2588.961,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2608.417,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2665.398,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2665.632,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2676.494,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2686.996,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2763.192,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2763.329,
+      "content": "Carol"
+    },
+    {
+      "timestamp_ms": 2763.395,
+      "content": " Brown"
+    },
+    {
+      "timestamp_ms": 2763.452,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2780.037,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2799.293,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2818.549,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 2865.583,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2865.752,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2874.503,
+      "content": "car"
+    },
+    {
+      "timestamp_ms": 2894.617,
+      "content": "ol"
+    },
+    {
+      "timestamp_ms": 2970.821,
+      "content": ".b"
+    },
+    {
+      "timestamp_ms": 2975.428,
+      "content": "rown"
+    },
+    {
+      "timestamp_ms": 2975.611,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 2975.739,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2993.604,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3008.659,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3028.378,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3046.472,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 3173.062,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3173.21,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3173.291,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 3173.362,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3173.505,
+      "content": "876"
+    },
+    {
+      "timestamp_ms": 3173.585,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3181.375,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3226.847,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3283.17,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3283.17,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 3283.558,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3283.652,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3296.605,
+      "content": "Designer"
+    },
+    {
+      "timestamp_ms": 3316.543,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3353.369,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3353.518,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3369.905,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 3389.968,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3482.185,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3482.38,
+      "content": "Marketing"
+    },
+    {
+      "timestamp_ms": 3482.476,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3482.556,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3484.516,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3582.737,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3582.986,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3583.07,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3583.133,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3583.188,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 3598.081,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3685.211,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3685.528,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3685.741,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3685.951,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3693.457,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3787.794,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 3787.926,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3788.002,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4007.259,
+      "content": "David"
+    },
+    {
+      "timestamp_ms": 4007.259,
+      "content": " Lee"
+    },
+    {
+      "timestamp_ms": 4007.259,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4007.259,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4007.259,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4007.259,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 4007.259,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4007.499,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4007.603,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 4007.684,
+      "content": "avid"
+    },
+    {
+      "timestamp_ms": 4007.79,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4007.862,
+      "content": "lee"
+    },
+    {
+      "timestamp_ms": 4007.922,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 4017.733,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4042.726,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4056.88,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4075.34,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4110.313,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 4115.042,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4148.794,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4158.876,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 4172.558,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4299.53,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 4299.755,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4299.839,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4299.923,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4300.032,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4300.131,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 4303.867,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4352.232,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4352.375,
+      "content": "Anal"
+    },
+    {
+      "timestamp_ms": 4363.685,
+      "content": "yst"
+    },
+    {
+      "timestamp_ms": 4401.959,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4402.088,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4504.29,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4515.008,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 4515.144,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4515.306,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4515.473,
+      "content": "Finance"
+    },
+    {
+      "timestamp_ms": 4515.587,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4614.302,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4614.435,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4614.499,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4614.552,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4614.602,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4627.998,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4647.574,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 4709.11,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4709.269,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4709.357,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4724.204,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4751.657,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4761.624,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4816.558,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 4816.782,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4818.132,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4839.611,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 4877.549,
+      "content": "ve"
+    },
+    {
+      "timestamp_ms": 4882.716,
+      "content": " Davis"
+    },
+    {
+      "timestamp_ms": 4898.315,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5018.109,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5018.242,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5018.308,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 5018.362,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5018.412,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5018.458,
+      "content": "eve"
+    },
+    {
+      "timestamp_ms": 5027.978,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 5123.307,
+      "content": "avis"
+    },
+    {
+      "timestamp_ms": 5123.463,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 5123.539,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5123.605,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5123.664,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5173.218,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5173.362,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 5223.486,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5223.616,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5223.68,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 5238.06,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5296.705,
+      "content": "678"
+    },
+    {
+      "timestamp_ms": 5296.862,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 5296.939,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5426.064,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5426.209,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5426.282,
+      "content": "role"
+    },
+    {
+      "timestamp_ms": 5426.34,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5426.39,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5426.439,
+      "content": "Support"
+    },
+    {
+      "timestamp_ms": 5434.411,
+      "content": " Specialist"
+    },
+    {
+      "timestamp_ms": 5505.772,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5505.99,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5506.136,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5511.622,
+      "content": "department"
+    },
+    {
+      "timestamp_ms": 5529.233,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5558.055,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5564.057,
+      "content": "Customer"
+    },
+    {
+      "timestamp_ms": 5632.42,
+      "content": " Support"
+    },
+    {
+      "timestamp_ms": 5632.602,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5632.72,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5639.715,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 5659.798,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 5734.327,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 5734.593,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5734.593,
+      "type": "done"
+    }
+  ],
+  "full_response": "```json\n[\n    {\n        \"id\": \"1\",\n        \"name\": \"Alice Johnson\",\n        \"email\": \"alice.johnson@example.com\",\n        \"phone\": \"555-1234\",\n        \"role\": \"Manager\",\n        \"department\": \"Sales\"\n    },\n    {\n        \"id\": \"2\",\n        \"name\": \"Bob Smith\",\n        \"email\": \"bob.smith@example.com\",\n        \"phone\": \"555-5678\",\n        \"role\": \"Developer\",\n        \"department\": \"Engineering\"\n    },\n    {\n        \"id\": \"3\",\n        \"name\": \"Carol Brown\",\n        \"email\": \"carol.brown@example.com\",\n        \"phone\": \"555-8765\",\n        \"role\": \"Designer\",\n        \"department\": \"Marketing\"\n    },\n    {\n        \"id\": \"4\",\n        \"name\": \"David Lee\",\n        \"email\": \"david.lee@example.com\",\n        \"phone\": \"555-4321\",\n        \"role\": \"Analyst\",\n        \"department\": \"Finance\"\n    },\n    {\n        \"id\": \"5\",\n        \"name\": \"Eve Davis\",\n        \"email\": \"eve.davis@example.com\",\n        \"phone\": \"555-6789\",\n        \"role\": \"Support Specialist\",\n        \"department\": \"Customer Support\"\n    }\n]\n```",
+  "response_chars": 1008,
+  "num_chunks": 283,
+  "ttft_ms": 321.37,
+  "total_ms": 5734.908,
+  "model_name": "model-medium"
+}

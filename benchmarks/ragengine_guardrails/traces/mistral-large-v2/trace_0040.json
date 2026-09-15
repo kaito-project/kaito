@@ -1,0 +1,787 @@
+{
+  "index": 40,
+  "prompt": "Write a migration script that includes database connection strings with embedded usernames, passwords, and host addresses for both source and destination databases.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 824.236,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " Migration Script with"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " Connection"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " Strings\n\n**"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": "Important Security Note"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " Embed"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": "ding credentials"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " in scripts"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " is not"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 824.236,
+      "content": " secure practice. In"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " production environments, you"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " should:\n1."
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " Use environment"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " variables\n"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": "2. Store"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " in secure"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " vault"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": "\n3. Use"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " strings"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1211.61,
+      "content": " configuration files outside"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " control\n4"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": ". Implement"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " proper access"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " controls\n\nBelow"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " is a sample"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " migration"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " script demonstrating"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " structure,"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " but with"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": " place"
+    },
+    {
+      "timestamp_ms": 1608.222,
+      "content": "holders for sensitive"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": " information.\n\n"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "```python"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "\n#!/"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "usr/bin/env python"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "3\nimport ps"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "ycopg"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "2 "
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": " # For Postgre"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "SQL;"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": " library for your DB"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "import p"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "ymysql  "
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": " # For My"
+    },
+    {
+      "timestamp_ms": 2067.695,
+      "content": "SQL\nimport py"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": "odbc   "
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": " # For SQL"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": " Server\nimport cx"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": "_O"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": "racle #"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": " For Oracle\nimport"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": " logging"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": "\nfrom datetime import"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": " datetime\n\n# Configure"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": " logging\nlogging.basic"
+    },
+    {
+      "timestamp_ms": 2384.734,
+      "content": "Config(\n    level"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "=logging.INFO"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": ",\n    format='"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "%(asctime"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": ")s - %(level"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "name)s - %("
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "message)s',\n   "
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": " handlers=[\n"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "        logging.FileHandler"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "('m"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "igration.log"
+    },
+    {
+      "timestamp_ms": 2692.02,
+      "content": "'),\n        logging.Stream"
+    },
+    {
+      "timestamp_ms": 2873.951,
+      "content": "Handler()\n    ]\n"
+    },
+    {
+      "timestamp_ms": 2873.951,
+      "content": ")\n\nclass"
+    },
+    {
+      "timestamp_ms": 2873.951,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 2873.951,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 2873.951,
+      "content": "igrator:\n   "
+    },
+    {
+      "timestamp_ms": 2873.951,
+      "content": " def __init__("
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": "self):\n        #"
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": " SO"
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": "URCE DATABASE"
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": " CONNECTION ("
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": " PostgreSQL)\n       "
+    },
+    {
+      "timestamp_ms": 3125.297,
+      "content": " self.source_db"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "_config"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": " = {\n            '"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "': 'source"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "_db',\n            '"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "': 'source"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "_user',  #"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": " Replace with actual"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": " or use"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": " env"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": " vars"
+    },
+    {
+      "timestamp_ms": 3583.736,
+      "content": "\n            'password"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": "': 'source"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": "_password',  #"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": " Replace with actual"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": " password or use env"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": " vars\n            '"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": "host': 'source"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": "-db"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": ".com',  #"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": " Replace with actual"
+    },
+    {
+      "timestamp_ms": 3686.498,
+      "content": " host\n            '"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": "port': '5"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": "43"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": "2',\n            '"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": "ssl"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": "mode"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": "': 'require"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": "'  # Adjust"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": " on your"
+    },
+    {
+      "timestamp_ms": 3905.837,
+      "content": " security requirements\n       "
+    },
+    {
+      "timestamp_ms": 3906.08,
+      "content": " }\n\n        # DE"
+    },
+    {
+      "timestamp_ms": 3906.08,
+      "content": "STINATION"
+    },
+    {
+      "timestamp_ms": 3906.08,
+      "content": " DATABASE"
+    },
+    {
+      "timestamp_ms": 3906.08,
+      "content": " CONNECTION (Example"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": " for My"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": "SQL)\n        self"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": ".destination_db_config"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": " = {\n            '"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": "': 'destination"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": "_db',\n            '"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": "user': 'dest"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": "_user',  #"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": " Replace with actual"
+    },
+    {
+      "timestamp_ms": 4009.036,
+      "content": " username or use env"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": " vars\n            '"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": "': 'dest"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": "_password',  #"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": " Replace with actual password"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": " or use env vars"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": "\n           "
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": " 'host': '"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": "dest"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": "-db.example.com',"
+    },
+    {
+      "timestamp_ms": 4204.547,
+      "content": "  # Replace with"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": " actual host\n           "
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": " 'port': '"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": "330"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": "6',\n            '"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": "ssl': {'"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": "ca"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": " '/"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": "path/to/ca"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": "-cert.pem'} "
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": " # Adjust"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 4413.335,
+      "content": " on your security requirements"
+    },
+    {
+      "timestamp_ms": 4413.643,
+      "content": "\n        }\n\n       "
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": ".source_conn"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": " = None\n       "
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": " self.d"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": "est_conn = None"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": "\n\n    def connect"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": "_to_source"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": "(self):\n"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": "        \"\"\"Establ"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": "ish connection to"
+    },
+    {
+      "timestamp_ms": 4531.878,
+      "content": " source database\"\"\"\n       "
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": " try:\n            #"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": " for PostgreSQL -"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": " adjust"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": " for your"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": " database\n            self"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": ".source_conn = ps"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": "ycopg2"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": ".connect(**"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "content": "self.source"
+    },
+    {
+      "timestamp_ms": 4715.196,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4728.954,
+      "type": "done"
+    }
+  ],
+  "full_response": "# Database Migration Script with Connection Strings\n\n**Important Security Note:** Embedding credentials directly in scripts is not a secure practice. In production environments, you should:\n1. Use environment variables\n2. Store credentials in secure vaults\n3. Use connection strings from configuration files outside version control\n4. Implement proper access controls\n\nBelow is a sample migration script demonstrating the structure, but with placeholders for sensitive information.\n\n```python\n#!/usr/bin/env python3\nimport psycopg2  # For PostgreSQL; use appropriate library for your DB\nimport pymysql   # For MySQL\nimport pyodbc    # For SQL Server\nimport cx_Oracle # For Oracle\nimport logging\nfrom datetime import datetime\n\n# Configure logging\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(levelname)s - %(message)s',\n    handlers=[\n        logging.FileHandler('migration.log'),\n        logging.StreamHandler()\n    ]\n)\n\nclass DatabaseMigrator:\n    def __init__(self):\n        # SOURCE DATABASE CONNECTION (Example for PostgreSQL)\n        self.source_db_config = {\n            'dbname': 'source_db',\n            'user': 'source_user',  # Replace with actual username or use env vars\n            'password': 'source_password',  # Replace with actual password or use env vars\n            'host': 'source-db.example.com',  # Replace with actual host\n            'port': '5432',\n            'sslmode': 'require'  # Adjust based on your security requirements\n        }\n\n        # DESTINATION DATABASE CONNECTION (Example for MySQL)\n        self.destination_db_config = {\n            'database': 'destination_db',\n            'user': 'dest_user',  # Replace with actual username or use env vars\n            'password': 'dest_password',  # Replace with actual password or use env vars\n            'host': 'dest-db.example.com',  # Replace with actual host\n            'port': '3306',\n            'ssl': {'ca': '/path/to/ca-cert.pem'}  # Adjust based on your security requirements\n        }\n\n        self.source_conn = None\n        self.dest_conn = None\n\n    def connect_to_source(self):\n        \"\"\"Establish connection to source database\"\"\"\n        try:\n            # Example for PostgreSQL - adjust for your database\n            self.source_conn = psycopg2.connect(**self.source",
+  "response_chars": 2300,
+  "num_chunks": 191,
+  "ttft_ms": 824.236,
+  "total_ms": 4916.887,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,1159 @@
+{
+  "index": 173,
+  "prompt": "Create a JSON API response for a product catalog with 3 products, each having: id, name, price, description, category, and tags array.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1315.292,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " catalog"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1315.292,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "products"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "Apple"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " i"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1322.112,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "price"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "799"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "99"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": " Apple"
+    },
+    {
+      "timestamp_ms": 2350.814,
+      "content": " i"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": "ionic"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " chip"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " dual"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": "-camera"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " improved"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " battery"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " life"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2354.121,
+      "content": "category"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "Elect"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "ronics"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "tags"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "smart"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "Apple"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "Nike"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " Air"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " Max"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "90"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "price"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "160"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3342.121,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " Nike"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " Air"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " Max"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "90"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " Air"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " Zoom"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " Spark"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " Jump"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " groove"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " plush"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " oversized"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " cushioning"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "category"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "Sho"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 4143.976,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "tags"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "ne"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "aker"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "running"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "Nike"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5226.321,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "Kind"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "le"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": " Paper"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "white"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "Fourth"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": " Generation"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": ")\",\n"
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5226.602,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5226.898,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5226.898,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5226.898,
+      "content": "119"
+    },
+    {
+      "timestamp_ms": 5226.898,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5226.898,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5226.898,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " Kindle"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " Paper"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "white"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "Fourth"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " Generation"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "-lasting"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " battery"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " life"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " fully"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "ink"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " display"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "%"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " tree"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": "-free"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " paper"
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6036.562,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": " waterproof"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "category"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "Books"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "Readers"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6344.864,
+      "content": "tags"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "-reader"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "kind"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "le"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "white"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6861.997,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 6862.656,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here is a JSON API response for a product catalog with 3 products:\n\n```json{\n  \"products\": [\n    {\n      \"id\": 1,\n      \"name\": \"Apple iPhone 12\",\n      \"price\": 799.99,\n      \"description\": \"The new Apple i 12 features an A14 Bionic chip, dual-camera system, and improved battery life.\",\n      \"category\": \"Electronics\",\n      \"tags\": [\"phone\", \"smartphone\", \"Apple\"]\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Nike Air Max 90\",\n      \"price\": 160.00,\n      \"description\": \"The Nike Air Max 90 features Air Zoom, Spark Jump groove, and a plush, oversized performance cushioning.\",\n      \"category\": \"Shoes\",\n      \"tags\": [\"sneaker\", \"running\", \"Nike\"]\n    },\n    {\n      \"id\": 3,\n      \"name\": \"Kindle Paperwhite (Fourth Generation)\",\n      \"\": 119.00,\n      \"description\": \"The Kindle Paperwhite (Fourth Generation) features long-lasting battery life, a fully e-ink display with 100% tree-free paper, and waterproof design.\",\n      \"category\": \"Books & E-Readers\",\n      \"tags\": [\"e-reader\", \"kindle\", \"white\"]\n    }\n  ]\n}\n```",
+  "response_chars": 1029,
+  "num_chunks": 284,
+  "ttft_ms": 1315.292,
+  "total_ms": 6863.077,
+  "model_name": "Phi-4-mini-instruct"
+}

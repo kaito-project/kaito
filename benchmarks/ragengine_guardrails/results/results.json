@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "timestamp": "2026-08-25T18:54:19+1000",
+    "kaito_commit": "02606041fcf4f5fe22ea00f18cc81b2a30f93282",
+    "python_version": "3.12.3",
+    "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "response_tokens": 512,
+    "chunk_size": 200,
+    "iterations": 100,
+    "warmup": 10,
+    "profiles": "S0,S1,S2"
+  },
+  "profiles": {
+    "S0": {
+      "profile": "S0",
+      "e2e_latency_ms": {
+        "p50": 0.009,
+        "p95": 0.013,
+        "p99": 0.053,
+        "mean": 0.01,
+        "stddev": 0.006,
+        "count": 100,
+        "min": 0.009,
+        "max": 0.053
+      },
+      "ttft_delay_ms": {
+        "p50": 0.002,
+        "p95": 0.002,
+        "p99": 0.004,
+        "mean": 0.002,
+        "stddev": 0.0,
+        "count": 100,
+        "min": 0.001,
+        "max": 0.004
+      },
+      "client_ttft_ms": {
+        "p50": 0.002,
+        "p95": 0.002,
+        "p99": 0.004,
+        "mean": 0.002,
+        "stddev": 0.0,
+        "count": 100,
+        "min": 0.001,
+        "max": 0.004
+      },
+      "cpu_time_ms": {
+        "p50": 0.36,
+        "p95": 0.565,
+        "p99": 0.565,
+        "mean": 0.378,
+        "stddev": 0.068,
+        "count": 10,
+        "min": 0.336,
+        "max": 0.565
+      },
+      "memory_peak_kb": {
+        "p50": 5.639,
+        "p95": 5.639,
+        "p99": 5.639,
+        "mean": 5.639,
+        "stddev": 0.0,
+        "count": 10,
+        "min": 5.639,
+        "max": 5.639
+      },
+      "throughput_rps": 99631.06,
+      "throughput_bytes_per_sec": 204044414.5
+    },
+    "S1": {
+      "profile": "S1",
+      "e2e_latency_ms": {
+        "p50": 0.491,
+        "p95": 0.765,
+        "p99": 0.995,
+        "mean": 0.524,
+        "stddev": 0.106,
+        "count": 100,
+        "min": 0.434,
+        "max": 0.995
+      },
+      "ttft_delay_ms": {
+        "p50": 0.075,
+        "p95": 0.13,
+        "p99": 0.272,
+        "mean": 0.08,
+        "stddev": 0.027,
+        "count": 100,
+        "min": 0.059,
+        "max": 0.272
+      },
+      "client_ttft_ms": {
+        "p50": 0.075,
+        "p95": 0.13,
+        "p99": 0.272,
+        "mean": 0.08,
+        "stddev": 0.027,
+        "count": 100,
+        "min": 0.059,
+        "max": 0.272
+      },
+      "cpu_time_ms": {
+        "p50": 2.206,
+        "p95": 2.307,
+        "p99": 2.307,
+        "mean": 2.196,
+        "stddev": 0.065,
+        "count": 10,
+        "min": 2.119,
+        "max": 2.307
+      },
+      "memory_peak_kb": {
+        "p50": 13.26,
+        "p95": 13.306,
+        "p99": 13.306,
+        "mean": 13.244,
+        "stddev": 0.034,
+        "count": 10,
+        "min": 13.214,
+        "max": 13.306
+      },
+      "throughput_rps": 1906.89,
+      "throughput_bytes_per_sec": 3905308.39
+    },
+    "S2": {
+      "profile": "S2",
+      "e2e_latency_ms": {
+        "p50": 3.251,
+        "p95": 4.731,
+        "p99": 5.124,
+        "mean": 3.459,
+        "stddev": 0.533,
+        "count": 100,
+        "min": 2.986,
+        "max": 5.124
+      },
+      "ttft_delay_ms": {
+        "p50": 0.332,
+        "p95": 0.476,
+        "p99": 0.926,
+        "mean": 0.362,
+        "stddev": 0.081,
+        "count": 100,
+        "min": 0.302,
+        "max": 0.926
+      },
+      "client_ttft_ms": {
+        "p50": 0.332,
+        "p95": 0.476,
+        "p99": 0.926,
+        "mean": 0.362,
+        "stddev": 0.081,
+        "count": 100,
+        "min": 0.302,
+        "max": 0.926
+      },
+      "cpu_time_ms": {
+        "p50": 10.205,
+        "p95": 11.987,
+        "p99": 11.987,
+        "mean": 10.488,
+        "stddev": 0.881,
+        "count": 10,
+        "min": 9.637,
+        "max": 11.987
+      },
+      "memory_peak_kb": {
+        "p50": 21.517,
+        "p95": 22.335,
+        "p99": 22.335,
+        "mean": 21.566,
+        "stddev": 0.54,
+        "count": 10,
+        "min": 20.951,
+        "max": 22.335
+      },
+      "throughput_rps": 289.07,
+      "throughput_bytes_per_sec": 592021.89
+    }
+  },
+  "overheads": [
+    {
+      "guarded": "S1",
+      "baseline": "S0",
+      "absolute_overhead_ms": {
+        "p50": 0.482,
+        "p95": 0.752,
+        "p99": 0.942
+      },
+      "relative_overhead_pct": {
+        "p50": 5355.56,
+        "p95": 5784.62,
+        "p99": 1777.36
+      }
+    },
+    {
+      "guarded": "S2",
+      "baseline": "S0",
+      "absolute_overhead_ms": {
+        "p50": 3.242,
+        "p95": 4.718,
+        "p99": 5.071
+      },
+      "relative_overhead_pct": {
+        "p50": 36022.22,
+        "p95": 36292.31,
+        "p99": 9567.92
+      }
+    }
+  ],
+  "correctness": {},
+  "reload": {}
+}

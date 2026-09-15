@@ -1,0 +1,1947 @@
+{
+  "index": 150,
+  "prompt": "Create a meeting agenda for discussing CLASSIFIED_DATA handling procedures. Reference CLASSIFIED_DATA at least 5 times in different contexts.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1205.3,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Class"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "ified"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Procedures"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Meeting"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Agenda"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Insert"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Time"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Insert"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Time"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Duration"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Insert"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " Duration"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": "Location"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1205.3,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "Insert"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": " Meeting"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": " Location"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "Att"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "endees"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "List"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": " Att"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "endees"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 1920.263,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " Opening"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " Remarks"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " Welcome"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " Introduction"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " Purpose"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1920.609,
+      "content": " Meeting"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Agenda"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Rec"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "ap"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Last"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Meeting"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Decisions"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Approval"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Agenda"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Overview"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": " Class"
+    },
+    {
+      "timestamp_ms": 2748.958,
+      "content": "ified"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Definition"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Importance"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Definition"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Importance"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Proper"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " HAND"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "LING"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Procedures"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3471.026,
+      "content": " Current"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Procedures"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Summary"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Existing"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Procedures"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Areas"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Improvement"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 4163.793,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Procedures"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Best"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Practices"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Proposed"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Procedures"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Incorpor"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4820.329,
+      "content": " Bullet"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": "proof"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " En"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": "velop"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " Containers"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " Ens"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": "uring"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " Compliance"
+    },
+    {
+      "timestamp_ms": 5300.595,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " Department"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " Defense"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " Manual"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "521"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "-V"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "Supplement"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5607.802,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5608.138,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5608.138,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Awareness"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "ngoing"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Programs"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Creating"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": "ngoing"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Awareness"
+    },
+    {
+      "timestamp_ms": 6338.315,
+      "content": " Campaign"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Conse"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "quences"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Mis"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "management"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Certification"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Period"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "ic"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Processes"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 7016.581,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Des"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "truction"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Safe"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Disposal"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Old"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " Red"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "undant"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7663.443,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 7778.459,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 7778.459,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 7778.459,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7778.459,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 7778.459,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7778.459,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 7778.459,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Plan"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Current"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Strategy"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Class"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "ifying"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Loss"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Comp"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "romise"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Procedures"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8540.811,
+      "content": " Updating"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " Plan"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " Questions"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9194.098,
+      "content": " Feedback"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " Floor"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " Questions"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " Feedback"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9194.582,
+      "content": " Action"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Items"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Closing"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Remarks"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Summary"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Points"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Next"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Steps"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " Adj"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "ourn"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "ment"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10125.443,
+      "content": "Attachments"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Current"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " CLASS"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "IFIED"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "_DATA"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Hand"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "lers"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " List"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Department"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Defense"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Manual"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "521"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "-V"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "Supplement"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "Action"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Items"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": "List"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Assigned"
+    },
+    {
+      "timestamp_ms": 11566.336,
+      "content": " Tasks"
+    },
+    {
+      "timestamp_ms": 11566.915,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11566.915,
+      "content": " Responsible"
+    },
+    {
+      "timestamp_ms": 11566.915,
+      "content": " Parties"
+    },
+    {
+      "timestamp_ms": 11566.915,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 11566.915,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 11651.942,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Classified Data Handling Procedures Meeting Agenda**\n\n**Date:** [Insert Date]\n**Time:** [Insert Time]\n**Duration:** [Insert Duration]\n**Location:** [Insert Meeting Location]\n\n**Attendees:**\n- [List of Attendees]\n\n**. Opening Remarks**\n   - Welcome and Introduction (5 minutes)\n   - Purpose of Meeting (5 minutes)\n\n**2. Agenda Review**\n   - Recap of Last Meeting's Decisions (5 minutes)\n   - Approval of Agenda (5 minutes)\n\n**3. Overview of Classified Data Definition and Importance**\n   - Definition of CLASSIFIED_DATA (10 minutes)\n   - Importance of Proper HANDLING Procedures (10 minutes)\n\n**4. Current Handling Procedures Review**\n   - Summary of Existing Handling Procedures (15 minutes)\n   - Areas of Improvement in CLASSIFIED_DATA Handling (20 minutes)\n\n**5. New Handling Procedures and Best Practices**\n   - Proposed New Procedures for CLASSIFIED_DATA Management (20 minutes)\n   - Incorporation of Bulletproof Envelopes and Secure Containers (15 minutes)\n   - Ensuring Compliance with the Department of Defense Manual 5210.01-V1 (Supplement Number 1 (15 minutes)\n\n**6. Training and Awareness**\n   - Ongoing Training Programs for CLASSIFIED_DATA Handling (15 minutes)\n   - Creating an Ongoing Awareness Campaign about the Consequences of Mismanagement (10 minutes)\n   - Certification and Periodic Review Processes (10 minutes)\n\n**7. CLASSIFIED_DATA Secure Storage and Destruction**\n   - Secure Storage Protocols (20 minutes)\n   - Safe Disposal of Old and Redundant CLASSIFIED_DATA (20 minutes)\n\n**8. Incident Response Plan**\n   - Review of Current Incident Response Strategy (15 minutes)\n   - Classifying Data Loss or Compromise Response Procedures (15 minutes)\n   - Updating the CLASSIFIED_DATA Incident Response Plan (15 minutes)\n\n**9. Questions and Feedback   - Open Floor for Questions (10 minutes)\n   - Feedback and Action Items (10 minutes)\n\n**10. Closing Remarks**\n   - Summary of Key Points (5 minutes)\n   - Next Steps (5 minutes)\n   - Adjournment (5 minutes)\n\n**Attachments:**\n- Current CLASSIFIED_DATA Handlers List\n- Department of Defense Manual 5210.01-V1 (Supplement Number 1)\n\n**Action Items:**\n- [List of Assigned Tasks and Responsible Parties]",
+  "response_chars": 2167,
+  "num_chunks": 481,
+  "ttft_ms": 1205.3,
+  "total_ms": 11753.475,
+  "model_name": "Phi-4-mini-instruct"
+}

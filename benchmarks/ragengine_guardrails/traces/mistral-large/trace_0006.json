@@ -1,0 +1,439 @@
+{
+  "index": 6,
+  "prompt": "Generate a sample employee directory entry with name, work email, personal email, office phone, cell phone, and employee ID.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 595.341,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": "’s a sample"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " **employee"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " entry** with"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " requested details:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": "**Employee"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " Directory"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " Entry"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": "**\n\n**Full"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " Name:** Sarah"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " J"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": ". Martinez"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": "\n**Job"
+    },
+    {
+      "timestamp_ms": 595.341,
+      "content": " Title:** Senior"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": " Marketing Specialist"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": "\n**Department"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": ":** Marketing"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": " Communications\n\n**Contact"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": " Information:**\n- **"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": "Work Email:** sar"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": "ah"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": ".martinez"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": "@company"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": ".com\n- **"
+    },
+    {
+      "timestamp_ms": 785.31,
+      "content": "Personal Email:** sj"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": ".martinez8"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "7@gmail.com *("
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "optional"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": ", if permitted"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": " company policy"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": ")*\n- **Office"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": " Phone:** +"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "1 (5"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "55) "
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "123-"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "4567"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "Ext"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": ". 7"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "89"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "0)\n- **"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "Cell Phone:** +"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "1 (5"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "55) "
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "987-"
+    },
+    {
+      "timestamp_ms": 1105.941,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "3 *("
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "for"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " use only)*\n"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "- **Employee"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " ID:** E"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "MP-20"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "23"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "-4"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "9\n\n**Office"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " Location:** Headquarters"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " –"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " Floor"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " 5"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": ", Des"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "k 1"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "**Manager"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " Michael"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": " Chen ("
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 1557.274,
+      "content": "ichael."
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": "chen@company.com"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": ")\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": " Notes:\n- **"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": "Priv"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": "acy Consider"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": "ations:** Personal"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": " email/c"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": "ell phone should"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": " only be included"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": " if the"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": " employee cons"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": "ents and"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1876.711,
+      "content": " aligns with company"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": ".\n- **Form"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": "atting:** Adjust"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " based on your organization"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": "’s directory"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " template"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " some companies"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " use internal"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " IDs instead"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " of email"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": " aliases"
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 2046.455,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 2150.205,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a sample **employee directory entry** with the requested details:\n\n---\n\n**Employee Directory Entry**\n\n**Full Name:** Sarah J. Martinez\n**Job Title:** Senior Marketing Specialist\n**Department:** Marketing & Communications\n\n**Contact Information:**\n- **Work Email:** sarah.martinez@company.com\n- **Personal Email:** sj.martinez87@gmail.com *(optional, if permitted by company policy)*\n- **Office Phone:** +1 (555) 123-4567 (Ext. 7890)\n- **Cell Phone:** +1 (555) 987-6543 *(for business use only)*\n- **Employee ID:** EMP-2023-4789\n\n**Office Location:** Headquarters – Floor 5, Desk 12B\n**Manager:** Michael Chen (michael.chen@company.com)\n\n---\n\n### Notes:\n- **Privacy Considerations:** Personal email/cell phone should only be included if the employee consents and it aligns with company policy.\n- **Formatting:** Adjust based on your organization’s directory template (e.g., some companies use internal IDs instead of email aliases).",
+  "response_chars": 938,
+  "num_chunks": 104,
+  "ttft_ms": 595.341,
+  "total_ms": 2233.751,
+  "model_name": "Mistral-Large-3"
+}

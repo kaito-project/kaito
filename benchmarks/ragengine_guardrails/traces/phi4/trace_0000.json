@@ -1,0 +1,1499 @@
+{
+  "index": 0,
+  "prompt": "What are the SOLID principles in software engineering?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1316.619,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 1332.048,
+      "content": " SOL"
+    },
+    {
+      "timestamp_ms": 1350.961,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 1370.619,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 1390.581,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1409.513,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1429.469,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 1448.668,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1467.997,
+      "content": " five"
+    },
+    {
+      "timestamp_ms": 1487.821,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 1507.462,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 1527.278,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 1547.767,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1566.525,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 1584.755,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 1604.297,
+      "content": " designs"
+    },
+    {
+      "timestamp_ms": 1623.717,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 1674.924,
+      "content": " understandable"
+    },
+    {
+      "timestamp_ms": 1674.924,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1682.889,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 1699.768,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1719.288,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1739.312,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 1757.249,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 1775.89,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1794.807,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 1816.871,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 1837.027,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 1852.072,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1871.077,
+      "content": " Robert"
+    },
+    {
+      "timestamp_ms": 1893.779,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 1909.319,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1928.092,
+      "content": " Martin"
+    },
+    {
+      "timestamp_ms": 1947.376,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1965.833,
+      "content": "often"
+    },
+    {
+      "timestamp_ms": 1985.077,
+      "content": " referred"
+    },
+    {
+      "timestamp_ms": 2004.317,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2023.155,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2043.184,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2062.054,
+      "content": "Unc"
+    },
+    {
+      "timestamp_ms": 2081.754,
+      "content": "le"
+    },
+    {
+      "timestamp_ms": 2099.922,
+      "content": " Bob"
+    },
+    {
+      "timestamp_ms": 2119.156,
+      "content": "\")"
+    },
+    {
+      "timestamp_ms": 2137.12,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2156.616,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2176.245,
+      "content": " foundational"
+    },
+    {
+      "timestamp_ms": 2194.724,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2215.747,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 2232.6,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 2251.583,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 2272.945,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2299.729,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 2318.218,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2334.402,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 2349.166,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 2367.032,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2566.497,
+      "content": " brief"
+    },
+    {
+      "timestamp_ms": 2567.766,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 2567.766,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2567.931,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2567.999,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 2568.039,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2568.111,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2588.995,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2588.995,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2588.995,
+      "content": "Single"
+    },
+    {
+      "timestamp_ms": 2588.995,
+      "content": " Responsibility"
+    },
+    {
+      "timestamp_ms": 2605.285,
+      "content": " Principle"
+    },
+    {
+      "timestamp_ms": 2623.536,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2632.727,
+      "content": "SR"
+    },
+    {
+      "timestamp_ms": 2653.722,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 2670.259,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 2690.494,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2730.785,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2730.785,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2748.304,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 2766.618,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 2784.715,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 2804.086,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2825.576,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 2843.53,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 2861.796,
+      "content": " reason"
+    },
+    {
+      "timestamp_ms": 2880.115,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2899.421,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 2928.583,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2937.568,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 2973.414,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2976.717,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 2994.964,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 3015.342,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 3032.951,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3051.84,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 3073.3,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3094.006,
+      "content": " responsibility"
+    },
+    {
+      "timestamp_ms": 3109.449,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3128.04,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3147.613,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 3168.03,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3186.145,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 3204.15,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 3229.048,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3242.409,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 3261.441,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3283.372,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 3316.182,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3319.27,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3337.241,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 3357.206,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3375.556,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3394.542,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3414.042,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3432.854,
+      "content": "Open"
+    },
+    {
+      "timestamp_ms": 3451.704,
+      "content": "/C"
+    },
+    {
+      "timestamp_ms": 3471.051,
+      "content": "losed"
+    },
+    {
+      "timestamp_ms": 3491.165,
+      "content": " Principle"
+    },
+    {
+      "timestamp_ms": 3508.562,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3528.082,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 3550.14,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 3570.143,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 3586.476,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3604.538,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3623.03,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3642.782,
+      "content": " Software"
+    },
+    {
+      "timestamp_ms": 3661.342,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 3682.082,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3700.067,
+      "content": "classes"
+    },
+    {
+      "timestamp_ms": 3718.894,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3738.92,
+      "content": " modules"
+    },
+    {
+      "timestamp_ms": 3756.744,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3792.739,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 3795.204,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3815.516,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 3838.735,
+      "content": ".)"
+    },
+    {
+      "timestamp_ms": 3852.672,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3871.692,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3890.312,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 3910.525,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3928.271,
+      "content": " extension"
+    },
+    {
+      "timestamp_ms": 3948.22,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 3966.949,
+      "content": " closed"
+    },
+    {
+      "timestamp_ms": 3986.268,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4004.705,
+      "content": " modification"
+    },
+    {
+      "timestamp_ms": 4023.758,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4042.801,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4062.488,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 4080.82,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4100.563,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4120.821,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 4137.984,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4157.212,
+      "content": " able"
+    },
+    {
+      "timestamp_ms": 4175.818,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4195.743,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 4215.565,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4233.499,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 4252.798,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4271.601,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 4291.24,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 4311.48,
+      "content": " changing"
+    },
+    {
+      "timestamp_ms": 4330.872,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 4347.533,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4366.806,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4386.386,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 4406.465,
+      "content": " achieved"
+    },
+    {
+      "timestamp_ms": 4424.428,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 4444.07,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4462.29,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 4482.338,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4501.47,
+      "content": " interfaces"
+    },
+    {
+      "timestamp_ms": 4522.659,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4538.182,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 4557.553,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 4576.617,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4596.781,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4615.256,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4633.612,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4652.939,
+      "content": "L"
+    },
+    {
+      "timestamp_ms": 4672.038,
+      "content": "isk"
+    },
+    {
+      "timestamp_ms": 4690.968,
+      "content": "ov"
+    },
+    {
+      "timestamp_ms": 4709.567,
+      "content": " Sub"
+    },
+    {
+      "timestamp_ms": 4729.182,
+      "content": "stitution"
+    },
+    {
+      "timestamp_ms": 4748.005,
+      "content": " Principle"
+    },
+    {
+      "timestamp_ms": 4766.795,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4786.42,
+      "content": "L"
+    },
+    {
+      "timestamp_ms": 4806.624,
+      "content": "SP"
+    },
+    {
+      "timestamp_ms": 4825.248,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 4843.188,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4866.258,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4881.141,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4902.108,
+      "content": " Objects"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " superclass"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " objects"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5115.714,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5128.758,
+      "content": " subclass"
+    },
+    {
+      "timestamp_ms": 5149.403,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 5167.395,
+      "content": " affecting"
+    },
+    {
+      "timestamp_ms": 5186.51,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5204.922,
+      "content": " functioning"
+    },
+    {
+      "timestamp_ms": 5224.602,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5244.048,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5262.343,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 5282.131,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5302.407,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5319.722,
+      "content": " encourages"
+    },
+    {
+      "timestamp_ms": 5340.219,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 5358.62,
+      "content": " inheritance"
+    },
+    {
+      "timestamp_ms": 5376.646,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 5395.766,
+      "content": " derived"
+    },
+    {
+      "timestamp_ms": 5415.614,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 5434.406,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5453.179,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5472.829,
+      "content": " substit"
+    },
+    {
+      "timestamp_ms": 5492.116,
+      "content": "utable"
+    },
+    {
+      "timestamp_ms": 5511.759,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5529.606,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 5548.879,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 5567.728,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 5586.374,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5605.627,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5626.907,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5644.562,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5662.681,
+      "content": "Interface"
+    },
+    {
+      "timestamp_ms": 5682.588,
+      "content": " Seg"
+    },
+    {
+      "timestamp_ms": 5701.379,
+      "content": "regation"
+    },
+    {
+      "timestamp_ms": 5719.838,
+      "content": " Principle"
+    },
+    {
+      "timestamp_ms": 5742.448,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5757.833,
+      "content": "ISP"
+    },
+    {
+      "timestamp_ms": 5776.899,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 5795.792,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5815.375,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5835.818,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5853.588,
+      "content": " Clients"
+    },
+    {
+      "timestamp_ms": 5871.868,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5891.383,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5912.281,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5929.349,
+      "content": " forced"
+    },
+    {
+      "timestamp_ms": 5948.885,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5967.489,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 5986.744,
+      "content": " upon"
+    },
+    {
+      "timestamp_ms": 6006.88,
+      "content": " interfaces"
+    },
+    {
+      "timestamp_ms": 6025.071,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6046.439,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 6062.949,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 6081.77,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 6101.045,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6120.731,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 6139.461,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6158.258,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 6176.774,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 6198.822,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 6215.233,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6234.605,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6254.072,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 6273.143,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 6292.559,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6310.454,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 6329.859,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 6349.38,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 6368.188,
+      "content": " interfaces"
+    },
+    {
+      "timestamp_ms": 6387.296,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 6406.022,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6424.983,
+      "content": " implementing"
+    },
+    {
+      "timestamp_ms": 6445.907,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 6464.323,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 6483.575,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 6501.602,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6520.607,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6538.969,
+      "content": " concerned"
+    },
+    {
+      "timestamp_ms": 6557.814,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6577.203,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6598.843,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 6615.696,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6635.219,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6654.441,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6673.011,
+      "content": " interest"
+    },
+    {
+      "timestamp_ms": 6691.573,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6711.615,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6730.832,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6751.646,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6770.525,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6786.925,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6806.779,
+      "content": "Dependency"
+    },
+    {
+      "timestamp_ms": 6824.886,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 6844.285,
+      "content": "version"
+    },
+    {
+      "timestamp_ms": 6863.481,
+      "content": " Principle"
+    },
+    {
+      "timestamp_ms": 6882.986,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6901.931,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 6932.671,
+      "content": "IP"
+    },
+    {
+      "timestamp_ms": 6941.57,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 6958.323,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6978.253,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6999.613,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7017.784,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 7037.846,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 7054.222,
+      "content": " modules"
+    },
+    {
+      "timestamp_ms": 7077.686,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 7091.776,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 7110.989,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 7254.504,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7255.951,
+      "content": " low"
+    },
+    {
+      "timestamp_ms": 7255.951,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 7256.042,
+      "content": " modules"
+    },
+    {
+      "timestamp_ms": 7256.085,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7256.178,
+      "content": " Both"
+    },
+    {
+      "timestamp_ms": 7261.993,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 7264.5,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 7282.532,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7303.464,
+      "content": " ab"
+    },
+    {
+      "timestamp_ms": 7322.686,
+      "content": "stractions"
+    },
+    {
+      "timestamp_ms": 7339.729,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7359.426,
+      "content": " Moreover"
+    },
+    {
+      "timestamp_ms": 7377.935,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7399.112,
+      "content": " ab"
+    },
+    {
+      "timestamp_ms": 7416.143,
+      "content": "stractions"
+    },
+    {
+      "timestamp_ms": 7435.113,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 7454.103,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 7473.43,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 7493.029,
+      "content": " upon"
+    },
+    {
+      "timestamp_ms": 7511.425,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 7530.084,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 7549.12,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 7569.635,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7588.976,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 7607.386,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 7625.595,
+      "content": " depend"
+    },
+    {
+      "timestamp_ms": 7644.686,
+      "content": " upon"
+    },
+    {
+      "timestamp_ms": 7663.849,
+      "content": " ab"
+    },
+    {
+      "timestamp_ms": 7683.077,
+      "content": "stractions"
+    },
+    {
+      "timestamp_ms": 7703.842,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7720.785,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7740.334,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 7760.0,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7779.715,
+      "content": " dec"
+    },
+    {
+      "timestamp_ms": 7797.28,
+      "content": "ou"
+    },
+    {
+      "timestamp_ms": 7816.443,
+      "content": "pling"
+    },
+    {
+      "timestamp_ms": 7835.794,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7854.669,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 7873.706,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7892.721,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7911.858,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7930.911,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7950.665,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 7969.925,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7987.912,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 8008.143,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8026.386,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 8045.349,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8065.279,
+      "content": " evolve"
+    },
+    {
+      "timestamp_ms": 8084.016,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8103.414,
+      "content": "These"
+    },
+    {
+      "timestamp_ms": 8121.596,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 8140.417,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 8159.946,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 8178.485,
+      "content": " toward"
+    },
+    {
+      "timestamp_ms": 8198.09,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 8222.636,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8235.553,
+      "content": " modular"
+    },
+    {
+      "timestamp_ms": 8255.136,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8274.111,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 8293.549,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 8313.251,
+      "content": " architectures"
+    },
+    {
+      "timestamp_ms": 8331.609,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8352.6,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8352.717,
+      "type": "done"
+    }
+  ],
+  "full_response": "The SOLID principles are a set of five design principles intended to make software designs more understandable, flexible, and maintainable. They were introduced by Robert C. Martin (often referred to as \"Uncle Bob\") and are foundational in object-oriented design and programming. Here’s a brief overview of each principle:\n\n1. **Single Responsibility Principle (SRP):**\n   - A class should have only one reason to change, meaning it should have only one job or responsibility. This makes the class easier to understand, test, and maintain.\n\n2. **Open/Closed Principle (OCP):**\n   - Software entities (classes, modules, functions, etc.) should be open for extension but closed for modification. This means that you should be able to add new features or functionality without changing existing code, often achieved through the use of interfaces or abstract classes.\n\n3. **Liskov Substitution Principle (LSP):**\n   - Objects of a superclass should be replaceable with objects of a subclass without affecting the functioning of the program. This encourages proper inheritance where derived classes should be substitutable for their base classes.\n\n4. **Interface Segregation Principle (ISP):**\n   - Clients should not be forced to depend upon interfaces they do not use. Instead of one large interface, it’s better to have several smaller interfaces so that implementing classes only need to be concerned with the methods that are of interest to them.\n\n5. **Dependency Inversion Principle (DIP):**\n   - High-level modules should not depend on low-level modules. Both should depend on abstractions. Moreover, abstractions should not depend upon details; rather, details should depend upon abstractions. This helps in decoupling the components of a system, making it easier to manage and evolve.\n\nThese principles guide developers toward creating more modular and scalable software architectures.",
+  "response_chars": 1889,
+  "num_chunks": 369,
+  "ttft_ms": 1316.619,
+  "total_ms": 8360.266,
+  "model_name": "model-medium"
+}

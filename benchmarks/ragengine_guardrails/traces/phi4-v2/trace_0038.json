@@ -1,0 +1,2071 @@
+{
+  "index": 38,
+  "prompt": "Output a JSON document representing a company org chart with nested departments and employees. Include at least 3 levels of hierarchy.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 338.065,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 338.299,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 338.887,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 348.125,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 423.318,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 423.457,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 423.522,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 423.576,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 553.513,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 553.682,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 590.269,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 590.269,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 590.269,
+      "content": " chart"
+    },
+    {
+      "timestamp_ms": 590.269,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 590.269,
+      "content": " nested"
+    },
+    {
+      "timestamp_ms": 590.269,
+      "content": " departments"
+    },
+    {
+      "timestamp_ms": 601.113,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 628.994,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 633.505,
+      "content": " hierarchical"
+    },
+    {
+      "timestamp_ms": 651.486,
+      "content": " levels"
+    },
+    {
+      "timestamp_ms": 747.397,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 747.581,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 747.655,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 747.725,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 747.917,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 804.551,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 804.738,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 804.841,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 827.949,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 845.352,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1003.3,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1010.964,
+      "content": "Tech"
+    },
+    {
+      "timestamp_ms": 1011.263,
+      "content": " Innov"
+    },
+    {
+      "timestamp_ms": 1011.463,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 1011.608,
+      "content": " Inc"
+    },
+    {
+      "timestamp_ms": 1011.749,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 1011.846,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1011.926,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1013.837,
+      "content": "ce"
+    },
+    {
+      "timestamp_ms": 1066.354,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 1066.714,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1070.978,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1167.827,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1167.995,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1168.095,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1168.192,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1168.369,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1361.798,
+      "content": "Jane"
+    },
+    {
+      "timestamp_ms": 1361.971,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1362.051,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1362.115,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1362.168,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1362.262,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 1375.215,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1375.362,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1375.439,
+      "content": "Chief"
+    },
+    {
+      "timestamp_ms": 1375.503,
+      "content": " Executive"
+    },
+    {
+      "timestamp_ms": 1375.676,
+      "content": " Officer"
+    },
+    {
+      "timestamp_ms": 1397.594,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1428.941,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1433.685,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1657.81,
+      "content": "reports"
+    },
+    {
+      "timestamp_ms": 1657.961,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 1658.037,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1658.133,
+      "content": " null"
+    },
+    {
+      "timestamp_ms": 1658.252,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 1658.323,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1663.527,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1663.749,
+      "content": "departments"
+    },
+    {
+      "timestamp_ms": 1663.846,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1663.975,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 1664.187,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1664.26,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1723.294,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1740.168,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1740.335,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1747.357,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1936.232,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1936.232,
+      "content": "Executive"
+    },
+    {
+      "timestamp_ms": 1936.232,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 1936.232,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1936.232,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1936.629,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1936.813,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 1936.964,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1937.444,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1937.758,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 1951.047,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1966.87,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2098.514,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2098.652,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2098.715,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 2098.767,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 2098.817,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2098.898,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2106.612,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2127.352,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 2162.008,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2162.34,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2178.067,
+      "content": "Chief"
+    },
+    {
+      "timestamp_ms": 2492.79,
+      "content": " Operations"
+    },
+    {
+      "timestamp_ms": 2492.971,
+      "content": " Officer"
+    },
+    {
+      "timestamp_ms": 2493.067,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2493.256,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2493.359,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2493.444,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2499.723,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2499.938,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 2500.071,
+      "content": "Depart"
+    },
+    {
+      "timestamp_ms": 2500.187,
+      "content": "ments"
+    },
+    {
+      "timestamp_ms": 2500.289,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2500.557,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 2500.713,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2500.8,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2500.85,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2500.896,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2505.805,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2521.368,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2541.086,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2559.259,
+      "content": "Strategy"
+    },
+    {
+      "timestamp_ms": 2603.075,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2603.209,
+      "content": " Planning"
+    },
+    {
+      "timestamp_ms": 2614.834,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2698.238,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2698.391,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2698.468,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 2698.533,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2713.325,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2880.598,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 2880.824,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2880.98,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2881.063,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2881.152,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2881.381,
+      "content": "Emily"
+    },
+    {
+      "timestamp_ms": 2881.381,
+      "content": " Davis"
+    },
+    {
+      "timestamp_ms": 2881.473,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2881.535,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 2920.675,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2920.849,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 3109.344,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3109.557,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3109.69,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 3109.773,
+      "content": "ice"
+    },
+    {
+      "timestamp_ms": 3109.846,
+      "content": " President"
+    },
+    {
+      "timestamp_ms": 3109.908,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3109.97,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3110.028,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3110.081,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3125.984,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3133.513,
+      "content": "teams"
+    },
+    {
+      "timestamp_ms": 3148.327,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3208.442,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 3208.592,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3208.658,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3224.49,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 3246.037,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3261.663,
+      "content": "team"
+    },
+    {
+      "timestamp_ms": 3289.798,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 3301.593,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3348.191,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3348.395,
+      "content": "Product"
+    },
+    {
+      "timestamp_ms": 3360.905,
+      "content": " Strategy"
+    },
+    {
+      "timestamp_ms": 3459.271,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3459.438,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 3459.526,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3459.593,
+      "content": "lead"
+    },
+    {
+      "timestamp_ms": 3459.757,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3501.729,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3501.96,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 3514.132,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3607.993,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 3608.129,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3608.193,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3608.248,
+      "content": "Alex"
+    },
+    {
+      "timestamp_ms": 3612.102,
+      "content": " Johnson"
+    },
+    {
+      "timestamp_ms": 3626.1,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3680.954,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 3681.129,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3683.714,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 3809.984,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3810.179,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3810.262,
+      "content": "Team"
+    },
+    {
+      "timestamp_ms": 3810.325,
+      "content": " Lead"
+    },
+    {
+      "timestamp_ms": 3810.626,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3810.72,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 3817.236,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3917.471,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 3917.764,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3917.899,
+      "content": "employees"
+    },
+    {
+      "timestamp_ms": 3917.994,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3918.135,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 3930.372,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 4060.865,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4061.059,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 4061.155,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4061.219,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 4061.274,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4061.322,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4064.639,
+      "content": "Mark"
+    },
+    {
+      "timestamp_ms": 4227.972,
+      "content": " Brown"
+    },
+    {
+      "timestamp_ms": 4228.12,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4228.19,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 4228.248,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4237.152,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 4237.314,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4237.383,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4237.443,
+      "content": "Senior"
+    },
+    {
+      "timestamp_ms": 4237.494,
+      "content": " Analyst"
+    },
+    {
+      "timestamp_ms": 4383.937,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4384.077,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 4384.189,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4384.314,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 4384.381,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4384.443,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 4384.496,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4386.22,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 4446.99,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4447.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4447.376,
+      "content": "Laura"
+    },
+    {
+      "timestamp_ms": 4509.721,
+      "content": " Wilson"
+    },
+    {
+      "timestamp_ms": 4509.863,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4509.932,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 4520.382,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4541.652,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 4833.67,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4833.99,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4834.519,
+      "content": "Anal"
+    },
+    {
+      "timestamp_ms": 4834.743,
+      "content": "yst"
+    },
+    {
+      "timestamp_ms": 4834.874,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4835.057,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 4835.195,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4835.297,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 4835.559,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 4835.754,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 4835.851,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4835.953,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 4836.129,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 4836.197,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4836.251,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4844.512,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4984.021,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4984.021,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 4984.243,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4984.378,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 4984.474,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4984.543,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4989.317,
+      "content": "Operations"
+    },
+    {
+      "timestamp_ms": 5004.067,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5021.349,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 5041.493,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5150.606,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 5150.889,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5150.977,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5151.043,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5151.1,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5151.154,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 5205.071,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5205.298,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5221.878,
+      "content": "Sarah"
+    },
+    {
+      "timestamp_ms": 5229.704,
+      "content": " Lee"
+    },
+    {
+      "timestamp_ms": 5250.59,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5265.341,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5288.4,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5306.577,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 5320.506,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5341.531,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5395.007,
+      "content": "Operations"
+    },
+    {
+      "timestamp_ms": 5395.292,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 5398.335,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5426.122,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 5568.851,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5569.058,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 5569.168,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5569.259,
+      "content": "teams"
+    },
+    {
+      "timestamp_ms": 5569.259,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5569.334,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 5569.395,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5569.462,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5591.298,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 5610.853,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5667.436,
+      "content": "team"
+    },
+    {
+      "timestamp_ms": 5667.788,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 5667.904,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5687.185,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5712.726,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 5723.442,
+      "content": "istics"
+    },
+    {
+      "timestamp_ms": 5857.153,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5857.322,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 5857.406,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5857.459,
+      "content": "lead"
+    },
+    {
+      "timestamp_ms": 5916.136,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5916.136,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5916.136,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 5916.136,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5916.136,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 5916.136,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5931.164,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5964.79,
+      "content": "David"
+    },
+    {
+      "timestamp_ms": 5968.56,
+      "content": " Clark"
+    },
+    {
+      "timestamp_ms": 6071.608,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6071.794,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 6071.878,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6071.937,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 6071.988,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6084.83,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6109.389,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 6292.414,
+      "content": "istics"
+    },
+    {
+      "timestamp_ms": 6292.648,
+      "content": " Coordinator"
+    },
+    {
+      "timestamp_ms": 6292.782,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 6292.925,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 6293.052,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 6293.15,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 6293.256,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6293.475,
+      "content": "employees"
+    },
+    {
+      "timestamp_ms": 6293.619,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6294.94,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 6356.082,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 6356.273,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6356.361,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 6370.319,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6431.927,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 6432.115,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6432.23,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6449.031,
+      "content": "Emma"
+    },
+    {
+      "timestamp_ms": 6466.275,
+      "content": " Stone"
+    },
+    {
+      "timestamp_ms": 6487.511,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6661.637,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 6668.886,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6669.077,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 6669.169,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6669.246,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6669.319,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 6669.385,
+      "content": "istics"
+    },
+    {
+      "timestamp_ms": 6669.455,
+      "content": " Specialist"
+    },
+    {
+      "timestamp_ms": 6669.52,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 6676.671,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 6723.925,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 6724.076,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 6731.576,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6754.719,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 6771.416,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7100.347,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 7106.925,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7107.226,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7107.364,
+      "content": "Sam"
+    },
+    {
+      "timestamp_ms": 7107.453,
+      "content": " Carter"
+    },
+    {
+      "timestamp_ms": 7107.535,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7107.638,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 7107.703,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7107.765,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 7107.836,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7107.936,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7108.009,
+      "content": "Log"
+    },
+    {
+      "timestamp_ms": 7108.075,
+      "content": "istics"
+    },
+    {
+      "timestamp_ms": 7108.136,
+      "content": " Assistant"
+    },
+    {
+      "timestamp_ms": 7108.198,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 7108.348,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 7108.44,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 7114.201,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 7142.715,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 7167.535,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 7175.82,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 7189.804,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 7215.916,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 7227.493,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7246.852,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 7267.297,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7285.249,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 7307.337,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7324.251,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 7344.236,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7377.047,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7381.478,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7399.184,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7423.498,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 7440.03,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7463.925,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7475.033,
+      "content": "Engineering"
+    },
+    {
+      "timestamp_ms": 7605.459,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7605.651,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7605.739,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7605.81,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 7605.875,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7606.086,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7611.977,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7905.342,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7905.52,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 7905.592,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7905.649,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7905.74,
+      "content": "Michael"
+    },
+    {
+      "timestamp_ms": 7905.84,
+      "content": " Wang"
+    },
+    {
+      "timestamp_ms": 7905.909,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7905.973,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7906.022,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7906.099,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 7906.212,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7906.334,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7906.401,
+      "content": "Chief"
+    },
+    {
+      "timestamp_ms": 7906.621,
+      "content": " Technology"
+    },
+    {
+      "timestamp_ms": 7906.724,
+      "content": " Officer"
+    },
+    {
+      "timestamp_ms": 7913.383,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8108.113,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 8108.254,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 8108.32,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 8108.371,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8108.421,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 8114.924,
+      "content": "Depart"
+    },
+    {
+      "timestamp_ms": 8115.058,
+      "content": "ments"
+    },
+    {
+      "timestamp_ms": 8115.137,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8115.202,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 8115.263,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 8124.008,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8156.889,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8161.905,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8181.748,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 8433.449,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8433.594,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8433.711,
+      "content": "Software"
+    },
+    {
+      "timestamp_ms": 8433.857,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 8433.97,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8434.111,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8434.208,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8435.506,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 8435.601,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8435.664,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8435.718,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 8435.777,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8435.823,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 8739.274,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8751.158,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8751.331,
+      "content": "Ch"
+    },
+    {
+      "timestamp_ms": 8751.424,
+      "content": "loe"
+    },
+    {
+      "timestamp_ms": 8751.544,
+      "content": " Martinez"
+    },
+    {
+      "timestamp_ms": 8751.667,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8751.748,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 8751.817,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8751.896,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 8752.066,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8752.202,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8752.302,
+      "content": "Director"
+    },
+    {
+      "timestamp_ms": 8752.437,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8752.561,
+      "content": " Software"
+    },
+    {
+      "timestamp_ms": 8752.637,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8752.697,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8754.956,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 8773.883,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8794.756,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8830.595,
+      "content": "teams"
+    },
+    {
+      "timestamp_ms": 8843.216,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8848.975,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 9149.756,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 9149.891,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 9149.959,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 9150.013,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9150.062,
+      "content": "team"
+    },
+    {
+      "timestamp_ms": 9150.108,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 9150.152,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9150.196,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9150.239,
+      "content": "Front"
+    },
+    {
+      "timestamp_ms": 9150.28,
+      "content": "end"
+    },
+    {
+      "timestamp_ms": 9150.375,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 9150.508,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9150.592,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 9150.666,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9150.666,
+      "content": "lead"
+    },
+    {
+      "timestamp_ms": 9157.238,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9214.697,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 9214.937,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 9215.078,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9456.645,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 9456.779,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9456.845,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9456.9,
+      "content": "Sam"
+    },
+    {
+      "timestamp_ms": 9456.95,
+      "content": "uel"
+    },
+    {
+      "timestamp_ms": 9456.996,
+      "content": " Adams"
+    },
+    {
+      "timestamp_ms": 9457.041,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9461.779,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 9461.872,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9461.944,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 9462.077,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9462.235,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9462.312,
+      "content": "Team"
+    },
+    {
+      "timestamp_ms": 9746.742,
+      "content": " Lead"
+    },
+    {
+      "timestamp_ms": 9747.007,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 9747.12,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 9747.219,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 9747.314,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 9747.377,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9747.429,
+      "content": "employees"
+    },
+    {
+      "timestamp_ms": 9756.252,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9756.447,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 9756.752,
+      "content": "                 "
+    },
+    {
+      "timestamp_ms": 9756.872,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 9756.946,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 9757.11,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9757.186,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 9757.248,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9765.324,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9958.658,
+      "content": "Ol"
+    },
+    {
+      "timestamp_ms": 9958.838,
+      "content": "iver"
+    },
+    {
+      "timestamp_ms": 9958.918,
+      "content": " King"
+    },
+    {
+      "timestamp_ms": 9958.975,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9959.078,
+      "content": "                   "
+    },
+    {
+      "timestamp_ms": 9959.299,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9959.404,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 9959.495,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9959.662,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9959.878,
+      "content": "Senior"
+    },
+    {
+      "timestamp_ms": 9974.981,
+      "content": " Front"
+    },
+    {
+      "timestamp_ms": 10260.22,
+      "content": "end"
+    },
+    {
+      "timestamp_ms": 10260.462,
+      "content": " Developer"
+    },
+    {
+      "timestamp_ms": 10260.655,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10260.655,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10260.655,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's an example of a JSON document representing a company organization chart with nested departments and multiple hierarchical levels:\n\n```json\n{\n  \"companyName\": \"Tech Innovations Inc.\",\n  \"ceo\": {\n    \"name\": \"Jane Doe\",\n    \"title\": \"Chief Executive Officer\",\n    \"reportsTo\": null,\n    \"departments\": [\n      {\n        \"name\": \"Executive Management\",\n        \"head\": {\n          \"name\": \"John Smith\",\n          \"title\": \"Chief Operations Officer\"\n        },\n        \"subDepartments\": [\n          {\n            \"name\": \"Strategy and Planning\",\n            \"head\": {\n              \"name\": \"Emily Davis\",\n              \"title\": \"Vice President\"\n            },\n            \"teams\": [\n              {\n                \"teamName\": \"Product Strategy\",\n                \"lead\": {\n                  \"name\": \"Alex Johnson\",\n                  \"title\": \"Team Lead\"\n                },\n                \"employees\": [\n                  {\n                    \"name\": \"Mark Brown\",\n                    \"title\": \"Senior Analyst\"\n                  },\n                  {\n                    \"name\": \"Laura Wilson\",\n                    \"title\": \"Analyst\"\n                  }\n                ]\n              }\n            ]\n          },\n          {\n            \"name\": \"Operations\",\n            \"head\": {\n              \"name\": \"Sarah Lee\",\n              \"title\": \"Operations Manager\"\n            },\n            \"teams\": [\n              {\n                \"teamName\": \"Logistics\",\n                \"lead\": {\n                  \"name\": \"David Clark\",\n                  \"title\": \"Logistics Coordinator\"\n                },\n                \"employees\": [\n                  {\n                    \"name\": \"Emma Stone\",\n                    \"title\": \"Logistics Specialist\"\n                  },\n                  {\n                    \"name\": \"Sam Carter\",\n                    \"title\": \"Logistics Assistant\"\n                  }\n                ]\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"name\": \"Engineering\",\n        \"head\": {\n          \"name\": \"Michael Wang\",\n          \"title\": \"Chief Technology Officer\"\n        },\n        \"subDepartments\": [\n          {\n            \"name\": \"Software Development\",\n            \"head\": {\n              \"name\": \"Chloe Martinez\",\n              \"title\": \"Director of Software\"\n            },\n            \"teams\": [\n              {\n                \"teamName\": \"Frontend Development\",\n                \"lead\": {\n                  \"name\": \"Samuel Adams\",\n                  \"title\": \"Team Lead\"\n                },\n                \"employees\": [\n                  {\n                    \"name\": \"Oliver King\",\n                    \"title\": \"Senior Frontend Developer\"\n",
+  "response_chars": 2700,
+  "num_chunks": 512,
+  "ttft_ms": 338.065,
+  "total_ms": 10261.027,
+  "model_name": "model-medium"
+}

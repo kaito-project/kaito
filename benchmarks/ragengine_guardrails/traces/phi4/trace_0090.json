@@ -1,0 +1,2071 @@
+{
+  "index": 90,
+  "prompt": "Write a sample docker-compose.yml that includes hardcoded MySQL root password, Redis password, RabbitMQ credentials, and application secret keys.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 340.317,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 340.317,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 340.317,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 340.317,
+      "content": "docker"
+    },
+    {
+      "timestamp_ms": 340.317,
+      "content": "-compose"
+    },
+    {
+      "timestamp_ms": 340.471,
+      "content": ".yml"
+    },
+    {
+      "timestamp_ms": 356.157,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 375.361,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 394.193,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 413.464,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 438.721,
+      "content": " hardcoded"
+    },
+    {
+      "timestamp_ms": 451.135,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 470.87,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 489.322,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 508.389,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 527.501,
+      "content": " MySQL"
+    },
+    {
+      "timestamp_ms": 546.458,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 565.513,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 584.492,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 603.635,
+      "content": " Rabbit"
+    },
+    {
+      "timestamp_ms": 649.894,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 649.894,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 660.534,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 679.941,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 698.661,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 717.733,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 736.833,
+      "content": " defining"
+    },
+    {
+      "timestamp_ms": 756.545,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 776.566,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 793.874,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 813.653,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 832.098,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 851.241,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 870.234,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 889.596,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 908.311,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 1054.898,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1055.073,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 1055.133,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1057.328,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1057.424,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 1057.468,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1058.505,
+      "content": "docker"
+    },
+    {
+      "timestamp_ms": 1060.561,
+      "content": "-compose"
+    },
+    {
+      "timestamp_ms": 1079.578,
+      "content": ".yml"
+    },
+    {
+      "timestamp_ms": 1099.072,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1120.226,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1137.54,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1156.002,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 1174.9,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1194.154,
+      "content": " comments"
+    },
+    {
+      "timestamp_ms": 1213.476,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1233.33,
+      "content": " explain"
+    },
+    {
+      "timestamp_ms": 1251.597,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1270.784,
+      "content": " section"
+    },
+    {
+      "timestamp_ms": 1290.068,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1308.532,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1366.362,
+      "content": "yaml"
+    },
+    {
+      "timestamp_ms": 1366.362,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1366.362,
+      "content": "version"
+    },
+    {
+      "timestamp_ms": 1384.508,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1403.48,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 1422.622,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1441.734,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1461.42,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 1479.853,
+      "content": "'\n\n"
+    },
+    {
+      "timestamp_ms": 1523.219,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 1523.219,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1537.587,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1555.911,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 1575.739,
+      "content": " MySQL"
+    },
+    {
+      "timestamp_ms": 1593.992,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 1613.661,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1632.559,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1651.871,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 1674.888,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1689.479,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1708.995,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 1728.118,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1747.474,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 1767.052,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1785.21,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 1805.287,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1823.877,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1843.19,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1861.64,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1879.821,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 1898.719,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 1917.787,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1938.226,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 1955.789,
+      "content": "_container"
+    },
+    {
+      "timestamp_ms": 1975.443,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1994.053,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2012.998,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2033.033,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2051.066,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2070.376,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2089.966,
+      "content": "_ROOT"
+    },
+    {
+      "timestamp_ms": 2116.42,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 2128.041,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2146.761,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2166.034,
+      "content": "_mysql"
+    },
+    {
+      "timestamp_ms": 2184.331,
+      "content": "_root"
+    },
+    {
+      "timestamp_ms": 2203.341,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 2223.371,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2242.959,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 2260.748,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 2279.955,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 2298.831,
+      "content": " MySQL"
+    },
+    {
+      "timestamp_ms": 2318.221,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 2337.34,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 2356.233,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2377.769,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2394.21,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2413.14,
+      "content": "_DATABASE"
+    },
+    {
+      "timestamp_ms": 2432.22,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2485.212,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2485.212,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 2489.889,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2508.595,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2527.963,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2546.7,
+      "content": "_USER"
+    },
+    {
+      "timestamp_ms": 2565.861,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2595.973,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2634.998,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 2634.998,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2659.972,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2668.982,
+      "content": " MYSQL"
+    },
+    {
+      "timestamp_ms": 2680.015,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 2700.825,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2720.415,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2737.44,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 2755.78,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 2776.488,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2795.437,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2813.422,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 2835.322,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2866.928,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2871.274,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2891.977,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 2908.52,
+      "content": "_data"
+    },
+    {
+      "timestamp_ms": 2948.475,
+      "content": ":/"
+    },
+    {
+      "timestamp_ms": 2948.475,
+      "content": "var"
+    },
+    {
+      "timestamp_ms": 2965.752,
+      "content": "/lib"
+    },
+    {
+      "timestamp_ms": 2988.022,
+      "content": "/mysql"
+    },
+    {
+      "timestamp_ms": 3004.046,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3023.324,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3046.113,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 3061.759,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3080.965,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3099.309,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3118.376,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3138.378,
+      "content": "330"
+    },
+    {
+      "timestamp_ms": 3156.582,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3175.602,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3194.548,
+      "content": "330"
+    },
+    {
+      "timestamp_ms": 3214.147,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3232.728,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 3251.968,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3271.686,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3294.855,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 3313.829,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3328.922,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3348.753,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3366.086,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 3385.26,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3404.118,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3424.604,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 3442.727,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3461.645,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 3480.443,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3499.306,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3519.196,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3537.651,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3557.733,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 3578.238,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 3605.615,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3614.481,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 3633.125,
+      "content": "_container"
+    },
+    {
+      "timestamp_ms": 3653.123,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3671.162,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3690.822,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 3709.599,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3728.901,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3760.42,
+      "content": " RED"
+    },
+    {
+      "timestamp_ms": 3766.998,
+      "content": "IS"
+    },
+    {
+      "timestamp_ms": 3785.254,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 3804.638,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3824.559,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3842.539,
+      "content": "_redis"
+    },
+    {
+      "timestamp_ms": 3861.705,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 3881.391,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3899.913,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3918.638,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 3937.745,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 3957.586,
+      "content": " Redis"
+    },
+    {
+      "timestamp_ms": 3976.768,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 3995.467,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4014.204,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4033.145,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 4052.026,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4071.065,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4090.321,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4109.774,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4134.656,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 4147.639,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4166.584,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4191.195,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 4210.459,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4277.25,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 4277.25,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4277.25,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4280.337,
+      "content": " Rabbit"
+    },
+    {
+      "timestamp_ms": 4300.091,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 4318.577,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 4338.181,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4357.467,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4376.151,
+      "content": " rabbit"
+    },
+    {
+      "timestamp_ms": 4411.519,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 4415.354,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4433.565,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4453.173,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 4473.287,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4493.176,
+      "content": " rabbit"
+    },
+    {
+      "timestamp_ms": 4509.336,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 4528.387,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4548.101,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4567.128,
+      "content": "-management"
+    },
+    {
+      "timestamp_ms": 4585.685,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4605.53,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4626.255,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 4643.509,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 4662.279,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4681.158,
+      "content": " rabbit"
+    },
+    {
+      "timestamp_ms": 4702.632,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 4719.979,
+      "content": "_container"
+    },
+    {
+      "timestamp_ms": 4738.586,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4757.625,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4780.103,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 4795.508,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4814.513,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4838.017,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 4859.893,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 4871.384,
+      "content": "BIT"
+    },
+    {
+      "timestamp_ms": 4890.751,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 4910.195,
+      "content": "_DEFAULT"
+    },
+    {
+      "timestamp_ms": 4930.184,
+      "content": "_USER"
+    },
+    {
+      "timestamp_ms": 4948.419,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4970.763,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4989.241,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 5011.037,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 5025.898,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 5052.448,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5064.154,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5085.639,
+      "content": " Rabbit"
+    },
+    {
+      "timestamp_ms": 5101.635,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 5120.318,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 5140.455,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5164.812,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": "BIT"
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": "_DEFAULT"
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": "_PASS"
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5327.969,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5331.878,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 5348.343,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 5368.345,
+      "content": "_pass"
+    },
+    {
+      "timestamp_ms": 5393.592,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5407.131,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5429.499,
+      "content": " Rabbit"
+    },
+    {
+      "timestamp_ms": 5443.55,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 5463.032,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 5481.718,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5500.959,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5519.807,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 5539.295,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5561.353,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5577.8,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5597.905,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5615.5,
+      "content": "567"
+    },
+    {
+      "timestamp_ms": 5646.156,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5658.118,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5680.754,
+      "content": "567"
+    },
+    {
+      "timestamp_ms": 5706.43,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5726.095,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5736.12,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5753.793,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5767.33,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5786.954,
+      "content": "156"
+    },
+    {
+      "timestamp_ms": 5805.864,
+      "content": "72"
+    },
+    {
+      "timestamp_ms": 5825.179,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5843.788,
+      "content": "156"
+    },
+    {
+      "timestamp_ms": 5863.089,
+      "content": "72"
+    },
+    {
+      "timestamp_ms": 5882.263,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 5901.411,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5922.764,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5940.152,
+      "content": " Application"
+    },
+    {
+      "timestamp_ms": 5958.569,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 5977.596,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5998.26,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6016.107,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 6041.05,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6055.373,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6075.061,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 6091.448,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6113.509,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6134.105,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 6150.176,
+      "content": "_image"
+    },
+    {
+      "timestamp_ms": 6179.347,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6190.881,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6207.855,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 6227.063,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 6244.816,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6264.053,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 6282.415,
+      "content": "_container"
+    },
+    {
+      "timestamp_ms": 6302.724,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6320.571,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6344.383,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6363.2,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6377.735,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6398.015,
+      "content": " APP"
+    },
+    {
+      "timestamp_ms": 6415.843,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 6435.767,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 6454.168,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6473.399,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6492.233,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 6511.03,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 6530.207,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 6551.628,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6569.39,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6587.493,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 6606.414,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 6627.002,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6645.109,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 6664.362,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6686.796,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6703.089,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6721.209,
+      "content": " DATABASE"
+    },
+    {
+      "timestamp_ms": 6741.861,
+      "content": "_URL"
+    },
+    {
+      "timestamp_ms": 6760.588,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6782.206,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 6797.236,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 6816.565,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 6835.755,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 6855.884,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6873.951,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 6893.11,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 6912.575,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 6931.039,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 6949.592,
+      "content": "mysql"
+    },
+    {
+      "timestamp_ms": 6968.925,
+      "content": "_container"
+    },
+    {
+      "timestamp_ms": 6988.349,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7008.101,
+      "content": "330"
+    },
+    {
+      "timestamp_ms": 7026.131,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7045.397,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7064.307,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7083.147,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 7102.522,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7122.158,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7140.467,
+      "content": " RED"
+    },
+    {
+      "timestamp_ms": 7160.252,
+      "content": "IS"
+    },
+    {
+      "timestamp_ms": 7180.905,
+      "content": "_URL"
+    },
+    {
+      "timestamp_ms": 7197.94,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7216.724,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 7241.66,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 7254.959,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7274.074,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7292.991,
+      "content": "_redis"
+    },
+    {
+      "timestamp_ms": 7312.146,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 7331.715,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 7350.164,
+      "content": "redis"
+    },
+    {
+      "timestamp_ms": 7369.099,
+      "content": "_container"
+    },
+    {
+      "timestamp_ms": 7389.297,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7408.401,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 7426.688,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7447.142,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7464.834,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7483.821,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7502.655,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7522.458,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 7540.71,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 7560.139,
+      "content": "BIT"
+    },
+    {
+      "timestamp_ms": 7578.952,
+      "content": "MQ"
+    },
+    {
+      "timestamp_ms": 7598.783,
+      "content": "_URL"
+    },
+    {
+      "timestamp_ms": 7617.237,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7636.406,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 7655.444,
+      "content": "qp"
+    },
+    {
+      "timestamp_ms": 7674.521,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 7696.112,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7713.002,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 7732.223,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 7750.604,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 7769.961,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7788.654,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7808.383,
+      "content": "_r"
+    },
+    {
+      "timestamp_ms": 7827.297,
+      "content": "abbit"
+    },
+    {
+      "timestamp_ms": 7846.281,
+      "content": "_pass"
+    },
+    {
+      "timestamp_ms": 7865.207,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 7884.687,
+      "content": "rabbit"
+    },
+    {
+      "timestamp_ms": 7904.291,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 7922.355,
+      "content": "_container"
+    },
+    {
+      "timestamp_ms": 7950.529,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7962.254,
+      "content": "567"
+    },
+    {
+      "timestamp_ms": 7979.494,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7998.554,
+      "content": "/%"
+    },
+    {
+      "timestamp_ms": 8017.896,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8037.607,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 8056.462,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8075.196,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8094.71,
+      "content": " depends"
+    },
+    {
+      "timestamp_ms": 8113.091,
+      "content": "_on"
+    },
+    {
+      "timestamp_ms": 8132.059,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8151.122,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 8170.382,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8196.727,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 8208.555,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8227.595,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 8246.864,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8268.594,
+      "content": " redis"
+    },
+    {
+      "timestamp_ms": 8287.07,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8304.393,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 8323.683,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8341.689,
+      "content": " rabbit"
+    },
+    {
+      "timestamp_ms": 8361.114,
+      "content": "mq"
+    },
+    {
+      "timestamp_ms": 8380.366,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8398.949,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8420.265,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 8437.925,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8461.642,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 8508.525,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8508.525,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8515.317,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 8532.366,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8552.056,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8574.534,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 8589.812,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8608.955,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 8629.094,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 8646.767,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 8666.551,
+      "content": "olumes"
+    },
+    {
+      "timestamp_ms": 8686.091,
+      "content": " declaration"
+    },
+    {
+      "timestamp_ms": 8706.667,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8723.948,
+      "content": "v"
+    },
+    {
+      "timestamp_ms": 8743.102,
+      "content": "olumes"
+    },
+    {
+      "timestamp_ms": 8762.208,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8781.732,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8799.478,
+      "content": " mysql"
+    },
+    {
+      "timestamp_ms": 8818.476,
+      "content": "_data"
+    },
+    {
+      "timestamp_ms": 8837.685,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8856.969,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 8876.741,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8894.456,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 8913.813,
+      "content": " Notes"
+    },
+    {
+      "timestamp_ms": 8932.95,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8966.578,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8970.722,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8995.614,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 9008.952,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9028.122,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 9047.566,
+      "content": "coding"
+    },
+    {
+      "timestamp_ms": 9070.357,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 9086.986,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9104.618,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 9123.454,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 9142.658,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9163.901,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 9181.144,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 9200.039,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9220.666,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 9356.548,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9356.682,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 9356.726,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9357.153,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 9357.228,
+      "content": " loaded"
+    },
+    {
+      "timestamp_ms": 9357.264,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9357.296,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9371.814,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 9390.532,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 9410.668,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9428.894,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 9447.628,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 9467.967,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 9489.775,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9505.097,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9524.264,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9543.364,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 9562.503,
+      "content": " Docker"
+    },
+    {
+      "timestamp_ms": 9595.493,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 9600.799,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9684.287,
+      "content": " Hash"
+    },
+    {
+      "timestamp_ms": 9684.287,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 9684.287,
+      "content": "Corp"
+    },
+    {
+      "timestamp_ms": 9684.287,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 9705.778,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9727.955,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 9733.775,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 9753.666,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 9772.338,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 9790.819,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9810.675,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9829.362,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 9926.607,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 9926.607,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9926.607,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 9926.607,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9928.739,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 9943.886,
+      "content": " safer"
+    },
+    {
+      "timestamp_ms": 9963.086,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9981.558,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 9981.558,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9981.558,
+      "type": "done"
+    }
+  ],
+  "full_response": "Creating a `docker-compose.yml` file that includes hardcoded credentials for services like MySQL, Redis, RabbitMQ, and an application involves defining each service with the necessary environment variables for authentication. Below is a sample `docker-compose.yml` configuration, along with comments to explain each section:\n\n```yaml\nversion: '3.8'\n\nservices:\n  # MySQL Service\n  mysql:\n    image: mysql:8.0\n    container_name: mysql_container\n    environment:\n      MYSQL_ROOT_PASSWORD: your_mysql_root_password  # Hardcoded MySQL root password\n      MYSQL_DATABASE: your_database\n      MYSQL_USER: your_user\n      MYSQL_PASSWORD: your_user_password\n    volumes:\n      - mysql_data:/var/lib/mysql\n    ports:\n      - \"3306:3306\"\n\n  # Redis Service\n  redis:\n    image: redis:7\n    container_name: redis_container\n    environment:\n      REDIS_PASSWORD: your_redis_password  # Hardcoded Redis password\n    ports:\n      - \"6379:6379\"\n\n  # RabbitMQ Service\n  rabbitmq:\n    image: rabbitmq:3-management\n    container_name: rabbitmq_container\n    environment:\n      RABBITMQ_DEFAULT_USER: your_rabbit_user  # RabbitMQ username\n      RABBITMQ_DEFAULT_PASS: your_rabbit_pass  # RabbitMQ password\n    ports:\n      - \"5672:5672\"\n      - \"15672:15672\"\n\n  # Application Service\n  app:\n    image: your_app_image\n    container_name: app_container\n    environment:\n      APP_SECRET_KEY: your_app_secret_key  # Hardcoded application secret key\n      DATABASE_URL: mysql://your_user:your_user_password@mysql_container:3306/your_database\n      REDIS_URL: redis://:your_redis_password@redis_container:6379/0\n      RABBITMQ_URL: amqp://your_rabbit_user:your_rabbit_pass@rabbitmq_container:5672/%2F\n    depends_on:\n      - mysql\n      - redis\n      - rabbitmq\n    ports:\n      - \"5000:5000\"\n\n# Volumes declaration\nvolumes:\n  mysql_data:\n```\n\n### Notes:\n- **Security**: Hardcoding credentials is not recommended for production environments. Instead, use environment variables loaded from a secure file or secret management tools (e.g., Docker Secrets, HashiCorp Vault, AWS Secrets Manager).\n- **Database User**: It's usually safer to create",
+  "response_chars": 2117,
+  "num_chunks": 512,
+  "ttft_ms": 340.317,
+  "total_ms": 9986.255,
+  "model_name": "model-medium"
+}

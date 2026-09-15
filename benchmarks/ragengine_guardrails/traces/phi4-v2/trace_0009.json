@@ -1,0 +1,1879 @@
+{
+  "index": 9,
+  "prompt": "Describe how DNS resolution works when you type a URL in a browser.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 347.294,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 347.446,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 347.509,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 361.632,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 418.7,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 418.867,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 421.925,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 482.703,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 482.895,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 482.977,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 495.68,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 616.483,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 616.73,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 616.844,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 616.927,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 616.997,
+      "content": "Domain"
+    },
+    {
+      "timestamp_ms": 617.057,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 627.596,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 651.303,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 720.271,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 720.515,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 720.638,
+      "content": " place"
+    },
+    {
+      "timestamp_ms": 731.149,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 743.043,
+      "content": " translate"
+    },
+    {
+      "timestamp_ms": 820.596,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 820.79,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 821.92,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 839.338,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 848.286,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 857.509,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 922.587,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 922.805,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 922.959,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 936.689,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 952.509,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 974.909,
+      "content": " identify"
+    },
+    {
+      "timestamp_ms": 993.03,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1127.217,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 1143.271,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1143.389,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1143.473,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1143.527,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1143.576,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1143.624,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1143.676,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1229.396,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 1229.534,
+      "content": "-by"
+    },
+    {
+      "timestamp_ms": 1229.603,
+      "content": "-step"
+    },
+    {
+      "timestamp_ms": 1229.657,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 1237.1,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1332.288,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1332.448,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 1332.576,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 1332.689,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 1332.816,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 1434.386,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1434.538,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1434.616,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1434.683,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1434.734,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 1541.351,
+      "content": " Input"
+    },
+    {
+      "timestamp_ms": 1541.491,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1541.555,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 1541.725,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 1541.808,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1558.136,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 1565.575,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1585.071,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1641.125,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1641.275,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1641.351,
+      "content": "www"
+    },
+    {
+      "timestamp_ms": 1655.897,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 1727.425,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1727.626,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 1727.707,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1741.087,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1757.518,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 1773.333,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1843.654,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 1843.798,
+      "content": " bar"
+    },
+    {
+      "timestamp_ms": 1843.861,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1846.687,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1931.352,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1931.5,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1931.594,
+      "content": "DNS"
+    },
+    {
+      "timestamp_ms": 1931.696,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 1943.273,
+      "content": " Init"
+    },
+    {
+      "timestamp_ms": 2014.753,
+      "content": "iated"
+    },
+    {
+      "timestamp_ms": 2014.906,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2014.98,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2018.968,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 2056.156,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 2056.327,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2125.626,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 2125.795,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2128.8,
+      "content": " see"
+    },
+    {
+      "timestamp_ms": 2136.406,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 2260.188,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2260.367,
+      "content": " already"
+    },
+    {
+      "timestamp_ms": 2260.445,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2260.551,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2260.624,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 2260.795,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 2265.913,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2356.375,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2356.568,
+      "content": "www"
+    },
+    {
+      "timestamp_ms": 2356.675,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 2356.763,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2367.143,
+      "content": "`."
+    },
+    {
+      "timestamp_ms": 2383.201,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 2411.795,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2426.039,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2438.901,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2491.925,
+      "content": " asks"
+    },
+    {
+      "timestamp_ms": 2492.08,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2494.862,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 2538.49,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2538.826,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2552.594,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 2571.81,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2617.545,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 2617.684,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2633.79,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2647.941,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2765.766,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2765.952,
+      "content": "Recursive"
+    },
+    {
+      "timestamp_ms": 2766.047,
+      "content": " Resolver"
+    },
+    {
+      "timestamp_ms": 2768.453,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 2768.453,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2771.859,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2784.165,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 2840.528,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2840.698,
+      "content": " forwards"
+    },
+    {
+      "timestamp_ms": 2840.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2855.994,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2878.907,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2903.202,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2922.677,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 2950.896,
+      "content": " recursive"
+    },
+    {
+      "timestamp_ms": 2955.358,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 2975.999,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2998.262,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 3019.85,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 3035.361,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3050.363,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3068.97,
+      "content": " Internet"
+    },
+    {
+      "timestamp_ms": 3086.671,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3108.377,
+      "content": " Provider"
+    },
+    {
+      "timestamp_ms": 3174.985,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3175.124,
+      "content": "ISP"
+    },
+    {
+      "timestamp_ms": 3175.241,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 3183.434,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3233.094,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 3233.256,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3249.585,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 3263.786,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3278.711,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3300.731,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 3380.787,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3381.033,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 3381.21,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 3381.335,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 3390.97,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3445.86,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3446.118,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 3451.858,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 3467.965,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3585.508,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3585.694,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3585.77,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3585.834,
+      "content": "Root"
+    },
+    {
+      "timestamp_ms": 3585.899,
+      "content": " Names"
+    },
+    {
+      "timestamp_ms": 3586.013,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 3600.419,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 3690.318,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3690.527,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 3690.61,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3690.684,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 3696.169,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 3790.333,
+      "content": "’t"
+    },
+    {
+      "timestamp_ms": 3790.697,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 3790.888,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3791.04,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 3791.199,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 3892.857,
+      "content": " cached"
+    },
+    {
+      "timestamp_ms": 3893.028,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3893.095,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3893.151,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 3893.201,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3995.033,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 3995.217,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 3995.294,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 3995.358,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 3995.42,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4003.344,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4022.08,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 4049.784,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 4065.268,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 4080.149,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 4101.736,
+      "content": "’t"
+    },
+    {
+      "timestamp_ms": 4116.736,
+      "content": " know"
+    },
+    {
+      "timestamp_ms": 4199.931,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4200.129,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 4213.868,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 4214.074,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4217.889,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 4229.816,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4301.841,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4302.114,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 4302.403,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4305.652,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 4347.252,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4347.42,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4406.038,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 4406.213,
+      "content": " top"
+    },
+    {
+      "timestamp_ms": 4406.28,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 4421.979,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 4508.287,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4508.483,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 4508.674,
+      "content": "LD"
+    },
+    {
+      "timestamp_ms": 4508.861,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4519.505,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 4612.443,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 4612.632,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4612.699,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 4612.754,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4612.802,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4711.588,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 4711.755,
+      "content": "com"
+    },
+    {
+      "timestamp_ms": 4711.819,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 4711.871,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 4711.919,
+      "content": "net"
+    },
+    {
+      "timestamp_ms": 4726.522,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4767.379,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 4767.565,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4783.767,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4821.08,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4821.289,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 4918.768,
+      "content": "LD"
+    },
+    {
+      "timestamp_ms": 4919.032,
+      "content": " Names"
+    },
+    {
+      "timestamp_ms": 4919.169,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 4919.331,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 5122.285,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5122.285,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5122.285,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 5122.285,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 5122.285,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 5122.285,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5122.285,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 5122.535,
+      "content": "LD"
+    },
+    {
+      "timestamp_ms": 5122.607,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 5122.663,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 5122.711,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5129.905,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 5144.081,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 5171.952,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5191.803,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5201.905,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 5228.857,
+      "content": "com"
+    },
+    {
+      "timestamp_ms": 5239.673,
+      "content": "`)."
+    },
+    {
+      "timestamp_ms": 5325.827,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5326.01,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 5326.08,
+      "content": "LD"
+    },
+    {
+      "timestamp_ms": 5326.136,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 5338.827,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 5354.965,
+      "content": " knows"
+    },
+    {
+      "timestamp_ms": 5428.479,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5428.673,
+      "content": " authoritative"
+    },
+    {
+      "timestamp_ms": 5428.741,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 5430.905,
+      "content": "ervers"
+    },
+    {
+      "timestamp_ms": 5519.171,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5519.342,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5519.425,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 5519.49,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5529.437,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 5545.488,
+      "content": "’t"
+    },
+    {
+      "timestamp_ms": 5567.61,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 5633.934,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5640.484,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5640.642,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 5640.722,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 5735.727,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5735.909,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5735.99,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5736.066,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5736.139,
+      "content": "Author"
+    },
+    {
+      "timestamp_ms": 5839.271,
+      "content": "itative"
+    },
+    {
+      "timestamp_ms": 5839.426,
+      "content": " Names"
+    },
+    {
+      "timestamp_ms": 5839.502,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 5839.63,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 5839.785,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5853.609,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5940.537,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 5940.726,
+      "content": " contacts"
+    },
+    {
+      "timestamp_ms": 5940.823,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5940.912,
+      "content": " authoritative"
+    },
+    {
+      "timestamp_ms": 5945.386,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 6050.508,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 6050.754,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 6050.897,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6051.014,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6055.294,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 6066.26,
+      "content": "LD"
+    },
+    {
+      "timestamp_ms": 6080.178,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 6145.083,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 6145.351,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6145.482,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6157.032,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 6248.732,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 6248.89,
+      "content": "`."
+    },
+    {
+      "timestamp_ms": 6248.958,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6249.013,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 6250.972,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 6351.848,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 6352.029,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6352.124,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 6360.342,
+      "content": " mappings"
+    },
+    {
+      "timestamp_ms": 6360.544,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 6363.425,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 6452.868,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 6453.171,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6453.31,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 6453.406,
+      "content": " addresses"
+    },
+    {
+      "timestamp_ms": 6464.4,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6554.84,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6554.978,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6555.04,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6555.094,
+      "content": "IP"
+    },
+    {
+      "timestamp_ms": 6562.109,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 6575.047,
+      "content": " Obt"
+    },
+    {
+      "timestamp_ms": 6602.048,
+      "content": "ained"
+    },
+    {
+      "timestamp_ms": 6658.042,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6658.042,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6658.218,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 6669.875,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 6759.375,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6759.531,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 6759.604,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 6759.66,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6770.747,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6784.861,
+      "content": "www"
+    },
+    {
+      "timestamp_ms": 6863.437,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 6863.62,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 6863.701,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6863.762,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6878.71,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6964.443,
+      "content": " authoritative"
+    },
+    {
+      "timestamp_ms": 6964.621,
+      "content": " names"
+    },
+    {
+      "timestamp_ms": 6964.712,
+      "content": "erver"
+    },
+    {
+      "timestamp_ms": 6964.78,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6975.539,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 7029.92,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7030.101,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7037.165,
+      "content": "Response"
+    },
+    {
+      "timestamp_ms": 7052.882,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7089.095,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 7109.408,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7122.612,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7130.577,
+      "content": " recursive"
+    },
+    {
+      "timestamp_ms": 7152.121,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 7170.356,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 7187.062,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7272.423,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 7272.585,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 7272.666,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 7272.731,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7283.236,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7298.744,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 7374.759,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7375.106,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7375.245,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7375.419,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7476.253,
+      "content": "Connection"
+    },
+    {
+      "timestamp_ms": 7476.39,
+      "content": " Established"
+    },
+    {
+      "timestamp_ms": 7476.47,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7476.602,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7476.678,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 7490.377,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 7525.435,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7531.482,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 7547.013,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 7680.995,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7681.181,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 7681.288,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7681.403,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 7681.476,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7681.535,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7691.175,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 7701.732,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7783.583,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7783.789,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 7783.892,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7783.972,
+      "content": " webpage"
+    },
+    {
+      "timestamp_ms": 7798.659,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7814.501,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 7841.269,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7854.788,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7878.091,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 7891.687,
+      "content": "aching"
+    },
+    {
+      "timestamp_ms": 7908.838,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7930.949,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7949.14,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 7968.068,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 8013.61,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8013.77,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 8029.892,
+      "content": " cached"
+    },
+    {
+      "timestamp_ms": 8043.489,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8067.832,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8096.732,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 8106.505,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8121.675,
+      "content": " OS"
+    },
+    {
+      "timestamp_ms": 8193.247,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8193.463,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8193.591,
+      "content": " recursive"
+    },
+    {
+      "timestamp_ms": 8210.952,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 8218.249,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8250.153,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 8253.193,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 8295.889,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 8296.036,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 8311.499,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8398.078,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 8398.256,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 8398.374,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 8398.45,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8405.332,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8504.896,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8505.025,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 8505.089,
+      "content": " easy"
+    },
+    {
+      "timestamp_ms": 8505.208,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 8505.285,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8518.37,
+      "content": "remember"
+    },
+    {
+      "timestamp_ms": 8602.207,
+      "content": " URLs"
+    },
+    {
+      "timestamp_ms": 8602.394,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8602.474,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 8602.534,
+      "content": " websites"
+    },
+    {
+      "timestamp_ms": 8615.359,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 8704.995,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8705.147,
+      "content": " having"
+    },
+    {
+      "timestamp_ms": 8705.22,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8705.278,
+      "content": " remember"
+    },
+    {
+      "timestamp_ms": 8712.725,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 8730.472,
+      "content": " numerical"
+    },
+    {
+      "timestamp_ms": 8807.118,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 8807.309,
+      "content": " addresses"
+    },
+    {
+      "timestamp_ms": 8807.398,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8807.47,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 8910.151,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 8910.377,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8910.535,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8910.675,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 8910.814,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 8920.684,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9012.376,
+      "content": " internet"
+    },
+    {
+      "timestamp_ms": 9012.556,
+      "content": " functioning"
+    },
+    {
+      "timestamp_ms": 9012.631,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9012.688,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 9025.079,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9114.633,
+      "content": " seamless"
+    },
+    {
+      "timestamp_ms": 9114.821,
+      "content": " navigation"
+    },
+    {
+      "timestamp_ms": 9319.614,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9319.614,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9319.614,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 9319.614,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9319.614,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9319.614,
+      "type": "done"
+    }
+  ],
+  "full_response": "When you type a URL into a web browser, a process called DNS (Domain Name System) resolution takes place to translate the domain name into an IP address that computers use to identify each other on the network. Here’s a step-by-step description of how DNS resolution generally works:\n\n1. **User Input**: You type a URL, such as `www.example.com`, into the browser's address bar.\n\n2. **DNS Query Initiated**: The browser checks its cache to see if it already has the IP address for `www.example.com`. If not, it asks the operating system to check its cache.\n\n3. **Recursive Resolver Request**: The operating system forwards the request to a DNS recursive resolver, often provided by your Internet Service Provider (ISP). The resolver's job is to find the IP address associated with the domain name.\n\n4. **Root Nameserver Query**: If the resolver doesn’t have the IP address cached, it queries a DNS root nameserver. The root nameserver doesn’t know the IP address, but it can direct the resolver to the appropriate top-level domain (TLD) nameserver (e.g., `.com`, `.net`).\n\n5. **TLD Nameserver Query**: The resolver then queries the TLD nameserver (e.g., for `.com`). The TLD nameserver knows the authoritative nameservers for the domain but doesn’t directly have the IP address.\n\n6. **Authoritative Nameserver Query**: The resolver contacts the authoritative nameserver specified by the TLD nameserver for `example.com`. This nameserver contains the actual mappings between domain names and IP addresses.\n\n7. **IP Address Obtained**: The resolver receives the IP address for `www.example.com` from the authoritative nameserver.\n\n8. **Response to User**: The recursive resolver sends the IP address back to your browser.\n\n9. **Connection Established**: The browser uses this IP address to establish a connection to the host server and request the webpage.\n\n10. **Caching**: The IP address is typically cached by your browser, OS, and recursive resolver to speed up future requests.\n\nThis process ensures that you can use easy-to-remember URLs to access websites instead of having to remember complex numerical IP addresses. DNS resolution is a critical component of internet functioning, allowing for seamless navigation across the web.",
+  "response_chars": 2235,
+  "num_chunks": 464,
+  "ttft_ms": 347.294,
+  "total_ms": 9319.99,
+  "model_name": "model-medium"
+}

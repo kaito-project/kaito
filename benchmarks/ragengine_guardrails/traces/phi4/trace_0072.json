@@ -1,0 +1,2071 @@
+{
+  "index": 72,
+  "prompt": "Explain the concept of zero-trust security architecture.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 306.107,
+      "content": "Zero"
+    },
+    {
+      "timestamp_ms": 306.107,
+      "content": "-tr"
+    },
+    {
+      "timestamp_ms": 327.029,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 339.951,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 365.042,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 378.673,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 397.217,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 418.531,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 435.068,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 454.034,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 473.183,
+      "content": " operates"
+    },
+    {
+      "timestamp_ms": 496.033,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 511.508,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 530.208,
+      "content": " fundamental"
+    },
+    {
+      "timestamp_ms": 549.5,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 568.787,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 587.484,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 607.337,
+      "content": " entity"
+    },
+    {
+      "timestamp_ms": 625.666,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 644.758,
+      "content": " whether"
+    },
+    {
+      "timestamp_ms": 663.664,
+      "content": " inside"
+    },
+    {
+      "timestamp_ms": 683.417,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 702.034,
+      "content": " outside"
+    },
+    {
+      "timestamp_ms": 721.549,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 740.14,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 759.159,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 779.553,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 820.358,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 841.75,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 841.75,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 854.313,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 887.284,
+      "content": " trusted"
+    },
+    {
+      "timestamp_ms": 897.114,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 912.858,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 930.604,
+      "content": " concept"
+    },
+    {
+      "timestamp_ms": 953.683,
+      "content": " emerged"
+    },
+    {
+      "timestamp_ms": 969.239,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 989.689,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1006.428,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 1026.429,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1056.34,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 1063.468,
+      "content": " perimeter"
+    },
+    {
+      "timestamp_ms": 1082.708,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 1102.266,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1120.892,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1140.885,
+      "content": "often"
+    },
+    {
+      "timestamp_ms": 1158.83,
+      "content": " described"
+    },
+    {
+      "timestamp_ms": 1177.647,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1197.634,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1216.111,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1236.928,
+      "content": "castle"
+    },
+    {
+      "timestamp_ms": 1260.406,
+      "content": "-and"
+    },
+    {
+      "timestamp_ms": 1275.967,
+      "content": "-m"
+    },
+    {
+      "timestamp_ms": 1293.902,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 1331.361,
+      "content": "at"
+    },
+    {
+      "timestamp_ms": 1331.361,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 1349.455,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1368.869,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1390.036,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1406.57,
+      "content": " insufficient"
+    },
+    {
+      "timestamp_ms": 1426.247,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1444.541,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 1466.268,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 1482.653,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 1501.842,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1520.864,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1539.824,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 1559.252,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 1578.292,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 1596.936,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1615.656,
+      "content": " mobile"
+    },
+    {
+      "timestamp_ms": 1635.276,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1654.248,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1673.365,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 1692.636,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1711.587,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 1731.391,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1758.54,
+      "content": " global"
+    },
+    {
+      "timestamp_ms": 1770.021,
+      "content": " workforce"
+    },
+    {
+      "timestamp_ms": 1792.16,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1806.973,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1828.801,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1845.333,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1865.005,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1883.065,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 1901.727,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1920.893,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 1939.955,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1959.26,
+      "content": " zero"
+    },
+    {
+      "timestamp_ms": 1978.441,
+      "content": "-tr"
+    },
+    {
+      "timestamp_ms": 1997.083,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 2016.287,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 2036.364,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 2054.986,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2074.035,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2092.489,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2111.295,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2130.433,
+      "content": "Never"
+    },
+    {
+      "timestamp_ms": 2149.707,
+      "content": " Trust"
+    },
+    {
+      "timestamp_ms": 2168.798,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2187.531,
+      "content": " Always"
+    },
+    {
+      "timestamp_ms": 2206.741,
+      "content": " Verify"
+    },
+    {
+      "timestamp_ms": 2227.044,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2244.907,
+      "content": " Zero"
+    },
+    {
+      "timestamp_ms": 2264.301,
+      "content": "-tr"
+    },
+    {
+      "timestamp_ms": 2283.249,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 2311.296,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 2321.014,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 2343.795,
+      "content": " verification"
+    },
+    {
+      "timestamp_ms": 2359.618,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2378.119,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2398.554,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2416.324,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2435.088,
+      "content": " though"
+    },
+    {
+      "timestamp_ms": 2454.805,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2473.732,
+      "content": " originates"
+    },
+    {
+      "timestamp_ms": 2492.317,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2511.457,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2530.848,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 2558.017,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2568.695,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2588.655,
+      "content": " regardless"
+    },
+    {
+      "timestamp_ms": 2606.983,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2625.871,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2648.211,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2664.7,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2682.88,
+      "content": " location"
+    },
+    {
+      "timestamp_ms": 2701.751,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2722.016,
+      "content": "internal"
+    },
+    {
+      "timestamp_ms": 2739.95,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2759.369,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 2778.762,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 2797.775,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2816.258,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 2835.322,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2854.323,
+      "content": " everyone"
+    },
+    {
+      "timestamp_ms": 2874.169,
+      "content": " trying"
+    },
+    {
+      "timestamp_ms": 2892.71,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2911.566,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2937.883,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2949.861,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2969.771,
+      "content": " authenticated"
+    },
+    {
+      "timestamp_ms": 2988.703,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3007.093,
+      "content": " authorized"
+    },
+    {
+      "timestamp_ms": 3029.686,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3047.129,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3063.979,
+      "content": " continuously"
+    },
+    {
+      "timestamp_ms": 3083.229,
+      "content": " validated"
+    },
+    {
+      "timestamp_ms": 3103.078,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3121.534,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 3140.292,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 3159.231,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3178.609,
+      "content": " posture"
+    },
+    {
+      "timestamp_ms": 3197.075,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 3216.7,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 3236.03,
+      "content": " getting"
+    },
+    {
+      "timestamp_ms": 3254.844,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3273.657,
+      "content": " remaining"
+    },
+    {
+      "timestamp_ms": 3292.907,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3312.541,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3330.89,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 3351.351,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3371.762,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3389.064,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3407.271,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3430.795,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3446.664,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3466.701,
+      "content": "Least"
+    },
+    {
+      "timestamp_ms": 3483.437,
+      "content": " Priv"
+    },
+    {
+      "timestamp_ms": 3508.201,
+      "content": "ilege"
+    },
+    {
+      "timestamp_ms": 3532.114,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 3540.351,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3559.594,
+      "content": " Users"
+    },
+    {
+      "timestamp_ms": 3578.665,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3598.533,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3617.122,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3636.377,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 3659.864,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3674.195,
+      "content": " granted"
+    },
+    {
+      "timestamp_ms": 3694.86,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3712.306,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 3731.361,
+      "content": " levels"
+    },
+    {
+      "timestamp_ms": 3750.457,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3769.492,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3882.788,
+      "content": " —"
+    },
+    {
+      "timestamp_ms": 3882.788,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3882.788,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 3882.788,
+      "content": " —"
+    },
+    {
+      "timestamp_ms": 3882.788,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 3887.531,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3903.569,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 3922.144,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 3941.3,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 3960.185,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3979.148,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3998.411,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 4016.799,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4035.791,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 4054.913,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4073.865,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 4093.038,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4112.213,
+      "content": " breach"
+    },
+    {
+      "timestamp_ms": 4131.155,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 4162.168,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4169.271,
+      "content": " unnecessary"
+    },
+    {
+      "timestamp_ms": 4188.214,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4207.672,
+      "content": " rights"
+    },
+    {
+      "timestamp_ms": 4226.826,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4245.669,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4265.144,
+      "content": " scope"
+    },
+    {
+      "timestamp_ms": 4283.804,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4306.918,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4322.092,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4341.098,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 4361.14,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 4379.368,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4518.943,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 4519.104,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4519.163,
+      "content": " least"
+    },
+    {
+      "timestamp_ms": 4519.212,
+      "content": " privilege"
+    },
+    {
+      "timestamp_ms": 4519.908,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 4520.081,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4520.16,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 4531.576,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4551.852,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4570.457,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4588.943,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4624.849,
+      "content": "Micro"
+    },
+    {
+      "timestamp_ms": 4627.333,
+      "content": "-se"
+    },
+    {
+      "timestamp_ms": 4649.774,
+      "content": "gment"
+    },
+    {
+      "timestamp_ms": 4664.83,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 4684.031,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4704.28,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4722.563,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 4741.675,
+      "content": " dividing"
+    },
+    {
+      "timestamp_ms": 4761.232,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4779.752,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 4804.484,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4817.813,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4836.754,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 4855.68,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 4874.115,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4893.774,
+      "content": " isolated"
+    },
+    {
+      "timestamp_ms": 4913.405,
+      "content": " segments"
+    },
+    {
+      "timestamp_ms": 4932.565,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4951.268,
+      "content": " minimize"
+    },
+    {
+      "timestamp_ms": 4970.177,
+      "content": " lateral"
+    },
+    {
+      "timestamp_ms": 4989.091,
+      "content": " movement"
+    },
+    {
+      "timestamp_ms": 5008.196,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5027.42,
+      "content": " attackers"
+    },
+    {
+      "timestamp_ms": 5046.663,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5065.406,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 5085.33,
+      "content": " implementing"
+    },
+    {
+      "timestamp_ms": 5103.605,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 5122.654,
+      "content": "-se"
+    },
+    {
+      "timestamp_ms": 5142.177,
+      "content": "gment"
+    },
+    {
+      "timestamp_ms": 5160.536,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 5179.807,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5200.73,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 5219.242,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 5237.701,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5269.267,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 5275.007,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5295.266,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 5313.608,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 5332.763,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5351.256,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5371.663,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 5389.571,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5410.93,
+      "content": " compromised"
+    },
+    {
+      "timestamp_ms": 5427.793,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5446.647,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5465.699,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 5484.712,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 5504.298,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 5523.371,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 5541.956,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5561.107,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5579.917,
+      "content": " segments"
+    },
+    {
+      "timestamp_ms": 5600.563,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5618.739,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5639.002,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5656.668,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5675.147,
+      "content": "Strong"
+    },
+    {
+      "timestamp_ms": 5694.126,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 5713.692,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5732.584,
+      "content": " Authorization"
+    },
+    {
+      "timestamp_ms": 5751.516,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5777.119,
+      "content": " Zero"
+    },
+    {
+      "timestamp_ms": 5789.829,
+      "content": "-tr"
+    },
+    {
+      "timestamp_ms": 5808.898,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 5827.695,
+      "content": " en"
+    },
+    {
+      "timestamp_ms": 5846.747,
+      "content": "forces"
+    },
+    {
+      "timestamp_ms": 5865.865,
+      "content": " strict"
+    },
+    {
+      "timestamp_ms": 5885.586,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 5904.432,
+      "content": " verification"
+    },
+    {
+      "timestamp_ms": 5923.179,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5942.24,
+      "content": " Multi"
+    },
+    {
+      "timestamp_ms": 5961.295,
+      "content": "-factor"
+    },
+    {
+      "timestamp_ms": 5980.515,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 5999.384,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6021.549,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 6037.195,
+      "content": "FA"
+    },
+    {
+      "timestamp_ms": 6057.165,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6075.97,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6094.631,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 6114.427,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 6133.257,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6151.757,
+      "content": " alongside"
+    },
+    {
+      "timestamp_ms": 6173.039,
+      "content": " adaptive"
+    },
+    {
+      "timestamp_ms": 6190.011,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 6209.935,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6229.752,
+      "content": " assess"
+    },
+    {
+      "timestamp_ms": 6249.69,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6269.092,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 6285.204,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6304.839,
+      "content": " threat"
+    },
+    {
+      "timestamp_ms": 6324.491,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6342.555,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 6361.58,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6380.73,
+      "content": " device"
+    },
+    {
+      "timestamp_ms": 6399.642,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 6419.144,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 6447.235,
+      "content": " granting"
+    },
+    {
+      "timestamp_ms": 6457.848,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6476.797,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6495.115,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6514.338,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6532.988,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6551.976,
+      "content": "Device"
+    },
+    {
+      "timestamp_ms": 6572.526,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 6590.065,
+      "content": "ure"
+    },
+    {
+      "timestamp_ms": 6609.704,
+      "content": " Checks"
+    },
+    {
+      "timestamp_ms": 6629.64,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6647.419,
+      "content": " Devices"
+    },
+    {
+      "timestamp_ms": 6666.559,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 6685.558,
+      "content": " comply"
+    },
+    {
+      "timestamp_ms": 6705.131,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6739.686,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 6743.082,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 6762.005,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 6780.841,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6800.251,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6819.388,
+      "content": " granted"
+    },
+    {
+      "timestamp_ms": 6849.183,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6857.567,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6885.759,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6897.511,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6914.409,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6933.82,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6953.926,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6973.018,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6990.921,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 7011.987,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 7028.976,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 7048.385,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7072.208,
+      "content": " patched"
+    },
+    {
+      "timestamp_ms": 7086.079,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7105.623,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 7125.674,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7143.169,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 7162.178,
+      "content": "-date"
+    },
+    {
+      "timestamp_ms": 7181.517,
+      "content": " antivirus"
+    },
+    {
+      "timestamp_ms": 7200.829,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 7219.585,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7239.129,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7262.023,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7277.936,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 7296.323,
+      "content": " adhere"
+    },
+    {
+      "timestamp_ms": 7321.485,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7334.138,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7355.152,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 7372.266,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7391.564,
+      "content": " acceptable"
+    },
+    {
+      "timestamp_ms": 7410.715,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7429.434,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 7449.517,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7468.129,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7487.833,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7505.652,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7525.566,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 7544.108,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 7565.054,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7581.999,
+      "content": " Analytics"
+    },
+    {
+      "timestamp_ms": 7601.127,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7622.644,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 7641.838,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 7658.698,
+      "content": " anomalies"
+    },
+    {
+      "timestamp_ms": 7678.79,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7696.284,
+      "content": " malicious"
+    },
+    {
+      "timestamp_ms": 7715.267,
+      "content": " activities"
+    },
+    {
+      "timestamp_ms": 7735.32,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7754.289,
+      "content": " zero"
+    },
+    {
+      "timestamp_ms": 7773.391,
+      "content": "-tr"
+    },
+    {
+      "timestamp_ms": 7792.536,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 7810.932,
+      "content": " architectures"
+    },
+    {
+      "timestamp_ms": 7829.835,
+      "content": " employ"
+    },
+    {
+      "timestamp_ms": 7848.935,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 7868.424,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 7887.213,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7906.893,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 7925.906,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 7944.443,
+      "content": " analytics"
+    },
+    {
+      "timestamp_ms": 7965.863,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7982.412,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8001.32,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 8020.84,
+      "content": " observing"
+    },
+    {
+      "timestamp_ms": 8042.085,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8058.792,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 8077.895,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8096.917,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 8116.187,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 8135.351,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8154.276,
+      "content": " device"
+    },
+    {
+      "timestamp_ms": 8173.326,
+      "content": " interactions"
+    },
+    {
+      "timestamp_ms": 8193.206,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8211.298,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8230.61,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 8249.461,
+      "content": " artificial"
+    },
+    {
+      "timestamp_ms": 8268.815,
+      "content": " intelligence"
+    },
+    {
+      "timestamp_ms": 8287.873,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8306.566,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 8325.878,
+      "content": " threats"
+    },
+    {
+      "timestamp_ms": 8345.168,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8364.138,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 8383.2,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8404.689,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8421.149,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 8440.072,
+      "content": "istent"
+    },
+    {
+      "timestamp_ms": 8487.1,
+      "content": " Policy"
+    },
+    {
+      "timestamp_ms": 8487.1,
+      "content": " Enforcement"
+    },
+    {
+      "timestamp_ms": 8497.413,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8516.72,
+      "content": " Policies"
+    },
+    {
+      "timestamp_ms": 8537.153,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 8555.064,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8573.959,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 8592.82,
+      "content": " consistently"
+    },
+    {
+      "timestamp_ms": 8612.126,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 8631.988,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8650.314,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 8670.947,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 8688.33,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": " rights"
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": " protection"
+    },
+    {
+      "timestamp_ms": 8854.694,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8867.049,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8879.455,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8897.916,
+      "content": " controls"
+    },
+    {
+      "timestamp_ms": 8917.144,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8958.441,
+      "content": " upheld"
+    },
+    {
+      "timestamp_ms": 8958.441,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8974.423,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8993.655,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 9012.601,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9031.844,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 9050.921,
+      "content": "—"
+    },
+    {
+      "timestamp_ms": 9070.069,
+      "content": "on"
+    },
+    {
+      "timestamp_ms": 9089.068,
+      "content": "-pre"
+    },
+    {
+      "timestamp_ms": 9114.342,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 9126.762,
+      "content": "ises"
+    },
+    {
+      "timestamp_ms": 9146.176,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9165.0,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9184.315,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9206.34,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 9222.555,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9241.571,
+      "content": "By"
+    },
+    {
+      "timestamp_ms": 9261.319,
+      "content": " adopting"
+    },
+    {
+      "timestamp_ms": 9279.683,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9300.721,
+      "content": " zero"
+    },
+    {
+      "timestamp_ms": 9318.825,
+      "content": "-tr"
+    },
+    {
+      "timestamp_ms": 9337.601,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 9356.061,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 9380.015,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9394.852,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 9413.159,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9432.456,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 9451.362,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 9471.649,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9498.716,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 9508.629,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9527.921,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9546.899,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 9565.858,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9588.112,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 9604.418,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9623.444,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 9666.096,
+      "content": " threats"
+    },
+    {
+      "timestamp_ms": 9666.096,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9680.319,
+      "content": " adapting"
+    },
+    {
+      "timestamp_ms": 9700.338,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9718.667,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 9766.422,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9766.422,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9777.004,
+      "content": " evolving"
+    },
+    {
+      "timestamp_ms": 9794.908,
+      "content": " cybersecurity"
+    },
+    {
+      "timestamp_ms": 9813.824,
+      "content": " landscape"
+    },
+    {
+      "timestamp_ms": 9833.577,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9852.889,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 9871.31,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9890.125,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9909.521,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 9928.997,
+      "content": " shift"
+    },
+    {
+      "timestamp_ms": 9948.113,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9966.638,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 9987.052,
+      "content": " organizations"
+    },
+    {
+      "timestamp_ms": 10005.05,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 10024.199,
+      "content": " cybersecurity"
+    },
+    {
+      "timestamp_ms": 10024.199,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10024.199,
+      "type": "done"
+    }
+  ],
+  "full_response": "Zero-trust security architecture is a security model that operates on the fundamental principle that no entity, whether inside or outside the organization's network, should be automatically trusted. This concept emerged from the understanding that traditional perimeter-based security (often described as a \"castle-and-moat\" model) is insufficient to protect modern organizations that are often cloud-based, mobile, and need to support a global workforce.\n\nHere are the key components and principles of zero-trust security architecture:\n\n1. **Never Trust, Always Verify**: Zero-trust requires continuous verification of each request as though it originates from an open network, regardless of the request's location (internal or external). This ensures that everyone trying to access resources is authenticated, authorized, and continuously validated for security configuration and posture compliance before getting or remaining access to applications and data.\n\n2. **Least Privilege Access**: Users and systems should only be granted the minimum levels of access — or permissions — necessary to perform their functions. This reduces the risk of error or breach due to unnecessary access rights. The scope of user access should follow the principle of least privilege across the organization.\n\n3. **Micro-segmentation**: This involves dividing the network and data into smaller, isolated segments to minimize lateral movement by attackers. By implementing micro-segmentation, organizations ensure that even if one part of the network is compromised, it doesn't allow access to other segments.\n\n4. **Strong Authentication and Authorization**: Zero-trust enforces strict identity verification. Multi-factor authentication (MFA) is commonly used, alongside adaptive authentication to assess the level of threat a user or device represents before granting access.\n\n5. **Device Posture Checks**: Devices must comply with security policies before they are granted access to the network or data. This includes ensuring they are patched, have up-to-date antivirus software, and that they adhere to the organization's acceptable use policies.\n\n6. **Continuous Monitoring and Analytics**: To detect anomalies and malicious activities, zero-trust architectures employ continuous monitoring and real-time analytics. This involves observing user behavior, network traffic, device interactions, and using artificial intelligence to detect threats.\n\n7. **Consistent Policy Enforcement**: Policies should be applied consistently across the entire network, ensuring user access rights, data protection, and security controls are upheld in all environments and technologies—on-premises and in the cloud.\n\nBy adopting a zero-trust approach, organizations can better protect their sensitive information and systems from internal and external threats, adapting more effectively to the evolving cybersecurity landscape. It's a comprehensive shift in how organizations approach cybersecurity",
+  "response_chars": 2968,
+  "num_chunks": 512,
+  "ttft_ms": 306.107,
+  "total_ms": 10029.403,
+  "model_name": "model-medium"
+}

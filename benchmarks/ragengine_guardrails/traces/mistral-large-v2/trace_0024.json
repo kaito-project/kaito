@@ -1,0 +1,867 @@
+{
+  "index": 24,
+  "prompt": "Explain the concept of immutable infrastructure and its advantages.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1556.768,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": " **Im"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": "mutable Infrastructure:"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": " Concept and Advant"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": "ages**\n\n####"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": " **What"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": " is Immutable"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": " Infrastructure?**\nIm"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": "mutable infrastructure is a"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": " paradigm in IT"
+    },
+    {
+      "timestamp_ms": 1556.768,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " where infrastructure"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " components (such"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " as servers, containers"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": ", or"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " virtual machines"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": ") are **never"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " modified"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": "**. Instead of"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " updating"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1560.617,
+      "content": " patch"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": "ing existing"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": " systems, any"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": " changes ("
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": "e.g., updates"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": ", configuration"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": " modifications"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": ", or bug"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": " fixes) require **"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": "re"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": "placing the entire component"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": "** with"
+    },
+    {
+      "timestamp_ms": 1992.505,
+      "content": " a new, pre"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": "-configured version"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": ".\n\nThis approach"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": " contrasts"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": " with **mutable"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": " infrastructure**, where systems"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": " are continuously"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": " updated in"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": " place (e.g"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": "., applying"
+    },
+    {
+      "timestamp_ms": 2378.837,
+      "content": " patches"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": ", changing"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": ", or installing"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " software).\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " **Key Principles"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " of Immutable Infrastructure**\n"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": "1. **No"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": "-Place"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " Updates"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": "**\n   - Once"
+    },
+    {
+      "timestamp_ms": 2896.052,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": ", infrastructure components"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " treated"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " as **"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": "read-only**.\n"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": "   - Changes are"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " made by **re"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": "building"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " rede"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": "ploying** a"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " new instance rather than"
+    },
+    {
+      "timestamp_ms": 3400.007,
+      "content": " modifying the"
+    },
+    {
+      "timestamp_ms": 3502.326,
+      "content": " existing one.\n\n2"
+    },
+    {
+      "timestamp_ms": 3502.326,
+      "content": ". **De"
+    },
+    {
+      "timestamp_ms": 3502.326,
+      "content": "clarative Configuration"
+    },
+    {
+      "timestamp_ms": 3502.326,
+      "content": "**\n   - Infrastructure"
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": " is defined using **"
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": "code ("
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": "Inf"
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": "rastructure as"
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": " Code -"
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": " IaC)** ("
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": "e.g., Terra"
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": "form, AWS"
+    },
+    {
+      "timestamp_ms": 3911.906,
+      "content": " CloudFormation, An"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "sible).\n   -"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": " Config"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "urations are"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "-controlled and"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": " reproducible"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": ".\n\n3"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": ". **Aut"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "omated Deployment"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "   - New instances"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": " are **"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "automatically provision"
+    },
+    {
+      "timestamp_ms": 4426.17,
+      "content": "ed** (e"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": ".g., via CI"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "/CD pipelines).\n  "
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": " - Old"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": " instances"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": " are **"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "destroy"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "ed and"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": " replaced** rather"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": " than updated"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": ".\n\n4. **"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "phemer"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "al Components"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "**\n   - Serv"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": "ers,"
+    },
+    {
+      "timestamp_ms": 5045.186,
+      "content": " containers, or"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": " VM"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": "s are **dis"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": "posable** and"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": " can be replaced at"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": " any time without"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": " downt"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": "ime.\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 5458.449,
+      "content": "### **Ad"
+    },
+    {
+      "timestamp_ms": 5558.424,
+      "content": "vantages of Immutable"
+    },
+    {
+      "timestamp_ms": 5558.424,
+      "content": " Infrastructure**\n\n#### **"
+    },
+    {
+      "timestamp_ms": 5558.424,
+      "content": "1. Consist"
+    },
+    {
+      "timestamp_ms": 5558.424,
+      "content": "ency & Reliability"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": "**\n  "
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " - **No Configuration"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " Drift**:"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " Since"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " are never modified after"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " deployment, there"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " no risk of inconsistent"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " states"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": "e.g., manual"
+    },
+    {
+      "timestamp_ms": 6472.03,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": ", failed"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": " updates).\n   -"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": " **Predict"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": "able Deploy"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": "ments**: Every deployment"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": " is identical, reducing"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": "works"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": " my machine"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": "\" issues"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": ".\n\n#### **2"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": ". Improved"
+    },
+    {
+      "timestamp_ms": 6881.245,
+      "content": " Security**\n"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": "   - **Red"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": "uced Attack"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " Surface**: Since"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " are frequently"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " replaced, vulnerabilities"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " harder"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " to exploit"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": ".g., no"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " lingering"
+    },
+    {
+      "timestamp_ms": 7496.108,
+      "content": " outdated"
+    },
+    {
+      "timestamp_ms": 7518.416,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 7518.416,
+      "content": ").\n   - **"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "Im"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "mutable Images"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "**: Pre"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "-hard"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "ened,"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": " scanned"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": " and signed"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": " images ensure"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": ".\n\n#### **3"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": ". Sim"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "plified"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": " Roll"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "backs & Dis"
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": "aster Recovery**\n  "
+    },
+    {
+      "timestamp_ms": 8316.555,
+      "content": " - **Easy"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " Rollbacks"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": "**: If a new"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " deployment fails, rever"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": "ting to"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " previous version is as"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " simple as rede"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": "ploying the old"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " image.\n   -"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " **F"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": "aster Recovery"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": "**: Since"
+    },
+    {
+      "timestamp_ms": 8678.684,
+      "content": " infrastructure is code"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": " rebuilding"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": " scratch"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": " is quick"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": " and automated.\n\n####"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": " **4. Sc"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": "alability & Automation"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": "**\n   - **"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "content": "Horizontal"
+    },
+    {
+      "timestamp_ms": 9108.654,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9108.897,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Immutable Infrastructure: Concept and Advantages**\n\n#### **What is Immutable Infrastructure?**\nImmutable infrastructure is a paradigm in IT operations where infrastructure components (such as servers, containers, or virtual machines) are **never modified after deployment**. Instead of updating or patching existing systems, any changes (e.g., updates, configuration modifications, or bug fixes) require **replacing the entire component** with a new, pre-configured version.\n\nThis approach contrasts with **mutable infrastructure**, where systems are continuously updated in place (e.g., applying patches, changing configurations, or installing new software).\n\n---\n\n### **Key Principles of Immutable Infrastructure**\n1. **No In-Place Updates**\n   - Once deployed, infrastructure components are treated as **read-only**.\n   - Changes are made by **rebuilding and redeploying** a new instance rather than modifying the existing one.\n\n2. **Declarative Configuration**\n   - Infrastructure is defined using **code (Infrastructure as Code - IaC)** (e.g., Terraform, AWS CloudFormation, Ansible).\n   - Configurations are version-controlled and reproducible.\n\n3. **Automated Deployment**\n   - New instances are **automatically provisioned** (e.g., via CI/CD pipelines).\n   - Old instances are **destroyed and replaced** rather than updated.\n\n4. **Ephemeral Components**\n   - Servers, containers, or VMs are **disposable** and can be replaced at any time without downtime.\n\n---\n\n### **Advantages of Immutable Infrastructure**\n\n#### **1. Consistency & Reliability**\n   - **No Configuration Drift**: Since components are never modified after deployment, there’s no risk of inconsistent states (e.g., manual changes, failed updates).\n   - **Predictable Deployments**: Every deployment is identical, reducing \"works on my machine\" issues.\n\n#### **2. Improved Security**\n   - **Reduced Attack Surface**: Since systems are frequently replaced, vulnerabilities are harder to exploit (e.g., no lingering outdated software).\n   - **Immutable Images**: Pre-hardened, scanned, and signed images ensure security compliance.\n\n#### **3. Simplified Rollbacks & Disaster Recovery**\n   - **Easy Rollbacks**: If a new deployment fails, reverting to the previous version is as simple as redeploying the old image.\n   - **Faster Recovery**: Since infrastructure is code, rebuilding from scratch is quick and automated.\n\n#### **4. Scalability & Automation**\n   - **Horizontal",
+  "response_chars": 2451,
+  "num_chunks": 211,
+  "ttft_ms": 1556.768,
+  "total_ms": 9249.893,
+  "model_name": "Mistral-Large-3"
+}

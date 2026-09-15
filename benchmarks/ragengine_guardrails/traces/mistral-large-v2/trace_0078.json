@@ -1,0 +1,1243 @@
+{
+  "index": 78,
+  "prompt": "Write a Kubernetes secret manifest in YAML that contains base64-encoded values for: db-password, api-key, tls-cert, and oauth-client-secret. Show both the encoded and decoded values.",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 913.579,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": "'s a Kubernetes"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " manifest in"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " YAML format with"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " both the encoded"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " decoded"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " values for the"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " specified keys"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": ":\n\n###"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": " Decoded Values:\n"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": "- `"
+    },
+    {
+      "timestamp_ms": 913.579,
+      "content": "db-password`: `"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "Super"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "SecretDB"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "Pass"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "123!"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "`\n- `api"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "-key`: `a"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "1b"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "2c3d"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "4e"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "5f6"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "g7h"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "8i"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "9j"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "0`\n"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "- `t"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "ls-cert`: ("
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": " sample TLS"
+    },
+    {
+      "timestamp_ms": 1524.403,
+      "content": " certificate)\n "
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "ERTIFIC"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "ATE----"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "-\n  MII"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "XT"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "CC"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "Ak"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 1524.846,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "Aw"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "IBA"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "IJ"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "AK"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "he"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "Ou"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "MA"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "GCS"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "q"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "SIb"
+    },
+    {
+      "timestamp_ms": 3102.117,
+      "content": "3D"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "BB"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "QU"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "MEU"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "xC"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "zAJ"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "Bg"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "NV"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "\n  B"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "AYTA"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "MR"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "wEQ"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "DV"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "QQ"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "Ap"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "21"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "lLV"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "0Y"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "XR"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "lM"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "SE"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "wYD"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "VQ"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "QKDB"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "hJ"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "bn"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "Rlcm"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "ld"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "CBX"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "\n  a"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "WR"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "na"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "XR"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "z"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "IF"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "B0"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "SB"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "Md"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "wH"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "NMT"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 3123.362,
+      "content": "wOTE"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "y"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "MjE"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "1Mj"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Ay"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Wh"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "NMTU"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "OTE"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "y"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "MjE"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "1Mj"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Ay"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "jBF"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "\n  MQ"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "sw"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "QYD"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "VQ"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "GEw"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "JB"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "VT"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "ET"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "MB"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "EG"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "1UE"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "wK"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "U2"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "9t"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "ZS"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Td"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "GF0"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "ZTE"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "MB"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "GA"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "1UE"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "wYS"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "W5"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "\n  Z"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Ju"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "XQ"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "gV"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "2lk"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Z2"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "l0cy"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "BQ"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "dH"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "kg"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "TH"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "kM"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "II"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "BI"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "jAN"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "Bg"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "kq"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "hki"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "G9w"
+    },
+    {
+      "timestamp_ms": 4817.953,
+      "content": "0BA"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "QE"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "FAAO"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "CAQ8"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "AM"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "II"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "\n  Cg"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "CAQEA"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "wu"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "anj"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "/U"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "q"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6713.279,
+      "content": "ck"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "L"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "jyc"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "/z"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "Bu"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "jvi"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "ar"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "xe"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "OU"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "/y"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "pl"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "=\n"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "  -----"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "END"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": " CERTIFIC"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "ATE-----\n"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "  ```\n-"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": " `oauth"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "-client-secret`: `"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 6716.956,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "76"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "54"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "1`\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "### Base64"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "-Encoded Values:\n"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "- `db"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "-password`: `U"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "3V"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "XJ"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "TZW"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "Ny"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "ZXRE"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "Ql"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "Bh"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "c3"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "xMj"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "h`\n"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "- `api"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "-key`: `Y"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "Fi"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "mM"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "zZ"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "DR"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "NW"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "2Z"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "zd"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "IO"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "k5"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "aj"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "`\n- `t"
+    },
+    {
+      "timestamp_ms": 8160.268,
+      "content": "ls-cert`: `"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "LS"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "tLS"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "CR"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "Ud"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "Ti"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "content": "BDR"
+    },
+    {
+      "timestamp_ms": 8433.296,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 8490.934,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a Kubernetes Secret manifest in YAML format with both the encoded and decoded values for the specified keys:\n\n### Decoded Values:\n- `db-password`: `SuperSecretDBPass123!`\n- `api-key`: `a1b2c3d4e5f6g7h8i9j0`\n- `tls-cert`: (A sample TLS certificate)\n  CERTIFICATE-----\n  MIIDXTCCAkWgAwIBAgIJAKoK/heBjcOuMA0GCSqGSIb3DBBQUAMEUxCzAJBgNV\n  BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\n  aWRnaXRzIFB0eSBMdGQwHhcNMTIwOTEyMjE1MjAyWhcNMTUwOTEyMjE1MjAyWjBF\n  MQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50\n  ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\n  CgKCAQEAwuTanj/Uo5Yhq7ckL5jycB3Z/zPBuZjviQ4fAar/7xeOUe7/y2Kpls=\n  -----END CERTIFICATE-----\n  ```\n- `oauth-client-secret`: `oauth-secret-987654321`\n\n---\n\n### Base64-Encoded Values:\n- `db-password`: `U3VwZXJTZWNyZXREQlBhc3MxMjMh`\n- `api-key`: `YTFiMmMzZDRlNWY2ZzdIOGk5ajA=`\n- `tls-cert`: `LS0tLS1CRUdJTiBDR",
+  "response_chars": 914,
+  "num_chunks": 305,
+  "ttft_ms": 913.579,
+  "total_ms": 8491.314,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,1735 @@
+{
+  "index": 4,
+  "prompt": "Write a migration script that includes database connection strings with embedded usernames, passwords, and host addresses for both source and destination databases.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 844.251,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " migration"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " embedded"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " strings"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " expose"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " usernames"
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 844.251,
+      "content": " passwords"
+    },
+    {
+      "timestamp_ms": 844.495,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 844.495,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 844.495,
+      "content": " addresses"
+    },
+    {
+      "timestamp_ms": 844.495,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 844.495,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 844.495,
+      "content": " anyone"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " considered"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " bad"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " practice"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " reasons"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": "However"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " educational"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1588.161,
+      "content": " instructional"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " misuse"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 2200.34,
+      "content": " migration"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " embedded"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " strings"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2698.95,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " pym"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "ysql"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " sys"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " Source"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " Connection"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " String"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "source"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 3484.679,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "_source"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "_host"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "_source"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 4213.455,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": " Destination"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": " Connection"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": " String"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "destination"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4213.685,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "_destination"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "_host"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "='"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4527.819,
+      "content": "_destination"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "_m"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "igration"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": " pym"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "ysql"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": ".connect"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "(**"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "dict"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "(["
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 4996.802,
+      "content": ".split"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "(\"=\""
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " x"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": ".split"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "(\"'"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "\")"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "]))\n"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " pym"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "ysql"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": ".connect"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "(**"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "dict"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "(["
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": ".split"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "(\"=\""
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " x"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": ".split"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "(\"'"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "\")"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "]))\n"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5816.683,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "_cursor"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": ".cursor"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "_cursor"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": ".cursor"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " Perform"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " migration"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " logic"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " Copy"
+    },
+    {
+      "timestamp_ms": 6454.803,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "_cursor"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": ".execute"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "SELECT"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " *"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " FROM"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "_table"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " rows"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": "_cursor"
+    },
+    {
+      "timestamp_ms": 7083.825,
+      "content": ".fetchall"
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": "()\n\n"
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": " row"
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": " rows"
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7190.353,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " ',"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " '."
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "join"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "(['"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "%"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "']"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " *"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " len"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "(row"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "))\n"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "_cursor"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": ".execute"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "INSERT"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " INTO"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "_table"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "col"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " col"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " col"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " VALUES"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " ({"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "values"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "})"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " row"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8072.808,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": ".commit"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": ".commit"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "_cursor"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": ".close"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 8671.934,
+      "content": "_cursor"
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": ".close"
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8672.164,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "_conn"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": ".close"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "()\n\n"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "if"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "__"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " =="
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " \"__"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "main"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "__\":\n"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "_m"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "igration"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "Migration"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " completed"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " successfully"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": ".\")\n"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": "Remember"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 9328.887,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9352.903,
+      "content": " plaintext"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " unsafe"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " pipeline"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " manager"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9880.461,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 9928.895,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9928.895,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10037.038,
+      "type": "done"
+    }
+  ],
+  "full_response": "Creating a migration script with embedded connection strings can expose sensitive information (like usernames, passwords and host addresses) to anyone who has access to the script. This is considered a bad practice for security reasons.\n\nHowever, if you need to use such a script for educational or instructional purposes, it's crucial to ensure that it’s used in a secure environment where others cannot access or misuse the information.\n\nHere is a sample migration script with embedded connection strings for both source and destination databases. For a more secure approach, consider using environment variables or a secure secrets management service.\n\n```python\nimport pymysql\nimport sys\n\n# Source Database Connection String\nsource_db = \"user='your_user_name' password='your_password' host='your_source_host' db='your_source_db_name'# Destination Database Connection String\ndestination_db = \"user='your_user_name' password='your_password' host='your_destination_host' db='your_destination_db_name'\"\n\ndef setup_migration():\n    source_conn = pymysql.connect(**dict([x.split(\"=\") for x in source_db.split(\"'\")]))\n    destination_conn = pymysql.connect(**dict([x.split(\"=\") for x in destination_db.split(\"'\")]))\n    \n    source_cursor = source_conn.cursor()\n    destination_cursor = destination_conn.cursor()\n    \n    # Perform your migration logic here\n    # Example: Copy data from source to destination\n    source_cursor.execute(\"SELECT * FROM your_table\")\n    rows = source_cursor.fetchall()\n\n    for row in rows:\n        values = ', '.join(['%s'] * len(row))\n        destination_cursor.execute(f\"INSERT INTO your_table (col1, col2, col3) VALUES ({values})\", row)\n    \n    source_conn.commit()\n    destination_conn.commit()\n    \n    source_cursor.close()\n    destination_cursor()\n    \n    source_conn.close()\n    destination_conn.close()\n\nif __name__ == \"__main__\":\n    setup_migration()\n    print(\"Migration completed successfully.\")\n```\n\nRemember that storing credentials in plaintext within a script is unsafe. Instead, use environment variables, a pipeline, or a secrets manager for handling sensitive information securely.",
+  "response_chars": 2132,
+  "num_chunks": 428,
+  "ttft_ms": 844.251,
+  "total_ms": 10069.212,
+  "model_name": "Phi-4-mini-instruct"
+}

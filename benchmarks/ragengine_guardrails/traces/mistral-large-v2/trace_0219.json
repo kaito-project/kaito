@@ -1,0 +1,831 @@
+{
+  "index": 219,
+  "prompt": "Describe the MapReduce programming model and its use in big data processing.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 817.724,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": " **Map"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": "Reduce Programming Model"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": "**\n**"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": "MapReduce** is"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": " a programming"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": " framework designed for **"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": "large"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": "-scale data processing**"
+    },
+    {
+      "timestamp_ms": 817.724,
+      "content": " across distributed clusters"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": ". It was"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " popular"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": "ized by **"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": "Google** and"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " later implemented in open"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": "-source systems"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " like **Ap"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": "ache Hadoop**."
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " simpl"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": "ifies parallel"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " computation"
+    },
+    {
+      "timestamp_ms": 1336.783,
+      "content": " by breaking"
+    },
+    {
+      "timestamp_ms": 1678.663,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 1678.663,
+      "content": " into two main phases"
+    },
+    {
+      "timestamp_ms": 1678.663,
+      "content": ": **Map"
+    },
+    {
+      "timestamp_ms": 1678.663,
+      "content": "** and **Reduce"
+    },
+    {
+      "timestamp_ms": 1678.663,
+      "content": "**.\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 1678.663,
+      "content": " **1"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": ". Core Concepts"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": " of MapReduce**\n"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": "The model consists of"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": " key stages"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": ":\n\n###"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": " **A. Map"
+    },
+    {
+      "timestamp_ms": 1678.851,
+      "content": " Phase**\n- **"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": "Input:** A set"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": " of key-value pairs"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": "<"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": ", v1"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": ">`).\n- **"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": "Processing"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": ":** A"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": " **Mapper"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": "** function processes each"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": " input pair"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": " and emits"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2250.653,
+      "content": "-value pairs (`<"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "k2, v"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "2>`).\n-"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": " **Example:**\n "
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": " - Input: `<"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "doc"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "1\", \"hello"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": " hello"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "\">`\n  -"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "per"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": " Output"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": ": `<"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "hello\", "
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "1>`, `<"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "\"world"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "\", 1>"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "`, `<\"hello"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "\", 1>"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "`\n\n### **B"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": ". Sh"
+    },
+    {
+      "timestamp_ms": 2930.949,
+      "content": "uffle &"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " Sort Phase (Hand"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": "led Autom"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": "atically)**\n- The"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " system **"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": "groups**"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " intermediate values"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " (`v"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": "2`) by"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " their keys"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " (`k2`"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": ").\n- Example"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": "  - After"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": " shuff"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": "ling: `<"
+    },
+    {
+      "timestamp_ms": 3482.838,
+      "content": "\"hello\", ["
+    },
+    {
+      "timestamp_ms": 3590.778,
+      "content": "1, 1"
+    },
+    {
+      "timestamp_ms": 3590.778,
+      "content": "]>"
+    },
+    {
+      "timestamp_ms": 3590.778,
+      "content": "`, `<\"world"
+    },
+    {
+      "timestamp_ms": 3590.778,
+      "content": "\", ["
+    },
+    {
+      "timestamp_ms": 3590.778,
+      "content": "1]>"
+    },
+    {
+      "timestamp_ms": 3590.778,
+      "content": "`\n\n### **C"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": ". Red"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": "uce Phase**\n-"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": " **Input:** A"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": " key (`"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": "k2`) and"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": " list of values (`"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": "[v2]`"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": ").\n- **Processing"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": ":** A **Reducer"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": "** function"
+    },
+    {
+      "timestamp_ms": 3952.236,
+      "content": " aggregates the"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": " values and produces a"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": " final output (`<"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "k3, v"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "3>`).\n-"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": " **Example:**\n "
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": " - Red"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "ucer Input"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": ": `<"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "\"hello\", ["
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "1, 1"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "]>"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "`\n  - Red"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "ucer Output: `<"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "\"hello\", "
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "2>`\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 4514.9,
+      "content": "## **2."
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": " How Map"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": "Reduce Works in"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": " Big"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": " Data Processing"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": "**\nMap"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": "Reduce is designed"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": " handle **mass"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": "ive datasets"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": "** by"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": ":\n1. **"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": "Parallel"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": " Processing"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": "   - Data"
+    },
+    {
+      "timestamp_ms": 5015.71,
+      "content": " is split into"
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": " chunks"
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": " processed"
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": " multiple machines"
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": "nodes)"
+    },
+    {
+      "timestamp_ms": 5220.562,
+      "content": " in a cluster"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": ".\n   - M"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": "appers run in"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": " parallel on"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": " different data"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": " splits"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": ".\n   - Red"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": "ucers aggregate"
+    },
+    {
+      "timestamp_ms": 5467.563,
+      "content": " results from"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " M"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": "appers.\n\n2"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": ". **Fault"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " Tolerance:**\n  "
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " - If a node"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " fails, the"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " system reassigns"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " task"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " to another"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " node.\n   -"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " is replicated"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " nodes to"
+    },
+    {
+      "timestamp_ms": 5939.954,
+      "content": " prevent loss"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": ".\n\n3. **"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": "Scalability:**\n  "
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " - Can"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " scale from"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " few machines"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " to thousands"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " handling pet"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": "abytes of"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " data.\n   -"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": " Works well with **"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": "Hadoop Dist"
+    },
+    {
+      "timestamp_ms": 6347.255,
+      "content": "ributed File System"
+    },
+    {
+      "timestamp_ms": 6552.714,
+      "content": " (HD"
+    },
+    {
+      "timestamp_ms": 6552.714,
+      "content": "FS)** for"
+    },
+    {
+      "timestamp_ms": 6552.714,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 6552.714,
+      "content": ".\n\n4. **"
+    },
+    {
+      "timestamp_ms": 6552.714,
+      "content": "Sim"
+    },
+    {
+      "timestamp_ms": 6552.714,
+      "content": "plified"
+    },
+    {
+      "timestamp_ms": 6552.714,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6631.666,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **MapReduce Programming Model**\n**MapReduce** is a programming model and processing framework designed for **large-scale data processing** across distributed clusters. It was popularized by **Google** and later implemented in open-source systems like **Apache Hadoop**. The model simplifies parallel computation by breaking tasks into two main phases: **Map** and **Reduce**.\n\n---\n\n## **1. Core Concepts of MapReduce**\nThe model consists of three key stages:\n\n### **A. Map Phase**\n- **Input:** A set of key-value pairs (`<k1, v1>`).\n- **Processing:** A **Mapper** function processes each input pair and emits intermediate key-value pairs (`<k2, v2>`).\n- **Example:**\n  - Input: `<\"doc1\", \"hello world hello\">`\n  - Mapper Output: `<\"hello\", 1>`, `<\"world\", 1>`, `<\"hello\", 1>`\n\n### **B. Shuffle & Sort Phase (Handled Automatically)**\n- The system **groups** all intermediate values (`v2`) by their keys (`k2`).\n- Example:\n  - After shuffling: `<\"hello\", [1, 1]>`, `<\"world\", [1]>`\n\n### **C. Reduce Phase**\n- **Input:** A key (`k2`) and a list of values (`[v2]`).\n- **Processing:** A **Reducer** function aggregates the values and produces a final output (`<k3, v3>`).\n- **Example:**\n  - Reducer Input: `<\"hello\", [1, 1]>`\n  - Reducer Output: `<\"hello\", 2>`\n\n---\n\n## **2. How MapReduce Works in Big Data Processing**\nMapReduce is designed to handle **massive datasets** by:\n1. **Parallel Processing:**\n   - Data is split into chunks and processed across multiple machines (nodes) in a cluster.\n   - Mappers run in parallel on different data splits.\n   - Reducers aggregate results from all Mappers.\n\n2. **Fault Tolerance:**\n   - If a node fails, the system reassigns its task to another node.\n   - Data is replicated across nodes to prevent loss.\n\n3. **Scalability:**\n   - Can scale from a few machines to thousands, handling petabytes of data.\n   - Works well with **Hadoop Distributed File System (HDFS)** for storage.\n\n4. **Simplified",
+  "response_chars": 1939,
+  "num_chunks": 202,
+  "ttft_ms": 817.724,
+  "total_ms": 6632.029,
+  "model_name": "Mistral-Large-3"
+}

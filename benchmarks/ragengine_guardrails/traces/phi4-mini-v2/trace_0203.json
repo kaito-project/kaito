@@ -1,0 +1,2063 @@
+{
+  "index": 203,
+  "prompt": "Write a policy document explaining how employees should handle INTERNAL_ONLY documents. Use the label INTERNAL_ONLY throughout the document.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 943.866,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "IN"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "TERNAL"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " Document"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " Policy"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " Introduction"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " purpose"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " guidelines"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 943.866,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": "Company"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": "]."
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " adhere"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1640.114,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " restrictions"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " Definition"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2152.142,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": " “"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": "IN"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": "TERNAL"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": "”"
+    },
+    {
+      "timestamp_ms": 2152.61,
+      "content": " refer"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " confidential"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " dissemination"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2660.131,
+      "content": " limited"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " proprietary"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " material"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " explicitly"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3278.97,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " Documents"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "Conf"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "idential"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " treat"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " confidential"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " Unauthorized"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " disclosure"
+    },
+    {
+      "timestamp_ms": 3803.341,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " materials"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " intentionally"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " unint"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": "entionally"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4084.661,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " strictly"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " prohibited"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4400.607,
+      "content": " disciplinary"
+    },
+    {
+      "timestamp_ms": 4400.859,
+      "content": " action"
+    },
+    {
+      "timestamp_ms": 4400.859,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4400.859,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " termination"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " employment"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": "Storage"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " approved"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " locations"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " Digital"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5015.02,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": "-san"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": "ction"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " Physical"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " locked"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " cabinets"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " areas"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " designated"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5634.233,
+      "content": " company's"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " limited"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6022.594,
+      "content": " personnel"
+    },
+    {
+      "timestamp_ms": 6071.756,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 6071.756,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 6071.756,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6071.756,
+      "content": " legitimate"
+    },
+    {
+      "timestamp_ms": 6071.756,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " materials"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " adhere"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " least"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " privilege"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6672.311,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": "Sharing"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " Transmission"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " transmitted"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " approved"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7280.212,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " verify"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " recipient"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " electronic"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 7797.108,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 7867.132,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": "Physical"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " Signing"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " Out"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " purpose"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " beyond"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " individual"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 8505.394,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " signed"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " transaction"
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9318.826,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " party"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " sign"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " acknowledging"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " receipt"
+    },
+    {
+      "timestamp_ms": 9322.092,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": "Periodic"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " Review"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " encouraged"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " reviews"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " materials"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9758.98,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9931.113,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9931.113,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9931.113,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 9931.113,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9931.113,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": "Training"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " Awareness"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " periodically"
+    },
+    {
+      "timestamp_ms": 10271.908,
+      "content": " participate"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " trainings"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " awareness"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " protecting"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " INTERNAL"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": "_ONLY"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " consequences"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " failing"
+    },
+    {
+      "timestamp_ms": 10763.511,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " comply"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " Reporting"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " Compliance"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "Reporting"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " Viol"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " report"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " suspected"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 11448.582,
+      "content": " breaches"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " manager"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " office"
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11737.487,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11878.945,
+      "type": "done"
+    }
+  ],
+  "full_response": "**INTERNAL_ONLY Document Handling Policy**\n\n**1. Introduction**\n\nThe purpose of this policy is to establish clear guidelines for handling INTERNAL_ONLY documents within [Company Name]. To ensure the integrity and confidentiality of this important information, all employees must adhere to the following procedures and restrictions when handling INTERNAL_ONLY documents.\n\n**2. Definition**\n\nFor the purposes this policy, “INTERNAL_ONLY documents” refer to any document that contains sensitive, proprietary, or confidential information not intended for external dissemination. This includes, but is not limited to, employee records, proprietary business information, internal strategies, and any other material explicitly labeled as INTERNAL_ONLY.\n\n**3. Handling INTERNAL_ONLY Documents**\n\na. **Confidentiality**: Employees must treat INTERNAL_ONLY documents as confidential and secure. Unauthorized disclosure of INTERNAL_ONLY materials, either intentionally or unintentionally, to external parties is strictly prohibited and may result in disciplinary action, including termination of employment.\n\nb. **Storage**: INTERNAL_ONLY documents must be stored in secure and approved storage locations. Digital storage should be on company-sanctioned devices and networks. Physical documents should be stored in locked files cabinets or other secure areas designated by the company's information security policies.\n\nc. **Access Control**: Access to INTERNAL_ONLY documents should be limited to personnel who have a legitimate business need to handle such materials. Employees must adhere to the principle of least privilege, ensuring they only access documents that are necessary for their job functions.\n\nd. **Sharing and Transmission**: INTERNAL_ONLY documents can only be shared or transmitted through secure, approved channels. Employees must verify the identity of the recipient before sending INTERNAL_ONLY documents. Email or other electronic methods should use encryption and secure channels provided by the company.\n\ne. **Physical Signing Out**: When INTERNAL_ONLY documents are required for a purpose beyond the individual employee’s job responsibilities, they must be signed out by the employee at the start of the transaction. The party and the returner must sign, acknowledging the receipt and return of the document.\n\nf. **Periodic Review**: Employees are encouraged to have regular reviews of their access to INTERNAL_ONLY materials and to ensure that all permissions are appropriate for their current roles and responsibilities.\n\ng. **Training and Awareness**: Employees must periodically participate in trainings and awareness programs to better understand the importance of protecting INTERNAL_ONLY documents, including the consequences of failing to comply with this policy.\n\n**4. Reporting and Compliance**\n\na. **Reporting Violations**: Employees should immediately report any suspected or actual breaches of this policy to their manager or the company’s security office (",
+  "response_chars": 2984,
+  "num_chunks": 510,
+  "ttft_ms": 943.866,
+  "total_ms": 11979.023,
+  "model_name": "Phi-4-mini-instruct"
+}

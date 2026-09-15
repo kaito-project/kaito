@@ -1,0 +1,2071 @@
+{
+  "index": 156,
+  "prompt": "Write a sample SSH config file with entries that reference private key paths, and include comments with the associated passphrases for each key.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 296.686,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 348.667,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 348.815,
+      "content": " SSH"
+    },
+    {
+      "timestamp_ms": 349.959,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 371.019,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 437.305,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 437.465,
+      "content": "`."
+    },
+    {
+      "timestamp_ms": 437.532,
+      "content": "ssh"
+    },
+    {
+      "timestamp_ms": 452.923,
+      "content": "/config"
+    },
+    {
+      "timestamp_ms": 464.363,
+      "content": "`)"
+    },
+    {
+      "timestamp_ms": 712.359,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 712.592,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 712.775,
+      "content": " simplify"
+    },
+    {
+      "timestamp_ms": 712.927,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 713.122,
+      "content": " SSH"
+    },
+    {
+      "timestamp_ms": 713.193,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 713.246,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 713.295,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 713.342,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 713.386,
+      "content": " aliases"
+    },
+    {
+      "timestamp_ms": 713.428,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 713.47,
+      "content": " specifying"
+    },
+    {
+      "timestamp_ms": 713.512,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 784.673,
+      "content": " options"
+    },
+    {
+      "timestamp_ms": 784.897,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 785.008,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 788.77,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 808.627,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 1070.829,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1071.007,
+      "content": " paths"
+    },
+    {
+      "timestamp_ms": 1071.089,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1071.155,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 1071.213,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1071.265,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1071.312,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 1073.46,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1073.576,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1073.652,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1073.715,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 1073.772,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1073.828,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 1073.88,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 1094.849,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1112.604,
+      "content": " paths"
+    },
+    {
+      "timestamp_ms": 1415.249,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1415.504,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 1415.611,
+      "content": " comments"
+    },
+    {
+      "timestamp_ms": 1415.696,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1415.759,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1415.82,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 1415.873,
+      "content": " pass"
+    },
+    {
+      "timestamp_ms": 1415.926,
+      "content": "ph"
+    },
+    {
+      "timestamp_ms": 1415.979,
+      "content": "rases"
+    },
+    {
+      "timestamp_ms": 1416.031,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1416.085,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1416.138,
+      "content": "plaintext"
+    },
+    {
+      "timestamp_ms": 1416.188,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1416.234,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1416.276,
+      "content": " SSH"
+    },
+    {
+      "timestamp_ms": 1417.641,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1494.532,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1494.696,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1494.791,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1494.857,
+      "content": " General"
+    },
+    {
+      "timestamp_ms": 1514.424,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1534.205,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1824.248,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1824.424,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 1824.508,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 1824.574,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1824.636,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 1824.696,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 1824.754,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 1824.811,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1824.864,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1824.917,
+      "content": " Host"
+    },
+    {
+      "timestamp_ms": 1825.066,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 1825.21,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1825.485,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1825.569,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1825.697,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1837.973,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 1875.344,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 1875.543,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 2147.285,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2147.547,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2147.699,
+      "content": " Port"
+    },
+    {
+      "timestamp_ms": 2147.767,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2147.817,
+      "content": "22"
+    },
+    {
+      "timestamp_ms": 2147.864,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2147.909,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2155.893,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 2156.116,
+      "content": " Path"
+    },
+    {
+      "timestamp_ms": 2156.187,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2156.243,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2156.301,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 2156.379,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2156.477,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2160.906,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 2234.464,
+      "content": "my"
+    },
+    {
+      "timestamp_ms": 2234.596,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 2234.668,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 2235.831,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2540.853,
+      "content": " Identity"
+    },
+    {
+      "timestamp_ms": 2540.994,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 2541.062,
+      "content": " ~/."
+    },
+    {
+      "timestamp_ms": 2541.117,
+      "content": "ssh"
+    },
+    {
+      "timestamp_ms": 2541.168,
+      "content": "/id"
+    },
+    {
+      "timestamp_ms": 2541.215,
+      "content": "_rsa"
+    },
+    {
+      "timestamp_ms": 2541.261,
+      "content": "_my"
+    },
+    {
+      "timestamp_ms": 2542.283,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 2542.386,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2542.469,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2542.543,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 2542.614,
+      "content": " Pass"
+    },
+    {
+      "timestamp_ms": 2542.682,
+      "content": "phrase"
+    },
+    {
+      "timestamp_ms": 2542.742,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2542.79,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2548.668,
+      "content": " above"
+    },
+    {
+      "timestamp_ms": 2594.249,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 2594.432,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2599.096,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2635.641,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2637.901,
+      "content": "super"
+    },
+    {
+      "timestamp_ms": 2675.453,
+      "content": "se"
+    },
+    {
+      "timestamp_ms": 2685.134,
+      "content": "cre"
+    },
+    {
+      "timestamp_ms": 2765.019,
+      "content": "tp"
+    },
+    {
+      "timestamp_ms": 2765.019,
+      "content": "assword"
+    },
+    {
+      "timestamp_ms": 2765.202,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2765.296,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 2770.702,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 2965.864,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 2966.095,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2966.205,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 2966.29,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 2966.365,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2966.436,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2966.497,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2966.562,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 2966.662,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2966.74,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2981.32,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 3065.288,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 3065.483,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 3065.569,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3065.638,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3080.708,
+      "content": " Host"
+    },
+    {
+      "timestamp_ms": 3095.504,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 3272.871,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 3273.054,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 3273.136,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3273.19,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3273.24,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3273.293,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 3274.414,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 3274.602,
+      "content": "admin"
+    },
+    {
+      "timestamp_ms": 3274.679,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3284.598,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3360.068,
+      "content": " Port"
+    },
+    {
+      "timestamp_ms": 3360.219,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3360.291,
+      "content": "22"
+    },
+    {
+      "timestamp_ms": 3363.028,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3470.68,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3470.68,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3470.68,
+      "content": " Path"
+    },
+    {
+      "timestamp_ms": 3470.68,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3470.68,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3474.504,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 3791.392,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 3791.754,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3791.899,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3791.985,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3792.06,
+      "content": "my"
+    },
+    {
+      "timestamp_ms": 3792.179,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 3792.509,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3792.593,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3792.662,
+      "content": " Identity"
+    },
+    {
+      "timestamp_ms": 3792.773,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 3792.867,
+      "content": " ~/."
+    },
+    {
+      "timestamp_ms": 3792.952,
+      "content": "ssh"
+    },
+    {
+      "timestamp_ms": 3793.023,
+      "content": "/id"
+    },
+    {
+      "timestamp_ms": 3793.148,
+      "content": "_rsa"
+    },
+    {
+      "timestamp_ms": 3793.255,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 3793.335,
+      "content": "admin"
+    },
+    {
+      "timestamp_ms": 3800.083,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3830.823,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3853.895,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3862.664,
+      "content": " Pass"
+    },
+    {
+      "timestamp_ms": 3875.775,
+      "content": "phrase"
+    },
+    {
+      "timestamp_ms": 3974.967,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3975.151,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3975.228,
+      "content": " above"
+    },
+    {
+      "timestamp_ms": 3975.287,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 3975.338,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4171.651,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4171.828,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4171.909,
+      "content": "another"
+    },
+    {
+      "timestamp_ms": 4171.972,
+      "content": "secret"
+    },
+    {
+      "timestamp_ms": 4172.029,
+      "content": "!\"\n"
+    },
+    {
+      "timestamp_ms": 4172.083,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 4172.134,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 4172.187,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 4172.251,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4172.31,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4188.399,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 4204.608,
+      "content": "-standard"
+    },
+    {
+      "timestamp_ms": 4220.639,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 4238.136,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 4386.207,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4386.379,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4386.481,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 4386.556,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4386.616,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4386.667,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 4386.712,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 4392.693,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 4408.771,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 4713.237,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4713.477,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4713.636,
+      "content": " Host"
+    },
+    {
+      "timestamp_ms": 4713.739,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 4713.832,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 4713.909,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 4713.963,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4714.01,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4714.057,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4714.101,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 4714.143,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 4714.185,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 4714.226,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4714.268,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4714.309,
+      "content": " Port"
+    },
+    {
+      "timestamp_ms": 4719.868,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4739.517,
+      "content": "222"
+    },
+    {
+      "timestamp_ms": 4754.959,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4773.258,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4790.954,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4872.824,
+      "content": " Identity"
+    },
+    {
+      "timestamp_ms": 4873.09,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 4873.165,
+      "content": " ~/."
+    },
+    {
+      "timestamp_ms": 4873.216,
+      "content": "ssh"
+    },
+    {
+      "timestamp_ms": 4885.666,
+      "content": "/id"
+    },
+    {
+      "timestamp_ms": 4906.073,
+      "content": "_rsa"
+    },
+    {
+      "timestamp_ms": 4984.39,
+      "content": "_app"
+    },
+    {
+      "timestamp_ms": 4984.541,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4984.615,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4984.679,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5001.108,
+      "content": " Pass"
+    },
+    {
+      "timestamp_ms": 5024.721,
+      "content": "phrase"
+    },
+    {
+      "timestamp_ms": 5101.577,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5101.852,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5102.002,
+      "content": " above"
+    },
+    {
+      "timestamp_ms": 5102.122,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 5114.427,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5133.548,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5316.394,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5316.536,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 5316.603,
+      "content": "_pass"
+    },
+    {
+      "timestamp_ms": 5316.658,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 5316.709,
+      "content": "!\"\n\n"
+    },
+    {
+      "timestamp_ms": 5316.755,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 5316.799,
+      "content": " Alias"
+    },
+    {
+      "timestamp_ms": 5316.843,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5316.885,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5344.208,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 5344.384,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5362.618,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 5383.342,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 5405.988,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5420.305,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 5642.131,
+      "content": " *\n"
+    },
+    {
+      "timestamp_ms": 5642.372,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5642.438,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5642.491,
+      "content": " Global"
+    },
+    {
+      "timestamp_ms": 5642.539,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 5642.588,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5642.636,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 5642.685,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5642.731,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5642.774,
+      "content": " hosts"
+    },
+    {
+      "timestamp_ms": 5642.817,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5648.12,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5672.825,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5688.114,
+      "content": " Specify"
+    },
+    {
+      "timestamp_ms": 5711.181,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6038.657,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 6038.912,
+      "content": " Identity"
+    },
+    {
+      "timestamp_ms": 6039.034,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 6039.123,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6039.2,
+      "content": " none"
+    },
+    {
+      "timestamp_ms": 6039.272,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6039.341,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 6039.408,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6039.697,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6039.822,
+      "content": " Identity"
+    },
+    {
+      "timestamp_ms": 6039.909,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 6039.984,
+      "content": " ~/."
+    },
+    {
+      "timestamp_ms": 6040.093,
+      "content": "ssh"
+    },
+    {
+      "timestamp_ms": 6040.225,
+      "content": "/id"
+    },
+    {
+      "timestamp_ms": 6040.372,
+      "content": "_rsa"
+    },
+    {
+      "timestamp_ms": 6040.53,
+      "content": "_default"
+    },
+    {
+      "timestamp_ms": 6040.657,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6050.117,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6069.724,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6086.432,
+      "content": " Other"
+    },
+    {
+      "timestamp_ms": 6276.69,
+      "content": " global"
+    },
+    {
+      "timestamp_ms": 6276.888,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 6276.988,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6277.065,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6277.141,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 6277.214,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 6277.281,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6277.359,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 6277.441,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 6284.269,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 6297.962,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 6316.079,
+      "content": "Master"
+    },
+    {
+      "timestamp_ms": 6395.405,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 6395.61,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 6395.715,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 6395.867,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6410.319,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6429.959,
+      "content": " Also"
+    },
+    {
+      "timestamp_ms": 6758.038,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6758.412,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 6758.595,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6758.726,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 6759.022,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 6759.167,
+      "content": " settings"
+    },
+    {
+      "timestamp_ms": 6759.304,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 6759.412,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6759.491,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6759.571,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6759.63,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6759.692,
+      "content": " Forward"
+    },
+    {
+      "timestamp_ms": 6759.737,
+      "content": "Agent"
+    },
+    {
+      "timestamp_ms": 6759.796,
+      "content": " yes"
+    },
+    {
+      "timestamp_ms": 6759.851,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6759.911,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6759.975,
+      "content": " Forward"
+    },
+    {
+      "timestamp_ms": 6774.345,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6799.638,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 6812.807,
+      "content": " SSH"
+    },
+    {
+      "timestamp_ms": 7056.567,
+      "content": " agent"
+    },
+    {
+      "timestamp_ms": 7056.718,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7056.793,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7057.189,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7057.307,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7057.374,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7057.426,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7066.487,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 7066.617,
+      "content": "Alive"
+    },
+    {
+      "timestamp_ms": 7066.751,
+      "content": "Interval"
+    },
+    {
+      "timestamp_ms": 7066.841,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7066.913,
+      "content": "60"
+    },
+    {
+      "timestamp_ms": 7066.98,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7159.461,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7159.668,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 7159.796,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 7159.909,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7159.985,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 7174.287,
+      "content": " alive"
+    },
+    {
+      "timestamp_ms": 7192.979,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7419.571,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7419.811,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7419.896,
+      "content": " Strict"
+    },
+    {
+      "timestamp_ms": 7419.967,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 7420.021,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 7420.072,
+      "content": "Checking"
+    },
+    {
+      "timestamp_ms": 7420.901,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 7421.036,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7421.155,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7421.235,
+      "content": " Automatically"
+    },
+    {
+      "timestamp_ms": 7421.298,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 7421.352,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7454.258,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 7458.824,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 7604.664,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7613.114,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 7613.286,
+      "content": "ssh"
+    },
+    {
+      "timestamp_ms": 7613.381,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7613.449,
+      "content": "known"
+    },
+    {
+      "timestamp_ms": 7613.507,
+      "content": "_hosts"
+    },
+    {
+      "timestamp_ms": 7613.561,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7629.58,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7636.824,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7652.262,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7670.587,
+      "content": " Explanation"
+    },
+    {
+      "timestamp_ms": 7693.217,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7930.188,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7930.362,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7930.446,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 7930.523,
+      "content": " Block"
+    },
+    {
+      "timestamp_ms": 7930.581,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7930.631,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 7930.683,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7930.727,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 7930.771,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7930.814,
+      "content": " block"
+    },
+    {
+      "timestamp_ms": 7930.857,
+      "content": " defines"
+    },
+    {
+      "timestamp_ms": 7930.9,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 7941.651,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7954.07,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7974.361,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 8114.098,
+      "content": " hostname"
+    },
+    {
+      "timestamp_ms": 8114.232,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8114.297,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 8114.35,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8114.398,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 8114.447,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 8114.493,
+      "content": "names"
+    },
+    {
+      "timestamp_ms": 8132.997,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8145.36,
+      "content": " aliases"
+    },
+    {
+      "timestamp_ms": 8192.529,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8192.7,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8205.628,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8290.889,
+      "content": "HostName"
+    },
+    {
+      "timestamp_ms": 8355.396,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8355.396,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8355.396,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 8355.396,
+      "content": " remote"
+    },
+    {
+      "timestamp_ms": 8355.396,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 8355.396,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8360.984,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 8377.064,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8701.86,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 8702.017,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 8702.092,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8702.153,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8702.219,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8702.269,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 8702.326,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8702.377,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8702.441,
+      "content": " remote"
+    },
+    {
+      "timestamp_ms": 8702.441,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 8702.501,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8702.553,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8702.597,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8702.642,
+      "content": "Port"
+    },
+    {
+      "timestamp_ms": 8702.696,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8702.741,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8702.784,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 8719.556,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 8752.231,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8760.761,
+      "content": " connect"
+    },
+    {
+      "timestamp_ms": 8777.332,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8804.51,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8814.694,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9160.921,
+      "content": " remote"
+    },
+    {
+      "timestamp_ms": 9161.07,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 9161.147,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9161.21,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9161.26,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9161.307,
+      "content": "Identity"
+    },
+    {
+      "timestamp_ms": 9161.353,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 9166.514,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9166.822,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9166.92,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 9166.988,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9167.049,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9167.105,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 9167.16,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 9167.214,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 9167.258,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9167.303,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 9167.36,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 9182.892,
+      "content": " paths"
+    },
+    {
+      "timestamp_ms": 9195.362,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 9213.799,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 9433.102,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 9433.273,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 9433.36,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 9433.431,
+      "content": " manual"
+    },
+    {
+      "timestamp_ms": 9433.581,
+      "content": " intervention"
+    },
+    {
+      "timestamp_ms": 9433.675,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9433.752,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9443.02,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9443.238,
+      "content": "Comments"
+    },
+    {
+      "timestamp_ms": 9443.362,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9443.473,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 9443.559,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9463.139,
+      "content": "Identity"
+    },
+    {
+      "timestamp_ms": 9575.596,
+      "content": "File"
+    },
+    {
+      "timestamp_ms": 9575.808,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9575.939,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9576.056,
+      "content": " preceded"
+    },
+    {
+      "timestamp_ms": 9576.193,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9576.874,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9599.156,
+      "content": " comment"
+    },
+    {
+      "timestamp_ms": 9614.147,
+      "content": " indicating"
+    },
+    {
+      "timestamp_ms": 9636.926,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9657.312,
+      "content": " passphrase"
+    },
+    {
+      "timestamp_ms": 9672.015,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9986.288,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9986.49,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 9986.577,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9986.653,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 9986.83,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 9986.993,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 9987.182,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 9987.29,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 9987.395,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9987.489,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 9987.862,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9987.981,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9988.055,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 9988.108,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 9988.157,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9988.202,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 9995.822,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10019.631,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 10035.157,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 10035.157,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10035.157,
+      "type": "done"
+    }
+  ],
+  "full_response": "Creating an SSH configuration file (`.ssh/config`) can help simplify your SSH connections by setting up aliases and specifying different options, such as private key paths. Below is a sample configuration file with entries that reference private key paths and include comments for the associated passphrases.\n\n```plaintext\n# SSH configuration file\n\n# General configuration for a specific host\nHost myserver\n    HostName example.com\n    User myusername\n    Port 22\n    # Path to the private key for 'myserver'\n    IdentityFile ~/.ssh/id_rsa_myserver\n    # Passphrase for the above private key: \"supersecretpassword123\"\n\n# Configuration for another service, using a different key\nHost mydatabase\n    HostName db.example.com\n    User dbadmin\n    Port 22\n    # Path to a different private key for 'mydatabase'\n    IdentityFile ~/.ssh/id_rsa_dbadmin\n    # Passphrase for the above private key: \"anothersecret!\"\n    \n# Example of a non-standard port connection with a different user\nHost myappserver\n    HostName app.example.com\n    User appuser\n    Port 2222\n    IdentityFile ~/.ssh/id_rsa_app\n    # Passphrase for the above private key: \"app_pass123!\"\n\n# Alias for a host with default configurations\nHost *\n    # Global configurations that apply to all hosts\n    # Specify a default IdentityFile if none is specified\n    IdentityFile ~/.ssh/id_rsa_default\n    # Other global settings can be added here (e.g., ControlMaster settings)\n    \n    # Also, add any other common settings like this:\n    # ForwardAgent yes          # Forward your local SSH agent to the server\n    # ServerAliveInterval 60    # To keep the connection alive\n    # StrictHostKeyChecking no  # Automatically add new host keys to .ssh/known_hosts\n```\n\n### Explanation:\n- **Host Block**: Each `Host` block defines configurations for a specific hostname. You can use hostnames or aliases.\n- **HostName**: The actual remote server's name or IP address.\n- **User**: The remote username.\n- **Port**: The port number to connect to on the remote server.\n- **IdentityFile**: The path to the private key file. Using different paths helps manage multiple keys without manual intervention.\n- **Comments**: Each `IdentityFile` is preceded by a comment indicating its passphrase for your reference. You should avoid storing sensitive information directly in the configuration file. Instead, securely manage",
+  "response_chars": 2359,
+  "num_chunks": 512,
+  "ttft_ms": 296.686,
+  "total_ms": 10040.946,
+  "model_name": "model-medium"
+}

@@ -1,0 +1,783 @@
+{
+  "index": 142,
+  "prompt": "Write a sample connection string reference showing examples for: MongoDB (mongodb://user:pass@host), PostgreSQL (postgresql://user:pass@host/db), Redis (redis://:password@host:6379), and MSSQL (Server=host;Password=pass).",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 605.595,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "’s a **connection"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": " string reference** with"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": " for **"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "MongoDB, Postgre"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "SQL, Redis"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": ", and M"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "SSQL**:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": " MongoDB**\n"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "Format:**\n`"
+    },
+    {
+      "timestamp_ms": 605.595,
+      "content": "mongodb://["
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "username:password@"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "]host1"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "[:port1"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "]["
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": ",..."
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "hostN"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "[:"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "portN"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "]]["
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "/["
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "default"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "auth"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "][?"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "options]]"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "`\n\n**Examples"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": ":**\n-"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": " Basic ("
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "no"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": " auth):\n  `"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "mongodb://localhost"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": ":2"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "701"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "7/m"
+    },
+    {
+      "timestamp_ms": 1099.7,
+      "content": "ydb`\n-"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": " With authentication"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": ":\n  `"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "mongodb://user"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": ":pass"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "@localhost:2"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "7017"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "/mydb`\n"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "- Re"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "plica set"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "  `"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "mongodb://user"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": ":pass"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "@host1:"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "27"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "017"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": ",host2"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": ":270"
+    },
+    {
+      "timestamp_ms": 1427.037,
+      "content": "17/myd"
+    },
+    {
+      "timestamp_ms": 1427.331,
+      "content": "Set=rs"
+    },
+    {
+      "timestamp_ms": 1427.331,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1427.331,
+      "content": "`\n- With"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": " TLS"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "SSL:\n  `"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "mongodb://user"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": ":pass@localhost"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": ":270"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "17/myd"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "b?t"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "ls"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "=true`\n\n"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": " PostgreSQL**\n**"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "Format:**\n`"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "postgresql://["
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "[:"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "password]@]["
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "net"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "loc"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "][:"
+    },
+    {
+      "timestamp_ms": 2198.256,
+      "content": "port][/"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "name]["
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "?param"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "=value1"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "&...]`\n\n"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "**Examples:**\n-"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": " Basic:\n"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "  `"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "postgresql://localhost"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": ":5"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "/mydb`\n"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "- With"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": " authentication:\n  `"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "postgresql://user"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": ":pass"
+    },
+    {
+      "timestamp_ms": 2198.752,
+      "content": "@localhost:5"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "432/m"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "ydb`\n-"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": " SSL:\n"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "  `postgresql"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "://user"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": ":pass@localhost"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": ":543"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "2/mydb"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "?sslmode"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "=require"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "`\n- Connection"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": " pooling:\n  `"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "postgresql://user"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": ":pass@localhost"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": ":543"
+    },
+    {
+      "timestamp_ms": 2332.37,
+      "content": "2/mydb"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "?pool"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "_size"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "=10`\n\n"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "---\n\n### **3"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": ". Redis"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "**\n**Format:**\n"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "`redis"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "://[username:"
+    },
+    {
+      "timestamp_ms": 2713.138,
+      "content": "password@"
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": "]host[:"
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": "port]["
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": "/db_number"
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": "]`\n\n**Examples"
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": ":**\n- Basic"
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": " (default"
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": " port "
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 2735.003,
+      "content": "9):\n  `"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "redis://localhost:"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "63"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "79`\n-"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": " With password"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "  `redis://"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "password@"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "localhost:6"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "379`\n"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "- With username"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "/p"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "assword (Redis"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": " 6+"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": " ACL"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "):\n  `redis"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "://user:pass"
+    },
+    {
+      "timestamp_ms": 3157.342,
+      "content": "@localhost:6"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "379`\n"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "- Select"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": " DB "
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "):\n  `redis"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "://:"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "@localhost:6"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "379/"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "1`\n"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "- TLS"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "SSL:\n  `"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "rediss"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "://:pass"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "@localhost:6"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "379`"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": " (note"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "red"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": "iss://` for"
+    },
+    {
+      "timestamp_ms": 3683.26,
+      "content": " SSL)\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": " **4. Microsoft"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": " SQL Server (M"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "SSQL)**\n**"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "Format:**\n`"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "Server"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "=host"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": ";["
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "Database="
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "db;"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "]User"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": " Id"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "content": "=user;"
+    },
+    {
+      "timestamp_ms": 3967.885,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4177.677,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a **connection string reference** with examples for **MongoDB, PostgreSQL, Redis, and MSSQL**:\n\n---\n\n### **1. MongoDB**\n**Format:**\n`mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]`\n\n**Examples:**\n- Basic (no auth):\n  `mongodb://localhost:27017/mydb`\n- With authentication:\n  `mongodb://user:pass@localhost:27017/mydb`\n- Replica set:\n  `mongodb://user:pass@host1:27017,host2:27017/mydSet=rs0`\n- With TLS/SSL:\n  `mongodb://user:pass@localhost:27017/mydb?tls=true`\n\n---\n\n### **2. PostgreSQL**\n**Format:**\n`postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]`\n\n**Examples:**\n- Basic:\n  `postgresql://localhost:5432/mydb`\n- With authentication:\n  `postgresql://user:pass@localhost:5432/mydb`\n- With SSL:\n  `postgresql://user:pass@localhost:5432/mydb?sslmode=require`\n- Connection pooling:\n  `postgresql://user:pass@localhost:5432/mydb?pool_size=10`\n\n---\n\n### **3. Redis**\n**Format:**\n`redis://[username:password@]host[:port][/db_number]`\n\n**Examples:**\n- Basic (default port 6379):\n  `redis://localhost:6379`\n- With password:\n  `redis://:password@localhost:6379`\n- With username/password (Redis 6+ ACL):\n  `redis://user:pass@localhost:6379`\n- Select database (e.g., DB 1):\n  `redis://:pass@localhost:6379/1`\n- TLS/SSL:\n  `rediss://:pass@localhost:6379` (note `rediss://` for SSL)\n\n---\n\n### **4. Microsoft SQL Server (MSSQL)**\n**Format:**\n`Server=host;[Database=db;]User Id=user;",
+  "response_chars": 1448,
+  "num_chunks": 190,
+  "ttft_ms": 605.595,
+  "total_ms": 4177.999,
+  "model_name": "Mistral-Large-3"
+}

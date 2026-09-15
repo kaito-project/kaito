@@ -1,0 +1,907 @@
+{
+  "index": 20,
+  "prompt": "Write a brief history of cloud computing from mainframes to serverless.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 840.734,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": " **A"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": " Brief History of Cloud"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": " Computing: From Main"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": "frames to Server"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": "less**\n\n#### **"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": "1. The"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": " Era"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": " of Main"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": "frames (19"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": "50s–"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": "197"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": "0s)**\n-"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": " **Early Computing"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 840.734,
+      "content": " Large"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " expensive"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": "frame"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " computers (e.g"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": "., IBM"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": "700/"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " series"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": ") dominated"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " enterprise"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " computing.\n- **"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": "Time-Sh"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": "aring:** To"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " maximize"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " efficiency, multiple"
+    },
+    {
+      "timestamp_ms": 1386.019,
+      "content": " users accessed"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": " single main"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "frame via terminals"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": ".g., MIT"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "’s Com"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "patible Time"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "-Sharing System,"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": " 196"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": ").\n- **Concept"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": " Foundation"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": ":** Pione"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "ers like"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": " **John"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": " Mc"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "Carthy"
+    },
+    {
+      "timestamp_ms": 1960.776,
+      "content": "** (19"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": "61"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": ") and"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " **J"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": ".C"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": ".R. L"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": "icklider"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": "** (AR"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": "ANET"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": ") envisioned \"utility"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " computing,\""
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " where computing"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " be delivered"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " like electricity"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": ".\n\n#### **2"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": ". The Rise"
+    },
+    {
+      "timestamp_ms": 2512.616,
+      "content": " of Personal"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " Computing"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " & Client"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": "-S"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": "erver (19"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": "80s–"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": "1990"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": "s)**\n- **"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": "PCs"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " Work"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": "stations"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": ":** The shift to"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " (IBM"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " PC"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": ", Apple"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " Macintosh"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": ") reduced reliance"
+    },
+    {
+      "timestamp_ms": 3076.695,
+      "content": " on main"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": "frames.\n- **"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": "Client-Server Model"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": ":** Business"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": "es adopted"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " where servers provided"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3547.708,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": ").\n- **Early"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": " Virtual"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": "ization:** IBM"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": "’s **"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": "VM/"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": "37"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": "0** (1"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": "972"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": ") and later"
+    },
+    {
+      "timestamp_ms": 3977.118,
+      "content": " **VMware"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": "** (1"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": "999"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": ") allowed multiple"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": " virtual"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": "VMs"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": ") to"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": " run on a single"
+    },
+    {
+      "timestamp_ms": 4120.823,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " server.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": "3. The Internet"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " Grid"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " Computing (1"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": "990s"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": "–Early"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " 200"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": "0s)**\n-"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " **Internet Boom"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": ":** The commercial"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": "ization of the"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " internet (19"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": "90s)"
+    },
+    {
+      "timestamp_ms": 4674.378,
+      "content": " enabled remote"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " to computing resources"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": ".\n- **Grid"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " Computing:** Projects"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " **SET"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "I@"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "home"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "** (19"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "99"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": ") and **C"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "ERN’s L"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "HC"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " Computing"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " Grid"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "** distributed"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": " workload"
+    },
+    {
+      "timestamp_ms": 5200.106,
+      "content": "s across multiple machines"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": ".\n- **Utility"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": " Computing"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": ":** Companies like **"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": "Sun Mic"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": "rosystems"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": "** (2"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": ") promoted"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": " \"The"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": " Network"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5744.552,
+      "content": " the Computer"
+    },
+    {
+      "timestamp_ms": 5877.571,
+      "content": ",\" for"
+    },
+    {
+      "timestamp_ms": 5877.571,
+      "content": "esh"
+    },
+    {
+      "timestamp_ms": 5877.571,
+      "content": "adowing cloud computing"
+    },
+    {
+      "timestamp_ms": 5877.571,
+      "content": ".\n\n#### **4"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": ". The Birth"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": " of Modern"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": " Cloud Computing"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": " (2"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "000s"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": ")**\n"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "- **Sales"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "force (1"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "999"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "):** Pione"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "ered **Software"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "-as-a"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "-Service (S"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": "aaS)**"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": " cloud-based CRM"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": ".\n- **Amazon"
+    },
+    {
+      "timestamp_ms": 6575.851,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": " Services (AWS"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": " (200"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "):** La"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "unched **EC"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "2 (El"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "astic Compute Cloud"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": ")** and **S"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "3 ("
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "Simple Storage Service"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": ")**, introducing"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": " **Inf"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "rastructure-as-a"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "-Service (I"
+    },
+    {
+      "timestamp_ms": 7095.801,
+      "content": "aaS)**.\n"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": "- **Google"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": " Microsoft"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": " Enter"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": " Cloud:**\n"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": "  - **Google"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 7736.985,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7865.287,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **A Brief History of Cloud Computing: From Mainframes to Serverless**\n\n#### **1. The Era of Mainframes (1950s–1970s)**\n- **Early Computing:** Large, expensive mainframe computers (e.g., IBM 700/7000 series) dominated enterprise computing.\n- **Time-Sharing:** To maximize efficiency, multiple users accessed a single mainframe via terminals (e.g., MIT’s Compatible Time-Sharing System, 1961).\n- **Conceptual Foundation:** Pioneers like **John McCarthy** (1961) and **J.C.R. Licklider** (ARPANET) envisioned \"utility computing,\" where computing power could be delivered like electricity.\n\n#### **2. The Rise of Personal Computing & Client-Server (1980s–1990s)**\n- **PCs & Workstations:** The shift to personal computers (IBM PC, Apple Macintosh) reduced reliance on mainframes.\n- **Client-Server Model:** Businesses adopted distributed computing, where servers provided resources to client machines (e.g., email, databases).\n- **Early Virtualization:** IBM’s **VM/370** (1972) and later **VMware** (1999) allowed multiple virtual machines (VMs) to run on a single physical server.\n\n#### **3. The Internet & Grid Computing (1990s–Early 2000s)**\n- **Internet Boom:** The commercialization of the internet (1990s) enabled remote access to computing resources.\n- **Grid Computing:** Projects like **SETI@home** (1999) and **CERN’s LHC Computing Grid** distributed workloads across multiple machines.\n- **Utility Computing:** Companies like **Sun Microsystems** (2000) promoted \"The Network is the Computer,\" foreshadowing cloud computing.\n\n#### **4. The Birth of Modern Cloud Computing (2000s)**\n- **Salesforce (1999):** Pioneered **Software-as-a-Service (SaaS)** with cloud-based CRM.\n- **Amazon Web Services (AWS) (2006):** Launched **EC2 (Elastic Compute Cloud)** and **S3 (Simple Storage Service)**, introducing **Infrastructure-as-a-Service (IaaS)**.\n- **Google & Microsoft Enter the Cloud:**\n  - **Google App",
+  "response_chars": 1912,
+  "num_chunks": 221,
+  "ttft_ms": 840.734,
+  "total_ms": 7871.708,
+  "model_name": "Mistral-Large-3"
+}

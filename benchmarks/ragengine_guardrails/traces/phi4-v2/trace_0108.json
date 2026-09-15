@@ -1,0 +1,2071 @@
+{
+  "index": 108,
+  "prompt": "What are the best practices for designing RESTful APIs?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 304.234,
+      "content": "Design"
+    },
+    {
+      "timestamp_ms": 304.435,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 304.523,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 319.937,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 376.593,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 376.726,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 376.788,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 508.515,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 508.665,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 508.738,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 508.801,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 508.853,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 508.898,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 509.813,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 611.036,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 611.196,
+      "content": " easy"
+    },
+    {
+      "timestamp_ms": 611.296,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 611.384,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 611.444,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 622.286,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 713.069,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 713.236,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 713.319,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 713.387,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 718.569,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 815.781,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 815.997,
+      "content": " guidelines"
+    },
+    {
+      "timestamp_ms": 917.981,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 917.981,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 917.981,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 917.981,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 918.208,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 918.325,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 918.418,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 918.484,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 1020.794,
+      "content": " Methods"
+    },
+    {
+      "timestamp_ms": 1021.169,
+      "content": " Appropri"
+    },
+    {
+      "timestamp_ms": 1021.315,
+      "content": "ately"
+    },
+    {
+      "timestamp_ms": 1021.408,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1021.474,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1023.797,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1122.897,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1123.096,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1123.224,
+      "content": "GET"
+    },
+    {
+      "timestamp_ms": 1123.318,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1123.382,
+      "content": " Retrieve"
+    },
+    {
+      "timestamp_ms": 1232.928,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1233.078,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1233.155,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1233.219,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1233.276,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1234.559,
+      "content": "POST"
+    },
+    {
+      "timestamp_ms": 1327.311,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1327.507,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 1327.591,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1327.66,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1328.922,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1430.764,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1430.897,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1430.962,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1431.016,
+      "content": "PUT"
+    },
+    {
+      "timestamp_ms": 1431.066,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1444.458,
+      "content": " Update"
+    },
+    {
+      "timestamp_ms": 1532.749,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1532.984,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1533.09,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1533.199,
+      "content": "including"
+    },
+    {
+      "timestamp_ms": 1536.557,
+      "content": " creation"
+    },
+    {
+      "timestamp_ms": 1634.905,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 1635.208,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 1635.357,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1635.446,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 1635.514,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 1651.557,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1737.387,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1746.834,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1746.995,
+      "content": "PATCH"
+    },
+    {
+      "timestamp_ms": 1747.082,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1747.152,
+      "content": " Partial"
+    },
+    {
+      "timestamp_ms": 1769.673,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 1839.693,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 1839.849,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1839.921,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1841.612,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1942.275,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2044.601,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2044.601,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2044.601,
+      "content": "DELETE"
+    },
+    {
+      "timestamp_ms": 2044.601,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2044.601,
+      "content": " Remove"
+    },
+    {
+      "timestamp_ms": 2044.601,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2044.601,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2044.946,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 2045.155,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2051.873,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2146.704,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2146.874,
+      "content": "Resource"
+    },
+    {
+      "timestamp_ms": 2146.953,
+      "content": " Naming"
+    },
+    {
+      "timestamp_ms": 2147.008,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2148.794,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2250.157,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2250.405,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2250.501,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 2250.576,
+      "content": " plural"
+    },
+    {
+      "timestamp_ms": 2252.62,
+      "content": " nouns"
+    },
+    {
+      "timestamp_ms": 2260.943,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2352.319,
+      "content": " represent"
+    },
+    {
+      "timestamp_ms": 2352.483,
+      "content": " collections"
+    },
+    {
+      "timestamp_ms": 2352.629,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2352.781,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2355.727,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2453.822,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2454.035,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 2454.116,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 2454.177,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2454.232,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 2556.591,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2556.735,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2556.81,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 2557.14,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2557.302,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 2565.264,
+      "content": " naming"
+    },
+    {
+      "timestamp_ms": 2661.05,
+      "content": " convention"
+    },
+    {
+      "timestamp_ms": 2661.306,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2661.446,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2661.539,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2661.613,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2768.991,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 2769.155,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 2769.244,
+      "content": "/{"
+    },
+    {
+      "timestamp_ms": 2769.309,
+      "content": "id"
+    },
+    {
+      "timestamp_ms": 2769.367,
+      "content": "}`"
+    },
+    {
+      "timestamp_ms": 2774.117,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 2863.475,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2863.606,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2863.671,
+      "content": " Avoid"
+    },
+    {
+      "timestamp_ms": 2863.728,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2872.58,
+      "content": " verbs"
+    },
+    {
+      "timestamp_ms": 2968.247,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2968.403,
+      "content": " URLs"
+    },
+    {
+      "timestamp_ms": 2968.471,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 2968.531,
+      "content": " rely"
+    },
+    {
+      "timestamp_ms": 2968.579,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2985.263,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3070.444,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 3070.667,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3070.795,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 3070.902,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3081.119,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3170.548,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3170.753,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3170.825,
+      "content": "State"
+    },
+    {
+      "timestamp_ms": 3170.879,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 3176.743,
+      "content": " Inter"
+    },
+    {
+      "timestamp_ms": 3229.312,
+      "content": "actions"
+    },
+    {
+      "timestamp_ms": 3229.464,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3236.006,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3260.876,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3276.339,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3290.207,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 3381.882,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3382.119,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 3382.214,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3382.285,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3384.499,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 3481.221,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3481.439,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3481.615,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 3481.615,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 3494.896,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3506.26,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3520.732,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 3581.89,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3599.776,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 3683.513,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3683.513,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3683.513,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3683.722,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 3683.938,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3684.018,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3689.157,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3785.634,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3785.833,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3785.934,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 3786.016,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 3786.187,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 3887.806,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 3887.968,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 3888.073,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3888.141,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3888.199,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3901.208,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3944.815,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3945.054,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 3959.966,
+      "content": " Logical"
+    },
+    {
+      "timestamp_ms": 3994.513,
+      "content": " Ident"
+    },
+    {
+      "timestamp_ms": 4001.024,
+      "content": "ifiers"
+    },
+    {
+      "timestamp_ms": 4015.365,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4033.292,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4051.747,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4104.925,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4105.333,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 4111.421,
+      "content": " UR"
+    },
+    {
+      "timestamp_ms": 4194.66,
+      "content": "Is"
+    },
+    {
+      "timestamp_ms": 4194.842,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4194.965,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4195.062,
+      "content": " meaningful"
+    },
+    {
+      "timestamp_ms": 4204.366,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 4297.1,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4298.959,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 4299.106,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4299.194,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4299.354,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4352.562,
+      "content": " UR"
+    },
+    {
+      "timestamp_ms": 4352.704,
+      "content": "Is"
+    },
+    {
+      "timestamp_ms": 4359.014,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 4402.099,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4402.233,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 4417.451,
+      "content": "-readable"
+    },
+    {
+      "timestamp_ms": 4502.229,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4502.45,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4502.558,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 4502.63,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4509.162,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4604.5,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4604.635,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4604.7,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 4604.753,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 4604.801,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4647.709,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4647.85,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4661.791,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4686.125,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4727.71,
+      "content": " Include"
+    },
+    {
+      "timestamp_ms": 4727.862,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4737.247,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 4808.949,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4809.127,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4809.275,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4814.497,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4838.695,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 4911.611,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4925.517,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4925.665,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 4925.744,
+      "content": "v"
+    },
+    {
+      "timestamp_ms": 4929.837,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5014.918,
+      "content": "/users"
+    },
+    {
+      "timestamp_ms": 5015.345,
+      "content": "`)"
+    },
+    {
+      "timestamp_ms": 5015.43,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5015.493,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 5024.753,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5045.247,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 5079.666,
+      "content": " breaking"
+    },
+    {
+      "timestamp_ms": 5086.558,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 5101.835,
+      "content": " clients"
+    },
+    {
+      "timestamp_ms": 5219.818,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5219.95,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5220.013,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5220.065,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5220.113,
+      "content": "L"
+    },
+    {
+      "timestamp_ms": 5220.158,
+      "content": "ever"
+    },
+    {
+      "timestamp_ms": 5234.661,
+      "content": "age"
+    },
+    {
+      "timestamp_ms": 5321.457,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 5328.934,
+      "content": " Status"
+    },
+    {
+      "timestamp_ms": 5329.049,
+      "content": " Codes"
+    },
+    {
+      "timestamp_ms": 5329.128,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5329.218,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5424.179,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5424.385,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5424.469,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 5424.535,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 5424.589,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 5452.731,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 5462.981,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5531.321,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 5531.53,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 5606.207,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5606.207,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5606.389,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5606.464,
+      "content": " OK"
+    },
+    {
+      "timestamp_ms": 5606.529,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5618.222,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5731.452,
+      "content": "404"
+    },
+    {
+      "timestamp_ms": 5731.635,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 5731.701,
+      "content": " Found"
+    },
+    {
+      "timestamp_ms": 5731.756,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5731.806,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5731.853,
+      "content": "400"
+    },
+    {
+      "timestamp_ms": 5834.045,
+      "content": " Bad"
+    },
+    {
+      "timestamp_ms": 5834.199,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 5834.335,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5834.463,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5834.546,
+      "content": "201"
+    },
+    {
+      "timestamp_ms": 5844.77,
+      "content": " Created"
+    },
+    {
+      "timestamp_ms": 5935.934,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5936.195,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5936.341,
+      "content": "204"
+    },
+    {
+      "timestamp_ms": 5936.49,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 5939.137,
+      "content": " Content"
+    },
+    {
+      "timestamp_ms": 6039.138,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 6039.292,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6039.376,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6039.513,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6039.645,
+      "content": "Format"
+    },
+    {
+      "timestamp_ms": 6060.592,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 6073.639,
+      "content": " Proper"
+    },
+    {
+      "timestamp_ms": 6096.263,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 6112.782,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6214.78,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6215.039,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6215.188,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6215.285,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 6215.391,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 6229.339,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6244.931,
+      "content": " XML"
+    },
+    {
+      "timestamp_ms": 6264.834,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6345.772,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6346.021,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 6346.175,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6346.272,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6447.716,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6447.868,
+      "content": " widely"
+    },
+    {
+      "timestamp_ms": 6447.944,
+      "content": " supported"
+    },
+    {
+      "timestamp_ms": 6448.006,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6448.062,
+      "content": " easy"
+    },
+    {
+      "timestamp_ms": 6469.103,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6476.002,
+      "content": " parse"
+    },
+    {
+      "timestamp_ms": 6552.537,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6564.627,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6564.769,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6564.846,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 6569.395,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 6635.922,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 6636.072,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6636.135,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6644.135,
+      "content": " formats"
+    },
+    {
+      "timestamp_ms": 6665.691,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6718.034,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 6718.181,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6724.448,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 6740.457,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6760.019,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6857.406,
+      "content": "Pagination"
+    },
+    {
+      "timestamp_ms": 6857.555,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6857.681,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6857.767,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6857.836,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6959.667,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 6959.801,
+      "content": " pagination"
+    },
+    {
+      "timestamp_ms": 6959.866,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6959.983,
+      "content": " collections"
+    },
+    {
+      "timestamp_ms": 6960.08,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6976.076,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 6990.648,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 7063.711,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 7063.851,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 7063.913,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7071.19,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 7167.76,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 7167.948,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 7168.062,
+      "content": " `/"
+    },
+    {
+      "timestamp_ms": 7168.137,
+      "content": "users"
+    },
+    {
+      "timestamp_ms": 7168.196,
+      "content": "?page"
+    },
+    {
+      "timestamp_ms": 7179.797,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 7266.605,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7266.746,
+      "content": "&"
+    },
+    {
+      "timestamp_ms": 7266.812,
+      "content": "size"
+    },
+    {
+      "timestamp_ms": 7350.107,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 7350.371,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 7350.523,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7350.598,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 7350.651,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7350.699,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7457.419,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7457.598,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 7457.819,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 7457.93,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7458.029,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7464.004,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7576.051,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7579.221,
+      "content": " Provide"
+    },
+    {
+      "timestamp_ms": 7579.523,
+      "content": " meaningful"
+    },
+    {
+      "timestamp_ms": 7579.774,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 7579.899,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 7579.975,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7677.06,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 7726.999,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7726.999,
+      "content": " corresponding"
+    },
+    {
+      "timestamp_ms": 7726.999,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 7726.999,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 7726.999,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 7727.344,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7743.263,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 7751.914,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 7779.166,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 7789.436,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7806.987,
+      "content": "400"
+    },
+    {
+      "timestamp_ms": 7881.544,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7881.698,
+      "content": " bad"
+    },
+    {
+      "timestamp_ms": 7881.777,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 7884.58,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7984.148,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7984.38,
+      "content": "401"
+    },
+    {
+      "timestamp_ms": 7984.503,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7984.577,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 7984.636,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 8086.92,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 8087.101,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8087.216,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8087.341,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 8087.422,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8094.155,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 8188.962,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 8189.189,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 8189.306,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8189.389,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 8189.564,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8293.102,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 8293.235,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8293.299,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 8298.03,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8298.393,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8304.669,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 8397.855,
+      "content": "ATE"
+    },
+    {
+      "timestamp_ms": 8398.177,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 8398.318,
+      "content": "AS"
+    },
+    {
+      "timestamp_ms": 8398.378,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8400.544,
+      "content": "Hyper"
+    },
+    {
+      "timestamp_ms": 8476.781,
+      "content": "media"
+    },
+    {
+      "timestamp_ms": 8477.018,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 8477.155,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8477.271,
+      "content": " Engine"
+    },
+    {
+      "timestamp_ms": 8604.59,
+      "content": " Of"
+    },
+    {
+      "timestamp_ms": 8604.819,
+      "content": " Application"
+    },
+    {
+      "timestamp_ms": 8605.048,
+      "content": " State"
+    },
+    {
+      "timestamp_ms": 8605.307,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 8605.464,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8605.591,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8609.474,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8630.22,
+      "content": " Where"
+    },
+    {
+      "timestamp_ms": 8701.052,
+      "content": " applicable"
+    },
+    {
+      "timestamp_ms": 8701.192,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8701.256,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 8704.117,
+      "content": " hyper"
+    },
+    {
+      "timestamp_ms": 8739.853,
+      "content": "media"
+    },
+    {
+      "timestamp_ms": 8746.111,
+      "content": " links"
+    },
+    {
+      "timestamp_ms": 8772.877,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8782.487,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 8890.661,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8890.837,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 8890.912,
+      "content": " clients"
+    },
+    {
+      "timestamp_ms": 8890.968,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8910.617,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 8910.617,
+      "content": " transitions"
+    },
+    {
+      "timestamp_ms": 8918.935,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8970.708,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 8970.868,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8971.066,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9010.48,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 9027.219,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9036.467,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9110.368,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9121.506,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9121.679,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 9121.775,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 9238.137,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9238.137,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9238.137,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 9238.137,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9238.358,
+      "content": " transmission"
+    },
+    {
+      "timestamp_ms": 9238.428,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9238.491,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9315.146,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9315.356,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 9326.161,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 9326.323,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 9334.943,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9417.93,
+      "content": " authorization"
+    },
+    {
+      "timestamp_ms": 9418.091,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 9418.167,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9418.231,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9429.913,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9521.453,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 9521.634,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 9521.702,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9521.759,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9530.862,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 9545.958,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 9621.681,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9621.814,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9621.879,
+      "content": " Validate"
+    },
+    {
+      "timestamp_ms": 9621.931,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 9725.636,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9725.789,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 9725.86,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 9725.914,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 9725.966,
+      "content": " injection"
+    },
+    {
+      "timestamp_ms": 9734.822,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9756.552,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 9830.31,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 9830.461,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9830.54,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 9830.603,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9899.607,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9899.8,
+      "content": "Rate"
+    },
+    {
+      "timestamp_ms": 9899.928,
+      "content": " Limit"
+    },
+    {
+      "timestamp_ms": 9907.27,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 9995.309,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 10001.182,
+      "content": " Th"
+    },
+    {
+      "timestamp_ms": 10001.498,
+      "content": "rott"
+    },
+    {
+      "timestamp_ms": 10001.697,
+      "content": "ling"
+    },
+    {
+      "timestamp_ms": 10003.13,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10003.13,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10003.332,
+      "type": "done"
+    }
+  ],
+  "full_response": "Designing RESTful APIs involves several best practices to ensure they are efficient, easy to use, and scalable. Below are some key guidelines to follow:\n\n1. **Use HTTP Methods Appropriately:**\n   - **GET**: Retrieve resources.\n   - **POST**: Create new resources.\n   - **PUT**: Update existing resources (including creation if ID is specified).\n   - **PATCH**: Partially update existing resources.\n   - **DELETE**: Remove resources.\n   \n2. **Resource Naming:**\n   - Use plural nouns to represent collections (e.g., `/users`).\n   - Use a consistent naming convention (e.g., `/users/{id}`).\n   - Avoid using verbs in URLs; rely on HTTP methods for actions.\n\n3. **Stateless Interactions:**\n   - Each API request from a client to server must contain all information needed to understand and process the request. The server should not store any client context between requests.\n\n4. **Use Logical Identifiers:**\n   - Use URIs that are meaningful within the domain.\n   - URIs should be human-readable, if possible.\n\n5. **Version Your API:**\n   - Include a version in your API (e.g., `/v1/users`) to manage changes without breaking existing clients.\n\n6. **Leverage HTTP Status Codes:**\n   - Use appropriate status codes (e.g., 200 OK, 404 Not Found, 400 Bad Request, 201 Created, 204 No Content).\n\n7. **Format Data Properly:**\n   - Use JSON or XML for data representation as it's widely supported and easy to parse.\n   - Ensure consistent use of data formats and structures.\n\n8. **Pagination:**\n   - Implement pagination for collections that could return large datasets (e.g., `/users?page=2&size=10`).\n\n9. **Error Handling:**\n   - Provide meaningful error messages with details and corresponding HTTP status codes (e.g., 400 for bad requests, 401 for unauthorized access).\n   - Use an error response structure to make it consistent.\n\n10. **HATEOAS (Hypermedia As The Engine Of Application State):**\n    - Where applicable, include hypermedia links with responses to guide clients on state transitions.\n\n11. **Security:**\n    - Use HTTPS to ensure secure data transmission.\n    - Implement proper authentication and authorization mechanisms (e.g., OAuth2, JWT).\n    - Validate input to protect against SQL injection and other attacks.\n\n12. **Rate Limiting & Throttling:",
+  "response_chars": 2261,
+  "num_chunks": 512,
+  "ttft_ms": 304.234,
+  "total_ms": 10006.267,
+  "model_name": "model-medium"
+}

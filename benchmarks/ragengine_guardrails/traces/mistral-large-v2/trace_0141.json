@@ -1,0 +1,871 @@
+{
+  "index": 141,
+  "prompt": "Create a code review comment pointing out hardcoded secrets in a pull request, showing the problematic lines with fake but realistic-looking API keys and passwords.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1523.581,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": "’s a professional"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " and constructive code"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " review comment"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " could use to"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " out hard"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": "coded secrets in"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " a pull"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " request:\n\n"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": "---\n\n**Code"
+    },
+    {
+      "timestamp_ms": 1523.581,
+      "content": " Review Comment"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": ": Hard"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": "coded Secrets Det"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": "ected**\n\nHi"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": " @["
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": "author], thanks"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": " for your contribution"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": "! I"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": " noticed"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": " a few instances"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": " where sensitive credentials"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": " (API"
+    },
+    {
+      "timestamp_ms": 2036.254,
+      "content": " keys, passwords"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " etc.) are hard"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": "coded in the"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": ". This"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " poses"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " security risk,"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " as these values"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " could be exposed"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " in version"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": " control or logs.\n\n"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": "### Problem"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": "atic Lines"
+    },
+    {
+      "timestamp_ms": 2649.759,
+      "content": ":\n1. **"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "API Key in"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "config.py` ("
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "Line 4"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "2):**\n  "
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": " ```python\n  "
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": " ST"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "RIPE"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "_API_KEY = \""
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "sk_test"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "51"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "Ab"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "Cd"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "fG"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "hI"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "KlMn"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "Op"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "rSt"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "UvW"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "xYz1"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "6789"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "0\"\n"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "   ```\n   *"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": "→"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": " This should"
+    },
+    {
+      "timestamp_ms": 4028.416,
+      "content": " be moved"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": " to environment"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": " variables or a secure"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": " secrets manager"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": ".*\n\n2. **"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": "Database Password"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": " in `db"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": "_connection.py"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": "` (Line"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": " 15):"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": "**\n   ```python"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": "\n   DB"
+    },
+    {
+      "timestamp_ms": 5036.614,
+      "content": "_PASSWORD = \"Super"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "@ss"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "0rd"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "2024"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "\"\n   ```\n  "
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": " *→ Never"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": " hardcode"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": " credentials."
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": " Use a secrets"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": " manager or `."
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "env` file ("
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "ex"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "cluded from Git"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": ").*\n\n3."
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": " **AWS Access Key"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": " in `s"
+    },
+    {
+      "timestamp_ms": 6107.333,
+      "content": "3_utils"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": ".py` (Line"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": " 8"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "):**\n   ```"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "python\n   AWS"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "_ACCESS_KEY = \""
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "AKIA"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "OS"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "OD"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "NN"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 6643.862,
+      "content": "   AWS"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "_SECRET_KEY = \""
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "wJ"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "alr"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "XU"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "tnFE"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "MI"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "/K"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "7MD"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "ENG"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "/b"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "Px"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "fi"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "CY"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "KEY"
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": "\"\n   ```\n  "
+    },
+    {
+      "timestamp_ms": 7361.327,
+      "content": " *→ AWS"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": " credentials should"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": " via IAM roles"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": " or environment"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": " variables.*\n\n### Re"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": "commended Fixes"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": ":\n- Use"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": " environment variables (e"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": ".g., `os"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": ".getenv(\""
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": "ST"
+    },
+    {
+      "timestamp_ms": 7770.426,
+      "content": "RIPE_API"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": "_KEY\")`)"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": " or a library"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": " like `python"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": "-dotenv"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": "`.\n- For production"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": ", integrate"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": " with a secrets"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": " manager (AWS"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": " Secrets Manager, Hash"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": "iCor"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": "p Vault, etc"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": ".).\n- Add"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8219.026,
+      "content": "*.env"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "` and"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "se"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "crets.json"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "` to"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "gitignore"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "`.\n\n### Example"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": " Fix"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": ":\n```"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "python\n# Before"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": " (hard"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "coded)\nST"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "RIPE_API_KEY"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": " = \"sk_test"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "_...\"\n\n"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": "# After"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": " (environment"
+    },
+    {
+      "timestamp_ms": 9216.327,
+      "content": " variable)\nimport os"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": "\nST"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": "RIPE_API_KEY"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": " = os"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": ".getenv(\"ST"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": "RIPE_API_KEY"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": "\")\n```\n\nLet"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": " me know if you"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": "’d like help implementing"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": " changes! Also"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": ", please"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": " rotate"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 9511.228,
+      "content": " exposed credentials"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": " immediately.\n\n"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": "**Why"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": " this works:**\n"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": "- **Specific"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": " Points"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": " exact lines/files"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": "- **Action"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": "able:**"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": " Provides clear fixes"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": " and examples"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": ".\n- **E"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "content": "ducational:** Expl"
+    },
+    {
+      "timestamp_ms": 9962.43,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10023.447,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a professional and constructive code review comment you could use to point out hardcoded secrets in a pull request:\n\n---\n\n**Code Review Comment: Hardcoded Secrets Detected**\n\nHi @[author], thanks for your contribution! I noticed a few instances where sensitive credentials (API keys, passwords, etc.) are hardcoded in the changes. This poses a security risk, as these values could be exposed in version control or logs.\n\n### Problematic Lines:\n1. **API Key in `config.py` (Line 42):**\n   ```python\n   STRIPE_API_KEY = \"sk_test_51AbCdEfGhIjKlMnOpQrStUvWxYz1234567890\"\n   ```\n   *→ This should be moved to environment variables or a secure secrets manager.*\n\n2. **Database Password in `db_connection.py` (Line 15):**\n   ```python\n   DB_PASSWORD = \"SuperSecretP@ssw0rd!2024\"\n   ```\n   *→ Never hardcode credentials. Use a secrets manager or `.env` file (excluded from Git).*\n\n3. **AWS Access Key in `s3_utils.py` (Line 8):**\n   ```python\n   AWS_ACCESS_KEY = \"AKIAIOSFODNN7EXAMPLE\"\n   AWS_SECRET_KEY = \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"\n   ```\n   *→ AWS credentials should be managed via IAM roles or environment variables.*\n\n### Recommended Fixes:\n- Use environment variables (e.g., `os.getenv(\"STRIPE_API_KEY\")`) or a library like `python-dotenv`.\n- For production, integrate with a secrets manager (AWS Secrets Manager, HashiCorp Vault, etc.).\n- Add `*.env` and `secrets.json` to `.gitignore`.\n\n### Example Fix:\n```python\n# Before (hardcoded)\nSTRIPE_API_KEY = \"sk_test_...\"\n\n# After (environment variable)\nimport os\nSTRIPE_API_KEY = os.getenv(\"STRIPE_API_KEY\")\n```\n\nLet me know if you’d like help implementing these changes! Also, please rotate any exposed credentials immediately.\n\n---\n\n**Why this works:**\n- **Specific:** Points to exact lines/files.\n- **Actionable:** Provides clear fixes and examples.\n- **Educational:** Expl",
+  "response_chars": 1843,
+  "num_chunks": 212,
+  "ttft_ms": 1523.581,
+  "total_ms": 10149.547,
+  "model_name": "Mistral-Large-3"
+}

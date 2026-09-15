@@ -1,0 +1,1243 @@
+{
+  "index": 151,
+  "prompt": "Explain how vector databases work and their role in semantic search.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 818.279,
+      "content": "Vector"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " specialized"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " retrieve"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": "-dimensional"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 818.279,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " aims"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " intent"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " contextual"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " behind"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " play"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " fast"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 1349.667,
+      "content": " similarity"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " searches"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " among"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " vast"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": "Here's"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": ":\n\n\n"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": "Vector"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " Representation"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " Text"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2052.553,
+      "content": " transformed"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " numerical"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " Tf"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": "Id"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " embedding"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": "ERT"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " capture"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " meanings"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2558.451,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": "Index"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " Vector"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 3273.252,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " indexing"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " KD"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": "-T"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": "rees"
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3273.501,
+      "content": " Ann"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "oy"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " FA"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "ISS"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " H"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "NS"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "Hier"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "archical"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " Navig"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " Small"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " World"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": ").\n\n\n"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "Similarity"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " Search"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " During"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " user's"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " converted"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4194.776,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " quickly"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " finds"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " nearest"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 4406.664,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " items"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " cosine"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " similarity"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " Eu"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": "clidean"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " distance"
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4705.913,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " optimized"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " indexing"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " costly"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " comparisons"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5325.733,
+      "content": " Performance"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " Vector"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " adept"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": "-dimensional"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " hence"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " optimized"
+    },
+    {
+      "timestamp_ms": 5836.126,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": "Vector"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6243.561,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 6345.055,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6345.055,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 6345.055,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 6345.055,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6345.055,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6345.055,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 6345.055,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " respond"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " suitable"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " suggestions"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " taking"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " synonyms"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " related"
+    },
+    {
+      "timestamp_ms": 6963.045,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 7061.805,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7061.805,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 7061.805,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 7061.805,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7061.805,
+      "content": " overlook"
+    },
+    {
+      "timestamp_ms": 7061.805,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7061.805,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7163.506,
+      "type": "done"
+    }
+  ],
+  "full_response": "Vector databases are specialized databases designed to store and retrieve high-dimensional data vectors efficiently. In the context of semantic search, which aims to understand the intent and contextual meaning behind user queries, vector databases play a crucial role by enabling fast and accurate similarity searches among vast datasets.\n\n\nHere's how vector databases work in semantic search:\n\n\n1. **Vector Representation**: Text or other data is transformed into a numerical vector, typically using methods like Tf-Idf or embedding from models like BERT. These vectors capture semantic meanings and relationships.\n\n\n2. **Indexing in Vector Database**: Once created, these vectors are in the vector database. Common indexing structures include KD-Trees, Annoy, FAISS, or HNSW (Hierarchical Navigable Small World).\n\n\n3. **Similarity Search**: During semantic search, a user's query is also converted into a vector. The vector database quickly finds the nearest vectors, meaning the most relevant items, using methods like cosine similarity or Euclidean distance. The efficiency of the search is due to the optimized indexing structures, which avoid costly comparisons between all vectors.\n\n\n4. **Scalability and Performance**: Vector databases are particularly adept at handling high-dimensional data, which is common in machine learning models, and hence are optimized for modern semantic search applications where speed and accuracy are critical.\n\n\nVector databases are essential in semantic search as they enable systems to understand and respond to user queries with suitable suggestions or information retrieval, taking into account the context, synonyms, and related concepts that traditional databases might overlook.",
+  "response_chars": 1725,
+  "num_chunks": 305,
+  "ttft_ms": 818.279,
+  "total_ms": 7163.934,
+  "model_name": "Phi-4-mini-instruct"
+}

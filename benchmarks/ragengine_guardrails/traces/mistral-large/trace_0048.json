@@ -1,0 +1,867 @@
+{
+  "index": 48,
+  "prompt": "What are WebSockets and how do they differ from HTTP long polling?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1079.763,
+      "content": "Web"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": "Sockets and"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " long polling are both"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " techniques used to achieve"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " real-time communication between"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " a client"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": "e.g., a"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " web browser) and"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " a server, but"
+    },
+    {
+      "timestamp_ms": 1079.763,
+      "content": " they work"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " fundamentally different ways."
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " Here’s a breakdown"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " of each"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " their key"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " differences:\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " **1. Web"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": "Sockets**\n**"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": "What it"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " is:**\n"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": "Web"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": "Socket"
+    },
+    {
+      "timestamp_ms": 2241.697,
+      "content": " is a **full"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": "-du"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": "plex,"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " bidirectional communication protocol"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": "** that"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " operates"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " over a single"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " persistent TCP connection."
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " It was"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " standardized"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " in "
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": "2011"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": " (R"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": "FC 6"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": "55"
+    },
+    {
+      "timestamp_ms": 3099.779,
+      "content": ") and is designed"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": " for real"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": "-time, low-l"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": "atency communication"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": ".\n\n**How"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": " it works:**\n-"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": " client initiates a Web"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": "Socket hand"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": "shake via"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": " an HTTP"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": "Upgrade` request ("
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": "e.g., `"
+    },
+    {
+      "timestamp_ms": 3791.896,
+      "content": "GET /"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "chat"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": " with headers"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": " `Upgrade"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": ": webs"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "ocket`).\n-"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": " the server supports"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "Sockets, it"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": " responds with `"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "HTTP 10"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "1 Switch"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "ing Prot"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "ocols"
+    },
+    {
+      "timestamp_ms": 4583.214,
+      "content": "`, and the connection"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " upgrades"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " to Web"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": "Socket.\n- After"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " the hand"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": "shake, the connection"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " open, allowing"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": "both the"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " client and server to"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " send messages"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5257.194,
+      "content": " any time** without"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": " re"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": "-est"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": "ablishing the"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": " connection.\n"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": "- Data"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": " is framed"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5612.897,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": " chunks"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": " (messages"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": " the protocol supports text"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": "UTF"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": "-8) and"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": " binary data.\n\n"
+    },
+    {
+      "timestamp_ms": 6090.766,
+      "content": "**Key Features:**\n"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": "- **Persistent"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": ":** No"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " need to"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " repeatedly"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " open/"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": "close connections.\n-"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " **Low latency"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": ":** Messages"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " are sent immediately"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6639.82,
+      "content": " waiting for a request"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": ".\n- **E"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": "fficient:** Min"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": "imal overhead ("
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": "just"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": " a few bytes"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": " per message"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": " after the"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": " initial handshake.\n"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": "- **Bid"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": "irectional:** Both"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": " client and server can"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": " push"
+    },
+    {
+      "timestamp_ms": 7248.37,
+      "content": " data independently"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": ".\n- **Event"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": "-driven:** Ideal"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": " for apps"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": " like chat, live"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": ", gaming"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": ", or stock"
+    },
+    {
+      "timestamp_ms": 7646.762,
+      "content": " tick"
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": "ers.\n\n**Example"
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": " Use Cases"
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": ":**\n- Real"
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": "-time chat apps ("
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": ".g., Sl"
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": "ack,"
+    },
+    {
+      "timestamp_ms": 7959.599,
+      "content": " Discord).\n- Live"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": " sports"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "fin"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "ancial"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": " updates.\n- Multi"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "player online"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": " games.\n- Collabor"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "ative tools"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": " Google Docs).\n\n**"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "Limit"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "ations:**\n- Not"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": " all servers/pro"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": "ies support"
+    },
+    {
+      "timestamp_ms": 8775.513,
+      "content": " WebSockets ("
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": "though"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " modern ones"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " do).\n- Requ"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": "ires handling"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " drops"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " reconnections"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": ".\n- More"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " complex to"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " implement than HTTP"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " simple use"
+    },
+    {
+      "timestamp_ms": 10266.047,
+      "content": " cases.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": " **2. HTTP"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": " Long Polling**\n"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": "**What it"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": " is:**\nLong"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": " polling is a **"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": "work"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": "around to"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": " simulate real"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": "-time communication"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": "** using standard"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": " HTTP requests"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": ". It’s not"
+    },
+    {
+      "timestamp_ms": 10343.649,
+      "content": " a separate"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": " protocol but a technique"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": " on top"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": " of HTTP.\n\n**"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": "How it works:**\n"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": ". The"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": " client sends an"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": " HTTP request to the"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": " server ("
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": "e.g., `"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": "GET /up"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": "dates`).\n2"
+    },
+    {
+      "timestamp_ms": 11147.383,
+      "content": ". The server"
+    },
+    {
+      "timestamp_ms": 11184.833,
+      "content": " **holds"
+    },
+    {
+      "timestamp_ms": 11184.833,
+      "content": " the request"
+    },
+    {
+      "timestamp_ms": 11184.833,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 11184.833,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11184.833,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11255.889,
+      "type": "done"
+    }
+  ],
+  "full_response": "WebSockets and HTTP long polling are both techniques used to achieve real-time communication between a client (e.g., a web browser) and a server, but they work in fundamentally different ways. Here’s a breakdown of each and their key differences:\n\n---\n\n### **1. WebSockets**\n**What it is:**\nWebSocket is a **full-duplex, bidirectional communication protocol** that operates over a single, persistent TCP connection. It was standardized in 2011 (RFC 6455) and is designed for real-time, low-latency communication.\n\n**How it works:**\n- The client initiates a WebSocket handshake via an HTTP `Upgrade` request (e.g., `GET /chat` with headers like `Upgrade: websocket`).\n- If the server supports WebSockets, it responds with `HTTP 101 Switching Protocols`, and the connection upgrades from HTTP to WebSocket.\n- After the handshake, the connection remains open, allowing **both the client and server to send messages at any time** without re-establishing the connection.\n- Data is framed in small chunks (messages), and the protocol supports text (UTF-8) and binary data.\n\n**Key Features:**\n- **Persistent connection:** No need to repeatedly open/close connections.\n- **Low latency:** Messages are sent immediately without waiting for a request.\n- **Efficient:** Minimal overhead (just a few bytes per message) after the initial handshake.\n- **Bidirectional:** Both client and server can push data independently.\n- **Event-driven:** Ideal for apps like chat, live updates, gaming, or stock tickers.\n\n**Example Use Cases:**\n- Real-time chat apps (e.g., Slack, Discord).\n- Live sports/financial updates.\n- Multiplayer online games.\n- Collaborative tools (e.g., Google Docs).\n\n**Limitations:**\n- Not all servers/proxies support WebSockets (though most modern ones do).\n- Requires handling connection drops and reconnections.\n- More complex to implement than HTTP for simple use cases.\n\n---\n\n### **2. HTTP Long Polling**\n**What it is:**\nLong polling is a **workaround to simulate real-time communication** using standard HTTP requests. It’s not a separate protocol but a technique built on top of HTTP.\n\n**How it works:**\n1. The client sends an HTTP request to the server (e.g., `GET /updates`).\n2. The server **holds the request open**",
+  "response_chars": 2227,
+  "num_chunks": 211,
+  "ttft_ms": 1079.763,
+  "total_ms": 11335.162,
+  "model_name": "Mistral-Large-3"
+}

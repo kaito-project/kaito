@@ -1,0 +1,2071 @@
+{
+  "index": 76,
+  "prompt": "Explain the concept of eventual consistency in distributed systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 281.019,
+      "content": "Event"
+    },
+    {
+      "timestamp_ms": 281.019,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 296.86,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 316.035,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 334.92,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 353.984,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 373.105,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 392.477,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 410.904,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 429.69,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 449.191,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 468.032,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 487.079,
+      "content": " achieve"
+    },
+    {
+      "timestamp_ms": 506.015,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 525.284,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 544.069,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 563.829,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 583.284,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 602.012,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 620.591,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 640.756,
+      "content": " per"
+    },
+    {
+      "timestamp_ms": 658.637,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 678.018,
+      "content": " CAP"
+    },
+    {
+      "timestamp_ms": 697.061,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 716.467,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 735.435,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 753.936,
+      "content": " CAP"
+    },
+    {
+      "timestamp_ms": 773.413,
+      "content": " theorem"
+    },
+    {
+      "timestamp_ms": 792.422,
+      "content": " states"
+    },
+    {
+      "timestamp_ms": 811.254,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 831.044,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 849.411,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 868.035,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 887.692,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 908.36,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 925.491,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 945.154,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 963.693,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 982.56,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 1002.297,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 1033.306,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1045.437,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1062.205,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 1077.924,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 1097.092,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 1116.586,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1134.592,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 1154.098,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 1173.352,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1195.975,
+      "content": " Availability"
+    },
+    {
+      "timestamp_ms": 1211.255,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1230.509,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1249.218,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 1268.416,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 1287.147,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 1307.588,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1325.365,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1344.303,
+      "content": "Understanding"
+    },
+    {
+      "timestamp_ms": 1363.337,
+      "content": " Event"
+    },
+    {
+      "timestamp_ms": 1382.397,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 1402.601,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 1420.77,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 1439.795,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1459.251,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1477.635,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1496.969,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1515.747,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1534.77,
+      "content": "Basic"
+    },
+    {
+      "timestamp_ms": 1554.476,
+      "content": " Definition"
+    },
+    {
+      "timestamp_ms": 1573.643,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1593.421,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1611.24,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1630.227,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1651.136,
+      "content": " Event"
+    },
+    {
+      "timestamp_ms": 1668.352,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 1687.234,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 1706.498,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 1726.616,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1744.401,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 1763.791,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 1782.765,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1801.815,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 1821.682,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1839.806,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 1863.237,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1877.894,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1905.555,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 1916.637,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1935.059,
+      "content": " item"
+    },
+    {
+      "timestamp_ms": 1954.002,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1973.626,
+      "content": " eventually"
+    },
+    {
+      "timestamp_ms": 1992.155,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2011.358,
+      "content": " accesses"
+    },
+    {
+      "timestamp_ms": 2030.138,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2049.285,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2068.213,
+      "content": " item"
+    },
+    {
+      "timestamp_ms": 2135.631,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 2135.631,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 2135.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2144.64,
+      "content": " last"
+    },
+    {
+      "timestamp_ms": 2163.8,
+      "content": " updated"
+    },
+    {
+      "timestamp_ms": 2182.999,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 2202.004,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2220.793,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2240.224,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2259.199,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 2278.801,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2296.797,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2316.387,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 2335.026,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2354.343,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2373.165,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2392.315,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 2411.341,
+      "content": " converge"
+    },
+    {
+      "timestamp_ms": 2430.374,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2449.628,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2468.232,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 2487.895,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 2506.932,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 2525.553,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2544.65,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2563.762,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 2583.021,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2602.061,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2620.979,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2639.59,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2659.304,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 2679.335,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2697.115,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 2716.317,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 2735.372,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 2754.533,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2774.874,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2792.251,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2811.488,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2830.376,
+      "content": "Trade"
+    },
+    {
+      "timestamp_ms": 2849.889,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 2872.418,
+      "content": " Inv"
+    },
+    {
+      "timestamp_ms": 2903.367,
+      "content": "olved"
+    },
+    {
+      "timestamp_ms": 2913.743,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2929.453,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2948.083,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2966.18,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2983.379,
+      "content": " Event"
+    },
+    {
+      "timestamp_ms": 3022.087,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 3022.087,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 3043.646,
+      "content": " trades"
+    },
+    {
+      "timestamp_ms": 3059.984,
+      "content": " off"
+    },
+    {
+      "timestamp_ms": 3078.306,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 3097.215,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 3116.169,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3253.82,
+      "content": "where"
+    },
+    {
+      "timestamp_ms": 3253.949,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 3254.01,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3254.062,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 3254.108,
+      "content": " reflect"
+    },
+    {
+      "timestamp_ms": 3254.152,
+      "content": " writes"
+    },
+    {
+      "timestamp_ms": 3254.862,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3269.467,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3287.715,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 3306.783,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 3326.329,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3344.87,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 3365.721,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3382.984,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3402.166,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3421.262,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3440.185,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3460.466,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 3478.193,
+      "content": " useful"
+    },
+    {
+      "timestamp_ms": 3497.744,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3520.857,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 3535.497,
+      "content": "-scale"
+    },
+    {
+      "timestamp_ms": 3554.539,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3573.593,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 3593.321,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 3612.053,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 3632.392,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 3650.251,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 3669.025,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 3688.038,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3706.853,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3725.811,
+      "content": " difficult"
+    },
+    {
+      "timestamp_ms": 3745.343,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3764.089,
+      "content": " impr"
+    },
+    {
+      "timestamp_ms": 3783.174,
+      "content": "actical"
+    },
+    {
+      "timestamp_ms": 3802.436,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 3821.312,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3840.325,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3859.564,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 3878.737,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3897.997,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 3918.234,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3936.311,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3955.361,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3974.17,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3994.18,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4013.089,
+      "content": "Entry"
+    },
+    {
+      "timestamp_ms": 4046.699,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 4050.196,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 4069.222,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4088.798,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4107.499,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4126.405,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4145.381,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 4164.758,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4193.164,
+      "content": " eventually"
+    },
+    {
+      "timestamp_ms": 4202.719,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 4222.405,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4241.436,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4259.879,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 4280.605,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 4298.215,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4317.254,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 4335.956,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4355.285,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 4374.481,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 4393.417,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 4412.175,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 4431.213,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4450.901,
+      "content": " Different"
+    },
+    {
+      "timestamp_ms": 4469.527,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 4490.531,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 4507.738,
+      "content": " temporarily"
+    },
+    {
+      "timestamp_ms": 4526.502,
+      "content": " serve"
+    },
+    {
+      "timestamp_ms": 4545.948,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 4564.678,
+      "content": " versions"
+    },
+    {
+      "timestamp_ms": 4588.026,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4603.0,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4622.299,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4641.385,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 4660.418,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 4682.247,
+      "content": " converge"
+    },
+    {
+      "timestamp_ms": 4700.235,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 4722.797,
+      "content": " background"
+    },
+    {
+      "timestamp_ms": 4738.47,
+      "content": " synchronization"
+    },
+    {
+      "timestamp_ms": 4755.396,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 4774.323,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4793.685,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4812.658,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4832.045,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4852.324,
+      "content": "Conflict"
+    },
+    {
+      "timestamp_ms": 4870.971,
+      "content": " Resolution"
+    },
+    {
+      "timestamp_ms": 4889.061,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4907.899,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4926.777,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4945.811,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4965.112,
+      "content": " Since"
+    },
+    {
+      "timestamp_ms": 4984.405,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 5003.215,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5024.977,
+      "content": " occur"
+    },
+    {
+      "timestamp_ms": 5041.499,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5060.173,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 5079.163,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 5098.394,
+      "content": " concurrently"
+    },
+    {
+      "timestamp_ms": 5117.274,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5136.506,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5156.523,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5174.357,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 5193.87,
+      "content": " encounter"
+    },
+    {
+      "timestamp_ms": 5235.638,
+      "content": " conflicts"
+    },
+    {
+      "timestamp_ms": 5235.746,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 5251.044,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 5270.54,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 5289.457,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5308.387,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 5327.185,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5346.726,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5365.279,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5384.821,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5404.773,
+      "content": " item"
+    },
+    {
+      "timestamp_ms": 5422.943,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5441.752,
+      "content": " Event"
+    },
+    {
+      "timestamp_ms": 5460.548,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 5479.913,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 5499.804,
+      "content": " relies"
+    },
+    {
+      "timestamp_ms": 5519.197,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5536.743,
+      "content": " conflict"
+    },
+    {
+      "timestamp_ms": 5555.874,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 5575.042,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 5594.023,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5613.295,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 5632.372,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 5651.358,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5670.078,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5689.342,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 5708.478,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 5727.449,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5746.772,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 5765.752,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5784.382,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 5803.743,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5822.938,
+      "content": " Last"
+    },
+    {
+      "timestamp_ms": 5841.984,
+      "content": " Write"
+    },
+    {
+      "timestamp_ms": 5860.772,
+      "content": " Wins"
+    },
+    {
+      "timestamp_ms": 5880.606,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5902.566,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5919.241,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 5937.112,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 5956.258,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 5975.343,
+      "content": " according"
+    },
+    {
+      "timestamp_ms": 5995.071,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6013.508,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6032.393,
+      "content": " timestamp"
+    },
+    {
+      "timestamp_ms": 6052.447,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6070.791,
+      "content": " accepted"
+    },
+    {
+      "timestamp_ms": 6089.852,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6109.135,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6127.904,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6147.079,
+      "content": " Version"
+    },
+    {
+      "timestamp_ms": 6166.631,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 6185.293,
+      "content": "ectors"
+    },
+    {
+      "timestamp_ms": 6205.809,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6227.439,
+      "content": " Keeping"
+    },
+    {
+      "timestamp_ms": 6242.614,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 6261.18,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6282.305,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6299.801,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 6318.584,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 6337.722,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6356.804,
+      "content": " replicated"
+    },
+    {
+      "timestamp_ms": 6375.652,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6397.496,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6414.157,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6433.033,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6453.113,
+      "content": " Conflict"
+    },
+    {
+      "timestamp_ms": 6470.929,
+      "content": "-free"
+    },
+    {
+      "timestamp_ms": 6567.057,
+      "content": " Rep"
+    },
+    {
+      "timestamp_ms": 6567.057,
+      "content": "licated"
+    },
+    {
+      "timestamp_ms": 6567.057,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 6567.057,
+      "content": " Types"
+    },
+    {
+      "timestamp_ms": 6567.21,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6585.386,
+      "content": "CR"
+    },
+    {
+      "timestamp_ms": 6605.392,
+      "content": "DT"
+    },
+    {
+      "timestamp_ms": 6624.043,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6642.414,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 6662.017,
+      "content": " Special"
+    },
+    {
+      "timestamp_ms": 6681.081,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6706.36,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 6719.023,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6738.317,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 6757.503,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 6777.248,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 6795.334,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6814.303,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 6832.942,
+      "content": " conflict"
+    },
+    {
+      "timestamp_ms": 6852.334,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 6872.575,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6890.686,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6909.661,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6937.148,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6948.58,
+      "content": "Applications"
+    },
+    {
+      "timestamp_ms": 6966.634,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6986.172,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7005.149,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7024.31,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7042.895,
+      "content": " Event"
+    },
+    {
+      "timestamp_ms": 7062.212,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 7081.863,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 7101.52,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7119.361,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 7138.29,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 7157.455,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7176.756,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 7195.385,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 7214.755,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7235.144,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7252.668,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 7272.492,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 7291.028,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7310.074,
+      "content": " Cassandra"
+    },
+    {
+      "timestamp_ms": 7329.539,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7348.196,
+      "content": " Dynamo"
+    },
+    {
+      "timestamp_ms": 7367.402,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 7386.234,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7406.544,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7424.625,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 7444.11,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 7462.579,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7482.188,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7507.503,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7519.708,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 7538.741,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 7574.592,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7576.579,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 7596.186,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 7615.314,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7634.402,
+      "content": " priorit"
+    },
+    {
+      "timestamp_ms": 7653.431,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 7672.902,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 7710.957,
+      "content": " immediate"
+    },
+    {
+      "timestamp_ms": 7713.067,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 7729.603,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7748.784,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7767.981,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7786.826,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7805.86,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7826.209,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 7845.051,
+      "content": " useful"
+    },
+    {
+      "timestamp_ms": 7862.958,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7882.581,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 7901.238,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7920.461,
+      "content": " eventual"
+    },
+    {
+      "timestamp_ms": 7939.48,
+      "content": " agreement"
+    },
+    {
+      "timestamp_ms": 7959.513,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7977.672,
+      "content": " sufficient"
+    },
+    {
+      "timestamp_ms": 7996.822,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8020.599,
+      "content": " temporary"
+    },
+    {
+      "timestamp_ms": 8036.426,
+      "content": " inconsistencies"
+    },
+    {
+      "timestamp_ms": 8059.742,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8074.284,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8092.658,
+      "content": " tolerated"
+    },
+    {
+      "timestamp_ms": 8111.442,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8130.26,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 8149.771,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8168.748,
+      "content": " social"
+    },
+    {
+      "timestamp_ms": 8187.387,
+      "content": " media"
+    },
+    {
+      "timestamp_ms": 8206.607,
+      "content": " feeds"
+    },
+    {
+      "timestamp_ms": 8225.964,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8244.854,
+      "content": " collaborative"
+    },
+    {
+      "timestamp_ms": 8263.749,
+      "content": " editing"
+    },
+    {
+      "timestamp_ms": 8282.948,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8303.498,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8321.03,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8340.501,
+      "content": " caching"
+    },
+    {
+      "timestamp_ms": 8359.469,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 8378.266,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8397.272,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8416.239,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8435.416,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8456.966,
+      "content": "Benefits"
+    },
+    {
+      "timestamp_ms": 8473.664,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8493.158,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8513.231,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8530.642,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8549.943,
+      "content": " Increased"
+    },
+    {
+      "timestamp_ms": 8568.857,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 8587.82,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8607.362,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 8626.761,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8645.33,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 8664.542,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 8683.37,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 8702.722,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8721.462,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 8740.888,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 8759.534,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8781.485,
+      "content": " unreachable"
+    },
+    {
+      "timestamp_ms": 8798.315,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8817.174,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8836.42,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8856.899,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 8952.465,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 8952.6,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8952.706,
+      "content": " Reduced"
+    },
+    {
+      "timestamp_ms": 8952.801,
+      "content": " latency"
+    },
+    {
+      "timestamp_ms": 8952.867,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8970.144,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 8989.019,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9007.895,
+      "content": " proceed"
+    },
+    {
+      "timestamp_ms": 9027.111,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 9046.707,
+      "content": " waiting"
+    },
+    {
+      "timestamp_ms": 9065.12,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9085.207,
+      "content": " global"
+    },
+    {
+      "timestamp_ms": 9103.535,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 9126.315,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9141.383,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9161.892,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9179.515,
+      "content": " Fault"
+    },
+    {
+      "timestamp_ms": 9199.402,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 9217.898,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9236.773,
+      "content": " More"
+    },
+    {
+      "timestamp_ms": 9255.917,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 9274.875,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9294.25,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9312.94,
+      "content": " presence"
+    },
+    {
+      "timestamp_ms": 9332.882,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9351.86,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 9370.375,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 9389.505,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9408.661,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 9427.767,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9446.721,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 9466.525,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9485.441,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9504.421,
+      "content": "Ch"
+    },
+    {
+      "timestamp_ms": 9523.187,
+      "content": "allenges"
+    },
+    {
+      "timestamp_ms": 9543.868,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9561.422,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9582.606,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9599.353,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9619.62,
+      "content": " Application"
+    },
+    {
+      "timestamp_ms": 9638.693,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 9657.275,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9676.216,
+      "content": " Developers"
+    },
+    {
+      "timestamp_ms": 9695.68,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 9713.859,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 9733.122,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 9753.206,
+      "content": " inconsistencies"
+    },
+    {
+      "timestamp_ms": 9772.343,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9799.94,
+      "content": " decide"
+    },
+    {
+      "timestamp_ms": 9810.112,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 9828.58,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 9849.376,
+      "content": " impact"
+    },
+    {
+      "timestamp_ms": 9866.47,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9885.956,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 9905.362,
+      "content": " logic"
+    },
+    {
+      "timestamp_ms": 9923.931,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9943.491,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9962.328,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9981.178,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 10000.343,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 10000.343,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10000.343,
+      "type": "done"
+    }
+  ],
+  "full_response": "Eventual consistency is a consistency model used in distributed systems to achieve high availability and partition tolerance, as per the CAP theorem. The CAP theorem states that a distributed data store can simultaneously provide only two out of the following three guarantees: Consistency, Availability, and Partition Tolerance.\n\n**Understanding Eventual Consistency:**\n\n1. **Basic Definition:**\n   - Eventual consistency ensures that if no new updates are made to a given data item, eventually all accesses to that item will return the last updated value. In other words, all replicas of the data will converge to the same state over time, given that the system has no new updates being made.\n\n2. **Trade-offs Involved:**\n   - Eventual consistency trades off strong consistency (where read operations immediately reflect writes) for increased availability and distributed operations. This model is particularly useful in large-scale systems where maintaining strong consistency across multiple nodes is difficult or impractical due to network latency or partitioning.\n\n3. **Entry Consistency:**\n   - In an eventually consistent system, operations may not return the most recent update immediately. Different replicas might temporarily serve different versions of the data until they converge through background synchronization processes.\n\n4. **Conflict Resolution:**\n   - Since updates can occur at multiple replicas concurrently, the system may encounter conflicts when different processes have different values of a data item. Eventual consistency relies on conflict resolution strategies to merge these values. These strategies can include:\n     - Last Write Wins: The most recent update according to a timestamp is accepted.\n     - Version Vectors: Keeping track of the version history of replicated data.\n     - Conflict-free Replicated Data Types (CRDTs): Special data structures that allow concurrent updates without requiring conflict resolution.\n\n5. **Applications:**\n   - Eventual consistency is commonly used in distributed databases and data storage systems like Cassandra, DynamoDB, and Amazon S3, where high availability and partition tolerance are prioritized over immediate consistency.\n   - It is particularly useful in systems where eventual agreement is sufficient and temporary inconsistencies can be tolerated, such as social media feeds, collaborative editing applications, or caching systems.\n\n6. **Benefits:**\n   - Increased availability: Systems can continue operating even if some nodes are unreachable.\n   - High performance: Reduced latency as operations can proceed without waiting for global consistency.\n   - Fault tolerance: More robust in the presence of network partitions and failures.\n\n7. **Challenges:**\n   - Application complexity: Developers must handle potential inconsistencies and decide how they impact their application logic.\n   - User experience",
+  "response_chars": 2893,
+  "num_chunks": 512,
+  "ttft_ms": 281.019,
+  "total_ms": 10004.477,
+  "model_name": "model-medium"
+}

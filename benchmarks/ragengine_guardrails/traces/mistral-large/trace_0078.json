@@ -1,0 +1,723 @@
+{
+  "index": 78,
+  "prompt": "Write a sample README that shows example curl commands including Bearer tokens, API keys in headers, and basic auth credentials.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 818.744,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " `README.md"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": "` file"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " that demonstrates"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " methods in"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": "curl` commands,"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " including Bear"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": "er tokens, API"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " keys in"
+    },
+    {
+      "timestamp_ms": 818.744,
+      "content": " headers, and Basic"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " Auth credentials"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": ":\n\n```"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": "markdown\n#"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " Examples"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": "\n\nThis"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " provides example"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": "curl` commands for"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " interacting"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " with our"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " API using different"
+    },
+    {
+      "timestamp_ms": 1266.26,
+      "content": " authentication methods.\n\n##"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": " Table"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": " of Contents"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "\n- ["
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "Bearer Token Authentication"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "](#b"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "earer-token-auth"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "entication)\n- ["
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "API Key in"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": " Head"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "ers](#"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "-key-in-head"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "ers)\n- ["
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "Basic Authentication"
+    },
+    {
+      "timestamp_ms": 1745.842,
+      "content": "](#basic-authentication"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": ")\n- [Comb"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": "ining Authentication"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": " Methods](#"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": "comb"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": "ining-authentication"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": "-methods)\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": "## Bear"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": "er Token Authentication"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": "\n\nBearer"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": " tokens are typically"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": " used with"
+    },
+    {
+      "timestamp_ms": 2130.336,
+      "content": " OAuth "
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": "2.0 authentication"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": ".\n\n```bash"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": "\n#"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": ": GET"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": " request with Bear"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": "er token\ncurl"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": " -X"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": " GET \""
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": "https://api.example"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": ".com/v"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": "1/resource\" \\\n"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": " -H \"Authorization"
+    },
+    {
+      "timestamp_ms": 2617.313,
+      "content": ": Bear"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "er your"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "_access_token_here"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "H \"Accept"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": ": application/json"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "\"\n\n# Example:"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": " POST request with Bear"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "er token\ncurl"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": " -X"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": " POST \"https://"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "api.example.com/v"
+    },
+    {
+      "timestamp_ms": 3001.997,
+      "content": "1/resource"
+    },
+    {
+      "timestamp_ms": 3103.369,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 3103.369,
+      "content": "H \"Authorization:"
+    },
+    {
+      "timestamp_ms": 3103.369,
+      "content": " Bearer your"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "_access_token_here"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "H \"Content-Type"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": ": application/json\""
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": " \\\n     -d"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": " '{\""
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "key1"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "\":\"value1"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "\", \"key"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "2\":\""
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "value2"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "\"}'\n"
+    },
+    {
+      "timestamp_ms": 3511.519,
+      "content": "```\n\n---\n\n## API"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": " Key in Headers"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": "\n\nAPI"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": " keys are often"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": " passed"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": " custom headers.\n\n```"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": "bash\n# Example"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": ": GET request with"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": " API key in"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": " header\ncurl -"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": "X GET \"https"
+    },
+    {
+      "timestamp_ms": 3909.9,
+      "content": "://api.example.com"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "/v1/resource"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "H \"X"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "-API-K"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "EY"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": ": your_api_key"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "_here\""
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": " \\\n     -H"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": " \"Accept: application"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "/json\"\n\n# Example"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": ": POST request with"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": " API key in"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": " header\ncurl -"
+    },
+    {
+      "timestamp_ms": 4540.455,
+      "content": "X POST \"https"
+    },
+    {
+      "timestamp_ms": 4596.955,
+      "content": "://api.example.com"
+    },
+    {
+      "timestamp_ms": 4596.955,
+      "content": "/v1/resource\""
+    },
+    {
+      "timestamp_ms": 4596.955,
+      "content": " \\\n     -H"
+    },
+    {
+      "timestamp_ms": 4596.955,
+      "content": " \"X-API"
+    },
+    {
+      "timestamp_ms": 4596.955,
+      "content": "-KE"
+    },
+    {
+      "timestamp_ms": 4596.955,
+      "content": "Y: your_api"
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": "_key_here\""
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": " \\\n     -H"
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": " \"Content-Type:"
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": " application/json\" \\\n"
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": "     -d"
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": " '{\"key"
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": "1\":\""
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": "value1\", \""
+    },
+    {
+      "timestamp_ms": 4824.0,
+      "content": "key2\":\""
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": "value2\"}'\n"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": "```\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": "## Basic"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " Authentication\n\nBasic"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " Auth"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " username and password,"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": "64-"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": "encoded.\n\n```bash"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": "\n# Example:"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " GET request with Basic"
+    },
+    {
+      "timestamp_ms": 5287.597,
+      "content": " Auth\ncurl -"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": "X GET \"https"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": "://api.example.com"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": "/v1/resource"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": "u \"username"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": ":password"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": "H \"Accept:"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": " application/json\"\n\n#"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": " Example: POST request"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": " with Basic"
+    },
+    {
+      "timestamp_ms": 5656.663,
+      "content": " Auth\n"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": "curl -X POST"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": " \"https://api"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": ".com/v1/resource"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": "u"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": " \"username:password"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": "\" \\\n     -"
+    },
+    {
+      "timestamp_ms": 5958.684,
+      "content": "H \"Content"
+    },
+    {
+      "timestamp_ms": 5984.224,
+      "content": "-Type: application/json"
+    },
+    {
+      "timestamp_ms": 5984.224,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6053.283,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample `README.md` file that demonstrates various authentication methods in `curl` commands, including Bearer tokens, API keys in headers, and Basic Auth credentials:\n\n```markdown\n# API Examples\n\nThis document provides example `curl` commands for interacting with our API using different authentication methods.\n\n## Table of Contents\n- [Bearer Token Authentication](#bearer-token-authentication)\n- [API Key in Headers](#api-key-in-headers)\n- [Basic Authentication](#basic-authentication)\n- [Combining Authentication Methods](#combining-authentication-methods)\n\n---\n\n## Bearer Token Authentication\n\nBearer tokens are typically used with OAuth 2.0 authentication.\n\n```bash\n# Example: GET request with Bearer token\ncurl -X GET \"https://api.example.com/v1/resource\" \\\n     -H \"Authorization: Bearer your_access_token_here\" \\\n     -H \"Accept: application/json\"\n\n# Example: POST request with Bearer token\ncurl -X POST \"https://api.example.com/v1/resource\" \\\n     -H \"Authorization: Bearer your_access_token_here\" \\\n     -H \"Content-Type: application/json\" \\\n     -d '{\"key1\":\"value1\", \"key2\":\"value2\"}'\n```\n\n---\n\n## API Key in Headers\n\nAPI keys are often passed in custom headers.\n\n```bash\n# Example: GET request with API key in header\ncurl -X GET \"https://api.example.com/v1/resource\" \\\n     -H \"X-API-KEY: your_api_key_here\" \\\n     -H \"Accept: application/json\"\n\n# Example: POST request with API key in header\ncurl -X POST \"https://api.example.com/v1/resource\" \\\n     -H \"X-API-KEY: your_api_key_here\" \\\n     -H \"Content-Type: application/json\" \\\n     -d '{\"key1\":\"value1\", \"key2\":\"value2\"}'\n```\n\n---\n\n## Basic Authentication\n\nBasic Auth requires a username and password, base64-encoded.\n\n```bash\n# Example: GET request with Basic Auth\ncurl -X GET \"https://api.example.com/v1/resource\" \\\n     -u \"username:password\" \\\n     -H \"Accept: application/json\"\n\n# Example: POST request with Basic Auth\ncurl -X POST \"https://api.example.com/v1/resource\" \\\n     -u \"username:password\" \\\n     -H \"Content-Type: application/json",
+  "response_chars": 2021,
+  "num_chunks": 175,
+  "ttft_ms": 818.744,
+  "total_ms": 6053.564,
+  "model_name": "Mistral-Large-3"
+}

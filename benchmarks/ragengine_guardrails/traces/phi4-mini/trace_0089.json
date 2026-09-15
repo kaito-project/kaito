@@ -1,0 +1,1311 @@
+{
+  "index": 89,
+  "prompt": "Create a code review comment pointing out hardcoded secrets in a pull request, showing the problematic lines with fake but realistic-looking API keys and passwords.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1074.273,
+      "content": "Review"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Comment"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Attention"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Needed"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Det"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "ected"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " PR"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "Hi"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "Developer"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "],\n\n"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " recently"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " reviewed"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Pull"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1074.273,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " issue"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " pose"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " I've"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " come"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 1730.245,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " sake"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " I'll"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " refer"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " now"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " worry"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " they're"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " actually"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " revealed"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " problematic"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " lines"
+    },
+    {
+      "timestamp_ms": 2401.93,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 3386.13,
+      "content": "_external"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "ef"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "gh"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "567"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "kl"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "mn"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "910"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "qrst"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3386.435,
+      "content": " Sensitive"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " url"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": ".external"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "service"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "/data"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " payload"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " {\""
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "param"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "param"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\"}\n"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " {\""
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 4366.716,
+      "content": "Bearer"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "}\""
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": ".post"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "(url"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " json"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "payload"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "=headers"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " Further"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "call"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "_external"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "_service"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 5208.012,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": "While"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " appear"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " realistic"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " mind"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": "-world"
+    },
+    {
+      "timestamp_ms": 5539.05,
+      "content": " scenario"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " never"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " course"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " action"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5869.497,
+      "content": " move"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " Hash"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": "Corp"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6511.29,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " kept"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": "Please"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " revise"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 7139.934,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " breaches"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " Let's"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " aim"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": " threats"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7582.696,
+      "content": "Best"
+    },
+    {
+      "timestamp_ms": 7733.818,
+      "content": " regards"
+    },
+    {
+      "timestamp_ms": 7733.818,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 7733.818,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 7733.818,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 7733.818,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 7733.818,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 7733.818,
+      "content": "Review"
+    },
+    {
+      "timestamp_ms": 7805.235,
+      "content": " Committee"
+    },
+    {
+      "timestamp_ms": 7805.235,
+      "content": " Member"
+    },
+    {
+      "timestamp_ms": 7805.235,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 7857.611,
+      "type": "done"
+    }
+  ],
+  "full_response": "Review Comment:\n\nSubject: Attention Needed: Hardcoded Secrets Detected in PR #1234\n\nHi [Developer's Name],\n\nI recently reviewed the Pull Request #1234 and found an issue that could pose a significant security risk to our application. I've come across some hardcoded secrets within this codebase. For the sake of confidentiality, I'll refer to them as secrets for now, but no need to worry, they're not actually being revealed.\n\nThe problematic lines containing these hardcoded secrets are as follows:\n\n```python\nimport requests\n\ndef call_external():\n    api_key = \"ABCD1234efgh5678klmn9101qrst\"  # Sensitive Data\n    url = \"https://api.externalservice.com/data\"\n    payload = {\"param1\": \"value1\", \"param2\": \"value2\"}\n    headers = {\"Authorization\": f\"Bearer {api_key}\"}\n\n    response = requests.post(url, json=payload, headers=headers)\n\n    # Further processing of the response\n\ncall_external_service()\n```\n\nWhile these secrets appear realistic, keep in mind that in a real-world scenario, they should never be hardcoded. The proper course of action is to move these values into environment variables or a secure secrets management system like AWS Secrets Manager, HashiCorp Vault, or Azure Key Vault. This will ensure that sensitive information is kept out of the codebase and can be managed securely.\n\nPlease revise this code and apply the necessary changes to avoid potential security breaches. Let's aim to keep our application secure against both external and internal threats.\n\nBest regards,\n[Your Name]\nReview Committee Member",
+  "response_chars": 1533,
+  "num_chunks": 322,
+  "ttft_ms": 1074.273,
+  "total_ms": 7858.863,
+  "model_name": "Phi-4-mini-instruct"
+}

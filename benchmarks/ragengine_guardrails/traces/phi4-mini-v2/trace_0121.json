@@ -1,0 +1,2055 @@
+{
+  "index": 121,
+  "prompt": "Generate a sample Postman collection export that includes saved environment variables with API keys, OAuth tokens, and basic auth credentials.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 848.068,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " however"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " saved"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 848.068,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " requested"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " Then"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " manually"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " Here's"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " walkthrough"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1506.16,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " you'd"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " calls"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2160.183,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " navigate"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": "Environment"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " Variables"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " tab"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " click"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": "Add"
+    },
+    {
+      "timestamp_ms": 2186.291,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " save"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " variable"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " Remember"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " give"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " variable"
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2968.5,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": " you'll"
+    },
+    {
+      "timestamp_ms": 2968.819,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " exporting"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " general"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": "Pre"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": "-request"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " Script"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": "Tests"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " tab"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3787.761,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " meant"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "javascript"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "//"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " Pre"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "-request"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " Script"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " Tab"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "const"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": " pm"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": ".environment"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 4402.94,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "\")"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " ||"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "\";"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "//"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " Or"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " Tests"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": " Tab"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": "pm"
+    },
+    {
+      "timestamp_ms": 4917.774,
+      "content": ".test"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": "Status"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " ()"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": "Code"
+    },
+    {
+      "timestamp_ms": 5184.712,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": " pm"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": ".response"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": ".code"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": ";\n"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": " pm"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": ".environment"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": ".set"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "status"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "Code"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": ");\n"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "});\n"
+    },
+    {
+      "timestamp_ms": 6044.987,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": "En"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": "vironments"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " tab"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " top"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " right"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " select"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6045.361,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " Click"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": "Add"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": "-value"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " filling"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " you've"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6763.863,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " now"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " Click"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " dots"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " sidebar"
+    },
+    {
+      "timestamp_ms": 7309.666,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7447.068,
+      "content": " select"
+    },
+    {
+      "timestamp_ms": 7447.068,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 7447.068,
+      "content": "Export"
+    },
+    {
+      "timestamp_ms": 7447.068,
+      "content": "'.\n"
+    },
+    {
+      "timestamp_ms": 7447.068,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7447.068,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " Choose"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "Collection"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " v"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "recommended"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": ")'"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "Include"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " Variables"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " option"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " checked"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " Click"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "Export"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " save"
+    },
+    {
+      "timestamp_ms": 8192.465,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 8923.261,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " click"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " gear"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " icon"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": "No"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " top"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8923.785,
+      "content": " sidebar"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " select"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " click"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": "Download"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": "'.\n\n"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": "Now"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " exported"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " ready"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9527.603,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 9624.808,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9624.808,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 9624.808,
+      "content": " members"
+    },
+    {
+      "timestamp_ms": 9624.808,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9624.808,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " Just"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": "Import"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " button"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " sidebar"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " click"
+    },
+    {
+      "timestamp_ms": 10245.137,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " imported"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " you've"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " saved"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " Choose"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " option"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": "Raw"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " paste"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 10868.327,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " now"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " authenticated"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " calls"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 11173.952,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11263.957,
+      "type": "done"
+    }
+  ],
+  "full_response": "I cannot directly export a Postman collection; however, I can guide you through creating a collection export that includes saved environment variables with the details you requested. Then you would perform the export manually. Here's a walkthrough:\n\n1. Open Postman and create a new collection or open an existing one where you'd like to include the API calls.\n\n2. For each API, navigate to the 'Environment Variables' tab, then click 'Add New' to save an environment variable. Remember the name you give to your variable (likeapi_key`, `oauth_token`, `username`, `password`), as you'll need this when exporting the collection.\n\n3. In general, in the 'Pre-request Script' or `Tests` tab, make sure to add code to set or use these environment variables if your collection is meant to run them. For example:\n\n```javascript\n// In Pre-request Script Tab\nconst api_key = pm.environment.get(\"api_key\") || \"your_api_key_here\";  // Replace with your actual API key\n\n// Or in Tests Tab\npm.test(\"Status code is 200\", function () {\n    const statusCode = pm.response.code;\n    pm.environment.set(\"status_code\", statusCode);\n});\n``4. Go to the 'Environments' tab at the top right and add or select an environment. Click on 'Add' to add a new environment and key-value pairs, filling in API keys, OAuth tokens, etc.\n\n5. Once you've set up your environment and added your variables, you can now export your collection:\n\n   - Click the three dots next to your collection's name in the sidebar and select 'Export'.\n   - Choose the 'Collection v2.1 (recommended)' format and make sure the 'Include Environment Variables' option is checked.\n   - Click 'Export' and save the .json file. This will be your Postman collection.\n\n6. To export the, click the gear icon next to 'No Environment' on the top of the sidebar, select your environment, and then click 'Download as JSON'.\n\nNow you have your collection exported with environment variables ready to deploy or share with team members or use in another instance of Postman. Just import this collection in Postman using the 'Import' button on the sidebar; then click on the imported collection, name it, and import the environment JSON file you've just saved. Choose the option 'Raw JSON' and paste your environment data. The collection now has your environment variables applied and can make authenticated API calls as if you",
+  "response_chars": 2356,
+  "num_chunks": 508,
+  "ttft_ms": 848.068,
+  "total_ms": 11366.2,
+  "model_name": "Phi-4-mini-instruct"
+}

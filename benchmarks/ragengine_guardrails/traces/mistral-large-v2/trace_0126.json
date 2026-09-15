@@ -1,0 +1,915 @@
+{
+  "index": 126,
+  "prompt": "Write a detailed 2000-word essay about the evolution of programming languages from Assembly to modern languages, covering at least 15 different languages.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 807.12,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": " **The Evolution of"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": " Programming Languages: From"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": " Assembly to Modern Parad"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": "igms"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": "**\n\n##"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": " **Introduction"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": "**\n\nProgram"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": "ming languages have"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": " undergone"
+    },
+    {
+      "timestamp_ms": 807.12,
+      "content": " a remarkable"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " transformation"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " the early"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " days of computing"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " From"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " the low"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": "-level intr"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": "icacies of Assembly"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " the high"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": "-level abstra"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": "ctions of"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " modern languages"
+    },
+    {
+      "timestamp_ms": 1170.41,
+      "content": " like Python and"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " Rust, each"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " has been"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " driven by the need"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " for efficiency"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": ", readability"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": ", scal"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": "ability, and ease"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " of use"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": ". This"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " essay"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " explores the history"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1836.562,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " of programming languages,"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " covering at"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " least 15"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " languages that"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " have shaped"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " the field"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " of computer"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " science."
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " will examine their"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " origins, unique"
+    },
+    {
+      "timestamp_ms": 2213.466,
+      "content": " features, and lasting"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " impacts"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " on software"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " development.\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " **1. The"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " Dawn"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " of Programming"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": ": Machine"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " Code and"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " Assembly ("
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": "194"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": "0s–"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": "1950"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": "s)**\n\n### **"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": "1.1"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": " Machine Code (1"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": "940s"
+    },
+    {
+      "timestamp_ms": 2854.175,
+      "content": ")**\nBefore"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " programming languages"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " existed, computers"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " were programmed"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " using **machine"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " code**"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": "—binary instructions"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " (0s and"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " 1s)"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " that the"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " CPU could"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " execute"
+    },
+    {
+      "timestamp_ms": 3151.783,
+      "content": " directly. This"
+    },
+    {
+      "timestamp_ms": 3477.44,
+      "content": " was an"
+    },
+    {
+      "timestamp_ms": 3477.44,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 3477.44,
+      "content": "-prone and"
+    },
+    {
+      "timestamp_ms": 3477.44,
+      "content": " tedious"
+    },
+    {
+      "timestamp_ms": 3477.44,
+      "content": " process,"
+    },
+    {
+      "timestamp_ms": 3477.44,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3477.44,
+      "content": " programmers"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " had to manually"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " debug"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " raw"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " binary.\n\n"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " **1.2"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " Assembly"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " (194"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": "9)**\n"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " simplify"
+    },
+    {
+      "timestamp_ms": 3907.129,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": ", **"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": "Assembly language"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": "** was developed"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": " a human"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": "-readable representation"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": " of machine code."
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": " Each instruction in"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": " Assembly corresponds"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": " to a single"
+    },
+    {
+      "timestamp_ms": 4280.863,
+      "content": " machine operation"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": ", making"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " it a"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " **low-level language"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "**.\n\n"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " **Key"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " Features:**\n"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "  - M"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "nemonic codes"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " `MO"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "V`, `ADD"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "`, `J"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "MP`) instead"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " of binary"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": "  - Direct"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 5379.984,
+      "content": " manipulation"
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": "register"
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": "s, memory addresses"
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": ").\n  - Platform"
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": "-dependent ("
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": "each"
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 5386.171,
+      "content": " architecture has"
+    },
+    {
+      "timestamp_ms": 5789.272,
+      "content": " its own Assembly"
+    },
+    {
+      "timestamp_ms": 5789.272,
+      "content": ").\n\n- **Example"
+    },
+    {
+      "timestamp_ms": 5789.272,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5789.272,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 5789.272,
+      "content": "86 Assembly):"
+    },
+    {
+      "timestamp_ms": 5789.272,
+      "content": "**\n  ```assembly"
+    },
+    {
+      "timestamp_ms": 5789.272,
+      "content": "\n  MO"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": "V AX"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": ", 5"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " ; Move"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": "5 into"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " register AX"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": "\n  ADD"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " AX"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": ", 3"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": "   ; Add"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " 3 to AX"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": "\n  ```\n\n"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": "- **Impact"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": ":**\n  - First"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " toward abstraction"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " programming.\n  -"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " Still"
+    },
+    {
+      "timestamp_ms": 6301.248,
+      "content": " used today"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " embedded systems,"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " device"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " drivers"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": ", and performance"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": "-critical applications.\n\n"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": "---\n\n##"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " **2. The"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " First High-Level"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " Languages"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": "1950"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": "s–19"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": "60s)**\n\n"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": " **2"
+    },
+    {
+      "timestamp_ms": 7120.943,
+      "content": ".1 Fort"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "ran (19"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "57"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": " – The First High"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "-Level Language**\n"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "De"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "veloped by **IBM"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": " under"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "John Backus"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "**, **"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "Fortran ("
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": "Formula"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": " Translation"
+    },
+    {
+      "timestamp_ms": 7470.469,
+      "content": ")** was the"
+    },
+    {
+      "timestamp_ms": 7470.807,
+      "content": " first widely"
+    },
+    {
+      "timestamp_ms": 7470.807,
+      "content": " used high-level programming"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " language. It was"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " designed for scientific"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " engineering"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " computations.\n\n- **"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": "Key Features:**\n "
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " - Mathematical"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " notation"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": "e.g., `"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " = Y + Z"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": "`).\n  -"
+    },
+    {
+      "timestamp_ms": 8088.077,
+      "content": " Compiled to"
+    },
+    {
+      "timestamp_ms": 8088.301,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 8088.301,
+      "content": " code for"
+    },
+    {
+      "timestamp_ms": 8088.301,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 8088.301,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8088.301,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 8092.563,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **The Evolution of Programming Languages: From Assembly to Modern Paradigms**\n\n## **Introduction**\n\nProgramming languages have undergone a remarkable transformation since the early days of computing. From the low-level intricacies of Assembly to the high-level abstractions of modern languages like Python and Rust, each evolution has been driven by the need for efficiency, readability, scalability, and ease of use. This essay explores the history and development of programming languages, covering at least 15 key languages that have shaped the field of computer science. We will examine their origins, unique features, and lasting impacts on software development.\n\n---\n\n## **1. The Dawn of Programming: Machine Code and Assembly (1940s–1950s)**\n\n### **1.1 Machine Code (1940s)**\nBefore programming languages existed, computers were programmed using **machine code**—binary instructions (0s and 1s) that the CPU could execute directly. This was an error-prone and tedious process, as programmers had to manually write and debug raw binary.\n\n### **1.2 Assembly Language (1949)**\nTo simplify programming, **Assembly language** was developed as a human-readable representation of machine code. Each instruction in Assembly corresponds to a single machine operation, making it a **low-level language**.\n\n- **Key Features:**\n  - Mnemonic codes (e.g., `MOV`, `ADD`, `JMP`) instead of binary.\n  - Direct hardware manipulation (registers, memory addresses).\n  - Platform-dependent (each CPU architecture has its own Assembly).\n\n- **Example (x86 Assembly):**\n  ```assembly\n  MOV AX, 5   ; Move 5 into register AX\n  ADD AX, 3   ; Add 3 to AX\n  ```\n\n- **Impact:**\n  - First step toward abstraction in programming.\n  - Still used today in embedded systems, device drivers, and performance-critical applications.\n\n---\n\n## **2. The First High-Level Languages (1950s–1960s)**\n\n### **2.1 Fortran (1957) – The First High-Level Language**\nDeveloped by **IBM** under **John Backus**, **Fortran (Formula Translation)** was the first widely used high-level programming language. It was designed for scientific and engineering computations.\n\n- **Key Features:**\n  - Mathematical notation (e.g., `X = Y + Z`).\n  - Compiled to machine code for efficiency.\n",
+  "response_chars": 2237,
+  "num_chunks": 223,
+  "ttft_ms": 807.12,
+  "total_ms": 8093.251,
+  "model_name": "Mistral-Large-3"
+}

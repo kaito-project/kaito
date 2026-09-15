@@ -1,0 +1,891 @@
+{
+  "index": 22,
+  "prompt": "Explain the concept of retrieval-augmented generation and how it improves LLM accuracy.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 858.057,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": "Retrieval-Aug"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": "mented Generation ("
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": "RAG)** is"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": " a hybrid"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": " approach that combines the"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": " strengths of **"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": "information"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": " retrieval** and"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": " **large"
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": " language models ("
+    },
+    {
+      "timestamp_ms": 858.057,
+      "content": "LLMs"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": ")** to improve"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " the accuracy,"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " relevance, and factual"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " grounding"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " of generated responses"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": ". Here’s a"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " breakdown of how it"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " works and"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " why it enhances"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 1214.675,
+      "content": "LM performance:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "### **Core"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " Concept of"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " RAG"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "**\nR"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "AG aug"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "ments the"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " gener"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "ative capabilities"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " of an"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "LM by dynamically"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " retrieving **"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "re"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "levant external"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": "** from"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " a large"
+    },
+    {
+      "timestamp_ms": 1835.489,
+      "content": " corpus"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": ", databases, or"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " web) before generating"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " a response. Instead"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " of relying solely"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " on the L"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": "LM’s pre-trained"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " parametric"
+    },
+    {
+      "timestamp_ms": 2143.737,
+      "content": " knowledge (which may"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": " be outdated"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": " or incomplete"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "), R"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "AG fet"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "ches up"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "-to-date or"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "-specific information to"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": " ground"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": " the model"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "’s output in"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": " factual data"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "How R"
+    },
+    {
+      "timestamp_ms": 2622.667,
+      "content": "AG Works:"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " Step-by-Step"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": "**\n1. **"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": "User Query"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " Input"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": "**:\n   A"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " user asks"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " a question or"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " a prompt (e"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": ".g., *\""
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": "What are"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " the latest adv"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": "ancements in quantum"
+    },
+    {
+      "timestamp_ms": 3064.118,
+      "content": " computing in"
+    },
+    {
+      "timestamp_ms": 3542.158,
+      "content": " 202"
+    },
+    {
+      "timestamp_ms": 3542.158,
+      "content": "4?\"*).\n\n2"
+    },
+    {
+      "timestamp_ms": 3542.158,
+      "content": ". **Retrie"
+    },
+    {
+      "timestamp_ms": 3542.158,
+      "content": "val Phase"
+    },
+    {
+      "timestamp_ms": 3542.158,
+      "content": "**:\n   - The"
+    },
+    {
+      "timestamp_ms": 3542.158,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3542.158,
+      "content": " converts"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": " the query"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": " into an"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": " embedding (a"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": " numerical vector"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": ") using a **"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": "retriever"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": " model** (e"
+    },
+    {
+      "timestamp_ms": 3560.013,
+      "content": ".g., dense"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " models like D"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": "PR"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " sparse"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " like BM"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": "25"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": ").\n   - The"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " retr"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": "iever"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " searches"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " **knowledge"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": "., Wikipedia"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": ", research"
+    },
+    {
+      "timestamp_ms": 4263.082,
+      "content": " papers, or proprietary"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": ") for"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " the most relevant passages"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " or documents"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": ".\n   - Top"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": "-*"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": "k* relevant"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " chunks (e.g"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": "., sentences"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " paragraphs) are retrieved"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 4579.46,
+      "content": " on similarity"
+    },
+    {
+      "timestamp_ms": 5253.343,
+      "content": " to the query.\n\n"
+    },
+    {
+      "timestamp_ms": 5253.343,
+      "content": "3. **Aug"
+    },
+    {
+      "timestamp_ms": 5253.343,
+      "content": "mentation Phase**:\n  "
+    },
+    {
+      "timestamp_ms": 5253.343,
+      "content": " - The retrieved passages"
+    },
+    {
+      "timestamp_ms": 5253.343,
+      "content": " are combined"
+    },
+    {
+      "timestamp_ms": 5253.343,
+      "content": " with the original"
+    },
+    {
+      "timestamp_ms": 5253.343,
+      "content": " query to"
+    },
+    {
+      "timestamp_ms": 5410.829,
+      "content": " form a **context"
+    },
+    {
+      "timestamp_ms": 5410.829,
+      "content": "-rich"
+    },
+    {
+      "timestamp_ms": 5410.829,
+      "content": " prompt**"
+    },
+    {
+      "timestamp_ms": 5410.829,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5410.829,
+      "content": "e.g., *\""
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": "Given"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " the following"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " context: [re"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": "trieved text"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": "], answer"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " the question:"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " [user"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " query]\"*"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": ").\n\n4. **"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": "Generation Phase"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": "**:\n   - The"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " LLM uses"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " augmented"
+    },
+    {
+      "timestamp_ms": 5913.215,
+      "content": " prompt ("
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": "query"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": " + retrieved"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": " context) to generate"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": " a response"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": ", ensuring"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": " output is informed"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": " by the retrieved"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": "Why R"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": "AG Impro"
+    },
+    {
+      "timestamp_ms": 6323.547,
+      "content": "ves LLM Accuracy"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": "**\n1"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": ". **F"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": "actual"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " Ground"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": "ing**:\n   -"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " LLMs may"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": "hallucinate"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": "\" (generate"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " plausible"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " incorrect information"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": ") when their"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " parametric"
+    },
+    {
+      "timestamp_ms": 6811.214,
+      "content": " knowledge is insufficient"
+    },
+    {
+      "timestamp_ms": 6916.966,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6916.966,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 6916.966,
+      "content": "AG mitig"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": "ates this"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " by anchoring"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " evidence"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": "   - Example:"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " LLM without"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " R"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": "AG might guess"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " recent event"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": ", while"
+    },
+    {
+      "timestamp_ms": 7499.612,
+      "content": " RAG fet"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": "ches the"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": " latest data"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": ".\n\n2. **"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": "Up"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": "-to-Date"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": " Knowledge"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": "**:\n   - LL"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": "Ms are trained"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": " on static"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "content": " to 2"
+    },
+    {
+      "timestamp_ms": 7933.11,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7981.901,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Retrieval-Augmented Generation (RAG)** is a hybrid approach that combines the strengths of **information retrieval** and **large language models (LLMs)** to improve the accuracy, relevance, and factual grounding of generated responses. Here’s a breakdown of how it works and why it enhances LLM performance:\n\n---\n\n### **Core Concept of RAG**\nRAG augments the generative capabilities of an LLM by dynamically retrieving **relevant external knowledge** from a large corpus (e.g., documents, databases, or the web) before generating a response. Instead of relying solely on the LLM’s pre-trained parametric knowledge (which may be outdated or incomplete), RAG fetches up-to-date or domain-specific information to ground the model’s output in factual data.\n\n---\n\n### **How RAG Works: Step-by-Step**\n1. **User Query Input**:\n   A user asks a question or provides a prompt (e.g., *\"What are the latest advancements in quantum computing in 2024?\"*).\n\n2. **Retrieval Phase**:\n   - The system converts the query into an embedding (a numerical vector) using a **retriever model** (e.g., dense retrieval models like DPR or sparse methods like BM25).\n   - The retriever searches a **knowledge base** (e.g., Wikipedia, research papers, or proprietary documents) for the most relevant passages or documents.\n   - Top-*k* relevant chunks (e.g., sentences or paragraphs) are retrieved based on similarity to the query.\n\n3. **Augmentation Phase**:\n   - The retrieved passages are combined with the original query to form a **context-rich prompt** (e.g., *\"Given the following context: [retrieved text], answer the question: [user query]\"*).\n\n4. **Generation Phase**:\n   - The LLM uses the augmented prompt (query + retrieved context) to generate a response, ensuring the output is informed by the retrieved knowledge.\n\n---\n\n### **Why RAG Improves LLM Accuracy**\n1. **Factual Grounding**:\n   - LLMs may \"hallucinate\" (generate plausible but incorrect information) when their parametric knowledge is insufficient. RAG mitigates this by anchoring responses in retrieved evidence.\n   - Example: An LLM without RAG might guess a recent event’s details, while RAG fetches the latest data.\n\n2. **Up-to-Date Knowledge**:\n   - LLMs are trained on static datasets (e.g., up to 2",
+  "response_chars": 2253,
+  "num_chunks": 217,
+  "ttft_ms": 858.057,
+  "total_ms": 8120.558,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,703 @@
+{
+  "index": 38,
+  "prompt": "Output a JSON document representing a company org chart with nested departments and employees. Include at least 3 levels of hierarchy.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1116.58,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": "'s a JSON"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " document representing"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " company org"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " chart with three"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " levels of hierarchy"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " (CEO"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " →"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " Depart"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": "ments →"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " Teams"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " →"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": " Employees):\n\n```json"
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": "\n{\n  \""
+    },
+    {
+      "timestamp_ms": 1116.58,
+      "content": "company\": \"Tech"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "novate"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": " Solutions"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "\",\n  \"org"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "_ch"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "art\": {\n   "
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": " \"ce"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "\": {\n"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "      \"name"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "\": \"Sarah"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": " Johnson\",\n      \""
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "\": \"Ch"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "ief Executive Officer"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "\",\n      \"employee"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "_id\": \"E"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "MP"
+    },
+    {
+      "timestamp_ms": 1937.3,
+      "content": "-001"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "\",\n      \"re"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "ports\": [\n"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "        {\n          \""
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "department\": \"Engine"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "ering\",\n          \""
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": " {\n            \"name"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "\": \"Michael"
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": " Chen\",\n            \""
+    },
+    {
+      "timestamp_ms": 2219.16,
+      "content": "title\": \"Ch"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "ief Technology Officer\",\n"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "            \"employee"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "_id\": \"E"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "MP-0"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "02"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "          },\n          \""
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "sub"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "_de"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "partments\": [\n"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "            {\n              \""
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "team"
+    },
+    {
+      "timestamp_ms": 2662.782,
+      "content": "\": \"Product"
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": " Development\",\n              \""
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": "lead"
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": "\": {\n                \""
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": "name\": \"Pri"
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": "ya Patel"
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": "\",\n               "
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": " \"title\": \""
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": "VP"
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": " Product Development\",\n               "
+    },
+    {
+      "timestamp_ms": 3062.507,
+      "content": " \"employee_id\":"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": " \"EMP-"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": "010\"\n"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": "              },\n              \""
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": "members"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": "\": [\n               "
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": " {\n                  \"name"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": "\": \"Alex"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": " Rivera"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": "\",\n                  \"title"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": "\": \"Senior"
+    },
+    {
+      "timestamp_ms": 3471.941,
+      "content": " Software Engineer"
+    },
+    {
+      "timestamp_ms": 3580.222,
+      "content": "\",\n                  \"employee"
+    },
+    {
+      "timestamp_ms": 3580.222,
+      "content": "_id\": \"E"
+    },
+    {
+      "timestamp_ms": 3580.222,
+      "content": "MP-0"
+    },
+    {
+      "timestamp_ms": 3580.222,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 3580.222,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3752.953,
+      "content": "                },\n                {\n"
+    },
+    {
+      "timestamp_ms": 3752.953,
+      "content": "                  \"name\":"
+    },
+    {
+      "timestamp_ms": 3752.953,
+      "content": " \"Jam"
+    },
+    {
+      "timestamp_ms": 3752.953,
+      "content": "ie Lee"
+    },
+    {
+      "timestamp_ms": 3752.953,
+      "content": "\",\n                  \"title"
+    },
+    {
+      "timestamp_ms": 3752.953,
+      "content": "\": \"Software"
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": " Engineer\",\n                  \""
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": "employee_id\": \""
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": "EMP-0"
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": "12\"\n"
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": "                },\n                {\n"
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": "                  \"name\":"
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": " \"Taylor"
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": " Kim"
+    },
+    {
+      "timestamp_ms": 3882.085,
+      "content": "\",\n                  \"title"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "\": \"Junior"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": " Software Engineer"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "\",\n                  \"employee"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "_id\": \"E"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "MP-01"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "3\"\n                }\n"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "              ]\n"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "            },\n            {\n"
+    },
+    {
+      "timestamp_ms": 4089.231,
+      "content": "              \"team"
+    },
+    {
+      "timestamp_ms": 4294.125,
+      "content": "\": \"Quality"
+    },
+    {
+      "timestamp_ms": 4294.125,
+      "content": " Assurance\",\n             "
+    },
+    {
+      "timestamp_ms": 4294.125,
+      "content": " \"lead\": {\n"
+    },
+    {
+      "timestamp_ms": 4294.125,
+      "content": "                \"name\":"
+    },
+    {
+      "timestamp_ms": 4294.125,
+      "content": " \"David"
+    },
+    {
+      "timestamp_ms": 4294.125,
+      "content": " Wilson"
+    },
+    {
+      "timestamp_ms": 4299.371,
+      "content": "\",\n                \"title"
+    },
+    {
+      "timestamp_ms": 4299.371,
+      "content": "\": \"QA"
+    },
+    {
+      "timestamp_ms": 4299.371,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 4299.371,
+      "content": "\",\n                \"employee"
+    },
+    {
+      "timestamp_ms": 4600.622,
+      "content": "_id\": \"E"
+    },
+    {
+      "timestamp_ms": 4600.622,
+      "content": "MP-0"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": "20\"\n             "
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": " },\n              \"members"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": "\": [\n                {\n"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": "                  \"name\":"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": " \"Emma"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": " Davis"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": "\",\n                  \"title"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": "\": \"QA"
+    },
+    {
+      "timestamp_ms": 4600.786,
+      "content": " Engineer"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "\",\n                  \"employee"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "_id\": \"E"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "MP-02"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "1\"\n                },\n"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "                {\n                  \""
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "name\": \"Ryan"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": " Moore"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "\",\n                  \"title"
+    },
+    {
+      "timestamp_ms": 4803.696,
+      "content": "\": \"QA"
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": "ester\",\n                  \""
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": "employee_id\": \""
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": "EMP-0"
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": "22\"\n               "
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": " }\n              ]\n"
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": "            }\n          ]\n"
+    },
+    {
+      "timestamp_ms": 5014.776,
+      "content": "        },\n        {\n"
+    },
+    {
+      "timestamp_ms": 5015.139,
+      "content": "          \"department"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "\": \"Mark"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "eting\",\n          \""
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "head\": {\n           "
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": " \"name\": \""
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "Ol"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "ivia Brown"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "\",\n            \"title"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "\": \"Ch"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "ief Marketing Officer\",\n"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "            \"employee"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "_id\": \"E"
+    },
+    {
+      "timestamp_ms": 5227.01,
+      "content": "MP-00"
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": "3\"\n         "
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": " },\n          \"sub"
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": "_departments\":"
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": " [\n            {\n             "
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": " \"team"
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": "\": \"Digital"
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": " Marketing\",\n              \""
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": "lead\": {\n               "
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "content": " \"name\":"
+    },
+    {
+      "timestamp_ms": 5425.999,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5541.348,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a JSON document representing a company org chart with three levels of hierarchy (CEO → Departments → Teams → Employees):\n\n```json\n{\n  \"company\": \"TechInnovate Solutions\",\n  \"org_chart\": {\n    \"ceo\": {\n      \"name\": \"Sarah Johnson\",\n      \"title\": \"Chief Executive Officer\",\n      \"employee_id\": \"EMP-001\",\n      \"reports\": [\n        {\n          \"department\": \"Engineering\",\n          \"head\": {\n            \"name\": \"Michael Chen\",\n            \"title\": \"Chief Technology Officer\",\n            \"employee_id\": \"EMP-002\"\n          },\n          \"sub_departments\": [\n            {\n              \"team\": \"Product Development\",\n              \"lead\": {\n                \"name\": \"Priya Patel\",\n                \"title\": \"VP of Product Development\",\n                \"employee_id\": \"EMP-010\"\n              },\n              \"members\": [\n                {\n                  \"name\": \"Alex Rivera\",\n                  \"title\": \"Senior Software Engineer\",\n                  \"employee_id\": \"EMP-011\"\n                },\n                {\n                  \"name\": \"Jamie Lee\",\n                  \"title\": \"Software Engineer\",\n                  \"employee_id\": \"EMP-012\"\n                },\n                {\n                  \"name\": \"Taylor Kim\",\n                  \"title\": \"Junior Software Engineer\",\n                  \"employee_id\": \"EMP-013\"\n                }\n              ]\n            },\n            {\n              \"team\": \"Quality Assurance\",\n              \"lead\": {\n                \"name\": \"David Wilson\",\n                \"title\": \"QA Manager\",\n                \"employee_id\": \"EMP-020\"\n              },\n              \"members\": [\n                {\n                  \"name\": \"Emma Davis\",\n                  \"title\": \"QA Engineer\",\n                  \"employee_id\": \"EMP-021\"\n                },\n                {\n                  \"name\": \"Ryan Moore\",\n                  \"title\": \"QA Tester\",\n                  \"employee_id\": \"EMP-022\"\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"department\": \"Marketing\",\n          \"head\": {\n            \"name\": \"Olivia Brown\",\n            \"title\": \"Chief Marketing Officer\",\n            \"employee_id\": \"EMP-003\"\n          },\n          \"sub_departments\": [\n            {\n              \"team\": \"Digital Marketing\",\n              \"lead\": {\n                \"name\":",
+  "response_chars": 2331,
+  "num_chunks": 170,
+  "ttft_ms": 1116.58,
+  "total_ms": 5604.458,
+  "model_name": "Mistral-Large-3"
+}

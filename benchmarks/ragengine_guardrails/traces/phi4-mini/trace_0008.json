@@ -1,0 +1,435 @@
+{
+  "index": 8,
+  "prompt": "Write a sample API response that returns user profile data including name, email, phone, date_of_birth, and billing_address in JSON format.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1542.335,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "profile"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1542.335,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "john"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": " \"+"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 1542.623,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "198"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "billing"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "_address"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " Main"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "city"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "An"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "yt"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "own"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "state"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "NY"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2242.016,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "zip"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "country"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "USA"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2675.442,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 2720.077,
+      "type": "done"
+    }
+  ],
+  "full_response": "```json\n{\n    \"profile\": {\n        \"name\": \"John Doe\",\n \"email\": \"john.doe@example.com\",\n        \"phone\": \"+1234567890\",\n        \"date_of_birth\": \"1980-01-01\",\n        \"billing_address\": {\n            \"street\": \"123 Main St\",\n            \"city\": \"Anytown\",\n            \"state\": \"NY\",\n            \"zip\": \"12345\",\n            \"country\": \"USA\"\n        }\n    }\n}\n```",
+  "response_chars": 362,
+  "num_chunks": 103,
+  "ttft_ms": 1542.335,
+  "total_ms": 2863.381,
+  "model_name": "Phi-4-mini-instruct"
+}

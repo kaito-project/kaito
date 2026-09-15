@@ -1,0 +1,2071 @@
+{
+  "index": 34,
+  "prompt": "What is observability in software systems and how does it differ from monitoring?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 245.711,
+      "content": "Observ"
+    },
+    {
+      "timestamp_ms": 261.029,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 279.654,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 298.932,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 319.751,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 337.969,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 355.972,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 375.328,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 395.066,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 414.721,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 432.015,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 451.508,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 470.016,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 489.497,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 511.466,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 527.524,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 546.993,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 565.44,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 584.461,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 607.95,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 622.85,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 641.754,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 661.219,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 680.888,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 698.789,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 718.574,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 737.08,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 756.131,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 775.041,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 794.248,
+      "content": "Definition"
+    },
+    {
+      "timestamp_ms": 813.189,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 834.027,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 851.183,
+      "content": " refers"
+    },
+    {
+      "timestamp_ms": 870.777,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 889.615,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 909.004,
+      "content": " practice"
+    },
+    {
+      "timestamp_ms": 929.098,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 946.896,
+      "content": " continuously"
+    },
+    {
+      "timestamp_ms": 965.86,
+      "content": " measuring"
+    },
+    {
+      "timestamp_ms": 985.578,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1005.427,
+      "content": " logging"
+    },
+    {
+      "timestamp_ms": 1023.49,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 1041.695,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 1060.678,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1079.707,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1098.933,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1118.095,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1137.105,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 1155.83,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1175.238,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 1201.013,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1213.931,
+      "content": " health"
+    },
+    {
+      "timestamp_ms": 1232.312,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1251.139,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 1270.253,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 1289.286,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 1310.064,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 1328.027,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1346.825,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 1365.528,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1389.943,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 1404.171,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1422.821,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 1441.984,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 1461.631,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1480.04,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 1499.204,
+      "content": " rates"
+    },
+    {
+      "timestamp_ms": 1518.848,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1537.53,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1556.214,
+      "content": " throughput"
+    },
+    {
+      "timestamp_ms": 1576.033,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1595.095,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1613.959,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 1633.958,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 1651.343,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1670.385,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1691.454,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1708.53,
+      "content": "Appro"
+    },
+    {
+      "timestamp_ms": 1727.483,
+      "content": "ach"
+    },
+    {
+      "timestamp_ms": 1746.249,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1765.554,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1784.502,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1804.596,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1823.492,
+      "content": " proactive"
+    },
+    {
+      "timestamp_ms": 1841.446,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 1864.429,
+      "content": " focused"
+    },
+    {
+      "timestamp_ms": 1879.638,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1899.102,
+      "content": " tracking"
+    },
+    {
+      "timestamp_ms": 1918.997,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 1936.105,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 1956.539,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1975.129,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 2048.965,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2048.965,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2048.965,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2051.521,
+      "content": " functioning"
+    },
+    {
+      "timestamp_ms": 2070.342,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 2089.669,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 2109.449,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 2149.582,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2149.679,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 2165.508,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 2185.208,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 2204.153,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 2222.961,
+      "content": " thresholds"
+    },
+    {
+      "timestamp_ms": 2241.8,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2260.671,
+      "content": " alerts"
+    },
+    {
+      "timestamp_ms": 2280.951,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2299.112,
+      "content": " notify"
+    },
+    {
+      "timestamp_ms": 2318.266,
+      "content": " engineers"
+    },
+    {
+      "timestamp_ms": 2337.615,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 2356.513,
+      "content": " something"
+    },
+    {
+      "timestamp_ms": 2376.081,
+      "content": " goes"
+    },
+    {
+      "timestamp_ms": 2394.449,
+      "content": " wrong"
+    },
+    {
+      "timestamp_ms": 2413.333,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2432.704,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2451.986,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2470.482,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 2489.943,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2508.592,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2528.652,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2546.677,
+      "content": " collected"
+    },
+    {
+      "timestamp_ms": 2565.807,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 2584.887,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 2604.014,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2623.073,
+      "content": " structured"
+    },
+    {
+      "timestamp_ms": 2641.829,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2661.184,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 2680.09,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2700.067,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 2720.839,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2738.039,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 2756.486,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2775.698,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2795.771,
+      "content": " tracked"
+    },
+    {
+      "timestamp_ms": 2814.164,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2832.276,
+      "content": " established"
+    },
+    {
+      "timestamp_ms": 2854.04,
+      "content": " beforehand"
+    },
+    {
+      "timestamp_ms": 2870.957,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 2889.999,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2911.334,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 2928.062,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2946.704,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 2966.237,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 2986.334,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3003.894,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3023.713,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3042.159,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3061.337,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3080.203,
+      "content": "Objective"
+    },
+    {
+      "timestamp_ms": 3099.616,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3118.213,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3151.125,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 3156.374,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 3175.379,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3194.439,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3213.613,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 3232.656,
+      "content": " anomalies"
+    },
+    {
+      "timestamp_ms": 3252.114,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3270.598,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 3291.144,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3308.893,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 3328.506,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 3347.462,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3366.11,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 3385.59,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3404.869,
+      "content": " quick"
+    },
+    {
+      "timestamp_ms": 3424.109,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 3442.374,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3461.622,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 3480.966,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 3500.145,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 3518.815,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 3537.956,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 3556.782,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3575.7,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 3609.908,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3613.637,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 3634.153,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3651.914,
+      "content": " dash"
+    },
+    {
+      "timestamp_ms": 3671.374,
+      "content": "boards"
+    },
+    {
+      "timestamp_ms": 3691.963,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3709.305,
+      "content": " alerts"
+    },
+    {
+      "timestamp_ms": 3728.914,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3747.256,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 3766.512,
+      "content": " insights"
+    },
+    {
+      "timestamp_ms": 3787.276,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3804.312,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3823.455,
+      "content": " Observ"
+    },
+    {
+      "timestamp_ms": 3842.546,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 3861.953,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3880.544,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3901.72,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3918.961,
+      "content": "Definition"
+    },
+    {
+      "timestamp_ms": 3937.716,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3956.847,
+      "content": " Observ"
+    },
+    {
+      "timestamp_ms": 3976.366,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 3994.717,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4014.829,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4033.109,
+      "content": " broader"
+    },
+    {
+      "timestamp_ms": 4052.027,
+      "content": " concept"
+    },
+    {
+      "timestamp_ms": 4072.219,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4090.493,
+      "content": " extends"
+    },
+    {
+      "timestamp_ms": 4121.85,
+      "content": " beyond"
+    },
+    {
+      "timestamp_ms": 4128.387,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 4147.389,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4166.935,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 4185.538,
+      "content": " focuses"
+    },
+    {
+      "timestamp_ms": 4204.993,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4224.048,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 4243.071,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4261.984,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 4280.818,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4300.598,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4320.796,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4338.056,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4358.433,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 4378.608,
+      "content": " solely"
+    },
+    {
+      "timestamp_ms": 4396.204,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4414.219,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4433.747,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 4454.499,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 4473.559,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4491.432,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 4509.583,
+      "content": " engineers"
+    },
+    {
+      "timestamp_ms": 4534.363,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4548.997,
+      "content": " diagnose"
+    },
+    {
+      "timestamp_ms": 4570.053,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 4585.727,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4604.599,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 4625.314,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 4643.789,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4671.238,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4681.639,
+      "content": " discern"
+    },
+    {
+      "timestamp_ms": 4703.117,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4721.843,
+      "content": " cause"
+    },
+    {
+      "timestamp_ms": 4738.21,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4757.81,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 4776.559,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4795.701,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4814.743,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4833.717,
+      "content": "Appro"
+    },
+    {
+      "timestamp_ms": 4854.316,
+      "content": "ach"
+    },
+    {
+      "timestamp_ms": 4871.917,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4890.324,
+      "content": " Observ"
+    },
+    {
+      "timestamp_ms": 4910.178,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 4928.821,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 4948.668,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4991.368,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4991.368,
+      "content": " variety"
+    },
+    {
+      "timestamp_ms": 5004.75,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5025.331,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5044.11,
+      "content": " sources"
+    },
+    {
+      "timestamp_ms": 5062.469,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5081.938,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5100.467,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 5131.638,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5147.635,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 5157.221,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5176.648,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5196.374,
+      "content": " traces"
+    },
+    {
+      "timestamp_ms": 5214.283,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5233.442,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5254.909,
+      "content": " gain"
+    },
+    {
+      "timestamp_ms": 5271.892,
+      "content": " insights"
+    },
+    {
+      "timestamp_ms": 5291.102,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 5309.911,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5329.396,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5348.477,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 5367.663,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 5386.302,
+      "content": " workings"
+    },
+    {
+      "timestamp_ms": 5405.199,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5430.387,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5443.073,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5462.197,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5481.55,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 5500.648,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5519.741,
+      "content": " explor"
+    },
+    {
+      "timestamp_ms": 5538.705,
+      "content": "atory"
+    },
+    {
+      "timestamp_ms": 5559.078,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 5576.855,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5595.418,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 5614.708,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5634.034,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5652.924,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5672.236,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 5692.192,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5710.118,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5729.358,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5748.242,
+      "content": " obtained"
+    },
+    {
+      "timestamp_ms": 5767.514,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5786.43,
+      "content": " observ"
+    },
+    {
+      "timestamp_ms": 5807.242,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 5824.763,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5847.036,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 5866.945,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5893.084,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 5902.394,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5923.361,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 5939.076,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 5959.028,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5984.159,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6003.835,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 6020.93,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 6035.41,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6054.122,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 6073.45,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 6091.249,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 6110.531,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6129.636,
+      "content": " events"
+    },
+    {
+      "timestamp_ms": 6150.523,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6169.316,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 6186.474,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6205.856,
+      "content": "numer"
+    },
+    {
+      "timestamp_ms": 6225.946,
+      "content": "ical"
+    },
+    {
+      "timestamp_ms": 6243.535,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6263.204,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6300.926,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6319.81,
+      "content": " traces"
+    },
+    {
+      "timestamp_ms": 6320.911,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6340.29,
+      "content": "records"
+    },
+    {
+      "timestamp_ms": 6358.973,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6377.56,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 6396.571,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6415.008,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6434.196,
+      "content": " travel"
+    },
+    {
+      "timestamp_ms": 6453.415,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 6472.286,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6491.43,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6511.304,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6530.799,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6549.501,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 6700.404,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 6700.608,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6700.66,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 6700.7,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6700.735,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6700.776,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 6700.997,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6703.42,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6720.541,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6742.528,
+      "content": "Objective"
+    },
+    {
+      "timestamp_ms": 6758.383,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6779.438,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6822.346,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 6822.346,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6836.79,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6854.209,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 6873.869,
+      "content": " engineers"
+    },
+    {
+      "timestamp_ms": 6892.029,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7011.868,
+      "content": " diagnose"
+    },
+    {
+      "timestamp_ms": 7011.868,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7011.868,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 7011.868,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 7011.868,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7011.868,
+      "content": " nuanced"
+    },
+    {
+      "timestamp_ms": 7025.981,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 7044.171,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7063.749,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 7082.289,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 7104.403,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7120.912,
+      "content": " miss"
+    },
+    {
+      "timestamp_ms": 7139.973,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7162.12,
+      "content": " Observ"
+    },
+    {
+      "timestamp_ms": 7177.809,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 7197.217,
+      "content": " emp"
+    },
+    {
+      "timestamp_ms": 7216.509,
+      "content": "owers"
+    },
+    {
+      "timestamp_ms": 7235.331,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 7255.108,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7273.149,
+      "content": " explore"
+    },
+    {
+      "timestamp_ms": 7306.343,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7311.588,
+      "content": " question"
+    },
+    {
+      "timestamp_ms": 7331.569,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 7350.453,
+      "content": " aspects"
+    },
+    {
+      "timestamp_ms": 7370.438,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7388.655,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7406.735,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7425.693,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7444.995,
+      "content": " weren"
+    },
+    {
+      "timestamp_ms": 7464.104,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": " initially"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": " considered"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": " Differences"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7662.426,
+      "content": "Scope"
+    },
+    {
+      "timestamp_ms": 7674.742,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7693.792,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 7712.273,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7731.42,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7753.735,
+      "content": " narrowly"
+    },
+    {
+      "timestamp_ms": 7769.529,
+      "content": " focused"
+    },
+    {
+      "timestamp_ms": 7788.869,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7807.197,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 7827.429,
+      "content": " metrics"
+    },
+    {
+      "timestamp_ms": 7845.547,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7868.854,
+      "content": " whereas"
+    },
+    {
+      "timestamp_ms": 7883.049,
+      "content": " observ"
+    },
+    {
+      "timestamp_ms": 7902.624,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 7921.387,
+      "content": " encompasses"
+    },
+    {
+      "timestamp_ms": 7940.869,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7959.54,
+      "content": " wider"
+    },
+    {
+      "timestamp_ms": 7978.82,
+      "content": " range"
+    },
+    {
+      "timestamp_ms": 7998.058,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8017.884,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8036.469,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8055.41,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 8074.558,
+      "content": " insight"
+    },
+    {
+      "timestamp_ms": 8093.546,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8112.238,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8131.945,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8151.088,
+      "content": "Flex"
+    },
+    {
+      "timestamp_ms": 8170.153,
+      "content": "ibility"
+    },
+    {
+      "timestamp_ms": 8189.123,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8209.08,
+      "content": " Observ"
+    },
+    {
+      "timestamp_ms": 8228.338,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 8247.382,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8268.624,
+      "content": " inherently"
+    },
+    {
+      "timestamp_ms": 8284.309,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8304.689,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 8321.968,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8343.215,
+      "content": " adaptable"
+    },
+    {
+      "timestamp_ms": 8361.495,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8379.444,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 8399.532,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8417.374,
+      "content": " helping"
+    },
+    {
+      "timestamp_ms": 8436.672,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 8455.755,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 8475.121,
+      "content": " unknown"
+    },
+    {
+      "timestamp_ms": 8493.761,
+      "content": " conditions"
+    },
+    {
+      "timestamp_ms": 8513.383,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8532.804,
+      "content": " unexpected"
+    },
+    {
+      "timestamp_ms": 8552.893,
+      "content": " behaviors"
+    },
+    {
+      "timestamp_ms": 8570.075,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8589.122,
+      "content": " whereas"
+    },
+    {
+      "timestamp_ms": 8608.243,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 8627.445,
+      "content": " focuses"
+    },
+    {
+      "timestamp_ms": 8646.338,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8665.309,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 8686.063,
+      "content": " conditions"
+    },
+    {
+      "timestamp_ms": 8704.611,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8722.671,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8742.003,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8760.925,
+      "content": "Ins"
+    },
+    {
+      "timestamp_ms": 8780.16,
+      "content": "ights"
+    },
+    {
+      "timestamp_ms": 8799.242,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8818.631,
+      "content": " Observ"
+    },
+    {
+      "timestamp_ms": 8837.83,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 8857.189,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 8875.273,
+      "content": " deeper"
+    },
+    {
+      "timestamp_ms": 8894.388,
+      "content": " insights"
+    },
+    {
+      "timestamp_ms": 8915.692,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 8933.55,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8951.786,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8972.422,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 8991.631,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 9011.001,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9028.317,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 9047.521,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 9077.922,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9085.834,
+      "content": " ask"
+    },
+    {
+      "timestamp_ms": 9105.615,
+      "content": " why"
+    },
+    {
+      "timestamp_ms": 9127.305,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9146.251,
+      "content": " problem"
+    },
+    {
+      "timestamp_ms": 9164.529,
+      "content": " occurred"
+    },
+    {
+      "timestamp_ms": 9180.818,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9200.507,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 9219.776,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 9238.444,
+      "content": " just"
+    },
+    {
+      "timestamp_ms": 9256.86,
+      "content": " knowing"
+    },
+    {
+      "timestamp_ms": 9275.985,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9295.158,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9320.389,
+      "content": " occurred"
+    },
+    {
+      "timestamp_ms": 9333.472,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9352.686,
+      "content": "which"
+    },
+    {
+      "timestamp_ms": 9371.352,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9390.748,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 9409.697,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9429.313,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 9447.987,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9466.938,
+      "content": " simple"
+    },
+    {
+      "timestamp_ms": 9487.291,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 9505.236,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 9524.992,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 9544.445,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 9562.52,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9581.404,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 9600.064,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 9619.817,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9639.203,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 9658.153,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9678.108,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 9696.046,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 9715.044,
+      "content": " alert"
+    },
+    {
+      "timestamp_ms": 9735.047,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 9753.311,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9772.33,
+      "content": " baseline"
+    },
+    {
+      "timestamp_ms": 9790.613,
+      "content": " tracking"
+    },
+    {
+      "timestamp_ms": 9810.2,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9829.558,
+      "content": " observ"
+    },
+    {
+      "timestamp_ms": 9849.662,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 9869.021,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 9887.425,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9907.181,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9924.801,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 9944.011,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 9964.091,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9982.441,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9982.441,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9982.441,
+      "type": "done"
+    }
+  ],
+  "full_response": "Observability and monitoring are both key concepts in understanding and maintaining the performance of software systems, but they have distinct differences:\n\n### Monitoring:\n- **Definition**: Monitoring refers to the practice of continuously measuring and logging specific metrics in a system to track its performance and health. These metrics typically include server load, CPU and memory usage, error rates, network throughput, and response times.\n- **Approach**: It is a proactive approach focused on tracking predefined metrics to ensure the system is functioning within expected parameters. Monitoring often involves setting thresholds for alerts to notify engineers when something goes wrong.\n- **Data**: The data collected through monitoring is structured and predefined, meaning the parameters to be tracked are established beforehand based on what is known about the system.\n- **Objective**: The primary goal is to detect anomalies and failures in real-time, allowing for quick responses to issues before they become critical. Monitoring systems often include dashboards and alerts to provide insights.\n\n### Observability:\n- **Definition**: Observability is a broader concept that extends beyond monitoring. It focuses on understanding the internal state of a system based solely on its external outputs, allowing engineers to diagnose issues, understand behavior, and discern the cause of problems.\n- **Approach**: Observability involves using a variety of data sources, like logs, metrics, and traces, to gain insights into a system's internal workings. It is more flexible and exploratory compared to monitoring.\n- **Data**: The data obtained from observability is usually more comprehensive and less predefined. It includes logs (textual records of events), metrics (numerical data), and traces (records of requests as they travel through a system) that together help in understanding the system behavior.\n- **Objective**: The goal is to enable engineers to diagnose and understand complex, nuanced issues that traditional monitoring might miss. Observability empowers teams to explore and question even aspects of a system that weren't initially considered.\n\n### Key Differences:\n- **Scope**: Monitoring is more narrowly focused on predefined metrics, whereas observability encompasses a wider range of data to provide insight.\n- **Flexibility**: Observability is inherently more flexible and adaptable to changes, helping teams understand unknown conditions or unexpected behaviors, whereas monitoring focuses on known conditions.\n- **Insights**: Observability offers deeper insights into the system’s operations, allowing teams to ask why a problem occurred, rather than just knowing that it occurred (which is often the limit of simple monitoring).\n\nIn summary, while monitoring is essential for real-time alerting and baseline tracking, observability provides a more comprehensive understanding of a",
+  "response_chars": 2917,
+  "num_chunks": 512,
+  "ttft_ms": 245.711,
+  "total_ms": 9986.109,
+  "model_name": "model-medium"
+}

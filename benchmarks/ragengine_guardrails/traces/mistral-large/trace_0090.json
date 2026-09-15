@@ -1,0 +1,751 @@
+{
+  "index": 90,
+  "prompt": "Write a sample docker-compose.yml that includes hardcoded MySQL root password, Redis password, RabbitMQ credentials, and application secret keys.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 706.933,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": " `docker-compose.yml"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": "` file that includes"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": " hardcoded credentials"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": " MySQL, Redis"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": ", Rabbit"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": "MQ, and application"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": " secret keys. **"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": "Note:**"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": " Hard"
+    },
+    {
+      "timestamp_ms": 706.933,
+      "content": "coding sensitive"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": " in a `"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": "docker-compose.yml"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": "` file is not"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": " recommended for production environments"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": ". Instead, use"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": " environment variables or a"
+    },
+    {
+      "timestamp_ms": 928.403,
+      "content": " secrets management"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ".\n\n```"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": "yaml\nversion"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ": '3"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ".8'\n\nservices"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ":\n  # My"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": "SQL Service"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": "\n  mysql"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ":\n    image"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ": mysql"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ":8"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ".0\n"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": "    container"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": "_name: mysql"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": "\n    environment"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": ":\n      MYSQL"
+    },
+    {
+      "timestamp_ms": 1405.051,
+      "content": "_ROOT_PASSWORD"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": ": \""
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "SuperSecret"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "Root"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "Password123"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "!\"  # Hard"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "coded root"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": " password (not recommended"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": " for production)\n     "
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": " MYSQL_DATABASE:"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": " \"app"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "_db\"\n      MYSQL"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "_USER: \"app"
+    },
+    {
+      "timestamp_ms": 1625.118,
+      "content": "_user\"\n      MYSQL"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "_PASSWORD: \"App"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "UserPassword4"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "56!\"\n   "
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": " ports:\n      -"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": " \"3"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "6:3"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "306\"\n"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "    volumes:\n     "
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": " - mysql_data"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": ":/var/lib/mysql"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "\n   "
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": " restart"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": ": unless"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "-stopped"
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": "\n\n "
+    },
+    {
+      "timestamp_ms": 1912.307,
+      "content": " # Redis Service"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "\n  redis"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": ":\n    image"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": ": redis"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": ":7"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "0\n    container"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "_name: redis"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "\n    command"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": " redis-server"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": " --require"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "pass"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "Redis"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "Super"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "78"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": "9!\"  #"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": " Hardcoded Redis"
+    },
+    {
+      "timestamp_ms": 2281.762,
+      "content": " password\n    ports"
+    },
+    {
+      "timestamp_ms": 2376.741,
+      "content": ":\n      - \""
+    },
+    {
+      "timestamp_ms": 2376.741,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 2376.741,
+      "content": "9:6"
+    },
+    {
+      "timestamp_ms": 2376.741,
+      "content": "379\"\n"
+    },
+    {
+      "timestamp_ms": 2376.741,
+      "content": "    volumes:\n     "
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": " - redis_data:/"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "\n    restart"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": ": unless"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "-stopped\n\n "
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": " # Rabbit"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "MQ Service"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "\n  rabbit"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "mq:\n    image"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": ": rabbit"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "mq:3"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": ".1"
+    },
+    {
+      "timestamp_ms": 2669.074,
+      "content": "1-management"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "\n    container"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "_name: rabbit"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "mq\n    environment"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": ":\n      R"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "ABBIT"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "MQ_DEFAULT"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "_USER: \"admin"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "  # Hard"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "coded Rabbit"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "MQ username"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "\n      R"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "ABBITMQ_DEFAULT"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "_PA"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "SS: \"Rab"
+    },
+    {
+      "timestamp_ms": 2861.453,
+      "content": "bitMQAdmin"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "Password1"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "1!\"  #"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": " Hardcoded Rabbit"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "MQ password\n   "
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": ":\n      - \""
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "56"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "72:5"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "672"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "\"  # AM"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "QP"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "\n      - \""
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "67"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "2:1"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "5672"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "\"  # Management"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": " UI port"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": "\n    volumes"
+    },
+    {
+      "timestamp_ms": 3244.553,
+      "content": ":\n      - rabbit"
+    },
+    {
+      "timestamp_ms": 3357.357,
+      "content": "mq_data:/"
+    },
+    {
+      "timestamp_ms": 3357.357,
+      "content": "var/lib/"
+    },
+    {
+      "timestamp_ms": 3357.357,
+      "content": "rabbitmq\n   "
+    },
+    {
+      "timestamp_ms": 3357.357,
+      "content": " restart: unless"
+    },
+    {
+      "timestamp_ms": 3357.357,
+      "content": "-stopped\n\n "
+    },
+    {
+      "timestamp_ms": 3357.357,
+      "content": " # Application"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": " (Example"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": "Flask or"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": " Node.js)\n "
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": " app:\n    image"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": ": your"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": "-app-image"
+    },
+    {
+      "timestamp_ms": 3533.362,
+      "content": ":latest\n   "
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": " container_name: app"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "\n    environment"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": ":\n      DB"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "_HOST: \"mysql"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "\"\n      DB"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "_USER: \"app"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "_user\"\n      DB"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "_PASSWORD: \"App"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "UserPassword4"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "56!\"\n"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": "      DB_NAME"
+    },
+    {
+      "timestamp_ms": 3741.522,
+      "content": ": \"app_db"
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": "\"\n      RED"
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": "IS_HOST"
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": ": \""
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": "redis\"\n      RED"
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": "IS_PASSWORD: \""
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": "RedisSuper"
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": "SecretPassword"
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 3885.459,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3936.481,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample `docker-compose.yml` file that includes hardcoded credentials for MySQL, Redis, RabbitMQ, and application secret keys. **Note:** Hardcoding sensitive credentials in a `docker-compose.yml` file is not recommended for production environments. Instead, use environment variables or a secrets management tool.\n\n```yaml\nversion: '3.8'\n\nservices:\n  # MySQL Service\n  mysql:\n    image: mysql:8.0\n    container_name: mysql\n    environment:\n      MYSQL_ROOT_PASSWORD: \"SuperSecretRootPassword123!\"  # Hardcoded root password (not recommended for production)\n      MYSQL_DATABASE: \"app_db\"\n      MYSQL_USER: \"app_user\"\n      MYSQL_PASSWORD: \"AppUserPassword456!\"\n    ports:\n      - \"3306:3306\"\n    volumes:\n      - mysql_data:/var/lib/mysql\n    restart: unless-stopped\n\n  # Redis Service\n  redis:\n    image: redis:7.0\n    container_name: redis\n    command: redis-server --requirepass \"RedisSuperSecretPassword789!\"  # Hardcoded Redis password\n    ports:\n      - \"6379:6379\"\n    volumes:\n      - redis_data:/data\n    restart: unless-stopped\n\n  # RabbitMQ Service\n  rabbitmq:\n    image: rabbitmq:3.11-management\n    container_name: rabbitmq\n    environment:\n      RABBITMQ_DEFAULT_USER: \"admin\"  # Hardcoded RabbitMQ username\n      RABBITMQ_DEFAULT_PASS: \"RabbitMQAdminPassword101!\"  # Hardcoded RabbitMQ password\n    ports:\n      - \"5672:5672\"  # AMQP port\n      - \"15672:15672\"  # Management UI port\n    volumes:\n      - rabbitmq_data:/var/lib/rabbitmq\n    restart: unless-stopped\n\n  # Application Service (Example: Python/Flask or Node.js)\n  app:\n    image: your-app-image:latest\n    container_name: app\n    environment:\n      DB_HOST: \"mysql\"\n      DB_USER: \"app_user\"\n      DB_PASSWORD: \"AppUserPassword456!\"\n      DB_NAME: \"app_db\"\n      REDIS_HOST: \"redis\"\n      REDIS_PASSWORD: \"RedisSuperSecretPassword789",
+  "response_chars": 1818,
+  "num_chunks": 182,
+  "ttft_ms": 706.933,
+  "total_ms": 3941.462,
+  "model_name": "Mistral-Large-3"
+}

@@ -1,0 +1,791 @@
+{
+  "index": 71,
+  "prompt": "Explain the differences between SQL and NoSQL databases with examples of when to use each.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 872.388,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": "Struct"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": "ured Query"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " Language) and No"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": "SQL ("
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": "Not"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " Only"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": ") databases"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " serve"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " different purposes"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " and are optimized"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " for different types"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": " of workload"
+    },
+    {
+      "timestamp_ms": 872.388,
+      "content": "s. Here’s"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": " a breakdown of their"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": " differences and examples"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": " of when to"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": " use each:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": " Model**\n#### **"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": "SQL Dat"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": "abases**\n- **"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": "Struct"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": "ured Schema"
+    },
+    {
+      "timestamp_ms": 1287.004,
+      "content": "**: Data"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " is stored"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " in tables"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " schemas"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " (columns"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " types).\n- **"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": "Rel"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": "ational**: Tables"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " be linked using"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " foreign"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " keys (relationship"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": "s like"
+    },
+    {
+      "timestamp_ms": 1957.532,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": "-to-m"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": "any or"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " many-to"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": "-many).\n-"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " **Example**:"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " A `"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": "users` table linked"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " to an"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " `orders` table"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " via `user"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": "_id`.\n\n "
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " ```sql\n "
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " CREATE TABLE users"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " (\n      id"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " INT"
+    },
+    {
+      "timestamp_ms": 2592.259,
+      "content": " PRIMARY KEY,\n     "
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " name VARCHAR(1"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": "00),\n     "
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " email VARCHAR(1"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": "00)\n "
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " );\n\n  CREATE"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " TABLE orders"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " (\n      id INT"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " PRIMARY KEY,\n     "
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " user_id INT,\n"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": "      amount"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": " DECIM"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": "AL(10"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": ", 2"
+    },
+    {
+      "timestamp_ms": 2932.512,
+      "content": "),\n      FO"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "REIGN"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": " KEY (user"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "_id) REF"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "ERENCES users"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "(id"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": ")\n  );\n "
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": " ```\n\n#### **No"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "SQL Databases**\n"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "- **Flex"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "ible Schema**: Data"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": " can be stored in"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": " formats (key"
+    },
+    {
+      "timestamp_ms": 3381.529,
+      "content": "-value, document,"
+    },
+    {
+      "timestamp_ms": 3564.627,
+      "content": " column"
+    },
+    {
+      "timestamp_ms": 3564.627,
+      "content": "-family"
+    },
+    {
+      "timestamp_ms": 3564.627,
+      "content": ", graph"
+    },
+    {
+      "timestamp_ms": 3564.627,
+      "content": ").\n- **Non"
+    },
+    {
+      "timestamp_ms": 3564.627,
+      "content": "-R"
+    },
+    {
+      "timestamp_ms": 3564.627,
+      "content": "elational**: Relationship"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": "s are often"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": " handled within"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": " documents"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": " den"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": "ormal"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": "ized.\n- **"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": "Example**:"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": " A JSON"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": " document in"
+    },
+    {
+      "timestamp_ms": 3951.817,
+      "content": " Mongo"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "DB storing"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": " user and"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": " data together"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": ".\n\n  ```json"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "\n  {\n     "
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": " \"_id\": "
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "1,\n      \""
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "name\": \"Alice"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "\",\n      \"email"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "\": \"al"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "ice@example.com\",\n"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": "      \"orders\":"
+    },
+    {
+      "timestamp_ms": 4396.82,
+      "content": " [\n         "
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": " { \"order"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "\": 10"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "1, \"amount"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "\": 5"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "0.00"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": " },\n          { \""
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "order_id\": "
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "102,"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": " \"amount\": "
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "75.5"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "0 }\n      ]\n"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "  }\n  ```\n\n"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "---\n\n### **2"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": ". Query"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": " Language"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": "**\n####"
+    },
+    {
+      "timestamp_ms": 4868.844,
+      "content": " **SQL Dat"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": "abases**\n- Use"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": "SQL** (a"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": " standardized language"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": ") for"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": " querying"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": " and manipulating"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": ".\n- Example"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5188.814,
+      "content": "  ```sql\n"
+    },
+    {
+      "timestamp_ms": 5316.794,
+      "content": "  SELECT name"
+    },
+    {
+      "timestamp_ms": 5316.794,
+      "content": ", email"
+    },
+    {
+      "timestamp_ms": 5316.794,
+      "content": " FROM users"
+    },
+    {
+      "timestamp_ms": 5316.794,
+      "content": " WHERE id"
+    },
+    {
+      "timestamp_ms": 5316.794,
+      "content": " = 1;\n"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": "  ```\n\n"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": "#### **No"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": "SQL Databases**\n"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": "- Use **database"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": "-specific query"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": " languages** or"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": " MongoDB’s"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": " query syntax, Cassandra"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": " CQL).\n-"
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": " Example ("
+    },
+    {
+      "timestamp_ms": 5708.615,
+      "content": "MongoDB):\n "
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": " ```javascript\n "
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": " db.users"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": ".find({"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": " _id: "
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": "1 }, { name"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": ": "
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": "1, email"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": ": 1 });\n"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": "  ```\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": " **3. Sc"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": "alability**\n####"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": " **SQL Databases"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": "**\n- **Vertical"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": " Scaling"
+    },
+    {
+      "timestamp_ms": 6137.06,
+      "content": "**: Scale"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": " increasing"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": " (CPU"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": ", RAM).\n"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": "- **Horizontal Sc"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "content": "aling**:"
+    },
+    {
+      "timestamp_ms": 6415.12,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6512.477,
+      "type": "done"
+    }
+  ],
+  "full_response": "SQL (Structured Query Language) and NoSQL (Not Only SQL) databases serve different purposes and are optimized for different types of workloads. Here’s a breakdown of their key differences and examples of when to use each:\n\n---\n\n### **1. Data Model**\n#### **SQL Databases**\n- **Structured Schema**: Data is stored in tables with predefined schemas (columns and data types).\n- **Relational**: Tables can be linked using foreign keys (relationships like one-to-many or many-to-many).\n- **Example**: A `users` table linked to an `orders` table via `user_id`.\n\n  ```sql\n  CREATE TABLE users (\n      id INT PRIMARY KEY,\n      name VARCHAR(100),\n      email VARCHAR(100)\n  );\n\n  CREATE TABLE orders (\n      id INT PRIMARY KEY,\n      user_id INT,\n      amount DECIMAL(10, 2),\n      FOREIGN KEY (user_id) REFERENCES users(id)\n  );\n  ```\n\n#### **NoSQL Databases**\n- **Flexible Schema**: Data can be stored in various formats (key-value, document, column-family, graph).\n- **Non-Relational**: Relationships are often handled within documents or denormalized.\n- **Example**: A JSON document in MongoDB storing user and order data together.\n\n  ```json\n  {\n      \"_id\": 1,\n      \"name\": \"Alice\",\n      \"email\": \"alice@example.com\",\n      \"orders\": [\n          { \"order_id\": 101, \"amount\": 50.00 },\n          { \"order_id\": 102, \"amount\": 75.50 }\n      ]\n  }\n  ```\n\n---\n\n### **2. Query Language**\n#### **SQL Databases**\n- Use **SQL** (a standardized language) for querying and manipulating data.\n- Example:\n  ```sql\n  SELECT name, email FROM users WHERE id = 1;\n  ```\n\n#### **NoSQL Databases**\n- Use **database-specific query languages** or APIs (e.g., MongoDB’s query syntax, Cassandra’s CQL).\n- Example (MongoDB):\n  ```javascript\n  db.users.find({ _id: 1 }, { name: 1, email: 1 });\n  ```\n\n---\n\n### **3. Scalability**\n#### **SQL Databases**\n- **Vertical Scaling**: Scale by increasing server resources (CPU, RAM).\n- **Horizontal Scaling**:",
+  "response_chars": 1924,
+  "num_chunks": 192,
+  "ttft_ms": 872.388,
+  "total_ms": 6512.729,
+  "model_name": "Mistral-Large-3"
+}

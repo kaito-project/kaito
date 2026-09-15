@@ -1,0 +1,899 @@
+{
+  "index": 63,
+  "prompt": "What is infrastructure as code and what are its benefits?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 928.103,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": " **Inf"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": "rastructure as"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": " Code (Ia"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": "C)**\n**Inf"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": "rastructure as Code ("
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": "IaC"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": ")** is the"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": " practice of managing and"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": " provision"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": "ing computing"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": " infrastructure ("
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": "serv"
+    },
+    {
+      "timestamp_ms": 928.103,
+      "content": "ers, networks"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": ", databases, etc"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": ".) through"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": "-readable **"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": "definition files** ("
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": "code"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": ") rather"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": " than manual"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": " or interactive"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1323.657,
+      "content": " tools.\n\n"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "Instead"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " of manually"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " setting up servers"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": ", Ia"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "C allows"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " to define"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "de"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "clarative** ("
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "des"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "ired"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " state) or **"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "imperative** ("
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "step"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": "-by-step)"
+    },
+    {
+      "timestamp_ms": 2059.667,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": " which can"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": "-controlled"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": ", automated"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": ", and reused"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": "Key Benefits of Infrastructure"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": " as Code ("
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": "IaC"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": ")**\n\n#### **1"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": ". Speed"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": " & Efficiency"
+    },
+    {
+      "timestamp_ms": 3713.546,
+      "content": "**\n- **Aut"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": "om"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": "ates provision"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": "ing** –"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " Deploy"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " infrastructure in"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " minutes"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " of hours"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " days.\n- **"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": "Elimin"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": "ates manual"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " errors** – Red"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": "uces human mistakes"
+    },
+    {
+      "timestamp_ms": 4294.896,
+      "content": " in configuration.\n-"
+    },
+    {
+      "timestamp_ms": 4907.659,
+      "content": " **En"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": "ables rapid"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": " scaling** –"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": "asily replicate"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": "dev"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": ", staging, prod"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": "#### **2."
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": " Consistency & Reli"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": "ability**\n- **"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": "Repeat"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": "able deployments**"
+    },
+    {
+      "timestamp_ms": 4907.846,
+      "content": " – Ens"
+    },
+    {
+      "timestamp_ms": 5112.286,
+      "content": "ures the same infrastructure"
+    },
+    {
+      "timestamp_ms": 5112.286,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 5112.286,
+      "content": " time.\n- **"
+    },
+    {
+      "timestamp_ms": 5112.286,
+      "content": "Reduces \""
+    },
+    {
+      "timestamp_ms": 5332.291,
+      "content": "configuration drift\"** –"
+    },
+    {
+      "timestamp_ms": 5332.291,
+      "content": " Prevents inconsist"
+    },
+    {
+      "timestamp_ms": 5332.291,
+      "content": "encies between"
+    },
+    {
+      "timestamp_ms": 5332.291,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 5332.291,
+      "content": ".\n- **Standard"
+    },
+    {
+      "timestamp_ms": 5332.291,
+      "content": "ized set"
+    },
+    {
+      "timestamp_ms": 5332.291,
+      "content": "ups** – En"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": "for"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": "ces best"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": " practices across teams"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": ".\n\n#### **3"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": ". Version"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": " Control & Collaboration"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": "**\n- **Inf"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": "rastructure as"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": " code ="
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": " – St"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": "ored in Git"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": " (like"
+    },
+    {
+      "timestamp_ms": 5907.533,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": "- **Track"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": "** –"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " Audit"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": ", roll"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " needed.\n- **"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": "Team collaboration** –"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " Multiple"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " engineers"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " can work on infrastructure"
+    },
+    {
+      "timestamp_ms": 6546.158,
+      "content": " safely.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": "4. Cost Sav"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": "ings**\n- **"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": "Reduces manual"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": " labor** – Less"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": " time spent on repetitive"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": ".\n- **Optim"
+    },
+    {
+      "timestamp_ms": 6763.76,
+      "content": "izes cloud spending"
+    },
+    {
+      "timestamp_ms": 7058.763,
+      "content": "** – Autom"
+    },
+    {
+      "timestamp_ms": 7058.763,
+      "content": "atically"
+    },
+    {
+      "timestamp_ms": 7058.763,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 7058.763,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 7058.763,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7058.763,
+      "content": "/down as"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": " needed.\n- **"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": "voids over"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": "-provisioning"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": "** – Only"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": " what’s necessary"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": ".\n\n#### **5"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": ". Dis"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": "aster Recovery"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": " & Res"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": "ilience**\n- **"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": "Quick recovery** –"
+    },
+    {
+      "timestamp_ms": 7585.589,
+      "content": " Rebuild infrastructure from"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " failure"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " occurs.\n- **"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": "Immutable"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": "** – Replace"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " faulty"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " instead of fixing"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": " them.\n- **"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": "Dis"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": "aster-pro"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": "of back"
+    },
+    {
+      "timestamp_ms": 8270.829,
+      "content": "ups** – Infrastructure"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": " definitions"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": " can be stored"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": ".\n\n#### **6"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": ". Security"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": " & Com"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": "pliance**\n- **"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": "En"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": "for"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": "ces security policies"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": "** – Define"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": " security rules"
+    },
+    {
+      "timestamp_ms": 8696.831,
+      "content": " in code"
+    },
+    {
+      "timestamp_ms": 8799.442,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 8799.442,
+      "content": " fire"
+    },
+    {
+      "timestamp_ms": 8799.442,
+      "content": "walls, I"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": "AM roles"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": ").\n- **Aut"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": "omated aud"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": "its** – Scan"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": " infrastructure for compliance"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": " violations"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": ".\n- **Red"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": "uces human"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": "** – Few"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": "er manual"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": " interventions"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": " mean"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": " fewer"
+    },
+    {
+      "timestamp_ms": 9311.151,
+      "content": " security gaps"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": ".\n\n#### **7"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": ". Dev"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": "Ops & CI/CD"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": " Integration**\n- **"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": "Infrastructure as part"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": " of CI"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": "/CD** – Deploy"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": " infrastructure alongside"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "content": ".\n- **Shift"
+    },
+    {
+      "timestamp_ms": 9720.957,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10027.795,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Infrastructure as Code (IaC)**\n**Infrastructure as Code (IaC)** is the practice of managing and provisioning computing infrastructure (servers, networks, databases, etc.) through machine-readable **definition files** (code) rather than manual hardware configuration or interactive configuration tools.\n\nInstead of manually setting up servers, IaC allows teams to define infrastructure in **declarative** (desired state) or **imperative** (step-by-step) code, which can be version-controlled, automated, and reused.\n\n---\n\n### **Key Benefits of Infrastructure as Code (IaC)**\n\n#### **1. Speed & Efficiency**\n- **Automates provisioning** – Deploy infrastructure in minutes instead of hours or days.\n- **Eliminates manual errors** – Reduces human mistakes in configuration.\n- **Enables rapid scaling** – Easily replicate environments (dev, staging, prod).\n\n#### **2. Consistency & Reliability**\n- **Repeatable deployments** – Ensures the same infrastructure every time.\n- **Reduces \"configuration drift\"** – Prevents inconsistencies between environments.\n- **Standardized setups** – Enforces best practices across teams.\n\n#### **3. Version Control & Collaboration**\n- **Infrastructure as code = code** – Stored in Git (like application code).\n- **Track changes** – Audit history, roll back if needed.\n- **Team collaboration** – Multiple engineers can work on infrastructure safely.\n\n#### **4. Cost Savings**\n- **Reduces manual labor** – Less time spent on repetitive tasks.\n- **Optimizes cloud spending** – Automatically scale resources up/down as needed.\n- **Avoids over-provisioning** – Only deploy what’s necessary.\n\n#### **5. Disaster Recovery & Resilience**\n- **Quick recovery** – Rebuild infrastructure from code if a failure occurs.\n- **Immutable infrastructure** – Replace faulty components instead of fixing them.\n- **Disaster-proof backups** – Infrastructure definitions can be stored securely.\n\n#### **6. Security & Compliance**\n- **Enforces security policies** – Define security rules in code (e.g., firewalls, IAM roles).\n- **Automated audits** – Scan infrastructure for compliance violations.\n- **Reduces human risk** – Fewer manual interventions mean fewer security gaps.\n\n#### **7. DevOps & CI/CD Integration**\n- **Infrastructure as part of CI/CD** – Deploy infrastructure alongside applications.\n- **Shift",
+  "response_chars": 2324,
+  "num_chunks": 219,
+  "ttft_ms": 928.103,
+  "total_ms": 10028.143,
+  "model_name": "Mistral-Large-3"
+}

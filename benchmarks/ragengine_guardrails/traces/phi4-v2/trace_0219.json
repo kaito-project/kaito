@@ -1,0 +1,2071 @@
+{
+  "index": 219,
+  "prompt": "Describe the MapReduce programming model and its use in big data processing.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 397.269,
+      "content": "Map"
+    },
+    {
+      "timestamp_ms": 397.269,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 397.448,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 397.559,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 397.659,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 397.736,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 406.793,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 464.003,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 464.239,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 470.78,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 483.691,
+      "content": " developed"
+    },
+    {
+      "timestamp_ms": 601.692,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 601.921,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 602.045,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 602.179,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 602.287,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 602.353,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 616.648,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 704.027,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 704.211,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 704.298,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 704.363,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 711.606,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 806.191,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 806.36,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 806.716,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 806.826,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 871.993,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 872.143,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 872.209,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 872.261,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 884.561,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 952.659,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 952.795,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 952.858,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 962.788,
+      "content": " big"
+    },
+    {
+      "timestamp_ms": 1011.838,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1012.067,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 1017.774,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1121.163,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 1121.3,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " enormous"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 1319.348,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 1319.576,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 1319.637,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1319.692,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1319.742,
+      "content": " core"
+    },
+    {
+      "timestamp_ms": 1326.767,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 1420.856,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1421.005,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 1421.07,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 1421.122,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1421.171,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 1523.561,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1530.087,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 1530.291,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 1530.393,
+      "content": "-scale"
+    },
+    {
+      "timestamp_ms": 1530.463,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1531.323,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 1626.579,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1626.816,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1626.911,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 1626.973,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1637.057,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1647.852,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 1668.6,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1729.622,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1729.879,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1729.986,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1742.463,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 1830.677,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 1830.908,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1831.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1831.42,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1835.016,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1932.745,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1932.91,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1932.985,
+      "content": " Components"
+    },
+    {
+      "timestamp_ms": 1933.045,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1934.494,
+      "content": " Concepts"
+    },
+    {
+      "timestamp_ms": 2034.906,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2035.037,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2035.101,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2035.154,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2035.204,
+      "content": "Map"
+    },
+    {
+      "timestamp_ms": 2046.5,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 2140.89,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2141.23,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 2141.308,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2141.369,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2141.421,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2239.873,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 2240.019,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 2240.086,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 2240.231,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2240.871,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2344.603,
+      "content": " pair"
+    },
+    {
+      "timestamp_ms": 2347.073,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2347.245,
+      "content": " produces"
+    },
+    {
+      "timestamp_ms": 2347.4,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2347.482,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 2351.733,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2389.498,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 2391.958,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2408.277,
+      "content": "/value"
+    },
+    {
+      "timestamp_ms": 2427.132,
+      "content": " pairs"
+    },
+    {
+      "timestamp_ms": 2448.798,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2547.613,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 2547.776,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2547.852,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2547.93,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 2547.996,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 2559.854,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2650.113,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2650.338,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 2650.402,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2650.456,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 2658.114,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2854.514,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 2854.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2854.732,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2854.788,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 2854.84,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 2854.889,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 2854.934,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2854.977,
+      "content": " line"
+    },
+    {
+      "timestamp_ms": 2855.02,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2855.065,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 2865.324,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2957.011,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2957.147,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2957.214,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 2957.27,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2959.453,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 3060.877,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3061.029,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3061.105,
+      "content": " count"
+    },
+    {
+      "timestamp_ms": 3061.166,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3061.223,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3076.065,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3141.382,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3141.518,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 3141.581,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 3266.421,
+      "content": " (\""
+    },
+    {
+      "timestamp_ms": 3266.625,
+      "content": "word"
+    },
+    {
+      "timestamp_ms": 3266.74,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 3266.826,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3266.894,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3266.962,
+      "content": ")).\n"
+    },
+    {
+      "timestamp_ms": 3267.029,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3366.626,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3366.87,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3367.049,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3367.162,
+      "content": " facilitates"
+    },
+    {
+      "timestamp_ms": 3367.244,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3380.134,
+      "content": " transformation"
+    },
+    {
+      "timestamp_ms": 3468.912,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3469.064,
+      "content": " filtering"
+    },
+    {
+      "timestamp_ms": 3469.139,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3469.202,
+      "content": " raw"
+    },
+    {
+      "timestamp_ms": 3475.645,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3573.683,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3573.89,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3573.969,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3574.037,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3577.635,
+      "content": "Sh"
+    },
+    {
+      "timestamp_ms": 3591.556,
+      "content": "uffle"
+    },
+    {
+      "timestamp_ms": 3673.659,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3673.793,
+      "content": " Sort"
+    },
+    {
+      "timestamp_ms": 3673.856,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3673.908,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3813.282,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3813.447,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3813.544,
+      "content": " After"
+    },
+    {
+      "timestamp_ms": 3813.613,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3813.674,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 3813.725,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 3813.775,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 3820.747,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3882.157,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3882.308,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3882.388,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3893.123,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 3982.288,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 3982.418,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3982.481,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 3982.536,
+      "content": " shuffled"
+    },
+    {
+      "timestamp_ms": 3990.479,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4084.062,
+      "content": " sorted"
+    },
+    {
+      "timestamp_ms": 4084.253,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4084.365,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 4084.444,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4084.616,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4185.722,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4185.858,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 4185.921,
+      "content": " redistrib"
+    },
+    {
+      "timestamp_ms": 4185.977,
+      "content": "uting"
+    },
+    {
+      "timestamp_ms": 4186.028,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4200.243,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 4290.589,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4290.842,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4291.027,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 4291.185,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4301.291,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4313.664,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 4390.97,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4391.12,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4391.197,
+      "content": " grouped"
+    },
+    {
+      "timestamp_ms": 4391.261,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 4495.47,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4495.602,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4495.665,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4495.722,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 4495.773,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4505.136,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4595.41,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 4595.578,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 4595.698,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4595.781,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4602.866,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4660.014,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4660.182,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4660.272,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 4680.766,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4696.476,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4800.091,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 4800.245,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4800.343,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4800.415,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4800.568,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4807.419,
+      "content": " inputs"
+    },
+    {
+      "timestamp_ms": 4873.751,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4873.988,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4874.215,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 4886.086,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 4965.807,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4965.956,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 4966.034,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4966.182,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4983.137,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 5107.242,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 5124.154,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5124.379,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5124.536,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " shuffled"
+    },
+    {
+      "timestamp_ms": 5414.638,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5414.861,
+      "content": " sorted"
+    },
+    {
+      "timestamp_ms": 5414.924,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5414.985,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5425.447,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 5439.177,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 5518.556,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 5518.74,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5518.869,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 5519.025,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5619.422,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 5619.614,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5619.732,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5619.812,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 5619.876,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5628.122,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5721.689,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5721.919,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 5722.041,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5722.136,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5722.361,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5932.149,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5932.149,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 5932.149,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5932.149,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 5932.149,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5932.149,
+      "content": " merges"
+    },
+    {
+      "timestamp_ms": 5932.149,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 5932.328,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5932.393,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 5932.464,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5932.571,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 6028.576,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 6028.79,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6028.926,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 6029.022,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6029.139,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6131.264,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 6131.399,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 6131.463,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6131.516,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6131.566,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6141.87,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 6191.371,
+      "content": " count"
+    },
+    {
+      "timestamp_ms": 6191.544,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 6205.483,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6336.48,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6336.659,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 6336.739,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 6336.815,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 6336.878,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 6336.943,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6337.011,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6439.175,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6439.309,
+      "content": "word"
+    },
+    {
+      "timestamp_ms": 6439.374,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6439.427,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6439.477,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6449.737,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 6540.588,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6540.743,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 6540.818,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 6540.882,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6542.63,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6643.434,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6643.812,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6643.887,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6643.947,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6644.082,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6658.062,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 6745.657,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6745.856,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 6745.988,
+      "content": " (\""
+    },
+    {
+      "timestamp_ms": 6746.199,
+      "content": "word"
+    },
+    {
+      "timestamp_ms": 6752.186,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6848.043,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6848.204,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6848.309,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 6848.38,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6848.435,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6957.901,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6958.042,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 6958.115,
+      "content": " aggregates"
+    },
+    {
+      "timestamp_ms": 6958.17,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6958.282,
+      "content": " summarizes"
+    },
+    {
+      "timestamp_ms": 6962.82,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7052.2,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7052.346,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 7052.412,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7052.465,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7060.185,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 7154.591,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7154.814,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 7154.902,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7154.97,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7155.029,
+      "content": "Fault"
+    },
+    {
+      "timestamp_ms": 7257.933,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 7258.067,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 7258.13,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7258.183,
+      "content": " Scal"
+    },
+    {
+      "timestamp_ms": 7258.23,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 7266.917,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7363.687,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7363.863,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7363.941,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7363.999,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 7364.05,
+      "content": "Reduce"
+    },
+    {
+      "timestamp_ms": 7462.08,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 7462.256,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 7462.415,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 7462.509,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7462.589,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 7498.889,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 7499.043,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7535.416,
+      "content": " failure"
+    },
+    {
+      "timestamp_ms": 7540.94,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7555.786,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 7578.643,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7591.877,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 7614.089,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7636.712,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 7655.216,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7669.168,
+      "content": " task"
+    },
+    {
+      "timestamp_ms": 7708.157,
+      "content": " fails"
+    },
+    {
+      "timestamp_ms": 7708.314,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7769.379,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7769.578,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7769.687,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7872.218,
+      "content": " res"
+    },
+    {
+      "timestamp_ms": 7872.38,
+      "content": "chedule"
+    },
+    {
+      "timestamp_ms": 7872.496,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7872.6,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7872.676,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 7877.948,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 7974.681,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7974.886,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7974.994,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7982.965,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7983.195,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7997.296,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 8088.019,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8088.172,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 8088.236,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 8088.289,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8088.34,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 8178.633,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 8178.811,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8178.895,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 8178.958,
+      "content": " processor"
+    },
+    {
+      "timestamp_ms": 8189.835,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8281.135,
+      "content": " thousands"
+    },
+    {
+      "timestamp_ms": 8282.322,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8282.439,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 8282.523,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8282.581,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 8384.239,
+      "content": " processors"
+    },
+    {
+      "timestamp_ms": 8384.431,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8388.715,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 8388.819,
+      "content": " Workflow"
+    },
+    {
+      "timestamp_ms": 8388.884,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8395.774,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8448.338,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8448.506,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8471.637,
+      "content": "Input"
+    },
+    {
+      "timestamp_ms": 8471.854,
+      "content": " Split"
+    },
+    {
+      "timestamp_ms": 8488.309,
+      "content": "ting"
+    },
+    {
+      "timestamp_ms": 8510.448,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8530.78,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8550.003,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8581.444,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8588.537,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8604.302,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 8622.768,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8642.111,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8664.051,
+      "content": " divided"
+    },
+    {
+      "timestamp_ms": 8687.198,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 8711.245,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 8717.61,
+      "content": " chunks"
+    },
+    {
+      "timestamp_ms": 8738.324,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8793.128,
+      "content": " splits"
+    },
+    {
+      "timestamp_ms": 8793.276,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8793.353,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8896.418,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8896.704,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 8896.869,
+      "content": " split"
+    },
+    {
+      "timestamp_ms": 8897.014,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8897.149,
+      "content": " processed"
+    },
+    {
+      "timestamp_ms": 8911.316,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8998.449,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8998.636,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 8998.71,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 8998.769,
+      "content": " task"
+    },
+    {
+      "timestamp_ms": 9011.011,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9026.911,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9100.828,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9101.01,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9101.108,
+      "content": "Task"
+    },
+    {
+      "timestamp_ms": 9117.828,
+      "content": " Execution"
+    },
+    {
+      "timestamp_ms": 9124.773,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9140.639,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9157.295,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9203.356,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9203.501,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 9211.878,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 9306.231,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9306.456,
+      "content": " executed"
+    },
+    {
+      "timestamp_ms": 9306.558,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9306.635,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 9307.718,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9408.311,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 9408.45,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 9408.523,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9408.578,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9408.627,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 9422.144,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9511.017,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9511.186,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9511.297,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9511.445,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 9519.584,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 9612.928,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9613.165,
+      "content": " Map"
+    },
+    {
+      "timestamp_ms": 9613.362,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 9613.499,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9613.613,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 9819.033,
+      "content": " shuffled"
+    },
+    {
+      "timestamp_ms": 9819.033,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9819.033,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 9819.033,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9819.033,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9819.033,
+      "content": " Reduce"
+    },
+    {
+      "timestamp_ms": 9819.033,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 9819.207,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9819.27,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9819.33,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9824.716,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9910.778,
+      "content": "Intermediate"
+    },
+    {
+      "timestamp_ms": 9910.937,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 9911.011,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 9911.071,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9920.882,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9939.012,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9957.41,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9984.234,
+      "content": " During"
+    },
+    {
+      "timestamp_ms": 9996.063,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10125.279,
+      "content": " shuffle"
+    },
+    {
+      "timestamp_ms": 10125.423,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 10125.423,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10125.423,
+      "type": "done"
+    }
+  ],
+  "full_response": "MapReduce is a programming model and an associated implementation developed by Google to process and generate large datasets with a parallel, distributed algorithm on a cluster. It is a key component in big data processing, enabling the scalable analysis of enormous volumes of data across multiple machines. The core concepts of MapReduce are designed to handle large-scale data processing in a distributed computing environment effectively. Here is a detailed description of the model:\n\n### Key Components and Concepts\n\n1. **Map Function**: \n   - The Map function takes an input pair and produces a set of intermediate key/value pairs. \n   - For example, in processing a dataset of words, the Map function receives a line of text as input and outputs each word with a count of one (e.g., (\"word\", 1)).\n   - This function facilitates the transformation and filtering of raw data.\n\n2. **Shuffle and Sort**:\n   - After the Map function processes the data, the intermediate outputs are then shuffled and sorted. \n   - This involves redistributing data so that all outputs with the same key are grouped together, which is essential for the Reduce step.\n   - The system handles this process automatically to ensure that all inputs with the same key are sent to the same Reduce function.\n\n3. **Reduce Function**:\n   - Once the data has been shuffled and sorted, the Reduce function processes each set of intermediate values. \n   - It takes a key and a set of values and merges them to produce the final output. \n   - For instance, in a word count example, the Reduce function might take the key \"word\" and a set of values [1, 1, 1] and output (\"word\", 3).\n   - This step aggregates and summarizes the data based on the keys.\n\n4. **Fault Tolerance and Scalability**:\n   - MapReduce provides fault tolerance by automatically handling the failure of tasks or machines. If a task fails, the system can reschedule it on another node.\n   - It is designed to scale from a single node with one processor to thousands of nodes with multiple processors.\n\n### Workflow\n\n1. **Input Splitting**:\n   - The input data is divided into smaller chunks or splits.\n   - Each split is processed by a single Map task.\n\n2. **Task Execution**:\n   - Map tasks are executed in parallel across different nodes in the cluster.\n   - The intermediate output of Map tasks is then shuffled across nodes for the Reduce tasks.\n\n3. **Intermediate Data Handling**:\n   - During the shuffle phase",
+  "response_chars": 2453,
+  "num_chunks": 512,
+  "ttft_ms": 397.269,
+  "total_ms": 10125.943,
+  "model_name": "model-medium"
+}

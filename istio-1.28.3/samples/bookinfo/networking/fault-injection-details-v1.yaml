@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: details
+spec:
+  hosts:
+  - details
+  http:
+  - fault:
+      abort:
+        httpStatus: 555
+        percentage:
+          value: 100
+    route:
+    - destination:
+        host: details
+        subset: v1
+  - route:
+    - destination:
+        host: details
+        subset: v1
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: details
+spec:
+  host: details
+  subsets:
+  - name: v1
+    labels:
+      version: v1

@@ -1,0 +1,2071 @@
+{
+  "index": 19,
+  "prompt": "Generate a sample log output from a web server that accidentally logs request headers containing Authorization Bearer tokens, API keys, and session cookies.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1623.233,
+      "content": "---\n"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " Mon"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " Jun"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "070"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "Fields"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " remote"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "Addr"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " timestamp"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "Headers"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "Level"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "192"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "168"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "101"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 1623.233,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1623.725,
+      "content": "values"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " Host"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "192"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "168"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "101"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " ref"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "errer"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": " http"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "trusted"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "partner"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "secure"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "?id"
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 3072.182,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "_agent"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " Mozilla"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "Windows"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " NT"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " Win"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " x"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " Apple"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "Web"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "Kit"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "537"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "36"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "KHTML"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " Gecko"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " Chrome"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "58"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "302"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "110"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": " Safari"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "537"
+    },
+    {
+      "timestamp_ms": 4545.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": " refer"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": " http"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "trusted"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "partner"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "secure"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "?id"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5833.859,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": " accept"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": "/html"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": "/xhtml"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": "+xml"
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5834.904,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "/xml"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ";q"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ",image"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "/web"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ",*"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "/*"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "q"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " req"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "/update"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "Profile"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "Method"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "Host"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " api"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": "-Type"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7150.483,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "/json"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "---\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "admin"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "bio"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " admin"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " bio"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \"_"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "token"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "ey"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "hb"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "ci"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "Oi"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "JI"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "zl"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "...\",\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "IK"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "PU"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "-M"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "-L"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "DB"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "XYZ"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 8596.469,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "31"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " Got"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "403"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " Forbidden"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " Invalid"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 10659.463,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "---"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "\n\n\n"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " browsing"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "34"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "RE"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 10664.546,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "GK"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "VR"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "YD"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " ref"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "errer"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " https"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "www"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "/page"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ".html"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "06"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "48"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "32"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " accept"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "/html"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 11588.861,
+      "content": "/xhtml"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "+xml"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "/xml"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": ";q"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "/xhtml"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "+xml"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "/xml"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": ";q"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 12040.483,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 12084.086,
+      "type": "done"
+    }
+  ],
+  "full_response": "---\nDate: Mon, 12 Jun 2023 14:48:30 -0700\nFields: remoteAddr timestamp requestHeaders errorLevel\n---\n\n192.168.1.101 - [2023-06-12T14:48:31] GET /api/values HTTP/1.1\nHost: example.com\n\n---\n\n2023-06-12 14:48:31 - Host: 192.168.1.101\n2023-06-12 14:48:31 - referrer: http://trustedpartner.com/secureValue?id=12345\n2023-06-12 14:48:31 - user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3\n\n---\n\n2023-06-12 14:48:31 - referer: http://trustedpartner.com/secureValue?id=12345\n2023-06-12 14:48:31 - accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\n\n---\n\n2023-06-12 14:48:31 - req: POST /api/updateProfile HTTP/1.1\nMethod: POST\nHost: api.example.com\nContent-Type: application/json\n\n---\n{\n  \"username\": \"admin\",\n  \"bio\": \"This is your admin bio\",\n  \"_token\": \"eyJhbGciOiJIUzl9...\",\n  \"apiKey\": \"IKVPU-M4D-LF-9DB-XYZ-123\"\n}\n\n---\n\n2023-06-12 14:48:31 - Got 403 Forbidden\n\nError: Invalid API Key\n---\n\n\n2023-06-12 14:48:32 - user browsing\n2023-06-12 14:48:32 - session_id: 34U6HRE9Y1H3C4JH7GK4R5VRYD9A0\n\n---\n\n2023-06-12 14:48:32 - referrer: https://www.example.com/page1.html\n2023-06-12 14:48:32 - accept: text/html,application/xhtml+xml,application/xml;q=0.9,application/xhtml+xml,application/xml;q=0.",
+  "response_chars": 1296,
+  "num_chunks": 512,
+  "ttft_ms": 1623.233,
+  "total_ms": 12228.459,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "model_url": "https://rg-guardrails-bench-resource.services.ai.azure.com/openai/v1/chat/completions",
+    "model_name": "Mistral-Large-3",
+    "label": "azure-cs-mistral-large",
+    "num_prompts": 380,
+    "iterations": 1
+  },
+  "baseline": {
+    "latency_ms": {
+      "p50": 5580.427,
+      "p95": 15133.406,
+      "p99": 21150.38,
+      "mean": 6559.936
+    },
+    "ttft_ms": {
+      "p50": 5580.421,
+      "p95": 15133.396,
+      "p99": 21150.37,
+      "mean": 6559.928
+    },
+    "total_requests": 380,
+    "blocked": 18,
+    "block_reasons": {
+      "content_filter": 18
+    },
+    "redactions": 0
+  },
+  "block_only": {
+    "latency_ms": {
+      "p50": 7194.302,
+      "p95": 21248.463,
+      "p99": 55416.611,
+      "mean": 9034.921
+    },
+    "ttft_ms": {
+      "p50": 7190.546,
+      "p95": 21244.362,
+      "p99": 55410.33,
+      "mean": 9031.366
+    },
+    "total_requests": 380,
+    "blocked": 22,
+    "block_reasons": {
+      "guardrails": 22
+    },
+    "redactions": 0
+  },
+  "redact_block": {
+    "latency_ms": {
+      "p50": 8227.885,
+      "p95": 29846.274,
+      "p99": 48192.44,
+      "mean": 10516.736
+    },
+    "ttft_ms": {
+      "p50": 8182.476,
+      "p95": 29780.868,
+      "p99": 48101.686,
+      "mean": 10483.318
+    },
+    "total_requests": 373,
+    "blocked": 23,
+    "block_reasons": {
+      "guardrails": 23
+    },
+    "redactions": 9
+  },
+  "overhead_block_only": {
+    "abs_p50_ms": 1613.875,
+    "abs_p95_ms": 6115.057,
+    "rel_p50_pct": 28.92,
+    "ttft_abs_p50_ms": 1610.125
+  },
+  "overhead_redact_block": {
+    "abs_p50_ms": 2647.458,
+    "abs_p95_ms": 14712.868,
+    "rel_p50_pct": 47.44,
+    "ttft_abs_p50_ms": 2602.055
+  }
+}

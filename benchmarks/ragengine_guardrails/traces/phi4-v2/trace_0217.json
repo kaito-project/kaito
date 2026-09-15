@@ -1,0 +1,2071 @@
+{
+  "index": 217,
+  "prompt": "Create a sample Slack webhook integration guide that includes the webhook URL with the embedded token, plus example payloads with user mentions and channel IDs.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 286.615,
+      "content": "Creating"
+    },
+    {
+      "timestamp_ms": 288.958,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 388.411,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 388.711,
+      "content": " webhook"
+    },
+    {
+      "timestamp_ms": 388.847,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 388.973,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 389.057,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 401.871,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 462.139,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 462.334,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 462.417,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 593.304,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 593.479,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 593.568,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 593.626,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 593.679,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 593.729,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 593.775,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 695.857,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 696.09,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 696.294,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 696.601,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 696.601,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 707.437,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 809.687,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 809.828,
+      "content": " walk"
+    },
+    {
+      "timestamp_ms": 809.895,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 809.961,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 810.029,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 822.561,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1009.552,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 1009.801,
+      "content": " webhook"
+    },
+    {
+      "timestamp_ms": 1009.946,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1010.021,
+      "content": " crafting"
+    },
+    {
+      "timestamp_ms": 1010.083,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1010.135,
+      "content": " payloads"
+    },
+    {
+      "timestamp_ms": 1010.182,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1010.23,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1010.284,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1011.881,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 1142.04,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1142.298,
+      "content": " incorporate"
+    },
+    {
+      "timestamp_ms": 1142.375,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1142.437,
+      "content": " mentions"
+    },
+    {
+      "timestamp_ms": 1142.491,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1142.548,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 1159.026,
+      "content": " IDs"
+    },
+    {
+      "timestamp_ms": 1181.141,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1183.68,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1317.143,
+      "content": " Step"
+    },
+    {
+      "timestamp_ms": 1317.303,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1317.376,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1317.434,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1317.488,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 1317.537,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1317.585,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 1412.551,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": "Navigate"
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 1514.702,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1514.979,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1527.985,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1617.275,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1617.449,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1617.56,
+      "content": " Open"
+    },
+    {
+      "timestamp_ms": 1617.641,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 1631.865,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1646.853,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1719.647,
+      "content": " website"
+    },
+    {
+      "timestamp_ms": 1719.776,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1719.851,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1720.11,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 1822.566,
+      "content": ".sl"
+    },
+    {
+      "timestamp_ms": 1822.809,
+      "content": "ack"
+    },
+    {
+      "timestamp_ms": 1822.988,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1823.114,
+      "content": "]("
+    },
+    {
+      "timestamp_ms": 1823.22,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 1831.663,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 1924.714,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 1924.878,
+      "content": ".sl"
+    },
+    {
+      "timestamp_ms": 1924.953,
+      "content": "ack"
+    },
+    {
+      "timestamp_ms": 1925.013,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2027.034,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2027.034,
+      "content": ")\n\n"
+    },
+    {
+      "timestamp_ms": 2027.182,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2027.245,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2027.296,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2029.92,
+      "content": "Create"
+    },
+    {
+      "timestamp_ms": 2042.698,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2061.817,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 2089.486,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 2099.804,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2231.826,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2231.963,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2232.029,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2232.085,
+      "content": " Click"
+    },
+    {
+      "timestamp_ms": 2232.134,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2232.184,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2242.943,
+      "content": "Create"
+    },
+    {
+      "timestamp_ms": 2255.778,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 2334.017,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 2334.177,
+      "content": "\".\n"
+    },
+    {
+      "timestamp_ms": 2334.256,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2334.382,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2347.273,
+      "content": " Enter"
+    },
+    {
+      "timestamp_ms": 2369.882,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2436.578,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 2436.758,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 2436.888,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2442.462,
+      "content": " select"
+    },
+    {
+      "timestamp_ms": 2538.825,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2539.031,
+      "content": " Workspace"
+    },
+    {
+      "timestamp_ms": 2539.281,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2539.392,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2539.481,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2641.401,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2641.574,
+      "content": "Enable"
+    },
+    {
+      "timestamp_ms": 2641.651,
+      "content": " Incoming"
+    },
+    {
+      "timestamp_ms": 2641.719,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 2641.779,
+      "content": "hooks"
+    },
+    {
+      "timestamp_ms": 2653.205,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2678.265,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2743.816,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2743.971,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2744.052,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 2747.055,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2846.177,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2846.407,
+      "content": "Add"
+    },
+    {
+      "timestamp_ms": 2846.606,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 2846.719,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2847.715,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 2863.452,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2954.116,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2954.379,
+      "content": " choose"
+    },
+    {
+      "timestamp_ms": 2954.499,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2957.259,
+      "content": "Incoming"
+    },
+    {
+      "timestamp_ms": 2959.83,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 2976.435,
+      "content": "hooks"
+    },
+    {
+      "timestamp_ms": 3050.573,
+      "content": "\".\n"
+    },
+    {
+      "timestamp_ms": 3050.726,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3050.804,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3052.636,
+      "content": " Toggle"
+    },
+    {
+      "timestamp_ms": 3081.508,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3111.472,
+      "content": " switch"
+    },
+    {
+      "timestamp_ms": 3124.486,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3133.119,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3149.318,
+      "content": " activate"
+    },
+    {
+      "timestamp_ms": 3174.224,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 3185.631,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 3206.792,
+      "content": "hooks"
+    },
+    {
+      "timestamp_ms": 3263.186,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3263.469,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3263.875,
+      "content": " Step"
+    },
+    {
+      "timestamp_ms": 3279.988,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3299.551,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3318.782,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3338.455,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 3461.708,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3461.874,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 3461.99,
+      "content": "hook"
+    },
+    {
+      "timestamp_ms": 3462.077,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 3462.148,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3462.202,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3470.563,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3523.536,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3523.683,
+      "content": "Add"
+    },
+    {
+      "timestamp_ms": 3532.555,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 3548.084,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 3665.523,
+      "content": "hook"
+    },
+    {
+      "timestamp_ms": 3665.662,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3665.729,
+      "content": " Workspace"
+    },
+    {
+      "timestamp_ms": 3665.781,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3665.829,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3665.881,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3679.563,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3767.528,
+      "content": " Click"
+    },
+    {
+      "timestamp_ms": 3767.66,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3767.726,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3767.781,
+      "content": "Add"
+    },
+    {
+      "timestamp_ms": 3774.944,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 3871.821,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 3871.965,
+      "content": "hook"
+    },
+    {
+      "timestamp_ms": 3872.04,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3872.111,
+      "content": " Workspace"
+    },
+    {
+      "timestamp_ms": 3872.272,
+      "content": "\".\n"
+    },
+    {
+      "timestamp_ms": 3973.905,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3974.115,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3974.269,
+      "content": " Choose"
+    },
+    {
+      "timestamp_ms": 3974.38,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3974.452,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 3985.871,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4074.778,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 4074.968,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4075.057,
+      "content": " post"
+    },
+    {
+      "timestamp_ms": 4075.124,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4100.699,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4105.423,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 4140.667,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4140.889,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 4158.623,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 4284.999,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4285.212,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4285.3,
+      "content": " post"
+    },
+    {
+      "timestamp_ms": 4285.384,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4285.471,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4285.634,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 4293.092,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4381.736,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4381.736,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4381.892,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4381.955,
+      "content": "Copy"
+    },
+    {
+      "timestamp_ms": 4386.751,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 4407.105,
+      "content": "hook"
+    },
+    {
+      "timestamp_ms": 4485.23,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 4485.396,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4485.507,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4485.573,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4500.105,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4586.673,
+      "content": " After"
+    },
+    {
+      "timestamp_ms": 4586.872,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 4594.517,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4594.517,
+      "content": " approved"
+    },
+    {
+      "timestamp_ms": 4594.742,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4690.08,
+      "content": " copy"
+    },
+    {
+      "timestamp_ms": 4690.267,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4690.39,
+      "content": " webhook"
+    },
+    {
+      "timestamp_ms": 4690.506,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 4698.938,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 4710.399,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4732.569,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4807.781,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4808.121,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4808.287,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 4808.423,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4867.546,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 4867.685,
+      "content": " looks"
+    },
+    {
+      "timestamp_ms": 4867.749,
+      "content": " something"
+    },
+    {
+      "timestamp_ms": 4882.983,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 4996.746,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4996.957,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 4997.064,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 4997.147,
+      "content": "hooks"
+    },
+    {
+      "timestamp_ms": 4997.202,
+      "content": ".sl"
+    },
+    {
+      "timestamp_ms": 4997.251,
+      "content": "ack"
+    },
+    {
+      "timestamp_ms": 5015.855,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5100.449,
+      "content": "/services"
+    },
+    {
+      "timestamp_ms": 5100.634,
+      "content": "/T"
+    },
+    {
+      "timestamp_ms": 5100.706,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 5100.79,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 5110.692,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5201.476,
+      "content": "/B"
+    },
+    {
+      "timestamp_ms": 5201.608,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 5201.673,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 5201.728,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 5207.423,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5303.647,
+      "content": "XXXXXXXX"
+    },
+    {
+      "timestamp_ms": 5303.945,
+      "content": "XXXXXXXX"
+    },
+    {
+      "timestamp_ms": 5304.297,
+      "content": "XXXXXXXX"
+    },
+    {
+      "timestamp_ms": 5304.446,
+      "content": "`.\n\n"
+    },
+    {
+      "timestamp_ms": 5304.55,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5319.762,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 5340.415,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 5405.968,
+      "content": "hook"
+    },
+    {
+      "timestamp_ms": 5406.1,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 5406.168,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5415.668,
+      "content": " Embedded"
+    },
+    {
+      "timestamp_ms": 5508.754,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 5508.937,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5509.03,
+      "content": "Normally"
+    },
+    {
+      "timestamp_ms": 5509.245,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5527.037,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5534.392,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 5549.043,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5611.352,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5611.493,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5611.572,
+      "content": " embedded"
+    },
+    {
+      "timestamp_ms": 5713.276,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 5718.214,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5718.485,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5718.662,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 5718.789,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5722.825,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5739.892,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 5817.882,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5818.034,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 5818.115,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5818.171,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5835.142,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5918.814,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 5918.996,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5919.237,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 5919.347,
+      "content": "-side"
+    },
+    {
+      "timestamp_ms": 6020.865,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6024.921,
+      "content": " attach"
+    },
+    {
+      "timestamp_ms": 6025.018,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6025.08,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6025.133,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 6025.183,
+      "content": " programm"
+    },
+    {
+      "timestamp_ms": 6123.225,
+      "content": "atically"
+    },
+    {
+      "timestamp_ms": 6123.417,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6123.503,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 6123.571,
+      "content": " educational"
+    },
+    {
+      "timestamp_ms": 6123.638,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 6225.656,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6225.886,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 6226.032,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6226.178,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 6226.294,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6234.824,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 6327.919,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6328.052,
+      "content": " embedded"
+    },
+    {
+      "timestamp_ms": 6328.116,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6328.2,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6335.508,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 6543.34,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6543.34,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6543.34,
+      "content": "plaintext"
+    },
+    {
+      "timestamp_ms": 6543.34,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6543.34,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 6543.34,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 6543.551,
+      "content": "hooks"
+    },
+    {
+      "timestamp_ms": 6543.628,
+      "content": ".sl"
+    },
+    {
+      "timestamp_ms": 6543.692,
+      "content": "ack"
+    },
+    {
+      "timestamp_ms": 6543.751,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 6552.315,
+      "content": "/services"
+    },
+    {
+      "timestamp_ms": 6561.172,
+      "content": "/T"
+    },
+    {
+      "timestamp_ms": 6586.023,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 6634.787,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 6634.958,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 6635.033,
+      "content": "/B"
+    },
+    {
+      "timestamp_ms": 6679.058,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 6679.536,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 6737.619,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 6737.795,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 6737.875,
+      "content": "XXXXXXXX"
+    },
+    {
+      "timestamp_ms": 6750.221,
+      "content": "XXXXXXXX"
+    },
+    {
+      "timestamp_ms": 6839.935,
+      "content": "XXXXXXXX"
+    },
+    {
+      "timestamp_ms": 6840.105,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6840.192,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6840.261,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6844.834,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6944.598,
+      "content": " Step"
+    },
+    {
+      "timestamp_ms": 6944.88,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6944.979,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6945.195,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6945.277,
+      "content": " Crafting"
+    },
+    {
+      "timestamp_ms": 6959.439,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 7059.768,
+      "content": " Payload"
+    },
+    {
+      "timestamp_ms": 7059.906,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7059.97,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7060.024,
+      "content": "Below"
+    },
+    {
+      "timestamp_ms": 7060.074,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7077.837,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 7147.293,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 7147.508,
+      "content": " payloads"
+    },
+    {
+      "timestamp_ms": 7147.596,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7159.514,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 7170.312,
+      "content": " mentions"
+    },
+    {
+      "timestamp_ms": 7258.724,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7258.889,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 7258.974,
+      "content": " IDs"
+    },
+    {
+      "timestamp_ms": 7259.067,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7270.479,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7286.697,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 7322.37,
+      "content": " webhook"
+    },
+    {
+      "timestamp_ms": 7322.817,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7370.84,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 7370.84,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 7381.315,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7424.227,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7424.38,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7438.685,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 7456.376,
+      "content": " Message"
+    },
+    {
+      "timestamp_ms": 7552.806,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7552.971,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 7553.04,
+      "content": " Mention"
+    },
+    {
+      "timestamp_ms": 7553.096,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7553.146,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 7571.395,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 7590.191,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7610.074,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 7667.684,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7667.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7667.882,
+      "content": "channel"
+    },
+    {
+      "timestamp_ms": 7762.882,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7763.018,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7763.081,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 7763.133,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 7764.063,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 7834.248,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 7834.392,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 7834.466,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7836.882,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7881.829,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7881.975,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 7895.098,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7913.544,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7966.918,
+      "content": "Hello"
+    },
+    {
+      "timestamp_ms": 7967.098,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 7973.371,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 8068.838,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 8077.474,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 8077.589,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 8077.668,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 8077.749,
+      "content": "78"
+    },
+    {
+      "timestamp_ms": 8084.782,
+      "content": ">"
+    },
+    {
+      "timestamp_ms": 8116.205,
+      "content": "!\",\n"
+    },
+    {
+      "timestamp_ms": 8127.835,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8144.082,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8236.63,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 8236.848,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8236.929,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8237.001,
+      "content": "web"
+    },
+    {
+      "timestamp_ms": 8243.296,
+      "content": "hook"
+    },
+    {
+      "timestamp_ms": 8258.521,
+      "content": "bot"
+    },
+    {
+      "timestamp_ms": 8376.129,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8376.334,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8376.512,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8376.592,
+      "content": "icon"
+    },
+    {
+      "timestamp_ms": 8376.655,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 8376.711,
+      "content": "emoji"
+    },
+    {
+      "timestamp_ms": 8436.492,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8436.72,
+      "content": " \":"
+    },
+    {
+      "timestamp_ms": 8436.861,
+      "content": "robot"
+    },
+    {
+      "timestamp_ms": 8478.223,
+      "content": "_face"
+    },
+    {
+      "timestamp_ms": 8478.394,
+      "content": ":\"\n"
+    },
+    {
+      "timestamp_ms": 8485.158,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 8583.236,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 8583.403,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8583.487,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8583.613,
+      "content": "Break"
+    },
+    {
+      "timestamp_ms": 8583.723,
+      "content": "down"
+    },
+    {
+      "timestamp_ms": 8673.454,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8673.621,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8673.701,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8673.76,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8679.043,
+      "content": "channel"
+    },
+    {
+      "timestamp_ms": 8808.309,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 8808.487,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8808.573,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 8808.632,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 8808.683,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8808.734,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 8816.511,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8887.727,
+      "content": " want"
+    },
+    {
+      "timestamp_ms": 8887.863,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8887.928,
+      "content": " send"
+    },
+    {
+      "timestamp_ms": 8887.987,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8950.861,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 8951.012,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8951.1,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8997.517,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8997.735,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 9002.859,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 9020.351,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9040.263,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 9061.961,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 9077.927,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 9211.237,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9211.371,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9211.435,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 9211.49,
+      "content": " mentioned"
+    },
+    {
+      "timestamp_ms": 9211.538,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 9211.583,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9226.596,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 9229.72,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 9308.492,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9308.707,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9308.848,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9308.989,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 9399.922,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9400.136,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 9400.223,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 9400.307,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 9403.474,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 9422.877,
+      "content": "78"
+    },
+    {
+      "timestamp_ms": 9516.949,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9517.322,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 9517.46,
+      "content": " `<"
+    },
+    {
+      "timestamp_ms": 9517.551,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 9526.818,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 9535.332,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 9604.74,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 9604.938,
+      "content": "78"
+    },
+    {
+      "timestamp_ms": 9605.03,
+      "content": ">`"
+    },
+    {
+      "timestamp_ms": 9613.348,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9707.587,
+      "content": " Slack"
+    },
+    {
+      "timestamp_ms": 9707.747,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 9707.9,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9707.978,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9708.044,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 9730.85,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 9747.623,
+      "content": " Custom"
+    },
+    {
+      "timestamp_ms": 9810.538,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 9810.69,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9810.849,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9822.202,
+      "content": " bot"
+    },
+    {
+      "timestamp_ms": 9846.295,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9863.076,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 9882.416,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 9898.76,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9925.545,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 10018.229,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10018.229,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10018.499,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 10018.649,
+      "content": "icon"
+    },
+    {
+      "timestamp_ms": 10018.803,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 10018.803,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10018.929,
+      "type": "done"
+    }
+  ],
+  "full_response": "Creating a Slack webhook integration involves setting up a mechanism to send data from an external application to a Slack channel. This guide will walk you through creating a Slack webhook, crafting example payloads, and using them to incorporate user mentions and channel IDs.\n\n### Step 1: Create a Slack App\n\n1. **Navigate to Slack API**:\n   - Open Slack's API website: [api.slack.com](https://api.slack.com/)\n\n2. **Create a New App**:\n   - Click on \"Create New App\".\n   - Enter the App name and select your Workspace.\n\n3. **Enable Incoming Webhooks**:\n   - Go to \"Add features and functionality\" and choose \"Incoming Webhooks\".\n   - Toggle the switch on to activate incoming webhooks.\n\n### Step 2: Create a Webhook URL\n\n1. **Add New Webhook to Workspace**:\n   - Click on \"Add New Webhook to Workspace\".\n   - Choose which channel the app can post to. You can also allow it to post to any channel.\n\n2. **Copy Webhook URL**:\n   - After permissions are approved, copy the webhook URL provided.\n   - **Note**: It looks something like `https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX`.\n\n### Sample Webhook URL with Embedded Token\nNormally, the token should not be embedded directly in the URL for security purposes. Instead, you should keep it server-side and attach it as needed programmatically.\n\nFor educational purposes, here's how the token is embedded in a URL:\n```plaintext\nhttps://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX\n```\n\n### Step 3: Crafting Example Payloads\n\nBelow are example JSON payloads using user mentions and channel IDs in the Slack webhook.\n\n#### Example 1: Basic Message with User Mention\n\n```json\n{\n  \"channel\": \"C1234567890\",\n  \"text\": \"Hello there <@U12345678>!\",\n  \"username\": \"webhookbot\",\n  \"icon_emoji\": \":robot_face:\"\n}\n```\n\n**Breakdown**:\n- `channel`: The channel ID to which you want to send the message.\n- `text`: The text message content with a user mentioned using their User ID (e.g., `@U12345678` becomes `<@U12345678>` in Slack).\n- `username`: Custom name of the bot or application sending the message.\n- `icon_",
+  "response_chars": 2107,
+  "num_chunks": 512,
+  "ttft_ms": 286.615,
+  "total_ms": 10026.053,
+  "model_name": "model-medium"
+}

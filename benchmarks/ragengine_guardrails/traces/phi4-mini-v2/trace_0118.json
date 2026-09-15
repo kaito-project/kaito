@@ -1,0 +1,1475 @@
+{
+  "index": 118,
+  "prompt": "Create a sample configuration file for a web application that includes database connection strings with username and password, API keys for Stripe and SendGrid, and an AWS secret access key.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 973.081,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " hypothetical"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " named"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": "config"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 973.081,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " strings"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " Stripe"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " Send"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": "Grid"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1478.534,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " passwords"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " kept"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": "Remember"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2021.521,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " checked"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " keeps"
+    },
+    {
+      "timestamp_ms": 2521.84,
+      "content": " things"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " straightforward"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " demonstration"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "connection"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "String"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "_connection"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "_string"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 3231.646,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "_username"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4061.296,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "stripe"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "_str"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "ipe"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "send"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4064.742,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "_send"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "secret"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4562.816,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": "Before"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 4959.812,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " placeholders"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_connection"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_string"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_username"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 5500.354,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " Keeping"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " paramount"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " Util"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": "ise"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " vault"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 6089.116,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " say"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 6521.617,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 6700.933,
+      "content": " parse"
+    },
+    {
+      "timestamp_ms": 6700.933,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6700.933,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 6700.933,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 6700.933,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6700.933,
+      "content": " utilize"
+    },
+    {
+      "timestamp_ms": 6700.933,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " Ensure"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": "never"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " expose"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " repositories"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": "If"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " you're"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 7213.342,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " vary"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " slightly"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " concept"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " extract"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7845.321,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " safely"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " Always"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " explore"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " applicable"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8135.637,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8146.926,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample configuration for a hypothetical web application. This configuration file is named `config.json` and includes database connection strings, API keys for Stripe and SendGrid, along with an AWS secret access key. When creating a configuration file, it's crucial to ensure that sensitive information like passwords, API keys, and secret access keys are kept secure.\n\nRemember, in production, it's recommended to use environment variables for such sensitive information instead of including them directly in configuration files that are checked into source control. This example keeps things straightforward for demonstration purposes.\n\n```json\n{\n  \"database\": {\n    \"connectionString\": \"your_database_connection_string_here\",\n    \"username\": \"your_database_username\",\n    \"password\": \"your_database_password\"\n  },\n services\": {\n    \"stripe\": \"your_stripe_api_key_here\",\n    \"sendgrid\": \"your_sendgrid_api_key_here\"\n  },\n  \"aws\": {\n    \"secretAccessKey\": \"your_aws_secret_access_key_here\"\n  }\n}\n```\n\nBefore using this configuration, make sure to replace placeholders like `your_database_connection_string_here`, `your_database_username`, `your_database_password`, etc., with your actual credentials and keys. Keeping these credentials secure is paramount. Utilise secure vaults, environment variables or AWS Secrets Manager in production environments for better security practices.\n\nTo use this JSON configuration in, say, a Node.js application, you would typically parse this JSON file and utilize these configurations where needed. Ensure you **never expose this JSON file** in your version control or public repositories.\n\nIf you're using another programming language, the approach might vary slightly, but the concept remains the same: load this configuration file and extract the necessary credentials and keys safely. Always explore the best security practices applicable in your development and production environments.",
+  "response_chars": 1950,
+  "num_chunks": 363,
+  "ttft_ms": 973.081,
+  "total_ms": 8339.222,
+  "model_name": "Phi-4-mini-instruct"
+}

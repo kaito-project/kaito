@@ -1,0 +1,679 @@
+{
+  "index": 173,
+  "prompt": "Create a JSON API response for a product catalog with 3 products, each having: id, name, price, description, category, and tags array.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 8650.292,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": "'s a JSON"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": " response for a"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": " product catalog with "
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": "3 products, each"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": " the requested"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": " fields:\n\n```json"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": "\n{\n  \""
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": "status"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": "\": \"success"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": "\",\n  \"message"
+    },
+    {
+      "timestamp_ms": 8650.292,
+      "content": "\": \"Products"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": " retrieved"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": " successfully\",\n  \""
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "data\": {\n"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "    \"products\":"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": " [\n      {\n"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "        \"id\":"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "prod_"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "001\",\n"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "        \"name\":"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": " \"Wire"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "less Bluetooth Head"
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "phones\",\n        \""
+    },
+    {
+      "timestamp_ms": 9430.98,
+      "content": "price\": "
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "9.99"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": ",\n        \"description"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "\": \"Prem"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "ium noise"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "-canc"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "elling wireless"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": " headphones with "
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "30-hour"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": " battery life"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": " and built"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "-in microphone"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": " crystal"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "-c"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": "lear calls"
+    },
+    {
+      "timestamp_ms": 10545.339,
+      "content": ".\",\n        \"category"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "\": \"Elect"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "ronics\",\n       "
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": " \"tags\": [\""
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "audio"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "\", \"wire"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "less\", \"bl"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "uetooth\", \"no"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "ise"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "-cancelling\","
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": " \"head"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "phones\"]\n      },\n"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "      {\n        \""
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "id\": \"prod"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "_0"
+    },
+    {
+      "timestamp_ms": 11265.104,
+      "content": "02\",\n       "
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": " \"name\": \""
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": "Organic Cotton"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": "-Shirt\",\n       "
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": " \"price"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": "\": 2"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": "4.99"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": ",\n        \"description"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": "\": \"Com"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": "fortable and"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": " eco-friendly 1"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": "00% organic"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": " cotton"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": " t-shirt available"
+    },
+    {
+      "timestamp_ms": 12069.632,
+      "content": " in multiple"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": " colors"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": ". Perfect"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": " for casual"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": " wear"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "        \"category\":"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": " \"App"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "arel\",\n        \""
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "tags\": [\"organic"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "\", \"cot"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "ton\", \"t"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "-shirt\", \"eco"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "-friendly"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "\", \"cas"
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": "ual\"]\n     "
+    },
+    {
+      "timestamp_ms": 14151.119,
+      "content": " },\n      {\n       "
+    },
+    {
+      "timestamp_ms": 14151.44,
+      "content": " \"id\": \""
+    },
+    {
+      "timestamp_ms": 14151.44,
+      "content": "prod_00"
+    },
+    {
+      "timestamp_ms": 14151.44,
+      "content": "3\",\n        \""
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "name\": \"St"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "ainless"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": " Steel Water"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": " Bottle\",\n       "
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": " \"price"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "\": 1"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "9.95"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": ",\n        \"description"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "\": \"Dur"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "able "
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "24"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": "oz"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": " insulated"
+    },
+    {
+      "timestamp_ms": 14151.564,
+      "content": " water bottle that"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": " keeps drinks"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": " cold for 2"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "4 hours or"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": " hot for "
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "12 hours."
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "PA"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "-free and"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": " leak-proof.\",\n"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "        \"category"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "\": \"Access"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "ories\",\n        \""
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "tags\": [\"hyd"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "ration\", \"st"
+    },
+    {
+      "timestamp_ms": 14349.633,
+      "content": "ainless"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": " steel"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": "\", \"ins"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": "ulated\", \"eco"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": "-friendly\", \"re"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": "usable\"]\n     "
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": " }\n    ],\n"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": "    \"count\":"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": " 3\n"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": "  }\n"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": "}\n```\n\nThis"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": ":\n1. A"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": " status field indicating"
+    },
+    {
+      "timestamp_ms": 14970.706,
+      "content": " success\n2."
+    },
+    {
+      "timestamp_ms": 15154.251,
+      "content": " A message describing"
+    },
+    {
+      "timestamp_ms": 15154.251,
+      "content": " the response\n3"
+    },
+    {
+      "timestamp_ms": 15154.251,
+      "content": ". A data object"
+    },
+    {
+      "timestamp_ms": 15154.251,
+      "content": " containing:\n"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": "   - An array"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": " of products (3"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": " this case"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": ")\n   - Each"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": " product has"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": " all requested"
+    },
+    {
+      "timestamp_ms": 15497.434,
+      "content": " fields ("
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": "id, name,"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " price, description"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": ", category"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": ", and tags array"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": ")\n   - A"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " count of total"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " products\n"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": "4. Each"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " product has "
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": "5 relevant"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " tags in"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " tags"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "content": " array"
+    },
+    {
+      "timestamp_ms": 16098.682,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 16179.964,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a JSON API response for a product catalog with 3 products, each including the requested fields:\n\n```json\n{\n  \"status\": \"success\",\n  \"message\": \"Products retrieved successfully\",\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"prod_001\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"price\": 59.99,\n        \"description\": \"Premium noise-cancelling wireless headphones with 30-hour battery life and built-in microphone for crystal-clear calls.\",\n        \"category\": \"Electronics\",\n        \"tags\": [\"audio\", \"wireless\", \"bluetooth\", \"noise-cancelling\", \"headphones\"]\n      },\n      {\n        \"id\": \"prod_002\",\n        \"name\": \"Organic Cotton T-Shirt\",\n        \"price\": 24.99,\n        \"description\": \"Comfortable and eco-friendly 100% organic cotton t-shirt available in multiple colors. Perfect for casual wear.\",\n        \"category\": \"Apparel\",\n        \"tags\": [\"organic\", \"cotton\", \"t-shirt\", \"eco-friendly\", \"casual\"]\n      },\n      {\n        \"id\": \"prod_003\",\n        \"name\": \"Stainless Steel Water Bottle\",\n        \"price\": 19.95,\n        \"description\": \"Durable 24oz insulated water bottle that keeps drinks cold for 24 hours or hot for 12 hours. BPA-free and leak-proof.\",\n        \"category\": \"Accessories\",\n        \"tags\": [\"hydration\", \"stainless steel\", \"insulated\", \"eco-friendly\", \"reusable\"]\n      }\n    ],\n    \"count\": 3\n  }\n}\n```\n\nThis response includes:\n1. A status field indicating success\n2. A message describing the response\n3. A data object containing:\n   - An array of products (3 in this case)\n   - Each product has all requested fields (id, name, price, description, category, and tags array)\n   - A count of total products\n4. Each product has 5 relevant tags in its tags array",
+  "response_chars": 1720,
+  "num_chunks": 164,
+  "ttft_ms": 8650.292,
+  "total_ms": 16287.41,
+  "model_name": "Mistral-Large-3"
+}

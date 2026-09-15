@@ -1,0 +1,831 @@
+{
+  "index": 96,
+  "prompt": "Generate a sample monitoring dashboard configuration that includes datasource connection strings with embedded credentials for Prometheus, Grafana, and InfluxDB.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 813.301,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " emphasize"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " that embedding"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " credentials directly"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " in configuration"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " files is"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " a security"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " risk and"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " practice. Cred"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": "entials should be managed"
+    },
+    {
+      "timestamp_ms": 813.301,
+      "content": " securely using"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " variables, secret management"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " (like Hash"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": "iCor"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": "p Vault"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": ", AWS"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " Secrets Manager, or"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " Kubernetes Secrets),"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " or configuration"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 1135.627,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": "However"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": ", for"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " demonstration"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " testing purposes in"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " a **non-production"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " environment**, below"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " is a sample"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " dashboard"
+    },
+    {
+      "timestamp_ms": 1526.918,
+      "content": " configuration with embedded"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": " example includes:\n\n1"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": ". **Prom"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "etheus** (sc"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "rap"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "ing metrics"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": ")\n2. **"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "Grafana**"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": " (visual"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "ization)\n3."
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": " **Infl"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "uxDB** ("
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": "time-series"
+    },
+    {
+      "timestamp_ms": 1925.827,
+      "content": " database)\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": " **1. Prom"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "etheus Configuration"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": " (`prometheus.yml"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "`)**\n```yaml"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "\nglobal"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": ":\n  scrape"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "_interval: 1"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "5s\n "
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": " evaluation"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "_interval: 1"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "5s\n\nsc"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "rape_configs"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": ":\n  - job"
+    },
+    {
+      "timestamp_ms": 2346.535,
+      "content": "_name: \""
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "prometheus\"\n   "
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": " static_config"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "s:\n      -"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": " targets: [\""
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "localhost:9"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "090\"]\n\n"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "  - job"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "_name: \"node"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "_ex"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "porter\"\n    static"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "_configs:\n     "
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": " - targets: [\""
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": "localhost"
+    },
+    {
+      "timestamp_ms": 2756.681,
+      "content": ":91"
+    },
+    {
+      "timestamp_ms": 2960.363,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 2960.363,
+      "content": "\"]\n\n  -"
+    },
+    {
+      "timestamp_ms": 2960.363,
+      "content": " job_name: \""
+    },
+    {
+      "timestamp_ms": 2960.363,
+      "content": "influxdb"
+    },
+    {
+      "timestamp_ms": 2960.363,
+      "content": "\"\n    static"
+    },
+    {
+      "timestamp_ms": 2960.363,
+      "content": "_configs:\n     "
+    },
+    {
+      "timestamp_ms": 2960.363,
+      "content": " - targets: [\""
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": "localhost:8"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": "086"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": "\"]\n    metrics"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": "_path"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": " \"/metrics"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": "\"\n    basic"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": "_auth"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": ":\n      username"
+    },
+    {
+      "timestamp_ms": 3062.917,
+      "content": ": \"admin"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "      password: \""
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "secure_password_"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "123\""
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "  #"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": " ⚠"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "️ Never"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": " this in production!\n"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "```\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "2. Graf"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "ana Configuration (`graf"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "ana.ini"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "`)**\n```ini"
+    },
+    {
+      "timestamp_ms": 3341.475,
+      "content": "\n[server"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "]\nhttp"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "_port"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": " = "
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "3000"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "root_url"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": " = %("
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "protocol"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": ")s://"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "%(domain"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": ")s:%"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "http"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "_port)s/g"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "rafana/\n\n"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "auth"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "anonymous]\nenabled"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": " = true\n"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "org"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "_name = \"Main"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": " Org"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "org_role = \""
+    },
+    {
+      "timestamp_ms": 3786.639,
+      "content": "Viewer\"\n\n[d"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "atasources"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "]\n#"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": " Prometheus D"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "atasource\n[["
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "datas"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "ources]]\n"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "name ="
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": " \"Prom"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "etheus\"\ntype"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": " \"prometheus\"\n"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "url = \"http"
+    },
+    {
+      "timestamp_ms": 4086.823,
+      "content": "://localhost:9"
+    },
+    {
+      "timestamp_ms": 4201.419,
+      "content": "090\"\n"
+    },
+    {
+      "timestamp_ms": 4201.419,
+      "content": "access"
+    },
+    {
+      "timestamp_ms": 4201.419,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4201.419,
+      "content": " \"proxy"
+    },
+    {
+      "timestamp_ms": 4201.419,
+      "content": "\"\nbasic"
+    },
+    {
+      "timestamp_ms": 4201.419,
+      "content": "Auth"
+    },
+    {
+      "timestamp_ms": 4201.419,
+      "content": " = false"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "# Infl"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "uxDB D"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "atasource\n[["
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "datasources"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "]]\n"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": " = \"Infl"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "uxDB\"\ntype"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": " = \"infl"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "uxdb\"\nurl"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": " = \"http"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "://localhost:8"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "086\"\n"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "access"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": " \"proxy\"\ndatabase"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": " = \"te"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "leg"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "raf"
+    },
+    {
+      "timestamp_ms": 4496.851,
+      "content": "\"\nuser = \""
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "admin\"\npassword ="
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": " \"insecure_password"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "_123"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "\"  #"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": " ⚠"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "️ Never"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": " this in production!\n"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "```\n\n"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "---\n\n### **3"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": ". Infl"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "uxDB Configuration (`"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "influxdb.conf"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "`)**\n```tom"
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "l\n["
+    },
+    {
+      "timestamp_ms": 4822.382,
+      "content": "meta"
+    },
+    {
+      "timestamp_ms": 4829.344,
+      "content": "]\n "
+    },
+    {
+      "timestamp_ms": 4829.344,
+      "content": " dir ="
+    },
+    {
+      "timestamp_ms": 4829.344,
+      "content": " \"/var"
+    },
+    {
+      "timestamp_ms": 4829.344,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4909.418,
+      "type": "done"
+    }
+  ],
+  "full_response": "I must emphasize that embedding credentials directly in configuration files is a security risk and not a best practice. Credentials should be managed securely using environment variables, secret management tools (like HashiCorp Vault, AWS Secrets Manager, or Kubernetes Secrets), or configuration management systems.\n\nHowever, for demonstration or testing purposes in a **non-production environment**, below is a sample monitoring dashboard configuration with embedded credentials. This example includes:\n\n1. **Prometheus** (scraping metrics)\n2. **Grafana** (visualization)\n3. **InfluxDB** (time-series database)\n\n---\n\n### **1. Prometheus Configuration (`prometheus.yml`)**\n```yaml\nglobal:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n\nscrape_configs:\n  - job_name: \"prometheus\"\n    static_configs:\n      - targets: [\"localhost:9090\"]\n\n  - job_name: \"node_exporter\"\n    static_configs:\n      - targets: [\"localhost:9100\"]\n\n  - job_name: \"influxdb\"\n    static_configs:\n      - targets: [\"localhost:8086\"]\n    metrics_path: \"/metrics\"\n    basic_auth:\n      username: \"admin\"\n      password: \"insecure_password_123\"  # ⚠️ Never do this in production!\n```\n\n---\n\n### **2. Grafana Configuration (`grafana.ini`)**\n```ini\n[server]\nhttp_port = 3000\nroot_url = %(protocol)s://%(domain)s:%(http_port)s/grafana/\n\n[auth.anonymous]\nenabled = true\norg_name = \"Main Org.\"\norg_role = \"Viewer\"\n\n[datasources]\n# Prometheus Datasource\n[[datasources]]\nname = \"Prometheus\"\ntype = \"prometheus\"\nurl = \"http://localhost:9090\"\naccess = \"proxy\"\nbasicAuth = false\n\n# InfluxDB Datasource\n[[datasources]]\nname = \"InfluxDB\"\ntype = \"influxdb\"\nurl = \"http://localhost:8086\"\naccess = \"proxy\"\ndatabase = \"telegraf\"\nuser = \"admin\"\npassword = \"insecure_password_123\"  # ⚠️ Never do this in production!\n```\n\n---\n\n### **3. InfluxDB Configuration (`influxdb.conf`)**\n```toml\n[meta]\n  dir = \"/var",
+  "response_chars": 1860,
+  "num_chunks": 202,
+  "ttft_ms": 813.301,
+  "total_ms": 5114.595,
+  "model_name": "Mistral-Large-3"
+}

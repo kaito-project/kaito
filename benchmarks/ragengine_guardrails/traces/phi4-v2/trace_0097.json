@@ -1,0 +1,2071 @@
+{
+  "index": 97,
+  "prompt": "What are the main types of software testing and when should each be used?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 398.464,
+      "content": "Software"
+    },
+    {
+      "timestamp_ms": 398.619,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 398.689,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 398.742,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 410.415,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 410.639,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 420.628,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 420.783,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 464.24,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 475.402,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 475.544,
+      "content": " lifecycle"
+    },
+    {
+      "timestamp_ms": 493.924,
+      "content": " aimed"
+    },
+    {
+      "timestamp_ms": 546.089,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 546.277,
+      "content": " identifying"
+    },
+    {
+      "timestamp_ms": 549.638,
+      "content": " bugs"
+    },
+    {
+      "timestamp_ms": 568.438,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 675.946,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 676.323,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 676.547,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 676.695,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 676.817,
+      "content": " verifying"
+    },
+    {
+      "timestamp_ms": 682.235,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 724.01,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 724.158,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 771.968,
+      "content": " meets"
+    },
+    {
+      "timestamp_ms": 772.195,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 777.584,
+      "content": " intended"
+    },
+    {
+      "timestamp_ms": 796.977,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 908.437,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 912.222,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 912.403,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 912.479,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 912.541,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 912.6,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 956.886,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 957.126,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 971.843,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 987.369,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1007.413,
+      "content": " recommendations"
+    },
+    {
+      "timestamp_ms": 1059.894,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1060.139,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 1066.221,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1083.401,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1108.939,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1128.206,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 1141.753,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1160.979,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1189.961,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1208.082,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1215.35,
+      "content": "Unit"
+    },
+    {
+      "timestamp_ms": 1234.972,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 1309.967,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1310.102,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1412.339,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1412.339,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1412.339,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 1412.339,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1412.339,
+      "content": " Test"
+    },
+    {
+      "timestamp_ms": 1412.339,
+      "content": " individual"
+    },
+    {
+      "timestamp_ms": 1412.51,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 1425.539,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1518.541,
+      "content": " units"
+    },
+    {
+      "timestamp_ms": 1518.803,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1519.099,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1519.265,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 1528.077,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1540.367,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 1621.22,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 1621.395,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 1621.534,
+      "content": " correctly"
+    },
+    {
+      "timestamp_ms": 1621.665,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1638.76,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1670.422,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1675.199,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1692.357,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 1712.102,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1824.273,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 1824.442,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1824.531,
+      "content": " During"
+    },
+    {
+      "timestamp_ms": 1824.594,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1824.647,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 1831.225,
+      "content": " stage"
+    },
+    {
+      "timestamp_ms": 1845.599,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1903.009,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 1903.219,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 1903.423,
+      "content": " conduct"
+    },
+    {
+      "timestamp_ms": 1929.069,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 1940.091,
+      "content": " tests"
+    },
+    {
+      "timestamp_ms": 2026.585,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 2026.763,
+      "content": " writing"
+    },
+    {
+      "timestamp_ms": 2026.855,
+      "content": " functional"
+    },
+    {
+      "timestamp_ms": 2026.932,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 2034.947,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2055.643,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 2080.338,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2128.829,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2129.215,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2129.523,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 2166.242,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2182.692,
+      "content": " Test"
+    },
+    {
+      "timestamp_ms": 2188.203,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2211.474,
+      "content": "Driven"
+    },
+    {
+      "timestamp_ms": 2227.644,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 2269.886,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2335.799,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 2335.799,
+      "content": "DD"
+    },
+    {
+      "timestamp_ms": 2335.799,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2335.799,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2347.278,
+      "content": " agile"
+    },
+    {
+      "timestamp_ms": 2361.3,
+      "content": " methodologies"
+    },
+    {
+      "timestamp_ms": 2443.413,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2443.696,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 2444.128,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2444.314,
+      "content": " smallest"
+    },
+    {
+      "timestamp_ms": 2454.253,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 2538.997,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 2539.131,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 2539.193,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2539.244,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2552.391,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 2568.236,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 2644.394,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2644.558,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 2644.647,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 2644.855,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 2745.329,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2745.496,
+      "content": " integrated"
+    },
+    {
+      "timestamp_ms": 2745.633,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2745.867,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2745.954,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2759.757,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2846.911,
+      "content": "Integration"
+    },
+    {
+      "timestamp_ms": 2847.067,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 2847.144,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2847.214,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2854.163,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2874.09,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2948.196,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 2948.344,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2948.42,
+      "content": " Verify"
+    },
+    {
+      "timestamp_ms": 2948.814,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3051.333,
+      "content": " interfaces"
+    },
+    {
+      "timestamp_ms": 3051.495,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3051.574,
+      "content": " interaction"
+    },
+    {
+      "timestamp_ms": 3051.634,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 3051.688,
+      "content": " integrated"
+    },
+    {
+      "timestamp_ms": 3064.939,
+      "content": " units"
+    },
+    {
+      "timestamp_ms": 3153.449,
+      "content": "/components"
+    },
+    {
+      "timestamp_ms": 3153.675,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3153.915,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3154.058,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3161.842,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3256.792,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 3256.93,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3257.059,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3257.131,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3258.745,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 3276.652,
+      "content": " individual"
+    },
+    {
+      "timestamp_ms": 3367.115,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 3367.291,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3367.372,
+      "content": " tested"
+    },
+    {
+      "timestamp_ms": 3367.443,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3369.553,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 3413.293,
+      "content": " correctly"
+    },
+    {
+      "timestamp_ms": 3413.428,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3429.902,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 3461.521,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3465.407,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3563.21,
+      "content": " conducted"
+    },
+    {
+      "timestamp_ms": 3563.358,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3563.423,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 3563.478,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3563.531,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 3666.363,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 3666.557,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 3666.646,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3666.722,
+      "content": " expected"
+    },
+    {
+      "timestamp_ms": 3666.798,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3673.955,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3722.793,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 3722.925,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 3733.266,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 3751.785,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 3843.205,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3843.352,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3843.427,
+      "content": " preced"
+    },
+    {
+      "timestamp_ms": 3843.491,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 3846.375,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3980.309,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3980.48,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3980.573,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3980.672,
+      "content": " SD"
+    },
+    {
+      "timestamp_ms": 3980.799,
+      "content": "LC"
+    },
+    {
+      "timestamp_ms": 3980.952,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3981.115,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4075.029,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4075.183,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4075.262,
+      "content": "System"
+    },
+    {
+      "timestamp_ms": 4075.322,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 4075.373,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4177.409,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4177.576,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4177.657,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4177.726,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 4177.786,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4187.761,
+      "content": " Evaluate"
+    },
+    {
+      "timestamp_ms": 4215.641,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4231.109,
+      "content": " complete"
+    },
+    {
+      "timestamp_ms": 4249.206,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4279.781,
+      "content": " integrated"
+    },
+    {
+      "timestamp_ms": 4284.707,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 4382.516,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4382.769,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4382.867,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4382.942,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4383.007,
+      "content": " meets"
+    },
+    {
+      "timestamp_ms": 4398.625,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 4484.565,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 4484.719,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4484.83,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4485.018,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4496.159,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4557.005,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 4557.182,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4557.312,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 4586.927,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4602.185,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 4618.33,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 4629.772,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 4651.354,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 4691.696,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4691.869,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4705.622,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4793.413,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4793.624,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 4795.554,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4795.685,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 4812.69,
+      "content": " evaluation"
+    },
+    {
+      "timestamp_ms": 4819.889,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4894.257,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4894.519,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 4894.721,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4895.049,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4996.542,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 4996.701,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4996.769,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 4996.824,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4996.877,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 5009.324,
+      "content": " functional"
+    },
+    {
+      "timestamp_ms": 5099.053,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5099.226,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 5099.316,
+      "content": "-functional"
+    },
+    {
+      "timestamp_ms": 5099.394,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 5104.451,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5201.608,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5201.76,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5201.832,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5201.9,
+      "content": "Accept"
+    },
+    {
+      "timestamp_ms": 5201.949,
+      "content": "ance"
+    },
+    {
+      "timestamp_ms": 5217.705,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 5238.082,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5307.741,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5307.896,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5307.973,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5312.212,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 5406.451,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5406.714,
+      "content": " Validate"
+    },
+    {
+      "timestamp_ms": 5406.835,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5406.89,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 5410.267,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5508.859,
+      "content": " accept"
+    },
+    {
+      "timestamp_ms": 5509.031,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 5509.137,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5509.211,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5512.424,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5522.12,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 5611.345,
+      "content": " done"
+    },
+    {
+      "timestamp_ms": 5611.523,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5611.626,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 5611.696,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5693.511,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5693.511,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 5816.478,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 5816.478,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5816.478,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 5816.478,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 5816.478,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5816.478,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5816.824,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5817.0,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5817.606,
+      "content": "Types"
+    },
+    {
+      "timestamp_ms": 5926.225,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5926.225,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 5926.508,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 5926.673,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5935.5,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5935.5,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 6008.917,
+      "content": " Accept"
+    },
+    {
+      "timestamp_ms": 6009.313,
+      "content": "ance"
+    },
+    {
+      "timestamp_ms": 6009.313,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 6029.788,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6032.617,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 6225.934,
+      "content": "AT"
+    },
+    {
+      "timestamp_ms": 6225.934,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 6225.934,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6225.934,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 6225.934,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 6226.381,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6226.381,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6226.381,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 6328.574,
+      "content": "-users"
+    },
+    {
+      "timestamp_ms": 6328.574,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6328.574,
+      "content": " customers"
+    },
+    {
+      "timestamp_ms": 6328.574,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": " day"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 6435.005,
+      "content": "-day"
+    },
+    {
+      "timestamp_ms": 6532.947,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 6532.947,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 6532.947,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6533.137,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6533.137,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6536.043,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6543.116,
+      "content": "Beta"
+    },
+    {
+      "timestamp_ms": 6555.578,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 6571.492,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6634.84,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 6635.015,
+      "content": " informal"
+    },
+    {
+      "timestamp_ms": 6635.119,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 6646.722,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6744.835,
+      "content": " U"
+    },
+    {
+      "timestamp_ms": 6744.981,
+      "content": "AT"
+    },
+    {
+      "timestamp_ms": 6745.047,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 6745.1,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 6745.15,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6762.236,
+      "content": " released"
+    },
+    {
+      "timestamp_ms": 6839.986,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6840.161,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6840.246,
+      "content": " select"
+    },
+    {
+      "timestamp_ms": 6854.61,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 6861.369,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6877.041,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6942.529,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 6942.65,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6942.713,
+      "content": " el"
+    },
+    {
+      "timestamp_ms": 6954.478,
+      "content": "icit"
+    },
+    {
+      "timestamp_ms": 7045.328,
+      "content": " feedback"
+    },
+    {
+      "timestamp_ms": 7045.495,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7045.572,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 7045.632,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 7047.343,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7147.348,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7147.535,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7147.638,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7147.716,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 7147.787,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7161.516,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 7182.525,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7219.939,
+      "content": " Per"
+    },
+    {
+      "timestamp_ms": 7220.099,
+      "content": "formed"
+    },
+    {
+      "timestamp_ms": 7351.756,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 7351.942,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7352.018,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 7352.082,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7352.139,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 7352.186,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 7352.398,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 7437.496,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7437.766,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7437.91,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7438.023,
+      "content": " gives"
+    },
+    {
+      "timestamp_ms": 7451.379,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 7479.675,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7486.16,
+      "content": " consumers"
+    },
+    {
+      "timestamp_ms": 7508.162,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7556.593,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 7556.734,
+      "content": " confidence"
+    },
+    {
+      "timestamp_ms": 7562.753,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7584.659,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7614.604,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7620.895,
+      "content": " meets"
+    },
+    {
+      "timestamp_ms": 7668.546,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7668.782,
+      "content": " agreed"
+    },
+    {
+      "timestamp_ms": 7678.119,
+      "content": "-up"
+    },
+    {
+      "timestamp_ms": 7765.207,
+      "content": "on"
+    },
+    {
+      "timestamp_ms": 7765.37,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 7765.448,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7765.507,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7771.402,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7863.547,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7863.938,
+      "content": "Functional"
+    },
+    {
+      "timestamp_ms": 7864.174,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 7864.328,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7868.141,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7966.09,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7966.311,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7966.427,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 7966.65,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7966.715,
+      "content": " Verify"
+    },
+    {
+      "timestamp_ms": 7998.829,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8001.813,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 8021.593,
+      "content": " feature"
+    },
+    {
+      "timestamp_ms": 8075.374,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8075.554,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 8091.992,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8099.68,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8171.115,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 8172.714,
+      "content": " operates"
+    },
+    {
+      "timestamp_ms": 8172.912,
+      "content": " according"
+    },
+    {
+      "timestamp_ms": 8173.503,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8273.946,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8274.11,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 8274.208,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 8274.275,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8274.33,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8287.166,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8383.418,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8383.61,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 8383.71,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8384.025,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 8384.21,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8499.108,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 8499.257,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 8499.332,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 8499.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8515.346,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8515.515,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 8533.002,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 8535.505,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8580.029,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 8580.163,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 8592.137,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 8683.132,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 8683.274,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8683.341,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8683.396,
+      "content": " verify"
+    },
+    {
+      "timestamp_ms": 8689.097,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 8785.673,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 8785.866,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8785.97,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 8786.039,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 8786.102,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 8805.006,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 8827.497,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8841.144,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8862.005,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8990.725,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8990.87,
+      "content": "Non"
+    },
+    {
+      "timestamp_ms": 8991.176,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8991.328,
+      "content": "Functional"
+    },
+    {
+      "timestamp_ms": 8991.55,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 8991.658,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9013.541,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9023.077,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9046.484,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9057.537,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 9072.372,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9102.253,
+      "content": " Evaluate"
+    },
+    {
+      "timestamp_ms": 9107.913,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 9297.974,
+      "content": "-functional"
+    },
+    {
+      "timestamp_ms": 9298.148,
+      "content": " aspects"
+    },
+    {
+      "timestamp_ms": 9298.292,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9298.384,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9298.459,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 9298.531,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9298.603,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 9298.67,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9298.738,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 9302.213,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9317.526,
+      "content": " usability"
+    },
+    {
+      "timestamp_ms": 9336.851,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9375.151,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 9375.698,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9408.222,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9413.989,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 9502.149,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9502.294,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9508.253,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9508.48,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9508.684,
+      "content": "Types"
+    },
+    {
+      "timestamp_ms": 9611.116,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9611.361,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9611.475,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9628.391,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9628.649,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9636.023,
+      "content": "Performance"
+    },
+    {
+      "timestamp_ms": 9642.797,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 9662.574,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9706.924,
+      "content": " Checks"
+    },
+    {
+      "timestamp_ms": 9707.059,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9717.546,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 9738.628,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9761.183,
+      "content": " responsiveness"
+    },
+    {
+      "timestamp_ms": 9779.145,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9809.129,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9814.521,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 10023.271,
+      "content": " under"
+    },
+    {
+      "timestamp_ms": 10023.271,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10023.271,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 10023.271,
+      "content": " workload"
+    },
+    {
+      "timestamp_ms": 10023.271,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10023.465,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 10023.542,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10023.606,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10023.658,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 10023.703,
+      "content": " Testing"
+    },
+    {
+      "timestamp_ms": 10031.793,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 10031.793,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10031.793,
+      "type": "done"
+    }
+  ],
+  "full_response": "Software testing is a critical phase in the software development lifecycle aimed at identifying bugs, ensuring quality, and verifying that the software meets the intended requirements. Here are the main types of software testing and recommendations on when each should be used:\n\n1. **Unit Testing**\n   - **Purpose**: Test individual components or units of the software to ensure they function correctly.\n   - **When to Use**: During the development stage, developers typically conduct unit tests after writing functional components or classes. It is part of Test-Driven Development (TDD) in agile methodologies, ensuring the smallest testable parts of the application work as expected before they are integrated.\n\n2. **Integration Testing**\n   - **Purpose**: Verify the interfaces and interaction between integrated units/components.\n   - **When to Use**: Once individual components are tested and work correctly, integration testing is conducted to ensure these components work together as expected. This step usually follows unit testing and precedes system testing in the SDLC.\n\n3. **System Testing**\n   - **Purpose**: Evaluate the complete and integrated software system to ensure it meets specified requirements.\n   - **When to Use**: Conducted after integration testing, system testing involves a comprehensive evaluation of the entire system to check for compliance with both functional and non-functional requirements.\n\n4. **Acceptance Testing**\n   - **Purpose**: Validate the software for acceptability. This is often done to check the system against user or business requirements.\n   - **Types**: \n     - **User Acceptance Testing (UAT)**: Conducted by the end-users or customers to ensure the software can support day-to-day business processes.\n     - **Beta Testing**: An informal type of UAT where software is released to a select group of the public to elicit feedback from real users.\n   - **When to Use**: Performed after system testing but before final deployment, as it gives both the consumers and developers confidence that the system meets the agreed-upon requirements.\n\n5. **Functional Testing**\n   - **Purpose**: Verify that each feature or function of the software operates according to the specified requirements.\n   - **When to Use**: Conducted during the system testing phase, generally after integration testing, to verify specific features and operations against defined requirements.\n\n6. **Non-Functional Testing**\n   - **Purpose**: Evaluate non-functional aspects of the software, such as performance, usability, reliability, and security.\n   - **Types**:\n     - **Performance Testing**: Checks the speed and responsiveness of the application under a given workload.\n     - **Security Testing**:",
+  "response_chars": 2726,
+  "num_chunks": 512,
+  "ttft_ms": 398.464,
+  "total_ms": 10032.271,
+  "model_name": "model-medium"
+}

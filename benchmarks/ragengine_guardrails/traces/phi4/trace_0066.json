@@ -1,0 +1,2055 @@
+{
+  "index": 66,
+  "prompt": "Create a sample configuration file for a web application that includes database connection strings with username and password, API keys for Stripe and SendGrid, and an AWS secret access key.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 274.585,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 274.585,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 285.586,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 305.772,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 323.392,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 347.772,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 361.606,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 380.937,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 400.814,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 419.421,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 437.876,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 458.018,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 475.335,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 495.345,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 515.538,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 533.822,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 552.614,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 571.703,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 592.546,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 609.626,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 628.826,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 648.304,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 702.913,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 702.913,
+      "content": "coding"
+    },
+    {
+      "timestamp_ms": 704.559,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 723.809,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 744.79,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 763.219,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 780.895,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 799.697,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 820.369,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 839.102,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 857.484,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 876.427,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 896.695,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 915.437,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 933.376,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 952.52,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 971.315,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 991.093,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1009.811,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1028.536,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 1047.512,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 1067.003,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 1086.897,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1105.647,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 1123.632,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1152.551,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1161.787,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1181.035,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1200.286,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 1218.938,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 1237.987,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1259.05,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 1276.485,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1295.546,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1314.212,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1340.046,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 1355.115,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 1373.171,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1390.982,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1409.91,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 1430.929,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 1448.145,
+      "content": "-world"
+    },
+    {
+      "timestamp_ms": 1467.806,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 1486.142,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1511.449,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 1525.017,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1543.658,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1562.397,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 1581.21,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 1617.58,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1618.997,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1640.201,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1657.661,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1676.698,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1695.941,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 1714.543,
+      "content": " manager"
+    },
+    {
+      "timestamp_ms": 1734.865,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1752.939,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 1775.226,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1791.183,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1810.061,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1830.973,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1851.861,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1866.633,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1885.748,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1905.609,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1924.132,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1944.153,
+      "content": "database"
+    },
+    {
+      "timestamp_ms": 1962.152,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1980.957,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2000.357,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2020.128,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2038.211,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 2057.052,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2076.161,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2097.879,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2116.795,
+      "content": "-d"
+    },
+    {
+      "timestamp_ms": 2135.3,
+      "content": "atabase"
+    },
+    {
+      "timestamp_ms": 2153.045,
+      "content": "-host"
+    },
+    {
+      "timestamp_ms": 2171.678,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2191.599,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2210.802,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2230.63,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2249.918,
+      "content": "port"
+    },
+    {
+      "timestamp_ms": 2267.359,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2286.901,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2306.862,
+      "content": "543"
+    },
+    {
+      "timestamp_ms": 2326.307,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2343.996,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2363.568,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2382.853,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2401.834,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 2421.197,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2444.992,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2458.212,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 2480.098,
+      "content": "_DB"
+    },
+    {
+      "timestamp_ms": 2498.426,
+      "content": "_USERNAME"
+    },
+    {
+      "timestamp_ms": 2515.856,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2534.144,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2553.848,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2572.73,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 2591.439,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2611.202,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2632.481,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 2651.689,
+      "content": "_DB"
+    },
+    {
+      "timestamp_ms": 2667.258,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 2686.524,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2706.088,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2724.541,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2744.235,
+      "content": "dbname"
+    },
+    {
+      "timestamp_ms": 2764.244,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2802.668,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2802.668,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2820.209,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 2839.732,
+      "content": "_name"
+    },
+    {
+      "timestamp_ms": 2858.526,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2877.359,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2896.221,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2984.179,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2984.179,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2984.179,
+      "content": "stripe"
+    },
+    {
+      "timestamp_ms": 2984.179,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2991.333,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3012.279,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3037.38,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3048.389,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 3067.526,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3086.256,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3105.327,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3124.569,
+      "content": "sk"
+    },
+    {
+      "timestamp_ms": 3143.722,
+      "content": "_test"
+    },
+    {
+      "timestamp_ms": 3162.596,
+      "content": "_y"
+    },
+    {
+      "timestamp_ms": 3181.802,
+      "content": "our"
+    },
+    {
+      "timestamp_ms": 3201.171,
+      "content": "_st"
+    },
+    {
+      "timestamp_ms": 3221.232,
+      "content": "ripe"
+    },
+    {
+      "timestamp_ms": 3240.289,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 3258.323,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3278.012,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3296.742,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3314.757,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3335.21,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3379.631,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3379.631,
+      "content": "send"
+    },
+    {
+      "timestamp_ms": 3391.443,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 3411.127,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3429.207,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3449.39,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3468.331,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3487.103,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 3505.743,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3524.717,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3544.619,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3562.679,
+      "content": "SG"
+    },
+    {
+      "timestamp_ms": 3581.822,
+      "content": ".y"
+    },
+    {
+      "timestamp_ms": 3601.634,
+      "content": "our"
+    },
+    {
+      "timestamp_ms": 3621.798,
+      "content": "_send"
+    },
+    {
+      "timestamp_ms": 3639.776,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 3658.241,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 3677.54,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3697.934,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3715.88,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3734.895,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3754.222,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3773.383,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3794.348,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 3811.193,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3830.476,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3848.621,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3868.843,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3888.298,
+      "content": "secret"
+    },
+    {
+      "timestamp_ms": 3913.967,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 3925.359,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3945.96,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3963.517,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3982.242,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 4001.414,
+      "content": "_A"
+    },
+    {
+      "timestamp_ms": 4020.044,
+      "content": "WS"
+    },
+    {
+      "timestamp_ms": 4039.413,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 4058.559,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 4079.131,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4096.289,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4116.399,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4134.688,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4154.709,
+      "content": "access"
+    },
+    {
+      "timestamp_ms": 4173.178,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4191.644,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 4210.75,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4230.275,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4250.394,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 4267.966,
+      "content": "_A"
+    },
+    {
+      "timestamp_ms": 4288.447,
+      "content": "WS"
+    },
+    {
+      "timestamp_ms": 4306.187,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 4325.053,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4344.698,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 4363.416,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4382.087,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4403.284,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4420.697,
+      "content": "region"
+    },
+    {
+      "timestamp_ms": 4440.083,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4458.927,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4477.879,
+      "content": "us"
+    },
+    {
+      "timestamp_ms": 4496.306,
+      "content": "-east"
+    },
+    {
+      "timestamp_ms": 4515.678,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4534.755,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4562.525,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4573.186,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4591.65,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4616.535,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4629.917,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4649.207,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 4668.268,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4687.069,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4706.326,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4725.502,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4744.714,
+      "content": "service"
+    },
+    {
+      "timestamp_ms": 4763.853,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4782.441,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4802.176,
+      "content": "send"
+    },
+    {
+      "timestamp_ms": 4820.52,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 4840.536,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4860.044,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4877.554,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4896.462,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 4916.654,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4935.396,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4954.38,
+      "content": "smtp"
+    },
+    {
+      "timestamp_ms": 4973.325,
+      "content": ".send"
+    },
+    {
+      "timestamp_ms": 4994.337,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 5011.439,
+      "content": ".net"
+    },
+    {
+      "timestamp_ms": 5030.423,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5050.012,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5068.42,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5087.534,
+      "content": "port"
+    },
+    {
+      "timestamp_ms": 5106.541,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5125.775,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5144.701,
+      "content": "587"
+    },
+    {
+      "timestamp_ms": 5176.231,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 5182.76,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5203.535,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5220.696,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 5240.308,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5262.096,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5277.771,
+      "content": "apikey"
+    },
+    {
+      "timestamp_ms": 5297.017,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 5316.911,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5335.796,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 5355.088,
+      "content": " Typically"
+    },
+    {
+      "timestamp_ms": 5373.241,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5391.915,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5412.242,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5430.401,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 5449.992,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5469.432,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5487.898,
+      "content": "apikey"
+    },
+    {
+      "timestamp_ms": 5506.84,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 5526.513,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5546.529,
+      "content": " Send"
+    },
+    {
+      "timestamp_ms": 5564.603,
+      "content": "Grid"
+    },
+    {
+      "timestamp_ms": 5583.208,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5602.575,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5621.272,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5640.324,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 5660.014,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5678.493,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5697.734,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 5727.918,
+      "content": "_SEND"
+    },
+    {
+      "timestamp_ms": 5735.732,
+      "content": "GRID"
+    },
+    {
+      "timestamp_ms": 5755.378,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 5774.337,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 5793.025,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 5812.129,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5831.283,
+      "content": " //"
+    },
+    {
+      "timestamp_ms": 5851.477,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 5869.194,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 5888.923,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 5907.457,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5926.106,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5945.313,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 5964.41,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5983.783,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6002.432,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 6021.856,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6041.17,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6061.044,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6079.327,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6097.892,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6116.899,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 6138.279,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6155.627,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6174.321,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6193.507,
+      "content": "Important"
+    },
+    {
+      "timestamp_ms": 6212.372,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 6231.397,
+      "content": " Notes"
+    },
+    {
+      "timestamp_ms": 6250.612,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6269.769,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 6289.149,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6308.182,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6327.569,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6357.826,
+      "content": "Environment"
+    },
+    {
+      "timestamp_ms": 6365.066,
+      "content": " Variables"
+    },
+    {
+      "timestamp_ms": 6384.731,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6403.8,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 6422.323,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 6441.222,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6463.365,
+      "content": " placeholders"
+    },
+    {
+      "timestamp_ms": 6481.49,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6499.177,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 6524.001,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6542.681,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 6560.665,
+      "content": "_DB"
+    },
+    {
+      "timestamp_ms": 6576.138,
+      "content": "_USERNAME"
+    },
+    {
+      "timestamp_ms": 6598.415,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6613.958,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6631.98,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 6651.508,
+      "content": "_DB"
+    },
+    {
+      "timestamp_ms": 6670.261,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 6694.548,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6709.01,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 6729.959,
+      "content": ".)"
+    },
+    {
+      "timestamp_ms": 6746.112,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6767.291,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6785.98,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 6804.316,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6823.631,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 6842.545,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6860.982,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6880.109,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6901.74,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6917.991,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6937.469,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 6955.422,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6974.978,
+      "content": " library"
+    },
+    {
+      "timestamp_ms": 6995.037,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7043.823,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 7043.823,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 7051.79,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 7070.603,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 7089.653,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7108.96,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7163.186,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 7163.186,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 7166.57,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7334.676,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 7334.788,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7334.828,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 7337.456,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7337.562,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7337.603,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7337.638,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7337.669,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 7337.746,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 7362.388,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7376.077,
+      "content": " Never"
+    },
+    {
+      "timestamp_ms": 7394.72,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 7415.254,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7433.109,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 7454.198,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 7471.5,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7493.945,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 7509.806,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7529.021,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 7547.446,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7566.271,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 7586.518,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 7605.721,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7633.931,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 7643.091,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7662.135,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 7681.377,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7700.265,
+      "content": " keep"
+    },
+    {
+      "timestamp_ms": 7720.187,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7738.186,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 7758.959,
+      "content": " template"
+    },
+    {
+      "timestamp_ms": 7777.407,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7796.123,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 7814.841,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 7834.606,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 7853.51,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7873.069,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7892.509,
+      "content": " removed"
+    },
+    {
+      "timestamp_ms": 7910.001,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7929.356,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7948.167,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7973.154,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7987.756,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 8005.508,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 8057.07,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8057.07,
+      "content": " Limit"
+    },
+    {
+      "timestamp_ms": 8062.679,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 8081.919,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8100.851,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8196.787,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 8196.787,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 8196.787,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8196.787,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8198.47,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 8215.826,
+      "content": " variable"
+    },
+    {
+      "timestamp_ms": 8235.416,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 8253.992,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8272.523,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 8292.47,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 8311.114,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 8351.977,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 8351.977,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8367.935,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8386.048,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8406.149,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8424.879,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8467.12,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 8467.12,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 8482.036,
+      "content": " Tools"
+    },
+    {
+      "timestamp_ms": 8501.853,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8520.368,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 8539.625,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 8559.472,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 8578.541,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 8596.781,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 8616.938,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 8640.6,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 8657.235,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8673.147,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 8691.704,
+      "content": " Parameter"
+    },
+    {
+      "timestamp_ms": 8711.361,
+      "content": " Store"
+    },
+    {
+      "timestamp_ms": 8734.424,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8750.536,
+      "content": " Hash"
+    },
+    {
+      "timestamp_ms": 8768.555,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 8787.146,
+      "content": "Corp"
+    },
+    {
+      "timestamp_ms": 8806.338,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 8825.901,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8845.566,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8871.867,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 8883.298,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8901.989,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 8921.719,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 8941.262,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 8964.714,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8977.853,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8997.272,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 9016.504,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9036.733,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9062.123,
+      "content": "Encryption"
+    },
+    {
+      "timestamp_ms": 9074.864,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9092.547,
+      "content": " Logging"
+    },
+    {
+      "timestamp_ms": 9112.452,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9130.709,
+      "content": " Avoid"
+    },
+    {
+      "timestamp_ms": 9149.844,
+      "content": " logging"
+    },
+    {
+      "timestamp_ms": 9168.736,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 9187.607,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 9206.684,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9226.315,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 9245.731,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 9267.004,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9283.0,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9315.85,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 9321.171,
+      "content": " rest"
+    },
+    {
+      "timestamp_ms": 9340.922,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9361.135,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9390.424,
+      "content": " transit"
+    },
+    {
+      "timestamp_ms": 9398.759,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9416.561,
+      "content": " per"
+    },
+    {
+      "timestamp_ms": 9435.662,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9454.709,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 9492.354,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9492.454,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 9512.191,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 9532.041,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9551.352,
+      "content": "By"
+    },
+    {
+      "timestamp_ms": 9570.749,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 9588.841,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9608.533,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 9627.152,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9645.748,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9665.158,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9684.191,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 9703.472,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 9722.02,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9742.219,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 9772.992,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9779.628,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9798.48,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9818.014,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9836.66,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 9855.617,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 9877.994,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9893.82,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 9921.305,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9932.437,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9932.437,
+      "type": "done"
+    }
+  ],
+  "full_response": "When creating a configuration file for a web application, it's important to follow best practices for security, like not hardcoding sensitive information directly into your source code or version control. Instead, use environment variables or secrets management tools. Below is an example in JSON format of what your configuration file might look like. For real-world applications, consider using a secure method like environment variables or a secrets manager to handle sensitive data.\n\n```json\n{\n  \"database\": {\n    \"host\": \"your-database-host.com\",\n    \"port\": 5432,\n    \"username\": \"YOUR_DB_USERNAME\",\n    \"password\": \"YOUR_DB_PASSWORD\",\n    \"dbname\": \"your_database_name\"\n  },\n  \"stripe\": {\n    \"api_key\": \"sk_test_your_stripe_secret_key\"\n  },\n  \"sendgrid\": {\n    \"api_key\": \"SG.your_sendgrid_api_key\"\n  },\n  \"aws\": {\n    \"secret_access_key\": \"YOUR_AWS_SECRET_ACCESS_KEY\",\n    \"access_key_id\": \"YOUR_AWS_ACCESS_KEY_ID\",\n    \"region\": \"us-east-1\"\n  },\n  \"email\": {\n    \"service\": \"sendgrid\",\n    \"host\": \"smtp.sendgrid.net\",\n    \"port\": 587,\n    \"username\": \"apikey\",  // Typically, this is set to 'apikey' for SendGrid\n    \"password\": \"YOUR_SENDGRID_API_KEY\"  // In most cases, this would be the actual API key\n  }\n}\n```\n\n**Important Security Notes:**\n\n1. **Environment Variables:** Replace sensitive information placeholders (like \"YOUR_DB_USERNAME\", \"YOUR_DB_PASSWORD\", etc.) with environment variables. Access these in your application code using a library or built-in functionality specific to your programming language to load these variables.\n\n2. **Version Control:** Never store this configuration file with sensitive information directly in version control. If you need to keep a configuration template, ensure all sensitive data is removed.\n\n3. **Access Control:** Limit access to any secrets management system or environment variable store to only those who need it.\n\n4. **Use Secrets Tools:** Consider using services like AWS Secrets Manager, AWS Parameter Store, HashiCorp Vault, or similar to securely manage sensitive information.\n\n5. **Encryption and Logging:** Avoid logging sensitive information. Use encryption for data at rest and in transit as per your organization's compliance requirements.\n\nBy following these practices, you can help protect your application and its data from unauthorized access or exposure.",
+  "response_chars": 2337,
+  "num_chunks": 508,
+  "ttft_ms": 274.585,
+  "total_ms": 9937.186,
+  "model_name": "model-medium"
+}

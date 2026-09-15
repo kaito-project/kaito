@@ -1,0 +1,1419 @@
+{
+  "index": 204,
+  "prompt": "Draft a company announcement about SECRET_PROJECT moving to Phase 2. Include the codename SECRET_PROJECT in each paragraph for emphasis.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 940.579,
+      "content": "We"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " thrilled"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " announce"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " successfully"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " transitioned"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " pivotal"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " marks"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " milestone"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 940.579,
+      "content": " journey"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " appreciate"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " dedication"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " efforts"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " extraordinary"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " passing"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " moment"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " delivering"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " promises"
+    },
+    {
+      "timestamp_ms": 1534.189,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " continuing"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " innovative"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " customers"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": "As"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " move"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " beyond"
+    },
+    {
+      "timestamp_ms": 2216.905,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " expand"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " scope"
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2223.559,
+      "content": " incorporating"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " cutting"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": "-edge"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " refined"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " unparalleled"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " superior"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " Our"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2761.716,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " industry"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " push"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " boundaries"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " momentum"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " garnered"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " contributed"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 3357.053,
+      "content": " readiness"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " excited"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " unique"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " define"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " flagship"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " launch"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": "Throughout"
+    },
+    {
+      "timestamp_ms": 4002.506,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " continued"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " driving"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " force"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " behind"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 4200.917,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " unwavering"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " commitment"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " excellence"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " Our"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " relentless"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " pursuit"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4619.141,
+      "content": " innovation"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " paired"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " collaborative"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " spirit"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " undoubtedly"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " unparalleled"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " outcomes"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 5017.534,
+      "content": " integrate"
+    },
+    {
+      "timestamp_ms": 5017.892,
+      "content": " enhanced"
+    },
+    {
+      "timestamp_ms": 5017.892,
+      "content": " functionalities"
+    },
+    {
+      "timestamp_ms": 5017.892,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5017.892,
+      "content": " sophisticated"
+    },
+    {
+      "timestamp_ms": 5017.892,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " vision"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " transformative"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " increasingly"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " tangible"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": "We"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " forward"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " continued"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " partnership"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " clients"
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5586.257,
+      "content": " partners"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " stakeholders"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " who"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " played"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " pivotal"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " extraordinary"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " journey"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6015.78,
+      "content": " belief"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " mission"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " instrumental"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6174.993,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " grow"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " excel"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " Stay"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " tuned"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " unfold"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " limitless"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " unveiling"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6865.591,
+      "content": " breakthroughs"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " commercial"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " successes"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": "Thank"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " embracing"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " journey"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " contributing"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " success"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " promising"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7474.883,
+      "content": " Together"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " quest"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " redefine"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " excellence"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " paradig"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": "ms"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " continued"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " engagement"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " invaluable"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7985.845,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 8067.362,
+      "content": " progress"
+    },
+    {
+      "timestamp_ms": 8067.362,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": " exciting"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": " chapter"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": "Warm"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": "est"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": " regards"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": " Company"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 8410.39,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8498.545,
+      "type": "done"
+    }
+  ],
+  "full_response": "We are thrilled to announce that SECRET_PROJECT has successfully transitioned to Phase 2. This pivotal step marks an important milestone in our journey, and we appreciate the dedication and efforts of our extraordinary team. With each passing moment, we are committed to delivering on our promises and continuing to deliver innovative solutions that address our customers' needs.\n\nAs we move beyond Phase1, SECRET_PROJECT is set to expand its scope, incorporating cutting-edge technologies and refined strategies to ensure unparalleled efficiency and superior performance. Our goal is to create a robust system that will set industry standards and push the boundaries of what is possible. The momentum garnered in Phase 1 has significantly contributed to our readiness for this next phase, and we are excited to share the unique capabilities that will define SECRET_PROJECT during its flagship launch.\n\nThroughout this continued evolution, the driving force behind SECRET_PROJECT remains our unwavering commitment to excellence. Our team’s relentless pursuit of innovation, paired with a collaborative spirit, will undoubtedly lead to unparalleled outcomes. As we integrate enhanced functionalities and sophisticated algorithms of SECRET_PROJECT, our vision for a transformative future becomes increasingly tangible.\n\nWe look forward to our continued partnership with clients, partners, and stakeholders who have played a pivotal role in this extraordinary journey. Your support and belief in our mission have been instrumental in allowing SECRET_PROJECT to grow and excel. Stay tuned for further updates, as we continue to unfold the limitless potential of SECRET_PROJECT, unveiling new breakthroughs and commercial successes.\n\nThank you for embracing SECRET_PROJECT’s journey, contributing to its success, and sharing in its promising future. Together, we will continue our quest to redefine excellence and set new paradigms. Your continued support and engagement will be invaluable as we progress through this exciting chapter with SECRET_PROJECT.\n\nWarmest regards,\n[Your Company]",
+  "response_chars": 2083,
+  "num_chunks": 349,
+  "ttft_ms": 940.579,
+  "total_ms": 8602.457,
+  "model_name": "Phi-4-mini-instruct"
+}

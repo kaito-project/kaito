@@ -1,0 +1,2071 @@
+{
+  "index": 193,
+  "prompt": "How does a compiler differ from an interpreter?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 325.027,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 325.189,
+      "content": " compiler"
+    },
+    {
+      "timestamp_ms": 325.258,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 337.708,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 355.114,
+      "content": " interpreter"
+    },
+    {
+      "timestamp_ms": 373.81,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 401.563,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 414.452,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 433.292,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 450.347,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 474.296,
+      "content": " convert"
+    },
+    {
+      "timestamp_ms": 488.812,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 508.419,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 548.584,
+      "content": " written"
+    },
+    {
+      "timestamp_ms": 548.771,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 566.609,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 584.045,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 628.883,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 629.174,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 642.09,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 660.533,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 678.862,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 702.894,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 923.801,
+      "content": "-exec"
+    },
+    {
+      "timestamp_ms": 923.801,
+      "content": "utable"
+    },
+    {
+      "timestamp_ms": 923.801,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 923.801,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 923.801,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 923.801,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 923.801,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 924.026,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 924.092,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 924.152,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 924.152,
+      "content": " ways"
+    },
+    {
+      "timestamp_ms": 927.859,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 982.712,
+      "content": " serve"
+    },
+    {
+      "timestamp_ms": 983.078,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 1181.457,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 1181.457,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1181.69,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1181.767,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1181.833,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1181.904,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1181.956,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 1189.214,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 1189.415,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1189.49,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 1189.631,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1194.497,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1242.716,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1242.97,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1249.854,
+      "content": "Translation"
+    },
+    {
+      "timestamp_ms": 1269.734,
+      "content": " Approach"
+    },
+    {
+      "timestamp_ms": 1335.554,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1335.777,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1335.87,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1345.257,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1365.665,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1656.603,
+      "content": "Compiler"
+    },
+    {
+      "timestamp_ms": 1656.868,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1657.117,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 1657.256,
+      "content": " compiler"
+    },
+    {
+      "timestamp_ms": 1657.346,
+      "content": " translates"
+    },
+    {
+      "timestamp_ms": 1657.416,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1657.677,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 1657.841,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 1657.938,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1658.002,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1658.059,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1669.737,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 1669.936,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1670.14,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 1670.285,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1670.379,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1690.38,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1839.989,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 1840.198,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1840.277,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1840.333,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 1840.383,
+      "content": " bytecode"
+    },
+    {
+      "timestamp_ms": 1840.434,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1840.481,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1841.529,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 1865.25,
+      "content": " go"
+    },
+    {
+      "timestamp_ms": 1878.585,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1917.515,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1917.747,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1944.663,
+      "content": " produces"
+    },
+    {
+      "timestamp_ms": 1955.066,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2272.456,
+      "content": " executable"
+    },
+    {
+      "timestamp_ms": 2272.689,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 2276.82,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2277.133,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2277.281,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2277.364,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 2277.44,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2277.513,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2277.589,
+      "content": " target"
+    },
+    {
+      "timestamp_ms": 2277.652,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 2277.812,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 2277.908,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2278.009,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2278.297,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 2278.415,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2278.497,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2280.06,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2370.888,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2371.062,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2371.128,
+      "content": "Interpreter"
+    },
+    {
+      "timestamp_ms": 2371.184,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2376.735,
+      "content": " An"
+    },
+    {
+      "timestamp_ms": 2393.971,
+      "content": " interpreter"
+    },
+    {
+      "timestamp_ms": 2492.028,
+      "content": " translates"
+    },
+    {
+      "timestamp_ms": 2492.233,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2492.316,
+      "content": " executes"
+    },
+    {
+      "timestamp_ms": 2492.382,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2492.442,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 2524.422,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2526.579,
+      "content": " line"
+    },
+    {
+      "timestamp_ms": 2552.279,
+      "content": "-by"
+    },
+    {
+      "timestamp_ms": 2565.615,
+      "content": "-line"
+    },
+    {
+      "timestamp_ms": 2584.378,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2604.459,
+      "content": " statement"
+    },
+    {
+      "timestamp_ms": 2664.3,
+      "content": "-by"
+    },
+    {
+      "timestamp_ms": 2664.711,
+      "content": "-st"
+    },
+    {
+      "timestamp_ms": 2664.921,
+      "content": "atement"
+    },
+    {
+      "timestamp_ms": 2680.155,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2705.584,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 2719.126,
+      "content": " producing"
+    },
+    {
+      "timestamp_ms": 2737.39,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2767.288,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 2777.803,
+      "content": " executable"
+    },
+    {
+      "timestamp_ms": 2793.617,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 2816.942,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2833.762,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3075.965,
+      "content": " reads"
+    },
+    {
+      "timestamp_ms": 3076.102,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3076.169,
+      "content": " translates"
+    },
+    {
+      "timestamp_ms": 3076.225,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3076.275,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3076.327,
+      "content": " executes"
+    },
+    {
+      "timestamp_ms": 3076.381,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3079.409,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 3079.566,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3079.633,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 3079.692,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3079.744,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 3079.798,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 3132.094,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3132.359,
+      "content": " slower"
+    },
+    {
+      "timestamp_ms": 3142.563,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 3157.11,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 3480.532,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3480.898,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 3481.098,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3481.244,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3481.371,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 3481.468,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 3481.514,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3488.364,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3488.498,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3488.576,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3488.643,
+      "content": "Execution"
+    },
+    {
+      "timestamp_ms": 3488.7,
+      "content": " Speed"
+    },
+    {
+      "timestamp_ms": 3488.751,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3488.795,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3488.839,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3488.883,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3488.928,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3499.623,
+      "content": "Compiler"
+    },
+    {
+      "timestamp_ms": 3588.027,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3588.222,
+      "content": " Generally"
+    },
+    {
+      "timestamp_ms": 3588.489,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3588.566,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 3600.963,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3613.728,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3910.25,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3910.401,
+      "content": " translated"
+    },
+    {
+      "timestamp_ms": 3910.475,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 3910.539,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 3910.6,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3910.656,
+      "content": " beforehand"
+    },
+    {
+      "timestamp_ms": 3910.712,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3917.325,
+      "content": " executions"
+    },
+    {
+      "timestamp_ms": 3917.444,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3917.521,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 3917.585,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 3917.642,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3917.697,
+      "content": " compilation"
+    },
+    {
+      "timestamp_ms": 3917.751,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 3917.803,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3917.853,
+      "content": "which"
+    },
+    {
+      "timestamp_ms": 3940.788,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 4100.047,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 4108.39,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 4108.685,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4108.908,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4109.08,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4109.155,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4109.208,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 4109.254,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 4109.304,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4236.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4236.737,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 4236.863,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4236.941,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 4237.012,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 4237.265,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4425.636,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4425.636,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4425.636,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4425.636,
+      "content": "Interpreter"
+    },
+    {
+      "timestamp_ms": 4425.636,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4425.636,
+      "content": " Typically"
+    },
+    {
+      "timestamp_ms": 4425.883,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4425.965,
+      "content": " interpreted"
+    },
+    {
+      "timestamp_ms": 4426.023,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 4426.074,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 4432.108,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 4452.342,
+      "content": " slowly"
+    },
+    {
+      "timestamp_ms": 4474.665,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 4658.899,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4662.785,
+      "content": " line"
+    },
+    {
+      "timestamp_ms": 4662.933,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4663.107,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4663.209,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4663.279,
+      "content": " translated"
+    },
+    {
+      "timestamp_ms": 4663.34,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 4663.393,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 4663.44,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4663.485,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4728.35,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 4728.515,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4728.755,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4736.904,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 4992.995,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4993.145,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 4993.275,
+      "content": " intermediate"
+    },
+    {
+      "timestamp_ms": 4993.357,
+      "content": " compiled"
+    },
+    {
+      "timestamp_ms": 4993.418,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 4993.47,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5004.231,
+      "content": " execute"
+    },
+    {
+      "timestamp_ms": 5004.359,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5004.423,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5004.49,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5004.552,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5004.599,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 5004.643,
+      "content": " Detection"
+    },
+    {
+      "timestamp_ms": 5004.685,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5027.589,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5042.577,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5080.604,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5080.846,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5100.724,
+      "content": "Compiler"
+    },
+    {
+      "timestamp_ms": 5279.97,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5280.169,
+      "content": " Comp"
+    },
+    {
+      "timestamp_ms": 5280.243,
+      "content": "ilers"
+    },
+    {
+      "timestamp_ms": 5280.309,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 5280.368,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 5280.424,
+      "content": " syntax"
+    },
+    {
+      "timestamp_ms": 5280.471,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5280.514,
+      "content": " semantic"
+    },
+    {
+      "timestamp_ms": 5280.556,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 5290.105,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5343.432,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5343.695,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 5347.539,
+      "content": " prior"
+    },
+    {
+      "timestamp_ms": 5650.721,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5650.909,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 5651.015,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5651.102,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 5651.185,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 5651.261,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5654.973,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 5655.147,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 5655.269,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 5655.421,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5655.515,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 5655.589,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 5655.655,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 5655.714,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 5655.769,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 5655.82,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 5672.177,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5752.967,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 5753.165,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5753.268,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5753.339,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5767.021,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5814.915,
+      "content": "Interpreter"
+    },
+    {
+      "timestamp_ms": 5815.17,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5831.302,
+      "content": " Errors"
+    },
+    {
+      "timestamp_ms": 5842.578,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5862.326,
+      "content": " detected"
+    },
+    {
+      "timestamp_ms": 6011.09,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 6011.325,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 6011.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6011.461,
+      "content": " line"
+    },
+    {
+      "timestamp_ms": 6011.511,
+      "content": "-by"
+    },
+    {
+      "timestamp_ms": 6011.561,
+      "content": "-line"
+    },
+    {
+      "timestamp_ms": 6011.604,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6015.197,
+      "content": " statement"
+    },
+    {
+      "timestamp_ms": 6055.53,
+      "content": "-by"
+    },
+    {
+      "timestamp_ms": 6055.803,
+      "content": "-st"
+    },
+    {
+      "timestamp_ms": 6162.99,
+      "content": "atement"
+    },
+    {
+      "timestamp_ms": 6167.069,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6167.206,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6167.321,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6167.392,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6167.447,
+      "content": " favorable"
+    },
+    {
+      "timestamp_ms": 6421.096,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6421.257,
+      "content": " debugging"
+    },
+    {
+      "timestamp_ms": 6421.326,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 6421.383,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6421.436,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 6421.567,
+      "content": " catch"
+    },
+    {
+      "timestamp_ms": 6421.636,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 6429.099,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6429.253,
+      "content": " soon"
+    },
+    {
+      "timestamp_ms": 6429.342,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6429.413,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6429.483,
+      "content": " occur"
+    },
+    {
+      "timestamp_ms": 6429.545,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6433.788,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 6469.995,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6471.957,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 6517.206,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6517.445,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 6772.049,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6772.221,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 6772.508,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 6772.675,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 6772.807,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 6772.92,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 6773.024,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6773.939,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6774.27,
+      "content": " major"
+    },
+    {
+      "timestamp_ms": 6774.444,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 6774.63,
+      "content": " exist"
+    },
+    {
+      "timestamp_ms": 6774.711,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6774.769,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6781.407,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6797.379,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6864.432,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 6864.623,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6864.716,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6872.239,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6933.044,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6933.205,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6933.281,
+      "content": "Compiler"
+    },
+    {
+      "timestamp_ms": 6955.184,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6978.894,
+      "content": " Produ"
+    },
+    {
+      "timestamp_ms": 6994.389,
+      "content": "ces"
+    },
+    {
+      "timestamp_ms": 7005.317,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7182.075,
+      "content": " executable"
+    },
+    {
+      "timestamp_ms": 7182.352,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 7182.456,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 7182.533,
+      "content": " successful"
+    },
+    {
+      "timestamp_ms": 7182.602,
+      "content": " compilation"
+    },
+    {
+      "timestamp_ms": 7182.655,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7182.705,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7182.752,
+      "content": " executable"
+    },
+    {
+      "timestamp_ms": 7182.8,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7197.133,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7284.665,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 7284.828,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7285.046,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 7285.181,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7293.244,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 7480.234,
+      "content": " compatible"
+    },
+    {
+      "timestamp_ms": 7480.443,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7480.536,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 7480.649,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7480.722,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7480.777,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7480.828,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 7480.874,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7480.918,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7484.728,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7529.563,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7529.726,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7539.523,
+      "content": "Interpreter"
+    },
+    {
+      "timestamp_ms": 7852.13,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7863.49,
+      "content": " Does"
+    },
+    {
+      "timestamp_ms": 7863.613,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 7863.681,
+      "content": " produce"
+    },
+    {
+      "timestamp_ms": 7863.749,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7863.802,
+      "content": " executable"
+    },
+    {
+      "timestamp_ms": 7863.95,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 7864.025,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7864.085,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7864.14,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 7864.189,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7864.236,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 7864.279,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7864.323,
+      "content": " present"
+    },
+    {
+      "timestamp_ms": 7864.369,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 7864.412,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7864.629,
+      "content": " interpreter"
+    },
+    {
+      "timestamp_ms": 8050.692,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 8050.871,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8050.952,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8051.015,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 8051.072,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8051.127,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8054.497,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8054.643,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8054.719,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 8054.784,
+      "content": " Cases"
+    },
+    {
+      "timestamp_ms": 8160.277,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8160.591,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8160.745,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8160.813,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8160.868,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8169.432,
+      "content": "Compiler"
+    },
+    {
+      "timestamp_ms": 8290.846,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8291.132,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 8291.234,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 8291.32,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 8291.384,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8291.446,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8302.262,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 8323.301,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 8527.007,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 8527.145,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8527.211,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 8527.264,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8527.315,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 8527.361,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8527.406,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 8536.373,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 8536.533,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8796.214,
+      "content": " game"
+    },
+    {
+      "timestamp_ms": 8796.214,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8806.876,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8806.876,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8807.048,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 8807.153,
+      "content": "-end"
+    },
+    {
+      "timestamp_ms": 8807.211,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8807.348,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8807.42,
+      "content": " Examples"
+    },
+    {
+      "timestamp_ms": 8807.484,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 8807.484,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 8807.659,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8807.722,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 8989.021,
+      "content": "++,"
+    },
+    {
+      "timestamp_ms": 8989.021,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8989.021,
+      "content": " Rust"
+    },
+    {
+      "timestamp_ms": 8989.021,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8989.333,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8989.472,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8989.583,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8996.202,
+      "content": "Interpreter"
+    },
+    {
+      "timestamp_ms": 8996.302,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8996.368,
+      "content": " Useful"
+    },
+    {
+      "timestamp_ms": 8996.423,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8996.473,
+      "content": " rapid"
+    },
+    {
+      "timestamp_ms": 8996.523,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9007.426,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9220.197,
+      "content": " debugging"
+    },
+    {
+      "timestamp_ms": 9220.468,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9220.55,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9220.625,
+      "content": " scripting"
+    },
+    {
+      "timestamp_ms": 9220.74,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9220.818,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 9220.877,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9220.929,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 9220.978,
+      "content": " employed"
+    },
+    {
+      "timestamp_ms": 9221.027,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9228.732,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 9236.815,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 9257.032,
+      "content": " flexibility"
+    },
+    {
+      "timestamp_ms": 9606.682,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9606.866,
+      "content": " ease"
+    },
+    {
+      "timestamp_ms": 9606.95,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9607.124,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 9607.226,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9607.304,
+      "content": " priorit"
+    },
+    {
+      "timestamp_ms": 9607.447,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 9607.547,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 9607.624,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 9607.692,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 9607.802,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9607.903,
+      "content": " Examples"
+    },
+    {
+      "timestamp_ms": 9607.985,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 9608.052,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 9608.115,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9608.175,
+      "content": " Ruby"
+    },
+    {
+      "timestamp_ms": 9608.232,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9608.29,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9622.276,
+      "content": " JavaScript"
+    },
+    {
+      "timestamp_ms": 9639.658,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9660.242,
+      "content": "though"
+    },
+    {
+      "timestamp_ms": 9680.844,
+      "content": " JavaScript"
+    },
+    {
+      "timestamp_ms": 9695.198,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9745.028,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 9745.23,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9753.432,
+      "content": " compiled"
+    },
+    {
+      "timestamp_ms": 9775.822,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 9796.015,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 9818.124,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9829.104,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9939.965,
+      "content": "Runtime"
+    },
+    {
+      "timestamp_ms": 9940.119,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 9944.432,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9944.576,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9944.7,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9944.774,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10035.984,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10036.25,
+      "content": "Compiler"
+    },
+    {
+      "timestamp_ms": 10036.395,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 10036.522,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 10036.522,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10036.522,
+      "type": "done"
+    }
+  ],
+  "full_response": "A compiler and an interpreter are both tools used to convert source code written in a high-level programming language into a machine-executable format, but they do so in different ways and serve different purposes. Here are the main differences between the two:\n\n1. **Translation Approach**:\n   - **Compiler**: A compiler translates the entire source code of a program into machine code or an intermediate code (like bytecode) in one go. This process produces an executable file that can be run on the target machine independently of the source code.\n   - **Interpreter**: An interpreter translates and executes the source code line-by-line or statement-by-statement, without producing an intermediate executable file. It reads, translates, and executes the source code directly, often resulting in slower execution since it does this in real-time.\n\n2. **Execution Speed**:\n   - **Compiler**: Generally, since the code is translated into machine code beforehand, executions are faster because the compilation step (which may take some time) is a one-time process, especially for large programs.\n   - **Interpreter**: Typically, interpreted programs run more slowly because each line of code is translated into machine code at runtime, and there is no intermediate compiled form to execute.\n\n3. **Error Detection**:\n   - **Compiler**: Compilers detect all syntax and semantic errors in the code prior to execution, providing users with detailed error messages that point out specific issues before running the program.\n   - **Interpreter**: Errors are detected during execution, line-by-line or statement-by-statement. This can be favorable for debugging since you may catch errors as soon as they occur in context, but it means the program might not run at all if major errors exist.\n\n4. **Output**:\n   - **Compiler**: Produces an executable file after successful compilation. This executable can be shared and run on any compatible system without access to the source code.\n   - **Interpreter**: Does not produce an executable file. The source code must be present because the interpreter requires it to run.\n\n5. **Use Cases**:\n   - **Compiler**: Commonly used for applications where high performance is critical, such as system software, game development, and high-end applications. Examples include C, C++, and Rust.\n   - **Interpreter**: Useful for rapid development, debugging, and scripting. They are typically employed for languages where flexibility and ease of use are prioritized over execution speed. Examples include Python, Ruby, and JavaScript (though JavaScript can also be compiled).\n\n6. **Runtime Environment**:\n   - **Compiler**: Once",
+  "response_chars": 2652,
+  "num_chunks": 512,
+  "ttft_ms": 325.027,
+  "total_ms": 10036.83,
+  "model_name": "model-medium"
+}

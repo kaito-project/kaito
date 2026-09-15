@@ -1,0 +1,1055 @@
+{
+  "index": 187,
+  "prompt": "Explain the concept of eventual consistency in distributed systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 922.831,
+      "content": "Event"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 922.831,
+      "content": " consistently"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " updated"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " synchronized"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " propagate"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " eventually"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " enough"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1544.817,
+      "content": " seeks"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " desirable"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " properties"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " experiencing"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " partitions"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " live"
+    },
+    {
+      "timestamp_ms": 1947.154,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " Ultimately"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " conver"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": "ges"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " strong"
+    },
+    {
+      "timestamp_ms": 2559.071,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " performed"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " replica"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " visible"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " Operational"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " eventual"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 3072.177,
+      "content": " tolerate"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " asynchronous"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": "/write"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " propagate"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " limited"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " short"
+    },
+    {
+      "timestamp_ms": 3531.767,
+      "content": " durations"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " desired"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " conflict"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " unrelated"
+    },
+    {
+      "timestamp_ms": 3811.208,
+      "content": " replicas"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " waiting"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " immediate"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " \n\n"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " Availability"
+    },
+    {
+      "timestamp_ms": 4195.929,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " Partition"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "olerance"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "ynchronous"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " No"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " conflicts"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " achieved"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " eventually"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 4924.47,
+      "content": " report"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " differing"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " moment"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": "\n\n\n"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": "Event"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": "off"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " extensively"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": "-intensive"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5356.898,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " though"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " always"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " guarantee"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": "-date"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " read"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5791.061,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5791.551,
+      "content": " performed"
+    },
+    {
+      "timestamp_ms": 5791.551,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5791.551,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5813.376,
+      "type": "done"
+    }
+  ],
+  "full_response": "Eventual consistency is a consistency model used in distributed systems, where it is not required that all nodes or replicas of a system are consistently updated and synchronized at the same time; instead, updates propagate and all replicas eventually become consistent, given enough time. The model seeks to provide availability and partition tolerance, which are desirable properties in a system experiencing network partitions, failures or live updates. Ultimately, the system converges to a known and consistent state at which no new updates can change state further.\n\n\nThis is different from strong consistency, where every operation performed on each replica must be immediately and visible to all replicas. Operationally, eventual consistency models tolerate asynchronous updates and read/write operations - processes may take some time to propagate to all nodes and should usually be limited to short durations. As such, it is not desired that users conflict with unrelated replicas while waiting for an immediate response from the system. \n\n- Availability and Partition Tolerance\n\n- Asynchronous updates\n\n- No potential for write conflicts\n\n- Consistency is achieved eventually, but different nodes may report differing data at the moment\n\n\nEventual consistency is a tradeoff which has been used extensively by data-intensive services in response to partition tolerance and availability requirements, though may not always guarantee that an up-to-date read or write operation can be performed.",
+  "response_chars": 1502,
+  "num_chunks": 258,
+  "ttft_ms": 922.831,
+  "total_ms": 5937.045,
+  "model_name": "Phi-4-mini-instruct"
+}

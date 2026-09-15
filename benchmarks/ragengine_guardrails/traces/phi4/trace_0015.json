@@ -1,0 +1,2071 @@
+{
+  "index": 15,
+  "prompt": "How does Kubernetes handle pod scheduling and resource management?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 265.951,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 293.831,
+      "content": "ubernetes"
+    },
+    {
+      "timestamp_ms": 301.536,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 339.284,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 343.013,
+      "content": " powerful"
+    },
+    {
+      "timestamp_ms": 359.296,
+      "content": " orchestr"
+    },
+    {
+      "timestamp_ms": 377.967,
+      "content": "ator"
+    },
+    {
+      "timestamp_ms": 406.053,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 416.634,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 435.62,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 453.59,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 472.852,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 491.889,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 521.566,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 530.716,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 549.312,
+      "content": " sophisticated"
+    },
+    {
+      "timestamp_ms": 568.05,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 587.83,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 606.104,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 632.327,
+      "content": " scheduling"
+    },
+    {
+      "timestamp_ms": 644.378,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 663.93,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 682.492,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 701.208,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 720.883,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 744.072,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 758.87,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 778.906,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 797.158,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 816.198,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 856.878,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 857.103,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 873.283,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 892.211,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 911.51,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 930.005,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1029.365,
+      "content": " Pod"
+    },
+    {
+      "timestamp_ms": 1029.365,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 1029.365,
+      "content": "cheduling"
+    },
+    {
+      "timestamp_ms": 1029.365,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1029.365,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1044.729,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1063.18,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1082.76,
+      "content": "Scheduler"
+    },
+    {
+      "timestamp_ms": 1109.193,
+      "content": " Daemon"
+    },
+    {
+      "timestamp_ms": 1121.566,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1139.921,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 1161.778,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 1177.825,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1197.702,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 1215.966,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 1247.325,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1254.224,
+      "content": " kube"
+    },
+    {
+      "timestamp_ms": 1273.234,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 1292.506,
+      "content": "cheduler"
+    },
+    {
+      "timestamp_ms": 1313.602,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1330.684,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1350.224,
+      "content": " responsible"
+    },
+    {
+      "timestamp_ms": 1368.472,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1387.815,
+      "content": " scheduling"
+    },
+    {
+      "timestamp_ms": 1406.749,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 1425.301,
+      "content": " onto"
+    },
+    {
+      "timestamp_ms": 1444.221,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1463.213,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1484.062,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1504.332,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 1540.669,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1545.451,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1558.812,
+      "content": " scheduler"
+    },
+    {
+      "timestamp_ms": 1577.676,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1597.885,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 1616.748,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1634.88,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1658.005,
+      "content": " place"
+    },
+    {
+      "timestamp_ms": 1673.617,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1692.074,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 1711.039,
+      "content": " onto"
+    },
+    {
+      "timestamp_ms": 1729.879,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1749.294,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1767.925,
+      "content": " sufficient"
+    },
+    {
+      "timestamp_ms": 1792.673,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1808.176,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 1825.861,
+      "content": " respecting"
+    },
+    {
+      "timestamp_ms": 1844.551,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1864.712,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 1882.449,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1901.779,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 1920.621,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1939.821,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1958.892,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1979.776,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1997.471,
+      "content": "Pod"
+    },
+    {
+      "timestamp_ms": 2015.899,
+      "content": " Aff"
+    },
+    {
+      "timestamp_ms": 2034.761,
+      "content": "inity"
+    },
+    {
+      "timestamp_ms": 2057.075,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2073.15,
+      "content": " Anti"
+    },
+    {
+      "timestamp_ms": 2092.261,
+      "content": "-aff"
+    },
+    {
+      "timestamp_ms": 2111.328,
+      "content": "inity"
+    },
+    {
+      "timestamp_ms": 2129.992,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2150.05,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2170.363,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2187.728,
+      "content": " rules"
+    },
+    {
+      "timestamp_ms": 2208.509,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2225.808,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2245.094,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2264.41,
+      "content": " specify"
+    },
+    {
+      "timestamp_ms": 2282.629,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2303.236,
+      "content": " influence"
+    },
+    {
+      "timestamp_ms": 2321.974,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2340.012,
+      "content": " scheduler"
+    },
+    {
+      "timestamp_ms": 2379.787,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2379.974,
+      "content": " decision"
+    },
+    {
+      "timestamp_ms": 2399.635,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2417.294,
+      "content": " Pod"
+    },
+    {
+      "timestamp_ms": 2437.719,
+      "content": " affinity"
+    },
+    {
+      "timestamp_ms": 2455.475,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 2473.422,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2492.119,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2514.016,
+      "content": " co"
+    },
+    {
+      "timestamp_ms": 2532.347,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2549.329,
+      "content": "locate"
+    },
+    {
+      "timestamp_ms": 2583.728,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 2587.005,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2608.547,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2625.654,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 2644.592,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2663.311,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 2687.247,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2702.703,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 2720.849,
+      "content": " anti"
+    },
+    {
+      "timestamp_ms": 2739.926,
+      "content": "-aff"
+    },
+    {
+      "timestamp_ms": 2758.99,
+      "content": "inity"
+    },
+    {
+      "timestamp_ms": 2777.931,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 2796.885,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2816.324,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 2835.102,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 2854.353,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2875.213,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2892.267,
+      "content": " placed"
+    },
+    {
+      "timestamp_ms": 2913.798,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2930.139,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2949.459,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 2968.531,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 2987.941,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3007.395,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3025.412,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3047.623,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3063.647,
+      "content": "Node"
+    },
+    {
+      "timestamp_ms": 3082.68,
+      "content": " Aff"
+    },
+    {
+      "timestamp_ms": 3102.365,
+      "content": "inity"
+    },
+    {
+      "timestamp_ms": 3120.432,
+      "content": "/A"
+    },
+    {
+      "timestamp_ms": 3141.959,
+      "content": "nt"
+    },
+    {
+      "timestamp_ms": 3158.828,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 3179.746,
+      "content": "-aff"
+    },
+    {
+      "timestamp_ms": 3206.701,
+      "content": "inity"
+    },
+    {
+      "timestamp_ms": 3216.88,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3236.742,
+      "content": " Similar"
+    },
+    {
+      "timestamp_ms": 3255.858,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3274.542,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 3294.028,
+      "content": " affinity"
+    },
+    {
+      "timestamp_ms": 3314.802,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3332.706,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 3349.252,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3368.869,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 3387.306,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3406.417,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 3425.959,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3447.923,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3463.499,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 3487.984,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 3528.087,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3528.087,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3539.897,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 3559.413,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3586.538,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3597.947,
+      "content": " influence"
+    },
+    {
+      "timestamp_ms": 3617.106,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 3634.965,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 3653.98,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3673.058,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3696.982,
+      "content": " placed"
+    },
+    {
+      "timestamp_ms": 3712.79,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 3730.82,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3749.567,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 3768.768,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 3787.503,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3807.363,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3828.636,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3845.512,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3864.427,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 3883.268,
+      "content": "aint"
+    },
+    {
+      "timestamp_ms": 3913.455,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 3921.682,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3941.641,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 3967.909,
+      "content": "oler"
+    },
+    {
+      "timestamp_ms": 3977.958,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 3997.301,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4016.411,
+      "content": " Nodes"
+    },
+    {
+      "timestamp_ms": 4035.139,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4054.871,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4076.875,
+      "content": " tainted"
+    },
+    {
+      "timestamp_ms": 4093.444,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4114.605,
+      "content": " rep"
+    },
+    {
+      "timestamp_ms": 4129.492,
+      "content": "el"
+    },
+    {
+      "timestamp_ms": 4149.984,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 4168.848,
+      "content": " unless"
+    },
+    {
+      "timestamp_ms": 4188.513,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 4209.623,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 4225.646,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4245.06,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4263.944,
+      "content": " toler"
+    },
+    {
+      "timestamp_ms": 4283.022,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 4301.828,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4322.701,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4339.765,
+      "content": " t"
+    },
+    {
+      "timestamp_ms": 4359.174,
+      "content": "aint"
+    },
+    {
+      "timestamp_ms": 4378.289,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4397.375,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4416.628,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4435.122,
+      "content": " useful"
+    },
+    {
+      "timestamp_ms": 4463.271,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4473.409,
+      "content": " dedic"
+    },
+    {
+      "timestamp_ms": 4492.465,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 4512.016,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 4531.748,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 4550.307,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4569.065,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 4588.894,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 4608.314,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4630.353,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 4649.011,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4663.807,
+      "content": " running"
+    },
+    {
+      "timestamp_ms": 4683.023,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 4702.454,
+      "content": " GPU"
+    },
+    {
+      "timestamp_ms": 4723.535,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 4739.999,
+      "content": "loads"
+    },
+    {
+      "timestamp_ms": 4760.276,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4778.854,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4797.562,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4816.373,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4836.045,
+      "content": "Resource"
+    },
+    {
+      "timestamp_ms": 4855.346,
+      "content": " Requirements"
+    },
+    {
+      "timestamp_ms": 4877.107,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4892.681,
+      "content": " Limits"
+    },
+    {
+      "timestamp_ms": 4911.752,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4930.773,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 4949.716,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4969.539,
+      "content": " specify"
+    },
+    {
+      "timestamp_ms": 4989.101,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 5007.07,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5025.831,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5044.94,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 5172.525,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5172.525,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5172.525,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 5172.525,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5172.525,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5172.525,
+      "content": " scheduler"
+    },
+    {
+      "timestamp_ms": 5180.052,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 5198.21,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5217.177,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5237.381,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 5256.948,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5276.594,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5294.331,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 5312.01,
+      "content": " placed"
+    },
+    {
+      "timestamp_ms": 5332.36,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5351.845,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 5374.286,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5388.427,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 5407.562,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 5430.019,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 5447.148,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5464.168,
+      "content": " Requests"
+    },
+    {
+      "timestamp_ms": 5484.599,
+      "content": " specify"
+    },
+    {
+      "timestamp_ms": 5512.824,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5522.854,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 5543.142,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 5560.42,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5579.323,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5597.83,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 5616.755,
+      "content": " specify"
+    },
+    {
+      "timestamp_ms": 5637.494,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5654.684,
+      "content": " maximum"
+    },
+    {
+      "timestamp_ms": 5675.493,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5694.157,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 5712.624,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5731.018,
+      "content": " allowed"
+    },
+    {
+      "timestamp_ms": 5752.76,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5770.849,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 5802.843,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5811.254,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5828.207,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5850.114,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5869.066,
+      "content": "Priority"
+    },
+    {
+      "timestamp_ms": 5884.166,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5904.392,
+      "content": " Pre"
+    },
+    {
+      "timestamp_ms": 5923.397,
+      "content": "emption"
+    },
+    {
+      "timestamp_ms": 5942.841,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5960.385,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 5979.134,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 5999.13,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 6017.546,
+      "content": " priority"
+    },
+    {
+      "timestamp_ms": 6041.423,
+      "content": " levels"
+    },
+    {
+      "timestamp_ms": 6055.502,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6074.737,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 6093.912,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6113.034,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6262.003,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6262.103,
+      "content": " cause"
+    },
+    {
+      "timestamp_ms": 6262.142,
+      "content": " lower"
+    },
+    {
+      "timestamp_ms": 6262.172,
+      "content": "-p"
+    },
+    {
+      "timestamp_ms": 6262.204,
+      "content": "riority"
+    },
+    {
+      "timestamp_ms": 6262.232,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 6262.259,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6268.86,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6283.841,
+      "content": " ev"
+    },
+    {
+      "timestamp_ms": 6303.558,
+      "content": "icted"
+    },
+    {
+      "timestamp_ms": 6322.501,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6342.473,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6361.936,
+      "content": " higher"
+    },
+    {
+      "timestamp_ms": 6379.252,
+      "content": "-p"
+    },
+    {
+      "timestamp_ms": 6398.844,
+      "content": "riority"
+    },
+    {
+      "timestamp_ms": 6431.642,
+      "content": " pod"
+    },
+    {
+      "timestamp_ms": 6446.745,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 6455.277,
+      "content": " placement"
+    },
+    {
+      "timestamp_ms": 6476.446,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6493.88,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6512.849,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 6533.854,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6551.672,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6570.289,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 6590.878,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6608.15,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6627.208,
+      "content": "Custom"
+    },
+    {
+      "timestamp_ms": 6646.077,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 6667.043,
+      "content": "cheduling"
+    },
+    {
+      "timestamp_ms": 6684.942,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6712.268,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 6722.466,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6741.614,
+      "content": " extend"
+    },
+    {
+      "timestamp_ms": 6760.453,
+      "content": " scheduling"
+    },
+    {
+      "timestamp_ms": 6779.704,
+      "content": " policies"
+    },
+    {
+      "timestamp_ms": 6798.853,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6820.172,
+      "content": " custom"
+    },
+    {
+      "timestamp_ms": 6837.935,
+      "content": " sched"
+    },
+    {
+      "timestamp_ms": 6855.859,
+      "content": "ulers"
+    },
+    {
+      "timestamp_ms": 6875.93,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6894.227,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6913.311,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 6932.547,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 6951.337,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 6970.136,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 6989.193,
+      "content": " meet"
+    },
+    {
+      "timestamp_ms": 7010.909,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7027.663,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 7046.379,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7065.561,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7091.302,
+      "content": " Resource"
+    },
+    {
+      "timestamp_ms": 7103.891,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 7122.656,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7144.185,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 7162.504,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7179.678,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7198.877,
+      "content": "Resource"
+    },
+    {
+      "timestamp_ms": 7218.597,
+      "content": " Qu"
+    },
+    {
+      "timestamp_ms": 7237.203,
+      "content": "otas"
+    },
+    {
+      "timestamp_ms": 7256.157,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7275.578,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 7294.311,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 7313.283,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7332.196,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7351.354,
+      "content": " define"
+    },
+    {
+      "timestamp_ms": 7370.334,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 7389.995,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7409.805,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7428.139,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 7455.399,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7466.617,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7486.478,
+      "content": " namespace"
+    },
+    {
+      "timestamp_ms": 7504.421,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7525.038,
+      "content": " consume"
+    },
+    {
+      "timestamp_ms": 7542.535,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7566.704,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 7580.832,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7599.104,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 7618.453,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7639.761,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 7658.603,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7676.236,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7694.417,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 7714.422,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7733.472,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7751.897,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7770.765,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7790.199,
+      "content": "Node"
+    },
+    {
+      "timestamp_ms": 7808.808,
+      "content": " Resource"
+    },
+    {
+      "timestamp_ms": 7828.748,
+      "content": " Limits"
+    },
+    {
+      "timestamp_ms": 7847.492,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7869.41,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 7885.209,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 7904.15,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7923.388,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7945.912,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 7961.577,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 8009.399,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 8009.523,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 8019.25,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8039.049,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8058.176,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 8080.3,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 8095.447,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8114.533,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8151.236,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 8151.425,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 8171.434,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 8190.712,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8209.795,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8229.117,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 8249.598,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8267.957,
+      "content": " t"
+    },
+    {
+      "timestamp_ms": 8286.43,
+      "content": "aint"
+    },
+    {
+      "timestamp_ms": 8304.883,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8324.037,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8352.819,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 8362.2,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8381.154,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8400.034,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8419.954,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8441.76,
+      "content": "Quality"
+    },
+    {
+      "timestamp_ms": 8458.102,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8488.501,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 8497.481,
+      "content": " Classes"
+    },
+    {
+      "timestamp_ms": 8524.456,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8535.743,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 8552.499,
+      "content": " categor"
+    },
+    {
+      "timestamp_ms": 8571.777,
+      "content": "izes"
+    },
+    {
+      "timestamp_ms": 8592.326,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 8610.726,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 8631.453,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8650.615,
+      "content": " Q"
+    },
+    {
+      "timestamp_ms": 8668.723,
+      "content": "oS"
+    },
+    {
+      "timestamp_ms": 8687.508,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 8705.165,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8724.065,
+      "content": "Gu"
+    },
+    {
+      "timestamp_ms": 8743.528,
+      "content": "ar"
+    },
+    {
+      "timestamp_ms": 8763.011,
+      "content": "anteed"
+    },
+    {
+      "timestamp_ms": 8781.411,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8800.485,
+      "content": " Bur"
+    },
+    {
+      "timestamp_ms": 8820.13,
+      "content": "stable"
+    },
+    {
+      "timestamp_ms": 8839.177,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8857.69,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8880.467,
+      "content": " Best"
+    },
+    {
+      "timestamp_ms": 8895.686,
+      "content": "Eff"
+    },
+    {
+      "timestamp_ms": 9023.859,
+      "content": "ort"
+    },
+    {
+      "timestamp_ms": 9023.859,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9023.859,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 9023.859,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9023.859,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9023.859,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 9036.29,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 9053.005,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9071.678,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 9087.64,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9105.66,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 9127.545,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 9143.851,
+      "content": " utilization"
+    },
+    {
+      "timestamp_ms": 9166.059,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9182.058,
+      "content": " predict"
+    },
+    {
+      "timestamp_ms": 9202.307,
+      "content": "ably"
+    },
+    {
+      "timestamp_ms": 9221.317,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9239.146,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9258.613,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9280.076,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9297.286,
+      "content": "Vertical"
+    },
+    {
+      "timestamp_ms": 9315.577,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9337.247,
+      "content": " Horizontal"
+    },
+    {
+      "timestamp_ms": 9353.847,
+      "content": " Pod"
+    },
+    {
+      "timestamp_ms": 9372.771,
+      "content": " Autos"
+    },
+    {
+      "timestamp_ms": 9391.535,
+      "content": "caling"
+    },
+    {
+      "timestamp_ms": 9410.755,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9430.304,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 9457.484,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9468.21,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9488.511,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9506.276,
+      "content": "Vertical"
+    },
+    {
+      "timestamp_ms": 9526.434,
+      "content": " Pod"
+    },
+    {
+      "timestamp_ms": 9543.458,
+      "content": " Autos"
+    },
+    {
+      "timestamp_ms": 9564.532,
+      "content": "caler"
+    },
+    {
+      "timestamp_ms": 9590.327,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9601.428,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 9620.669,
+      "content": "PA"
+    },
+    {
+      "timestamp_ms": 9639.905,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 9659.724,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 9684.035,
+      "content": " adjusts"
+    },
+    {
+      "timestamp_ms": 9697.267,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9717.79,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 9735.331,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9757.998,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 9775.365,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 9796.656,
+      "content": " requested"
+    },
+    {
+      "timestamp_ms": 9818.846,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9839.03,
+      "content": " pods"
+    },
+    {
+      "timestamp_ms": 9851.023,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 9870.041,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9891.764,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 9907.532,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9927.338,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9945.362,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9964.766,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9984.094,
+      "content": "Horizontal"
+    },
+    {
+      "timestamp_ms": 10003.429,
+      "content": " Pod"
+    },
+    {
+      "timestamp_ms": 10003.429,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10003.429,
+      "type": "done"
+    }
+  ],
+  "full_response": "Kubernetes is a powerful orchestrator for containerized applications, and it has sophisticated mechanisms for pod scheduling and resource management. Here's an overview of how it handles these tasks:\n\n### Pod Scheduling\n\n1. **Scheduler Daemon**: Kubernetes has a component called the kube-scheduler that is responsible for scheduling pods onto nodes in the cluster. The scheduler's job is to place new pods onto nodes with sufficient resources while respecting all constraints and policies.\n\n2. **Pod Affinity and Anti-affinity**: These are rules that you can specify to influence the scheduler's decision. Pod affinity allows you to co-locate pods on nodes based on constraints, while anti-affinity ensures that certain pods are not placed on the same node.\n\n3. **Node Affinity/Anti-affinity**: Similar to pod affinity, but these constraints are defined on the node level. It allows you to influence where pods should be placed based on node labels.\n\n4. **Taints and Tolerations**: Nodes can be tainted to repel pods unless those pods have a toleration for the taint. This is useful for dedicating certain nodes for specific purposes, such as running only GPU workloads.\n\n5. **Resource Requirements and Limits**: When you specify resource requests and limits for a pod, the scheduler ensures that the node it is being placed on has the required resources available. Requests specify the minimum guarantees, and limits specify the maximum an application is allowed to use.\n\n6. **Priority and Preemption**: Kubernetes allows setting priority levels for pods, which can cause lower-priority pods to be evicted if a higher-priority pod needs placement on the same node.\n\n7. **Custom Scheduling**: You can extend scheduling policies with custom schedulers if the default one does not meet your needs.\n\n### Resource Management\n\n1. **Resource Quotas**: These allow you to define constraints on the resources that a namespace can consume, such as CPU, memory, and storage.\n\n2. **Node Resource Limits**: Each node in the cluster has limits defined by its hardware capabilities and any resource configurations set by the node's taints or labels.\n\n3. **Quality of Service Classes**: Kubernetes categorizes pods into different QoS classes (Guaranteed, Burstable, and BestEffort) based on their resource requests and limits to manage resource utilization more predictably.\n\n4. **Vertical and Horizontal Pod Autoscaling**: \n   - **Vertical Pod Autoscaler (VPA)** automatically adjusts the CPU and memory resources requested by pods based on usage.\n   - **Horizontal Pod",
+  "response_chars": 2556,
+  "num_chunks": 512,
+  "ttft_ms": 265.951,
+  "total_ms": 10007.464,
+  "model_name": "model-medium"
+}

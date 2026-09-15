@@ -1,0 +1,82 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: llm-guard-response-filter
+spec:
+  workloadSelector:
+    labels:
+      gateway.networking.k8s.io/gateway-name: inference-gateway
+  configPatches:
+  - applyTo: CLUSTER
+    match:
+      context: GATEWAY
+    patch:
+      operation: ADD
+      value:
+        name: llm_guard_scanner
+        type: STRICT_DNS
+        connect_timeout: 2s
+        load_assignment:
+          cluster_name: llm_guard_scanner
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: llm-guard-scanner.default.svc.cluster.local
+                    port_value: 8000
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: kaito.llm_guard
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          stat_prefix: llm_guard
+          default_source_code:
+            inline_string: |
+              function envoy_on_response(response_handle)
+                local response_headers = response_handle:headers()
+                local content_type = response_headers:get("content-type") or ""
+                if string.find(content_type, "application/json", 1, true) == nil then
+                  return
+                end
+
+                local response_body = response_handle:body()
+                if response_body == nil or response_body:length() == 0 then
+                  return
+                end
+
+                local scan_headers, scanned_body = response_handle:httpCall(
+                  "llm_guard_scanner",
+                  {
+                    [":method"] = "POST",
+                    [":path"] = "/scan",
+                    [":authority"] = "llm-guard-scanner.default.svc.cluster.local",
+                    ["content-type"] = "application/json"
+                  },
+                  response_body:getBytes(0, response_body:length()),
+                  5000
+                )
+
+                if scan_headers[":status"] ~= "200" or scanned_body == nil then
+                  response_handle:logErr("llm-guard scan failed; returning original response")
+                  response_headers:replace("x-llm-guard-action", "error-fail-open")
+                  return
+                end
+
+                response_body:setBytes(scanned_body)
+                response_headers:replace("content-length", tostring(string.len(scanned_body)))
+                response_headers:replace(
+                  "x-llm-guard-action",
+                  scan_headers["x-llm-guard-action"] or "unknown"
+                )
+              end

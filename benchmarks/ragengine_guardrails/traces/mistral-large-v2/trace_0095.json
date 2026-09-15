@@ -1,0 +1,767 @@
+{
+  "index": 95,
+  "prompt": "Write an extremely detailed tutorial on building a full-stack web application from scratch. Cover frontend, backend, database, authentication, deployment, testing, monitoring, and security in depth.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1021.364,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": " **Ultim"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": "ate Guide"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": " to Building a Full"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": "-Stack Web Application"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": " from Scratch**\n\n"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": "This tutorial"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": " will guide"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": " you through"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": " building a"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": " **full"
+    },
+    {
+      "timestamp_ms": 1021.364,
+      "content": "-stack web application**"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " from the"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " ground up"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": ", covering"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": ". **Frontend"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": "** (React,"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " TypeScript, State"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " Management)\n2."
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " **Backend Development**"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " (Node.js,"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": " Express, REST"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1738.11,
+      "content": "GraphQL APIs"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": ")\n3. **"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": "Database Design &"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": " Integration** (Post"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": "greSQL, Mongo"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": "DB,"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": " OR"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": "Ms"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": ")\n4"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": ". **Authentication &"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": " Authorization** (J"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": "WT, OAuth,"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": " Sessions"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": ")\n5. **"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": "Deployment** (D"
+    },
+    {
+      "timestamp_ms": 2584.625,
+      "content": "ocker, AWS"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": ", CI"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "/CD)\n"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "6. **Testing"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "** (Unit"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": ", Integration"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": ", E2E"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": ")\n7. **"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "Monitoring &"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": " Logging** (Prom"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "etheus, Graf"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "ana, EL"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "K Stack"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": ")\n8. **"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "Security Best"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": " Practices** (OW"
+    },
+    {
+      "timestamp_ms": 3388.131,
+      "content": "ASP, HTTPS"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": ", Rate"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": " Limiting)\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": "## **1."
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": " Project Setup &"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": " Planning**\n### **"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": "1.1"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": " Define Requirements"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": "**\n-"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": " **P"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": "urpose**: What"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": " problem"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": " does your app solve"
+    },
+    {
+      "timestamp_ms": 3822.183,
+      "content": "?\n- **Features"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": "**: List"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": " core"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": " functionalities (e.g"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": "., user auth"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": ", CR"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": "UD operations"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": "- **Tech"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": " Stack**: Choose"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": " based on scal"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": "ability,"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": " expertise"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": ", and project"
+    },
+    {
+      "timestamp_ms": 5071.986,
+      "content": " needs.\n\n### **"
+    },
+    {
+      "timestamp_ms": 5430.55,
+      "content": "1.2 Tech"
+    },
+    {
+      "timestamp_ms": 5430.55,
+      "content": " Stack Selection"
+    },
+    {
+      "timestamp_ms": 5430.55,
+      "content": "**\n| **"
+    },
+    {
+      "timestamp_ms": 5430.55,
+      "content": "Category**       |"
+    },
+    {
+      "timestamp_ms": 5430.55,
+      "content": " **Te"
+    },
+    {
+      "timestamp_ms": 5629.618,
+      "content": "chnology**                         "
+    },
+    {
+      "timestamp_ms": 5629.618,
+      "content": " |\n|--------------------"
+    },
+    {
+      "timestamp_ms": 5629.618,
+      "content": "|--------------------------------"
+    },
+    {
+      "timestamp_ms": 5629.618,
+      "content": "--------|\n| **"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": "Frontend**      "
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": " | React"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": ", TypeScript,"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": " Vite, Tail"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": "windCSS"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": "   |\n| **"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": "Backend**       "
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": " | Node"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": ".js, Express"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": ", TypeScript          "
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": " |\n| **Database"
+    },
+    {
+      "timestamp_ms": 6059.145,
+      "content": "**       | Postgre"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "SQL (Rel"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "ational),"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " Mongo"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "DB (No"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "SQL) |\n|"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " **Authentication"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "** |"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " JWT,"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " OAuth ("
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "Google/G"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "itHub),"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " Sessions"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " |\n| **Deployment"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "**    "
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " | Docker"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": ", AWS ("
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "EC2, R"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": "DS,"
+    },
+    {
+      "timestamp_ms": 7291.64,
+      "content": " S3), CI"
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": "/CD     "
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": " |\n| **Testing"
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": "**       "
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": " | Jest, React"
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": " Testing Library"
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": ", Cy"
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": "press  "
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": " |\n| **Monitor"
+    },
+    {
+      "timestamp_ms": 7781.065,
+      "content": "ing**     |"
+    },
+    {
+      "timestamp_ms": 7992.486,
+      "content": " Prometheus, Graf"
+    },
+    {
+      "timestamp_ms": 7992.486,
+      "content": "ana, Winston"
+    },
+    {
+      "timestamp_ms": 7992.486,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 7992.486,
+      "content": " |\n| **Security"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "**      "
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": " | Hel"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "met, CORS"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": ", Rate"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": " Limiting, O"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "WASP"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "     |\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "## **2."
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": " Frontend Development**\n"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "### **2"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": ".1 Initialize"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": " React App with"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "ite**\n```"
+    },
+    {
+      "timestamp_ms": 8914.287,
+      "content": "bash\nnpm create"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": " vite@"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "latest frontend"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": " -- --"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "template react-"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "ts\ncd"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": " frontend"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "\nnpm install\n"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "npm install axios"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": " react"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "-router-dom"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": " @tanstack"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "/react-query"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": " tail"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "windcss post"
+    },
+    {
+      "timestamp_ms": 9734.258,
+      "content": "css autop"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "refixer"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "\nnpm"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": " run dev"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "\n```\n\n### **"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "2.2 Folder"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": " Structure**\n```\n"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "frontend/\n├"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "── src/\n│"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "   ├── components"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "/   "
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": " # Re"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "usable UI components"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "\n│   ├──"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": " pages"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": "/        "
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 10954.738,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11056.703,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **Ultimate Guide to Building a Full-Stack Web Application from Scratch**\n\nThis tutorial will guide you through building a **full-stack web application** from the ground up, covering:\n\n1. **Frontend Development** (React, TypeScript, State Management)\n2. **Backend Development** (Node.js, Express, REST/GraphQL APIs)\n3. **Database Design & Integration** (PostgreSQL, MongoDB, ORMs)\n4. **Authentication & Authorization** (JWT, OAuth, Sessions)\n5. **Deployment** (Docker, AWS, CI/CD)\n6. **Testing** (Unit, Integration, E2E)\n7. **Monitoring & Logging** (Prometheus, Grafana, ELK Stack)\n8. **Security Best Practices** (OWASP, HTTPS, Rate Limiting)\n\n---\n\n## **1. Project Setup & Planning**\n### **1.1 Define Requirements**\n- **Purpose**: What problem does your app solve?\n- **Features**: List core functionalities (e.g., user auth, CRUD operations).\n- **Tech Stack**: Choose based on scalability, team expertise, and project needs.\n\n### **1.2 Tech Stack Selection**\n| **Category**       | **Technology**                          |\n|--------------------|----------------------------------------|\n| **Frontend**       | React, TypeScript, Vite, TailwindCSS   |\n| **Backend**        | Node.js, Express, TypeScript           |\n| **Database**       | PostgreSQL (Relational), MongoDB (NoSQL) |\n| **Authentication** | JWT, OAuth (Google/GitHub), Sessions   |\n| **Deployment**     | Docker, AWS (EC2, RDS, S3), CI/CD      |\n| **Testing**        | Jest, React Testing Library, Cypress   |\n| **Monitoring**     | Prometheus, Grafana, Winston           |\n| **Security**       | Helmet, CORS, Rate Limiting, OWASP     |\n\n---\n\n## **2. Frontend Development**\n### **2.1 Initialize React App with Vite**\n```bash\nnpm create vite@latest frontend -- --template react-ts\ncd frontend\nnpm install\nnpm install axios react-router-dom @tanstack/react-query tailwindcss postcss autoprefixer\nnpm run dev\n```\n\n### **2.2 Folder Structure**\n```\nfrontend/\n├── src/\n│   ├── components/    # Reusable UI components\n│   ├── pages/         #",
+  "response_chars": 2001,
+  "num_chunks": 186,
+  "ttft_ms": 1021.364,
+  "total_ms": 11166.985,
+  "model_name": "Mistral-Large-3"
+}

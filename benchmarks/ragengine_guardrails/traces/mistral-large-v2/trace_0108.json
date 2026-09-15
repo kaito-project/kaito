@@ -1,0 +1,811 @@
+{
+  "index": 108,
+  "prompt": "What are the best practices for designing RESTful APIs?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 926.343,
+      "content": "Design"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": "ing RESTful APIs"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " set of best"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " practices to ensure they"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " are scalable"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": ", maintainable,"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " and easy"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " to use"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": ". Here"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " are some key best"
+    },
+    {
+      "timestamp_ms": 926.343,
+      "content": " practices:\n\n###"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " 1. **"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "Use N"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "oun"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "s Instead"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " of Ver"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "bs in"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " End"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "points**\n   -"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " RESTful APIs should"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " use nouns"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " to represent resources"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": ", not verbs"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "   - **"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "Good:**"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " `/users"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 1541.669,
+      "content": " `/users/{"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "id}`\n   -"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": " **Bad:** `/"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "getUsers"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "`, `/create"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "User`\n\n###"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": " 2. **"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "Use Pl"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "ural N"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "ouns for Resources"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": "**\n   - Use"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": " plural nouns"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 1992.06,
+      "content": " `/users` instead"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " of `/"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": "user`).\n  "
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " - Exception"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": ": If"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " the resource"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " singleton ("
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": "e.g., `/"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": "profile"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": "` for"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " a user"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": "'s profile"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": ").\n\n### 3"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": ". **Use HTTP"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " Methods Correct"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": "ly**\n   -"
+    },
+    {
+      "timestamp_ms": 2720.835,
+      "content": " **GET"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " Retrieve a"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " resource (safe"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " id"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": "empotent).\n"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": "   - **POST"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": "**: Create a resource"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " (not"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " idempotent"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": ").\n   - **"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": "PUT**: Replace"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": " resource (id"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": "empotent).\n"
+    },
+    {
+      "timestamp_ms": 3467.045,
+      "content": "   - **P"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": "ATCH**: Part"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": "ially update a resource"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": " (not"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": " necessarily"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": " idempotent"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": ").\n   - **"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": "DELETE**: Remove"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": " a resource (id"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": "empotent).\n\n"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": "### 4."
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": " **Use HTTP Status"
+    },
+    {
+      "timestamp_ms": 3757.345,
+      "content": " Codes Proper"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": "ly**\n   -"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": " **2"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": "00 OK"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": "**: Successful"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": " PUT"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": ", or PATCH"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": ".\n   - **"
+    },
+    {
+      "timestamp_ms": 4494.797,
+      "content": "201 Created"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": "**: Successful"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": "include"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": " a `"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": "Location` header with"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": " the new resource"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 4567.662,
+      "content": ").\n   - **"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": "204"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " No Content"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": "**: Successful"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " DELETE or PUT"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " (no response"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " body).\n   -"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " **400"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " Bad Request**: Client"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": "-side error"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " invalid input).\n  "
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": " - **40"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": "1 Un"
+    },
+    {
+      "timestamp_ms": 5197.858,
+      "content": "authorized**: Authentication"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " failed.\n"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": "   - **4"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": "03"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " Forbidden**: Auth"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": "enticated but"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " not authorized.\n  "
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " - **40"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": "4 Not"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " Found**: Resource"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " not exist.\n  "
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " - **50"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": "0 Internal"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": " Server Error"
+    },
+    {
+      "timestamp_ms": 6342.244,
+      "content": "**: Server"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": "-side error.\n\n###"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": " 5. **"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": " API**\n   -"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": " Use version"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": "ing to avoid breaking"
+    },
+    {
+      "timestamp_ms": 6556.548,
+      "content": " changes ("
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": "e.g., `/"
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": "v1/users"
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": ").\n   - Common"
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": " approaches"
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": ":\n     - URL"
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 6558.873,
+      "content": " (`"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "/v1/users"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "`).\n     -"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": " parameter"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": " (`/users"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "?version"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "=1"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "`).\n     -"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": " Header"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": " (`Accept"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": ": application"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "/vnd"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": ".company"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": ".api"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": ".v1+"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "json`).\n\n### "
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": "6. **Use"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": " Consistent"
+    },
+    {
+      "timestamp_ms": 6945.303,
+      "content": " Naming Con"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "ventions**\n   -"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " Use lowercase"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " letters"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " hyphens or"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " underscores (e"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": ".g., `/"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "-pro"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "files` or `/"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "user_pro"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "files`).\n  "
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " - Avoid camel"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "Case"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": " URLs (e.g"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "., `/"
+    },
+    {
+      "timestamp_ms": 7567.674,
+      "content": "userProfiles"
+    },
+    {
+      "timestamp_ms": 7568.154,
+      "content": "` is"
+    },
+    {
+      "timestamp_ms": 7568.154,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 7568.154,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 7568.154,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7672.198,
+      "type": "done"
+    }
+  ],
+  "full_response": "Designing RESTful APIs involves following a set of best practices to ensure they are scalable, maintainable, and easy to use. Here are some key best practices:\n\n### 1. **Use Nouns Instead of Verbs in Endpoints**\n   - RESTful APIs should use nouns to represent resources, not verbs.\n   - **Good:** `/users`, `/users/{id}`\n   - **Bad:** `/getUsers`, `/createUser`\n\n### 2. **Use Plural Nouns for Resources**\n   - Use plural nouns for consistency (e.g., `/users` instead of `/user`).\n   - Exception: If the resource is a singleton (e.g., `/profile` for a user's profile).\n\n### 3. **Use HTTP Methods Correctly**\n   - **GET**: Retrieve a resource (safe and idempotent).\n   - **POST**: Create a resource (not idempotent).\n   - **PUT**: Replace a resource (idempotent).\n   - **PATCH**: Partially update a resource (not necessarily idempotent).\n   - **DELETE**: Remove a resource (idempotent).\n\n### 4. **Use HTTP Status Codes Properly**\n   - **200 OK**: Successful GET, PUT, or PATCH.\n   - **201 Created**: Successful POST (include a `Location` header with the new resource URL).\n   - **204 No Content**: Successful DELETE or PUT (no response body).\n   - **400 Bad Request**: Client-side error (e.g., invalid input).\n   - **401 Unauthorized**: Authentication failed.\n   - **403 Forbidden**: Authenticated but not authorized.\n   - **404 Not Found**: Resource does not exist.\n   - **500 Internal Server Error**: Server-side error.\n\n### 5. **Version Your API**\n   - Use versioning to avoid breaking changes (e.g., `/v1/users`).\n   - Common approaches:\n     - URL path (`/v1/users`).\n     - Query parameter (`/users?version=1`).\n     - Header (`Accept: application/vnd.company.api.v1+json`).\n\n### 6. **Use Consistent Naming Conventions**\n   - Use lowercase letters and hyphens or underscores (e.g., `/user-profiles` or `/user_profiles`).\n   - Avoid camelCase in URLs (e.g., `/userProfiles` is less common",
+  "response_chars": 1891,
+  "num_chunks": 197,
+  "ttft_ms": 926.343,
+  "total_ms": 7677.427,
+  "model_name": "Mistral-Large-3"
+}

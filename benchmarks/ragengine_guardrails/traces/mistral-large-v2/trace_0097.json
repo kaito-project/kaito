@@ -1,0 +1,879 @@
+{
+  "index": 97,
+  "prompt": "What are the main types of software testing and when should each be used?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 714.059,
+      "content": "Software"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " testing is a critical"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " the software"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " development lifecycle"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": "SDLC"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": ") that ensures the"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " quality,"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": ", and reliability of"
+    },
+    {
+      "timestamp_ms": 714.059,
+      "content": " a product. Here"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " are the main"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " types of software"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " testing, along"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " with when"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " and why"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " should be used:\n\n"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": "---\n\n### **1"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": ". Functional Testing**\n"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": "Purpose**: Verify"
+    },
+    {
+      "timestamp_ms": 916.147,
+      "content": " that the software"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " as intended"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " according"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " to requirements"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": ".\n**"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": "When to use**:\n"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": "- After"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " validate"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " core"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " features.\n- Before"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " major"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " releases or"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 1122.933,
+      "content": ".\n- When"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": " features are added or"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": " ones"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": " are modified.\n\n**"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": "Subtypes**:\n"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": "- **Unit"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": " Testing**: Tests individual"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": " components (e.g"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": "., functions, methods"
+    },
+    {
+      "timestamp_ms": 1254.561,
+      "content": ") in isolation"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": ". Used"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " development (often"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " by developers).\n-"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " **Integration"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " Testing**: Tests interactions"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " between modules"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": "/components"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": ". Used"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " after unit"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " testing to"
+    },
+    {
+      "timestamp_ms": 1433.534,
+      "content": " ensure combined"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " work together"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": ".\n- **System"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " Testing**: Tests the"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " complete system against"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": ". Used"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " acceptance testing"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": " (U"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": "AT).\n- **"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": "Accept"
+    },
+    {
+      "timestamp_ms": 1643.991,
+      "content": "ance Testing ("
+    },
+    {
+      "timestamp_ms": 1734.92,
+      "content": "UAT)**: Valid"
+    },
+    {
+      "timestamp_ms": 1734.92,
+      "content": "ates the system"
+    },
+    {
+      "timestamp_ms": 1734.92,
+      "content": " against business"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": "/user"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": " requirements. Used"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": " (often"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": " by end"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": "-users"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": " or clients"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": ").\n- **Regression"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": " Testing**: Re"
+    },
+    {
+      "timestamp_ms": 1837.526,
+      "content": "-tests"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " the software"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " after changes to ensure"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " no new bugs"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " introduced. Used"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " after bug"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " fixes or"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": ".\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": " Non-F"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": "unctional Testing**\n**"
+    },
+    {
+      "timestamp_ms": 2018.38,
+      "content": "Purpose**: E"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": "valuate non"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": "-functional"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": " aspects like performance"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": ", usability"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": ", and security.\n"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": "**When"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": " to use**:\n-"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": " After"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": " functional"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": " testing is complete.\n"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": "- Before"
+    },
+    {
+      "timestamp_ms": 2224.179,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 2349.706,
+      "content": " to ensure"
+    },
+    {
+      "timestamp_ms": 2349.706,
+      "content": " scal"
+    },
+    {
+      "timestamp_ms": 2349.706,
+      "content": "ability,"
+    },
+    {
+      "timestamp_ms": 2349.706,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 2349.706,
+      "content": ", and user"
+    },
+    {
+      "timestamp_ms": 2349.902,
+      "content": " experience.\n- Period"
+    },
+    {
+      "timestamp_ms": 2349.902,
+      "content": "ically for"
+    },
+    {
+      "timestamp_ms": 2414.653,
+      "content": " performance-critical applications"
+    },
+    {
+      "timestamp_ms": 2414.653,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2414.653,
+      "content": "e.g., load"
+    },
+    {
+      "timestamp_ms": 2414.653,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 2414.653,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 2414.653,
+      "content": " peak usage"
+    },
+    {
+      "timestamp_ms": 2414.653,
+      "content": ").\n\n**Sub"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": "types**:\n- **"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": "Performance Testing**: Checks"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": ", scal"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": "ability, and stability"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": " under load"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": ".\n  - *"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": "Load Testing*: Tests"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": " under expected"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 2657.024,
+      "content": " loads.\n  -"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " *Str"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": "ess Testing*: Tests"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " pushing"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " beyond"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " normal capacity"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": ".\n  - *"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": "End"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": "urance Testing"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": "*: Checks"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " over extended"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": " periods.\n- **"
+    },
+    {
+      "timestamp_ms": 2877.742,
+      "content": "Usability Testing"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": "**: Evalu"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": "ates user-f"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": "riendliness and accessibility"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": ". Used"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": " during design"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": " and prot"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": "otyping.\n- **"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": "Security Testing**: Ident"
+    },
+    {
+      "timestamp_ms": 2968.772,
+      "content": "ifies vulnerabilities (e"
+    },
+    {
+      "timestamp_ms": 2969.106,
+      "content": ".g., SQL injection"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": ", X"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": "SS). Used"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": " and periodically"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": ".\n- **Compat"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": "ibility Testing"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": "**: Ens"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": "ures the software"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": " works across devices"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": ", browsers"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": ", or"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": " OS versions"
+    },
+    {
+      "timestamp_ms": 3168.847,
+      "content": ". Used"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": " before release.\n-"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": " **R"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": "eliability Testing"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": "**: Checks"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": " if the software"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": " performs"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": " consistently over time.\n"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": "- **Local"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": "ization/"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": "International"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": "ization Testing"
+    },
+    {
+      "timestamp_ms": 3376.611,
+      "content": "**: Valid"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": "ates language"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": " cultural, and regional"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": " adaptations"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": "3. Maintenance"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": " Testing**\n**P"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": "urpose**: Ens"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": "ures the software"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": " functional after changes ("
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": "e.g., patches"
+    },
+    {
+      "timestamp_ms": 3640.33,
+      "content": ", updates"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "content": ").\n**"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "content": "When to use**:\n"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "content": "- After bug"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "content": " fixes,"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "content": " enh"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "content": "ancements, or environment"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 3640.79,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3782.807,
+      "type": "done"
+    }
+  ],
+  "full_response": "Software testing is a critical phase in the software development lifecycle (SDLC) that ensures the quality, functionality, and reliability of a product. Here are the main types of software testing, along with when and why each should be used:\n\n---\n\n### **1. Functional Testing**\n**Purpose**: Verify that the software functions as intended according to requirements.\n**When to use**:\n- After development to validate core features.\n- Before major releases or updates.\n- When new features are added or existing ones are modified.\n\n**Subtypes**:\n- **Unit Testing**: Tests individual components (e.g., functions, methods) in isolation. Used during development (often by developers).\n- **Integration Testing**: Tests interactions between modules/components. Used after unit testing to ensure combined parts work together.\n- **System Testing**: Tests the complete system against requirements. Used before user acceptance testing (UAT).\n- **Acceptance Testing (UAT)**: Validates the system against business/user requirements. Used before deployment (often by end-users or clients).\n- **Regression Testing**: Re-tests the software after changes to ensure no new bugs were introduced. Used after bug fixes or updates.\n\n---\n\n### **2. Non-Functional Testing**\n**Purpose**: Evaluate non-functional aspects like performance, usability, and security.\n**When to use**:\n- After functional testing is complete.\n- Before deployment to ensure scalability, security, and user experience.\n- Periodically for performance-critical applications (e.g., load testing during peak usage).\n\n**Subtypes**:\n- **Performance Testing**: Checks speed, scalability, and stability under load.\n  - *Load Testing*: Tests behavior under expected user loads.\n  - *Stress Testing*: Tests limits by pushing beyond normal capacity.\n  - *Endurance Testing*: Checks performance over extended periods.\n- **Usability Testing**: Evaluates user-friendliness and accessibility. Used during design and prototyping.\n- **Security Testing**: Identifies vulnerabilities (e.g., SQL injection, XSS). Used before deployment and periodically.\n- **Compatibility Testing**: Ensures the software works across devices, browsers, or OS versions. Used before release.\n- **Reliability Testing**: Checks if the software performs consistently over time.\n- **Localization/Internationalization Testing**: Validates language, cultural, and regional adaptations.\n\n---\n\n### **3. Maintenance Testing**\n**Purpose**: Ensures the software remains functional after changes (e.g., patches, updates).\n**When to use**:\n- After bug fixes, enhancements, or environment changes",
+  "response_chars": 2591,
+  "num_chunks": 214,
+  "ttft_ms": 714.059,
+  "total_ms": 3792.577,
+  "model_name": "Mistral-Large-3"
+}

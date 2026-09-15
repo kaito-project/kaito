@@ -1,0 +1,667 @@
+{
+  "index": 146,
+  "prompt": "Create a sample hotel reservation confirmation that includes the guest's full name, email, phone number, credit card last four digits, and check-in/check-out dates.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1102.172,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "Hotel Reservation"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": " Confirm"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "ation**\n\n**Reservation"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": " Number:** H"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "OT"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "-2"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "023-"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "894"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "56\n**"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "Booking"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": " Date:** June"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": " 1,"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": " 202"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "4\n\n"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "**Guest"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": " Information:**\n**"
+    },
+    {
+      "timestamp_ms": 1102.172,
+      "content": "Full Name:** Sarah"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": " Elizabeth"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": " Johnson\n**Email"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": ":** sar"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "ah"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": ".johnson"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "@email.com\n"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "**Phone Number"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": ":** ("
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "55) "
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "123-"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "4567"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "\n\n**Payment"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": ":**\n**"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "Credit Card ("
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "Last "
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "4 Dig"
+    },
+    {
+      "timestamp_ms": 1708.75,
+      "content": "its):** ****"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " *"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "*** **** "
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "21\n\n**"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "Reservation"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " Details:**\n**"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "Hotel Name"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": ":** Grand"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " Horizon"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " Hotel &"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " Resort\n**Address"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": ":** 1"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "23 Ocean"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " View"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " Drive"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": ", Miami"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " FL "
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "33"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "\n**Check"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": "-In"
+    },
+    {
+      "timestamp_ms": 2646.278,
+      "content": " Date:** July"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " 15,"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " 202"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "4 ("
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "After"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " 3:0"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "0 PM)\n**"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "Check-"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "Out Date:** July"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " 20,"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " 202"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "4 (Before"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " 11:"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "00 AM)\n"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": "**Room"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " Type:** Deluxe"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " Ocean View"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " King"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " Suite\n**Number"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " of Guests:**"
+    },
+    {
+      "timestamp_ms": 3039.518,
+      "content": " 2 Adult"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "s\n**Confirmation"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": ":** GH"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "7894"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "5-S"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "J\n\n"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "**Additional"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": ":**\n- **Break"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "fast:** Compl"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "imentary"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": " daily"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": " breakfast included.\n"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "- **Canc"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": "ellation Policy"
+    },
+    {
+      "timestamp_ms": 3562.638,
+      "content": ":** Free"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " cancellation up"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " to 4"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": "8 hours before"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": "-in.\n"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": "- **Special"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " Requests"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": ":** Early"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": "-in (subject"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " to availability).\n\n"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": "**Contact"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " Us"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": ":**\nFor any"
+    },
+    {
+      "timestamp_ms": 3862.686,
+      "content": " changes or inquiries"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": ", please"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": " contact our reservations"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": " team at:\n"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": "📞"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": "0) 5"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": "55-H"
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": "OTEL ("
+    },
+    {
+      "timestamp_ms": 4065.926,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "✉"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": " reservations"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "@grand"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "horizon.com\n\n"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "We"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": " forward to welcoming"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": " you!\n\n"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": "Grand"
+    },
+    {
+      "timestamp_ms": 4409.534,
+      "content": " Horizon"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " Hotel &"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " Resort"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": "**\n*Where"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " Lux"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": "ury Meets Com"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": "fort*\n\n---\n*Note"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": ": Please"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " present"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " this confirmation"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " at check"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": "-in."
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " valid"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " matching"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " the guest"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "content": " required.*"
+    },
+    {
+      "timestamp_ms": 4883.135,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 4896.046,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Hotel Reservation Confirmation**\n\n**Reservation Number:** HOT-2023-789456\n**Booking Date:** June 1, 2024\n\n---\n\n**Guest Information:**\n**Full Name:** Sarah Elizabeth Johnson\n**Email:** sarah.johnson@email.com\n**Phone Number:** (555) 123-4567\n\n**Payment Information:**\n**Credit Card (Last 4 Digits):** **** **** **** 4321\n\n**Reservation Details:**\n**Hotel Name:** Grand Horizon Hotel & Resort\n**Address:** 123 Ocean View Drive, Miami, FL 33139\n**Check-In Date:** July 15, 2024 (After 3:00 PM)\n**Check-Out Date:** July 20, 2024 (Before 11:00 AM)\n**Room Type:** Deluxe Ocean View King Suite\n**Number of Guests:** 2 Adults\n**Confirmation Code:** GH-78945-SJ\n\n**Additional Information:**\n- **Breakfast:** Complimentary daily breakfast included.\n- **Cancellation Policy:** Free cancellation up to 48 hours before check-in.\n- **Special Requests:** Early check-in (subject to availability).\n\n**Contact Us:**\nFor any changes or inquiries, please contact our reservations team at:\n📞 (800) 555-HOTEL (4683)\n✉ reservations@grandhorizon.com\n\nWe look forward to welcoming you!\n\n**Grand Horizon Hotel & Resort**\n*Where Luxury Meets Comfort*\n\n---\n*Note: Please present this confirmation at check-in. A valid ID matching the guest name is required.*",
+  "response_chars": 1233,
+  "num_chunks": 161,
+  "ttft_ms": 1102.172,
+  "total_ms": 4990.073,
+  "model_name": "Mistral-Large-3"
+}

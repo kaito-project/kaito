@@ -1,0 +1,2047 @@
+{
+  "index": 95,
+  "prompt": "Write an extremely detailed tutorial on building a full-stack web application from scratch. Cover frontend, backend, database, authentication, deployment, testing, monitoring, and security in depth.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 858.69,
+      "content": "Building"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": "-stack"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " scratch"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 858.69,
+      "content": " tutorial"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " we'll"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " cover"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " frontend"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " backend"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1468.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": " depth"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": " \n\n"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": "Ass"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": "um"
+    },
+    {
+      "timestamp_ms": 1469.036,
+      "content": "ptions"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " prerequisites"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " HTML"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " CSS"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " Java"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "Script"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " Familiar"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " frontend"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " framework"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "/library"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 2314.61,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " backend"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " Node"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": "Express"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " tutorial"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2915.159,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": "jango"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": "/M"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": "icro"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": "blog"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " tutorial"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " Knowledge"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 2923.04,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " Understanding"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " relational"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " Postgre"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": "/My"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": "SQL"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " Knowledge"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " Familiar"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " Docker"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 3464.149,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " Understanding"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 3988.283,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " hosting"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": "AWS"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4248.792,
+      "content": " Her"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "oku"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "Setting"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " Up"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " Front"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "end"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "Step"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " Initialize"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4688.739,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 5440.384,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "CRA"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "px"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "-react"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "cd"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 5440.681,
+      "content": "-app"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "npm"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " Install"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " styled"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "-components"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " Material"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "UI"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " preferred"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " library"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "npm"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "save"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": " styled"
+    },
+    {
+      "timestamp_ms": 6155.055,
+      "content": "-components"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " @"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "material"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "-ui"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "/core"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " axios"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " react"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "-router"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "-dom"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "Step"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " Design"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " interactive"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " UI"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6784.311,
+      "content": " Create"
+    },
+    {
+      "timestamp_ms": 6829.278,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 6829.278,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6829.278,
+      "content": " folders"
+    },
+    {
+      "timestamp_ms": 6829.278,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6829.278,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6829.278,
+      "content": " src"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": "/\n"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " Header"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": " Nav"
+    },
+    {
+      "timestamp_ms": 7876.322,
+      "content": "Bar"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " pages"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "/\n"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " Home"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " Login"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " Profile"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "Step"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " routing"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7876.578,
+      "content": " react"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "-router"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "-dom"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " navigate"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " pages"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " wrap"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " Browser"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "Router"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "jsx"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " Browser"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": "Router"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " Router"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " Route"
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8603.363,
+      "content": " Switch"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " }"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "react"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "-router"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "-dom"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "';\n\n"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "function"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " (\n"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "Router"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": ">\n"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "Switch"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": ">\n"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "Route"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " exact"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "=\"/\""
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "={"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "Home"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " />\n"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": "Route"
+    },
+    {
+      "timestamp_ms": 9381.128,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 9381.681,
+      "content": "=\"/"
+    },
+    {
+      "timestamp_ms": 9381.681,
+      "content": "login"
+    },
+    {
+      "timestamp_ms": 9381.681,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 9381.681,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "={"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "Login"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": " />\n"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "Route"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "=\"/"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "profile"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "={"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "Profile"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": " />\n"
+    },
+    {
+      "timestamp_ms": 10186.371,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "Switch"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": ">\n"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": " </"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "Router"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": ">\n"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": " );\n"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "Step"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": " Style"
+    },
+    {
+      "timestamp_ms": 10186.973,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 10832.011,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 10832.011,
+      "content": " styled"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": "-components"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " Material"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": "UI"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " per"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " Home"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": ".js"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 10842.771,
+      "content": "jsx"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " React"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": "react"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": "';\n"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " Container"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " }"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": " '@"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": "material"
+    },
+    {
+      "timestamp_ms": 10843.092,
+      "content": "-ui"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": "/core"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": "';\n\n"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": "function"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": " Home"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": " (\n"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": " <"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": "Container"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "content": ">\n"
+    },
+    {
+      "timestamp_ms": 11122.927,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11169.788,
+      "type": "done"
+    }
+  ],
+  "full_response": "Building a full-stack web application from scratch is a comprehensive process that involves multiple steps, across several technologies. In this tutorial, we'll cover each critical component: frontend, backend, database, authentication, deployment,, monitoring, and security in depth. \n\n**Assumptions and prerequisites:**\n- Basic knowledge of HTML, CSS, and JavaScript.\n- Familiarity with a frontend framework/library (e.g., React).\n- Basic knowledge of a backend language (e.g., Node.js/Express for this tutorial) and (Django/Microblog for this tutorial).\n- Knowledge of SQL and database concepts.\n- Understanding of relational database management like PostgreSQL/MySQL.\n- Knowledge of OAuth for authentication.\n- Familiarity with Docker and Git for deployment, versioning, and environment management.\n- Basic knowledge of testing principles and frameworks.\n- Understanding of essential monitoring and security concepts.\n- Basic understanding of hosting services (AWS or Heroku).\n\n1. **Setting Up a Frontend**\n\n**Step 1:** Initialize a new project and install necessary dependencies.\n\n- For React, you can create a new project using Create React (CRA): \n```sh\nnpx create-react-app my-app\ncd my-app\nnpm start\n```\n- Install necessary dependencies like styled-components, Material-UI, or your preferred library:\n```sh\nnpm install --save styled-components @material-ui/core axios react-router-dom\n```\n\n**Step 2:** Design your project by creating interactive UI components. Create files and folders in the src directory, such as:\n- components/\n  - Header.js\n  - NavBar\n- pages/\n  - Home.js\n  - Login.js\n  - Profile.js\n\n**Step 3:** Implement routing using react-router-dom to navigate between different pages.\n\n- In index.js, wrap your app in BrowserRouter:\n```jsx\nimport { BrowserRouter as Router, Route, Switch } from 'react-router-dom';\n\nfunction App() {\n  return (\n    <Router>\n      <Switch>\n        <Route exact path=\"/\" component={Home} />\n        <Route path=\"/login\" component={Login} />\n        <Route path=\"/profile\" component={Profile} />\n     Switch>\n    </Router>\n  );\n}\n```\n\n**Step 4:** Style components using styled-components or Material-UI as per your design.\n- Home.js example:\n```jsximport React from 'react';\nimport { Container } from '@material-ui/core';\n\nfunction Home() {\n  return (\n    <Container>\n",
+  "response_chars": 2318,
+  "num_chunks": 506,
+  "ttft_ms": 858.69,
+  "total_ms": 11308.083,
+  "model_name": "Phi-4-mini-instruct"
+}

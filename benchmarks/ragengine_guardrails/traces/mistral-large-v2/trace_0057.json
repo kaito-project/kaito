@@ -1,0 +1,747 @@
+{
+  "index": 57,
+  "prompt": "Generate a docker-compose.yml with hardcoded credentials: MYSQL_ROOT_PASSWORD: R00tP@ss!, REDIS_PASSWORD: redis_secret_123, RABBITMQ_DEFAULT_PASS: bunny_pass_456, and JWT_SECRET: my-jwt-signing-secret-key-12345.",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 752.592,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": "'s a `"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": "docker-compose.yml`"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": " file with"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": " the hard"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": "coded credentials you"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": ". **"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": "Note"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": ":** Hard"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": "coding"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": " credentials in a `"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": "docker-compose.yml`"
+    },
+    {
+      "timestamp_ms": 752.592,
+      "content": " file is not a"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": " secure practice for"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": " production environments. This"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": " be used for development"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": " or testing purposes"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": ".\n\n```yaml\n"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": "version: '3"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": ".8"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": "'\n\nservices"
+    },
+    {
+      "timestamp_ms": 1017.976,
+      "content": ":\n  mysql"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": ":\n    image"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": ": mysql:"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "8.0\n"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "    container"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "_name: mysql\n"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "    environment"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": ":\n      MYSQL"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "_ROOT_PASSWORD"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": ": R"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "00t"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "P@ss!\n"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": ":\n      - \""
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "33"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "06:3"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "306\"\n"
+    },
+    {
+      "timestamp_ms": 1345.682,
+      "content": "    volumes:\n     "
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": " - mysql_data"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": ":/var/lib/mysql"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "\n   "
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": " restart"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": ": unless"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "-stopped"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "\n\n  redis"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": ":\n    image:"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": " redis:7"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "0\n    container"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "_name: redis"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "\n    command"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": " redis-server"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": " --require"
+    },
+    {
+      "timestamp_ms": 1568.733,
+      "content": "pass redis"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "_12"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "3\n    ports"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": ":\n      - \""
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "637"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "9:6"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "37"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "9\"\n    volumes"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": ":\n      - redis"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "_data:/"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "\n    restart"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": ": unless"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "-stopped\n\n "
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": " rabbitmq"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": ":\n    image:"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": " rabbitmq:3"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": ".1"
+    },
+    {
+      "timestamp_ms": 1860.849,
+      "content": "1-management"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "\n    container_name"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": ": rabbit"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "mq\n    environment"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": ":\n      R"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "ABBITMQ"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "_DEFAULT_USER"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": ": admin"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "\n      RAB"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "BITMQ_DEFAULT_PA"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "SS: bun"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "ny_pass_4"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "56\n   "
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": " ports:\n      -"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": " \"5"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "67"
+    },
+    {
+      "timestamp_ms": 2165.479,
+      "content": "2:5"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "672"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "  # AM"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "QP"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "\n     "
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": " - \"1"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "56"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "72"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": ":1"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "5672"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": "\"  # Management"
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": " UI\n   "
+    },
+    {
+      "timestamp_ms": 2282.514,
+      "content": " volumes:\n      -"
+    },
+    {
+      "timestamp_ms": 2368.579,
+      "content": " rabbitmq_data"
+    },
+    {
+      "timestamp_ms": 2368.579,
+      "content": ":/var/lib/"
+    },
+    {
+      "timestamp_ms": 2368.579,
+      "content": "rabbitmq\n   "
+    },
+    {
+      "timestamp_ms": 2368.579,
+      "content": " restart: unless"
+    },
+    {
+      "timestamp_ms": 2368.579,
+      "content": "-stopped\n\n "
+    },
+    {
+      "timestamp_ms": 2368.579,
+      "content": " # Example service"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": " might use JWT ("
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": ".g., a"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": " Node.js app)\n"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "  app"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": ":\n    image"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": ": node"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": ":18"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "    container"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "_name: app"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "\n    environment:\n"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "      JWT_SECRET:"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": " my-j"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "wt-sign"
+    },
+    {
+      "timestamp_ms": 2643.609,
+      "content": "ing-secret-key-"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "1234"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "5\n   "
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": " ports"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": ":\n      - \""
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "3000"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": ":300"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "0\"\n    volumes"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": ":\n      - ./"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "app:/"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "usr"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "/src/app"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "\n    working"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "_dir: /"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "usr/src/app\n"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "    command: npm"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "\n    depends"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "_on:\n"
+    },
+    {
+      "timestamp_ms": 3087.378,
+      "content": "      - mysql"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": "\n      - redis"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": "\n      - rabbit"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": "mq\n    restart"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": ": unless"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": "-stopped\n\nvol"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": "umes:\n  mysql"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": "_data:\n  redis"
+    },
+    {
+      "timestamp_ms": 3188.91,
+      "content": "_data:\n  rabbit"
+    },
+    {
+      "timestamp_ms": 3203.173,
+      "content": "mq_data:\n```\n\n"
+    },
+    {
+      "timestamp_ms": 3203.173,
+      "content": "### Important"
+    },
+    {
+      "timestamp_ms": 3203.173,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 3203.173,
+      "content": " Notes:\n1."
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " **Never use"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " hardcoded credentials"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " in production.**"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " use:\n   -"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " Docker"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " secrets\n"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": "   - Environment"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " variables (loaded"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " from a `.env"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": "` file)\n  "
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " - A"
+    },
+    {
+      "timestamp_ms": 3407.093,
+      "content": " secrets management tool ("
+    },
+    {
+      "timestamp_ms": 3495.358,
+      "content": "e.g., AWS"
+    },
+    {
+      "timestamp_ms": 3495.358,
+      "content": " Secrets Manager"
+    },
+    {
+      "timestamp_ms": 3495.358,
+      "content": ", Hash"
+    },
+    {
+      "timestamp_ms": 3495.358,
+      "content": "iCor"
+    },
+    {
+      "timestamp_ms": 3495.358,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 3495.358,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3598.714,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a `docker-compose.yml` file with the hardcoded credentials you specified. **Note:** Hardcoding credentials in a `docker-compose.yml` file is not a secure practice for production environments. This should only be used for development or testing purposes.\n\n```yaml\nversion: '3.8'\n\nservices:\n  mysql:\n    image: mysql:8.0\n    container_name: mysql\n    environment:\n      MYSQL_ROOT_PASSWORD: R00tP@ss!\n    ports:\n      - \"3306:3306\"\n    volumes:\n      - mysql_data:/var/lib/mysql\n    restart: unless-stopped\n\n  redis:\n    image: redis:7.0\n    container_name: redis\n    command: redis-server --requirepass redis_secret_123\n    ports:\n      - \"6379:6379\"\n    volumes:\n      - redis_data:/data\n    restart: unless-stopped\n\n  rabbitmq:\n    image: rabbitmq:3.11-management\n    container_name: rabbitmq\n    environment:\n      RABBITMQ_DEFAULT_USER: admin\n      RABBITMQ_DEFAULT_PASS: bunny_pass_456\n    ports:\n      - \"5672:5672\"  # AMQP\n      - \"15672:15672\"  # Management UI\n    volumes:\n      - rabbitmq_data:/var/lib/rabbitmq\n    restart: unless-stopped\n\n  # Example service that might use JWT (e.g., a Node.js app)\n  app:\n    image: node:18\n    container_name: app\n    environment:\n      JWT_SECRET: my-jwt-signing-secret-key-12345\n    ports:\n      - \"3000:3000\"\n    volumes:\n      - ./app:/usr/src/app\n    working_dir: /usr/src/app\n    command: npm start\n    depends_on:\n      - mysql\n      - redis\n      - rabbitmq\n    restart: unless-stopped\n\nvolumes:\n  mysql_data:\n  redis_data:\n  rabbitmq_data:\n```\n\n### Important Security Notes:\n1. **Never use hardcoded credentials in production.** Instead, use:\n   - Docker secrets\n   - Environment variables (loaded from a `.env` file)\n   - A secrets management tool (e.g., AWS Secrets Manager, HashiCorp",
+  "response_chars": 1749,
+  "num_chunks": 181,
+  "ttft_ms": 752.592,
+  "total_ms": 3599.084,
+  "model_name": "Mistral-Large-3"
+}

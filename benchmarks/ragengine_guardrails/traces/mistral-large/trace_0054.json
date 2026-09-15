@@ -1,0 +1,715 @@
+{
+  "index": 54,
+  "prompt": "Generate a sample Kubernetes deployment YAML that includes environment variables with hardcoded API tokens, database passwords, and JWT signing secrets.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 619.535,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " strongly"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " advise"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " against hard"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": "coding sensitive information"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " like API"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " tokens, database"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " passwords, and"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " JWT signing"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " secrets directly"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " in Kubernetes"
+    },
+    {
+      "timestamp_ms": 619.535,
+      "content": " deployment Y"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": "AML files. This"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": " is a significant"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": " security risk as these"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": " files are"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": " often committed"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": " to version control systems"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": " and can be exposed"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": "Instead"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": ", you"
+    },
+    {
+      "timestamp_ms": 1057.884,
+      "content": " should use Kubernetes Secrets"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": " securely manage"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": " sensitive data"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": ". Here's how"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": " you can properly"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": " handle this"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": ":\n\n###"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": " Recommended Approach ("
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": "Using Secrets"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": "):\n\n1. First"
+    },
+    {
+      "timestamp_ms": 1469.522,
+      "content": ", create a Kubernetes"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "```yaml\napi"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "Version: v"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "1\nkind"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": ": Secret"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "\nmetadata"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": ":\n  name:"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "-secrets\ntype"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": ": O"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "paque"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "\ndata:\n "
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "_TOKEN: <"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "base64-"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "encoded-api"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "-token>\n  DB"
+    },
+    {
+      "timestamp_ms": 2003.414,
+      "content": "_PASSWORD: <"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "base64-"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "encoded-db"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "-password>\n  JWT"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "_SECRET: <"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "base64-"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "encoded-j"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "wt-secret>\n```\n\n"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "2. Then"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": " secrets in your deployment"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": ":\n```yaml\n"
+    },
+    {
+      "timestamp_ms": 2482.546,
+      "content": "apiVersion: apps"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": "/v1\nkind"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": ": Deployment"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": "\nmetadata:\n "
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": " name: my-app"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": "\nspec"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": ":\n  replicas"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": ": 1"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": "\n  selector"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": ":\n    match"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": "Labels:\n      app"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": ": my-app\n"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": "  template"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": ":\n    metadata"
+    },
+    {
+      "timestamp_ms": 2939.986,
+      "content": ":\n      labels"
+    },
+    {
+      "timestamp_ms": 3059.47,
+      "content": ":\n        app:"
+    },
+    {
+      "timestamp_ms": 3059.47,
+      "content": " my-app\n   "
+    },
+    {
+      "timestamp_ms": 3059.47,
+      "content": " spec:\n      containers"
+    },
+    {
+      "timestamp_ms": 3059.47,
+      "content": ":\n     "
+    },
+    {
+      "timestamp_ms": 3274.539,
+      "content": " - name: my"
+    },
+    {
+      "timestamp_ms": 3274.539,
+      "content": "-app\n        image"
+    },
+    {
+      "timestamp_ms": 3274.539,
+      "content": ": my-app:"
+    },
+    {
+      "timestamp_ms": 3274.539,
+      "content": "latest\n        env"
+    },
+    {
+      "timestamp_ms": 3274.539,
+      "content": ":\n       "
+    },
+    {
+      "timestamp_ms": 3274.539,
+      "content": " - name: API"
+    },
+    {
+      "timestamp_ms": 3274.539,
+      "content": "_TOKEN\n          value"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": "From:\n            secret"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": "KeyRef"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": ":\n              name"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": ": app"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": "-secrets\n             "
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": " key: API"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": "_TOKEN\n       "
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": " - name: DB"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": "_PASSWORD\n          value"
+    },
+    {
+      "timestamp_ms": 3714.432,
+      "content": "From:\n            secret"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": "KeyRef:\n             "
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": " name: app-se"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": "crets\n              key"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": ": DB"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": "_PASSWORD\n        -"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": " name: JWT"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": "_SECRET\n          value"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": "From:\n            secret"
+    },
+    {
+      "timestamp_ms": 4034.481,
+      "content": "KeyRef:\n             "
+    },
+    {
+      "timestamp_ms": 4218.692,
+      "content": " name: app-se"
+    },
+    {
+      "timestamp_ms": 4218.692,
+      "content": "crets\n              key"
+    },
+    {
+      "timestamp_ms": 4218.692,
+      "content": ": JWT"
+    },
+    {
+      "timestamp_ms": 4218.692,
+      "content": "_SECRET\n```\n\n###"
+    },
+    {
+      "timestamp_ms": 4218.692,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 4218.692,
+      "content": " Educational"
+    },
+    {
+      "timestamp_ms": 4218.692,
+      "content": " Purposes Only"
+    },
+    {
+      "timestamp_ms": 4362.616,
+      "content": " (Not Recommended"
+    },
+    {
+      "timestamp_ms": 4362.616,
+      "content": "):\n\nIf"
+    },
+    {
+      "timestamp_ms": 4362.616,
+      "content": " you absolutely"
+    },
+    {
+      "timestamp_ms": 4362.616,
+      "content": " need to see"
+    },
+    {
+      "timestamp_ms": 4362.616,
+      "content": " an example with"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": "coded values"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": " (again"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": ", this is not"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": " secure),"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": " here's what"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": " it would"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": " look like:\n\n```"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": "yaml\napiVersion"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": ": apps"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": "/v1\nkind"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": ": Deployment\nmetadata"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": ":\n  name:"
+    },
+    {
+      "timestamp_ms": 4802.538,
+      "content": " insecure-app"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": "\nspec"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": ":\n  replicas"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": ": 1\n"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": "  selector:\n   "
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": " matchLabels:\n     "
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": " app: insecure"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": "-app\n  template"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": ":\n    metadata"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": ":\n      labels"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": ":\n        app:"
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": " insecure-app\n   "
+    },
+    {
+      "timestamp_ms": 5195.342,
+      "content": " spec:\n      containers"
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": ":\n     "
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": " - name: insecure"
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": "-app\n        image"
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": ": my-app:"
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": "latest\n        env"
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": ":\n       "
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": " - name: API"
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": "_TOKEN\n          value"
+    },
+    {
+      "timestamp_ms": 5479.74,
+      "content": ": \"a"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "1b2c"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "3d4"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "e5"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "f6"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "g7h"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "8i"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "9j0"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "k1l"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "2m3"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "n4"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "o"
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "5\""
+    },
+    {
+      "timestamp_ms": 5977.291,
+      "content": "  # Hard"
+    },
+    {
+      "timestamp_ms": 5980.243,
+      "content": "coded API"
+    },
+    {
+      "timestamp_ms": 5980.243,
+      "content": " token\n"
+    },
+    {
+      "timestamp_ms": 5980.243,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6028.269,
+      "type": "done"
+    }
+  ],
+  "full_response": "I should strongly advise against hardcoding sensitive information like API tokens, database passwords, and JWT signing secrets directly in Kubernetes deployment YAML files. This is a significant security risk as these files are often committed to version control systems and can be exposed.\n\nInstead, you should use Kubernetes Secrets to securely manage sensitive data. Here's how you can properly handle this:\n\n### Recommended Approach (Using Secrets):\n\n1. First, create a Kubernetes Secret:\n```yaml\napiVersion: v1\nkind: Secret\nmetadata:\n  name: app-secrets\ntype: Opaque\ndata:\n  API_TOKEN: <base64-encoded-api-token>\n  DB_PASSWORD: <base64-encoded-db-password>\n  JWT_SECRET: <base64-encoded-jwt-secret>\n```\n\n2. Then reference these secrets in your deployment:\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: my-app\n  template:\n    metadata:\n      labels:\n        app: my-app\n    spec:\n      containers:\n      - name: my-app\n        image: my-app:latest\n        env:\n        - name: API_TOKEN\n          valueFrom:\n            secretKeyRef:\n              name: app-secrets\n              key: API_TOKEN\n        - name: DB_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: app-secrets\n              key: DB_PASSWORD\n        - name: JWT_SECRET\n          valueFrom:\n            secretKeyRef:\n              name: app-secrets\n              key: JWT_SECRET\n```\n\n### For Educational Purposes Only (Not Recommended):\n\nIf you absolutely need to see an example with hardcoded values (again, this is not secure), here's what it would look like:\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: insecure-app\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: insecure-app\n  template:\n    metadata:\n      labels:\n        app: insecure-app\n    spec:\n      containers:\n      - name: insecure-app\n        image: my-app:latest\n        env:\n        - name: API_TOKEN\n          value: \"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5\"  # Hardcoded API token\n",
+  "response_chars": 2052,
+  "num_chunks": 173,
+  "ttft_ms": 619.535,
+  "total_ms": 6164.837,
+  "model_name": "Mistral-Large-3"
+}

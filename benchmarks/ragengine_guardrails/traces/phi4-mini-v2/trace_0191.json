@@ -1,0 +1,2043 @@
+{
+  "index": 191,
+  "prompt": "Write an internal memo about a project codenamed SECRET_PROJECT. Describe the timeline, budget, and team members involved. Use the project codename throughout.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1119.031,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "MEM"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "OR"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "AND"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "UM"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": " Senior"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": "From"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1119.031,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": " Office"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": " Cod"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": "ename"
+    },
+    {
+      "timestamp_ms": 1119.455,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " –"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " Status"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " Update"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " Introduction"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " memo"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 1683.075,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": " Cod"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": "ename"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": " outlining"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1683.506,
+      "content": " timeline"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " members"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " Given"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2347.86,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " handled"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " utmost"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " discretion"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": "II"
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2348.355,
+      "content": " Timeline"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " phases"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " Cod"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "ename"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "Initi"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "20"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " Establish"
+    },
+    {
+      "timestamp_ms": 3225.044,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " charter"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " assignments"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " Initial"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " recommendations"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " feasibility"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " completed"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "Planning"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "21"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " February"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 4186.725,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " Scope"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " definition"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " Detailed"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " plan"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " Risk"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " assessment"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " mitigation"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " prepared"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "Execution"
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4659.974,
+      "content": "February"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "16"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": " August"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5064.785,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5065.055,
+      "content": " Implementation"
+    },
+    {
+      "timestamp_ms": 5065.055,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5065.055,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 5065.055,
+      "content": " scope"
+    },
+    {
+      "timestamp_ms": 5065.055,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5065.055,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5065.055,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": "ngoing"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " reporting"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " Inter"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": "im"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " milestone"
+    },
+    {
+      "timestamp_ms": 5427.097,
+      "content": " reviews"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "Closure"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "September"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " November"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " Final"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " reporting"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " arch"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "iving"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " Performance"
+    },
+    {
+      "timestamp_ms": 6234.997,
+      "content": " evaluation"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " lessons"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " learned"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "over"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " closure"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "III"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " Budget"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " projected"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " Cod"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "ename"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": " below"
+    },
+    {
+      "timestamp_ms": 6856.275,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "Initi"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "250"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "Planning"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "Execution"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7672.987,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7673.725,
+      "content": "Closure"
+    },
+    {
+      "timestamp_ms": 7673.725,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": "150"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": "Cont"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": "ency"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": " Fund"
+    },
+    {
+      "timestamp_ms": 7982.922,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "%"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " Total"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " Budget"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "550"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "Total"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " Budget"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "450"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "IV"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " Members"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " members"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " assigned"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " Cod"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": "ename"
+    },
+    {
+      "timestamp_ms": 8784.118,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " fulfilling"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " vital"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " successful"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " completion"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " initiative"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "Project"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9511.08,
+      "content": "Responsibilities"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " oversight"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " coordination"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " progress"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " tracking"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " stakeholder"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10234.006,
+      "content": "Lead"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10234.556,
+      "content": "Responsibilities"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " Architectural"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " technical"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " planning"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": "Software"
+    },
+    {
+      "timestamp_ms": 10798.597,
+      "content": " Engineers"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": "Names"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": " Tom"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": " Brown"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": "Lead"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": " Jessica"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": " Lee"
+    },
+    {
+      "timestamp_ms": 10798.891,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": " Mark"
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": " Anderson"
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": " Susan"
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": " Clark"
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": "Supporting"
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 10955.452,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11015.33,
+      "type": "done"
+    }
+  ],
+  "full_response": "**MEMORANDUM**\n\n**To:** Senior Management Team  \n**From:** Project Office  \n**Date:** October 5, 2023  \n**Subject:** Project Codename SECRET_PROJECT – Status Update\n\n---\n\n**I. Introduction**\n\nThis memo provides a comprehensive overview Project Codename SECRET_PROJECT, outlining its timeline, budget, and key team members. Given the sensitive nature of this project, it crucial that all details are handled with utmost discretion.\n\n**II. Timeline**\n\nThe primary phases of Project Codename SECRET_PROJECT are as follows:\n\n1. **Initiation (October 10, 2023 - October 20, 2023):**\n   - Establish project charter.\n   - Team assignments.\n   - Initial recommendations and feasibility analysis completed.\n\n2. **Planning (October 21, 2023 - February 15, 2024):**\n   - Scope definition.\n   - Detailed project plan development.\n   - Risk assessment and mitigation strategies prepared.\n\n3. **Execution (February 16, 2024 - August 30, 2024):**\n   Implementation of project scope.\n   - Ongoing monitoring, control, and reporting.\n   - Interim and milestone reviews.\n\n4. **Closure (September 1, 2024 - November 30, 2024):**\n   - Final reporting, documentation, and archiving of project files.\n   - Performance evaluation and lessons learned.\n   - Project handover and closure.\n\n**III. Budget**\n\nThe projected budget for Project Codename SECRET_PROJECT is detailed below:\n\n- **Initiation Phase:** $250,000\n- **Planning Phase:** $500,000\n- **Execution Phase:** $2,000,000\n-Closure Phase:** $150,000\n- **Contingency Fund (10% of Total Budget):** $550,000\n- **Total Budget:** $3,450,000\n\n**IV. Team Members**\n\nThe following team members are assigned to Project Codename SECRET_PROJECT, each fulfilling a vital role in the successful completion of the initiative:\n\n1. **Project Manager:**\n   - **Name:** John Doe\n   - **Responsibilities:** Project oversight, team coordination, progress tracking, stakeholder communication.\n\n2. **Lead:**\n   - **Name:** Jane Smith\n   - **Responsibilities:** Architectural and technical lead, systems design, integration planning.\n\n3. **Software Engineers**\n   - **Names:** Tom Brown (Lead), Jessica Lee, Mark Anderson, Susan Clark (Supporting roles",
+  "response_chars": 2162,
+  "num_chunks": 505,
+  "ttft_ms": 1119.031,
+  "total_ms": 11124.963,
+  "model_name": "Phi-4-mini-instruct"
+}

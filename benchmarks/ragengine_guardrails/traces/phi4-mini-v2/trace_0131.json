@@ -1,0 +1,1823 @@
+{
+  "index": 131,
+  "prompt": "What are the main challenges of training large language models?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 924.742,
+      "content": "Training"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " involve"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " impede"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " Some"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 924.742,
+      "content": " Computational"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " considerable"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " GPUs"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " TP"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": "Us"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " utilization"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 1432.627,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " imperative"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " increases"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " computational"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " expensive"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": "-consuming"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " Large"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 2136.279,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " places"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " stress"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2761.852,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " quantity"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2762.361,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " Large"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": "ually"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " relevant"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3178.188,
+      "content": " obtaining"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " assembling"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " challenging"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " themselves"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " biases"
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3785.594,
+      "content": " inaccuracies"
+    },
+    {
+      "timestamp_ms": 3786.111,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3786.111,
+      "content": " inconsist"
+    },
+    {
+      "timestamp_ms": 3786.111,
+      "content": "encies"
+    },
+    {
+      "timestamp_ms": 3786.111,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3786.111,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 3786.111,
+      "content": " eventually"
+    },
+    {
+      "timestamp_ms": 3786.111,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": " biased"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": " misleading"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": " Interpret"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 4005.279,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " transparency"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " Large"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " seen"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": "black"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " boxes"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": ",\""
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " challenging"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4414.195,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " interpret"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " decisions"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " lack"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " transparency"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5005.435,
+      "content": " difficult"
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": " identify"
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": " mitigate"
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": " biases"
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": " fair"
+    },
+    {
+      "timestamp_ms": 5005.745,
+      "content": " outcomes"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " trust"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " General"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " Despite"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " trained"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " vast"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " sometimes"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " struggle"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5692.363,
+      "content": " general"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": "ize"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " domains"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " lack"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " flexibility"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " utility"
+    },
+    {
+      "timestamp_ms": 6142.5,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6143.103,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " hinder"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " ability"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " adapt"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6275.918,
+      "content": " changing"
+    },
+    {
+      "timestamp_ms": 6865.63,
+      "content": " contexts"
+    },
+    {
+      "timestamp_ms": 6865.63,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " Ethical"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " considerations"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " pose"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " ethical"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " spreading"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " misinformation"
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6866.027,
+      "content": " facilitating"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " harmful"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " creation"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " exacerb"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " biases"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " society"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " Ens"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": "uring"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " aligned"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " priorities"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7454.342,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " cause"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " harm"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " Fine"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": "-t"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": "uning"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " adaptation"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " Although"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " exhibit"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " impressive"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 8024.038,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 8044.289,
+      "content": " still"
+    },
+    {
+      "timestamp_ms": 8044.289,
+      "content": " struggle"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " domains"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " Fine"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": "-t"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": "uning"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " adapting"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " task"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": "-specific"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 8664.097,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8664.551,
+      "content": " achieve"
+    },
+    {
+      "timestamp_ms": 8664.551,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " carries"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " limited"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": "itting"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " larger"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " computational"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " Safety"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9319.504,
+      "content": " robustness"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " Large"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " inadvertently"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " harmful"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " offensive"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " inappropriate"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " posing"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " particular"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " working"
+    },
+    {
+      "timestamp_ms": 9929.585,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9930.079,
+      "content": " potentially"
+    },
+    {
+      "timestamp_ms": 9930.079,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " Ens"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": "uring"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " safe"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " resistant"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " advers"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": "arial"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " ongoing"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " challenge"
+    },
+    {
+      "timestamp_ms": 10570.333,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": " novel"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": " safeguards"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11055.222,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 11108.38,
+      "type": "done"
+    }
+  ],
+  "full_response": "Training large language models involve several challenges that can impede their development and application. Some of the main challenges include:\n\n1. Computational resources: Training large language models requires considerable computing resources, such as GPUs or TPUs, and efficient utilization of these resources is imperative. As the model size increases, so does the computational cost, making training more expensive and time-consuming. Large models also demand high memory capacity, which places further stress on the system's resources.\n\n2. Data: The quality and quantity of data available for training the model are crucial. Large language models typically require large datasets to better understand and generate contextually relevant text. However, obtaining or assembling such large datasets can be challenging, and they themselves can contain biases, inaccuracies or inconsistencies that may eventually lead to biased or misleading outputs.\n\n3. Interpretability and transparency: Large models are often seen as \"black boxes,\" making it challenging to understand and interpret the decisions made by these models. This lack of transparency can make it difficult identify and mitigate biases, ensure fair outcomes, and build trust with users.\n\n4. Generalization: Despite being trained on vast amounts of data, large language models can sometimes struggle to generalize well to new tasks or domains. This lack of flexibility can limit their utility in applications or hinder their ability to adapt to changing contexts.\n\n5. Ethical considerations: The deployment of large language models can pose various ethical challenges, such as spreading misinformation, facilitating harmful content creation, and exacerbating existing biases in society. Ensuring that these models are aligned with human values and priorities and that they do not cause harm is critical.\n\n6. Fine-tuning and adaptation: Although large models exhibit impressive overall capabilities, they often still struggle to perform well on highly specific tasks or domains. Fine-tuning or adapting these models through task-specific training may be necessary to achieve better results, but it carries its own challenges, such as limited resources, potential overfitting, and larger computational costs.\n\n7. Safety and robustness: Large language models can inadvertently generate harmful, offensive, or inappropriate content, posing particular challenges for developers working with potentially sensitive applications. Ensuring that these models are safe, robust, and resistant to adversarial attacks is an ongoing challenge requiring the development of novel safeguards and techniques.",
+  "response_chars": 2654,
+  "num_chunks": 450,
+  "ttft_ms": 924.742,
+  "total_ms": 11172.219,
+  "model_name": "Phi-4-mini-instruct"
+}

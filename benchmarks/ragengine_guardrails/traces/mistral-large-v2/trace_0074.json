@@ -1,0 +1,783 @@
+{
+  "index": 74,
+  "prompt": "Describe how a B-tree index works in a relational database.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 701.554,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": " **B-tree index"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": "** (Bal"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": "anced Tree index"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": ") is one"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": " of the most common"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": " and efficient indexing"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": " structures used in relational"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": " databases to speed"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": " up data"
+    },
+    {
+      "timestamp_ms": 701.554,
+      "content": " retrieval operations"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": ". It"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " is particularly"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " well-suited for"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " that read"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " and write"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " large blocks"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " of data,"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " such as databases"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " systems. Here"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": "’s how it"
+    },
+    {
+      "timestamp_ms": 956.751,
+      "content": " works:\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " **1. Structure"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " of a"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " B-tree**\nA"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " B-tree is a"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " **self"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": "-balancing"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " tree** that maintains"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " sorted"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " data and"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " allows for efficient insertion"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": ", deletion, and"
+    },
+    {
+      "timestamp_ms": 1123.055,
+      "content": " search operations. Key"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " properties"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " include:\n\n-"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " **Nodes"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": "**: Each node in"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " the tree"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " contains:\n  -"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " **Keys"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": "**: S"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": "orted values"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " act as separ"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": "ators for"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " child"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " nodes.\n  -"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": " **Pointer"
+    },
+    {
+      "timestamp_ms": 1365.689,
+      "content": "s**: References"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " to child nodes ("
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": "for"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": "-leaf nodes)"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " or to"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " the actual data rows"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " (for"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " leaf nodes).\n "
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " - **Order"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": "or Degree"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": ")**: Def"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": "ines"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " the minimum"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1546.51,
+      "content": " maximum number of keys"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " a node"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " can hold"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": ". For"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " a B"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": "-tree of order `"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": "m`"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": ":\n    - Each"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " node ("
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": "except the root)"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " must have at"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " least `"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": "⌈m/"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": "2⌉"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " - 1`"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " keys.\n    -"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " Each node can"
+    },
+    {
+      "timestamp_ms": 1831.813,
+      "content": " have at most `"
+    },
+    {
+      "timestamp_ms": 1948.188,
+      "content": "m - 1"
+    },
+    {
+      "timestamp_ms": 1948.188,
+      "content": "` keys.\n"
+    },
+    {
+      "timestamp_ms": 1948.188,
+      "content": "    - The root"
+    },
+    {
+      "timestamp_ms": 1948.188,
+      "content": " can have between"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " `1` and"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " `m"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " - 1`"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " keys.\n\n- **"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": "Bal"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": "anced**:"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " All leaf"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " nodes are at"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " the same level"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": ", ensuring consistent"
+    },
+    {
+      "timestamp_ms": 2057.825,
+      "content": " performance.\n- **"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": "Sorted"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": "**: Keys"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " node are stored"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " in sorted"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " order.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " **2. How"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " B-tree Index Works"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": "#### **Search"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " for a Value"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": "**\n1"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": ". Start"
+    },
+    {
+      "timestamp_ms": 2286.853,
+      "content": " at the **root"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " node**.\n"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": "2. Compare"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " the search"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " key with"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " the keys"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " in the current node"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": ":\n   - If"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " the key is found"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": ", return"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " the associated"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " data ("
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": "or pointer"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": " to the row).\n"
+    },
+    {
+      "timestamp_ms": 2511.486,
+      "content": "   - If the"
+    },
+    {
+      "timestamp_ms": 2594.577,
+      "content": " key is less"
+    },
+    {
+      "timestamp_ms": 2594.577,
+      "content": " than the first"
+    },
+    {
+      "timestamp_ms": 2594.577,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2594.577,
+      "content": " in the node,"
+    },
+    {
+      "timestamp_ms": 2594.577,
+      "content": " follow the leftmost"
+    },
+    {
+      "timestamp_ms": 2594.577,
+      "content": " pointer"
+    },
+    {
+      "timestamp_ms": 2594.577,
+      "content": ".\n   - If"
+    },
+    {
+      "timestamp_ms": 2631.591,
+      "content": " the key is greater"
+    },
+    {
+      "timestamp_ms": 2631.591,
+      "content": " than the last"
+    },
+    {
+      "timestamp_ms": 2631.591,
+      "content": " key in the node"
+    },
+    {
+      "timestamp_ms": 2631.591,
+      "content": ", follow"
+    },
+    {
+      "timestamp_ms": 2631.591,
+      "content": " the rightmost pointer"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": ".\n   - If"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " the key lies"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " between two keys,"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " the pointer between"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " them.\n"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": "3. Repeat"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " the process until the"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " is found or a"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " leaf node is reached"
+    },
+    {
+      "timestamp_ms": 2828.039,
+      "content": " (indic"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": "ating the"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " key doesn"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": "’t exist).\n\n####"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " **Insert"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " a Value"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": "**\n1"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": ". Search"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " the appropriate"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " leaf node where the"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " key should be inserted"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": ".\n2. If"
+    },
+    {
+      "timestamp_ms": 3034.549,
+      "content": " the leaf"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " node has space"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " insert the key in"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " sorted order.\n3"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": ". If the leaf"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " node is full"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " (has"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " `m -"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " 1` keys"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": "   - **Split"
+    },
+    {
+      "timestamp_ms": 3222.176,
+      "content": " the node**"
+    },
+    {
+      "timestamp_ms": 3264.56,
+      "content": " into two nodes"
+    },
+    {
+      "timestamp_ms": 3264.56,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3264.56,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 3264.56,
+      "content": " the keys"
+    },
+    {
+      "timestamp_ms": 3312.862,
+      "content": " evenly"
+    },
+    {
+      "timestamp_ms": 3312.862,
+      "content": ".\n   - Prom"
+    },
+    {
+      "timestamp_ms": 3312.862,
+      "content": "ote"
+    },
+    {
+      "timestamp_ms": 3312.862,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3362.818,
+      "type": "done"
+    }
+  ],
+  "full_response": "A **B-tree index** (Balanced Tree index) is one of the most common and efficient indexing structures used in relational databases to speed up data retrieval operations. It is particularly well-suited for systems that read and write large blocks of data, such as databases and file systems. Here’s how it works:\n\n---\n\n### **1. Structure of a B-tree**\nA B-tree is a **self-balancing tree** that maintains sorted data and allows for efficient insertion, deletion, and search operations. Key properties include:\n\n- **Nodes**: Each node in the tree contains:\n  - **Keys**: Sorted values that act as separators for child nodes.\n  - **Pointers**: References to child nodes (for non-leaf nodes) or to the actual data rows (for leaf nodes).\n  - **Order (or Degree)**: Defines the minimum and maximum number of keys a node can hold. For a B-tree of order `m`:\n    - Each node (except the root) must have at least `⌈m/2⌉ - 1` keys.\n    - Each node can have at most `m - 1` keys.\n    - The root can have between `1` and `m - 1` keys.\n\n- **Balanced**: All leaf nodes are at the same level, ensuring consistent performance.\n- **Sorted**: Keys in each node are stored in sorted order.\n\n---\n\n### **2. How a B-tree Index Works**\n#### **Searching for a Value**\n1. Start at the **root node**.\n2. Compare the search key with the keys in the current node:\n   - If the key is found, return the associated data (or pointer to the row).\n   - If the key is less than the first key in the node, follow the leftmost pointer.\n   - If the key is greater than the last key in the node, follow the rightmost pointer.\n   - If the key lies between two keys, follow the pointer between them.\n3. Repeat the process until the key is found or a leaf node is reached (indicating the key doesn’t exist).\n\n#### **Inserting a Value**\n1. Search for the appropriate leaf node where the new key should be inserted.\n2. If the leaf node has space, insert the key in sorted order.\n3. If the leaf node is full (has `m - 1` keys):\n   - **Split the node** into two nodes, distributing the keys evenly.\n   - Promote",
+  "response_chars": 2064,
+  "num_chunks": 190,
+  "ttft_ms": 701.554,
+  "total_ms": 3406.618,
+  "model_name": "Mistral-Large-3"
+}

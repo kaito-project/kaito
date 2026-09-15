@@ -1,0 +1,2063 @@
+{
+  "index": 148,
+  "prompt": "Explain how consensus algorithms like Raft work in distributed systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 931.344,
+      "content": "Consensus"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": "machines"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " agree"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 931.344,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " Ra"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " consensus"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " gained"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " popularity"
+    },
+    {
+      "timestamp_ms": 1552.083,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " relative"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " simplicity"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " understand"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " Pax"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": "os"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2153.469,
+      "content": " operates"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " elect"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " among"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2153.845,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " coordinate"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " decision"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": "-making"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": "Ra"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": " phases"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2870.812,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": "Follower"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 2892.405,
+      "content": " knowledge"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " intentions"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " followers"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " waiting"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "outs"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "Candidate"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " Upon"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " receiving"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3589.504,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " timeout"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " transitions"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " candidate"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " initi"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " increment"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " term"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " voting"
+    },
+    {
+      "timestamp_ms": 4197.088,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": "Leader"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " candidate"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " voting"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4715.231,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " majority"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " vote"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 4915.847,
+      "content": " elected"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " assumes"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " responsibility"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " begins"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " receiving"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": "Vote"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 5552.872,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " progresses"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " votes"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " candidate"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " candidate"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " reaches"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " majority"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": "Append"
+    },
+    {
+      "timestamp_ms": 6254.404,
+      "content": " Requests"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " collects"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " replic"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " requesting"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " followers"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " append"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6765.524,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6931.048,
+      "content": "Handling"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " Failure"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " fails"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " followers"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": "due"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " missed"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " heartbeat"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " enough"
+    },
+    {
+      "timestamp_ms": 7685.072,
+      "content": " votes"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " elected"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": "Commit"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " Once"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " acknowled"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": "gments"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " receiving"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " marks"
+    },
+    {
+      "timestamp_ms": 8409.394,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " Followers"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " apply"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " entry"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": "activity"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " Timeout"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " hear"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " clears"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9116.84,
+      "content": " term"
+    },
+    {
+      "timestamp_ms": 9231.477,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9231.477,
+      "content": " re"
+    },
+    {
+      "timestamp_ms": 9231.477,
+      "content": "verts"
+    },
+    {
+      "timestamp_ms": 9231.477,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9231.477,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9231.477,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " starts"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " thereby"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " completing"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " cycle"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": "Ra"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " simplifies"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " breaking"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 9913.69,
+      "content": " understandable"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " blocks"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " recording"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": "term"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " voted"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " essentially"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " divides"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " conqu"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": "ers"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " assigning"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10449.631,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": "leader"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": "lections"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " replication"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": ").\n\n\n"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " fail"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 11069.295,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " lost"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " reach"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " consensus"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 11367.476,
+      "content": " functioning"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " reliably"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " notable"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " points"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " Ra"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": "ft"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " leader"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11675.722,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 11690.894,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 11690.894,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11776.071,
+      "type": "done"
+    }
+  ],
+  "full_response": "Consensus algorithms are essential in distributed systems, providing a way for different nodes (machines or computers) to agree on a single data value, which is crucial for ensuring data consistency, reliability, and fault tolerance. Raft is one such consensus algorithm that has gained popularity due to its relative simplicity and understandability compared to other algorithms like Paxos. It operates the principles of electing a leader among a cluster of nodes to coordinate the decision-making process.\n\n\nRaft works in several phases:\n\n1 **Follower Phase:**\n   In this phase, nodes start with no knowledge of the cluster's intentions. They operate as followers, waiting for messages from timeouts.\n\n2. **Candidate Phase:**\n   Upon receiving a communication timeout without leader information, a follower transitions to a candidate state. It then initiates an election by incrementing its term and voting for itself.\n\n3. **Leader Phase:**\n   A candidate voting for itself runs as a leader as long as it receives a majority vote from other nodes. Once elected, the leader assumes responsibility for communication with other nodes and begins receiving and processing logs from them.\n\n4. **Vote Phase:**\n   As the election progresses, each node votes, either for itself or another candidate. If a candidate reaches a majority, it becomes the leader.\n\n5. **Append Requests:**\n   The leader collects the current entry and replicates it across the cluster, requesting followers to append the entry to their logs.\n\n6. **Handling Failure:**\n   When a leader fails, followers will detect this (due to missed heartbeat messages) and start a new election. If they receive enough votes, a new leader is elected.\n\n7. **Commit Phase:**\n   Once a leader receives acknowledgments of all follower nodes receiving the log entry, it marks the entry as committed. Followers then apply the log entry.\n\n8. **Inactivity Timeout:**\n   If a follower does not hear from the leader, it clears its term, reverts to the follower state, and starts a new election, thereby completing the cycle.\n\n\nRaft simplifies these concepts by breaking them down into understandable roles and summary blocks, recording the system's state (term, role, voted for). It essentially divides and conquers the process by assigning the specific tasks roles (leader or follower) and responsibilities (elections, log replication).\n\n\nThis model ensures that even if some machines fail or messages are lost, the system can reach a consensus and continue functioning reliably. The notable points about Raft are the election of the leader, which is the process through",
+  "response_chars": 2614,
+  "num_chunks": 510,
+  "ttft_ms": 931.344,
+  "total_ms": 11854.143,
+  "model_name": "Phi-4-mini-instruct"
+}

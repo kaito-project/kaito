@@ -1,0 +1,1971 @@
+{
+  "index": 170,
+  "prompt": "Generate a sample Terraform variables file that includes Azure subscription ID, client secret, tenant ID, and storage account access key.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 347.04,
+      "content": "Below"
+    },
+    {
+      "timestamp_ms": 347.178,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 347.238,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 347.293,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 347.343,
+      "content": " Terra"
+    },
+    {
+      "timestamp_ms": 359.297,
+      "content": "form"
+    },
+    {
+      "timestamp_ms": 418.352,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 418.561,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 418.659,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 461.568,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 461.828,
+      "content": " named"
+    },
+    {
+      "timestamp_ms": 471.275,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 497.335,
+      "content": "variables"
+    },
+    {
+      "timestamp_ms": 571.866,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 572.026,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 572.109,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 726.34,
+      "content": " defines"
+    },
+    {
+      "timestamp_ms": 726.34,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 726.34,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 726.34,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 726.34,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 726.34,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 726.558,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 726.622,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 739.072,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 775.493,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 775.493,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 791.521,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 807.674,
+      "content": " addition"
+    },
+    {
+      "timestamp_ms": 875.685,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 876.607,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 876.78,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 876.891,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 889.986,
+      "content": " corresponding"
+    },
+    {
+      "timestamp_ms": 932.249,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 948.756,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 956.634,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 977.96,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 989.206,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1076.123,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 1076.387,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1076.515,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 1076.601,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1136.713,
+      "content": " assigning"
+    },
+    {
+      "timestamp_ms": 1139.032,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 1139.286,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 1139.462,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1158.752,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 1282.371,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1282.558,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1282.558,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1282.558,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1282.709,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1282.795,
+      "content": " Terra"
+    },
+    {
+      "timestamp_ms": 1294.327,
+      "content": "form"
+    },
+    {
+      "timestamp_ms": 1311.194,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 1384.295,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1384.553,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1384.628,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1391.452,
+      "content": "variables"
+    },
+    {
+      "timestamp_ms": 1493.946,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 1494.166,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 1494.287,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1494.366,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 1494.433,
+      "content": "cl"
+    },
+    {
+      "timestamp_ms": 1507.251,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1522.436,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 1589.196,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1591.865,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 1592.012,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 1601.134,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 1615.889,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 1681.918,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1682.194,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1682.345,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 1690.569,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 1713.597,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1730.086,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 1792.961,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 1793.149,
+      "content": " Subscription"
+    },
+    {
+      "timestamp_ms": 1793.219,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 1806.81,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 1826.093,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1902.171,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 1902.358,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1902.427,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 1902.483,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 1922.2,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1959.505,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 1969.621,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 1977.365,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1996.232,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 2025.982,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 2040.498,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 2061.336,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2080.081,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2106.989,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2130.127,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 2150.673,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2165.155,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2180.951,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2187.429,
+      "content": " Client"
+    },
+    {
+      "timestamp_ms": 2205.703,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 2228.608,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2306.411,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 2315.891,
+      "content": " App"
+    },
+    {
+      "timestamp_ms": 2316.062,
+      "content": " Registration"
+    },
+    {
+      "timestamp_ms": 2316.211,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 2328.94,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2341.274,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 2366.009,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2378.033,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2510.496,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 2510.802,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2510.96,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 2511.075,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 2511.325,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2511.445,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 2511.595,
+      "content": "_t"
+    },
+    {
+      "timestamp_ms": 2612.719,
+      "content": "enant"
+    },
+    {
+      "timestamp_ms": 2612.937,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 2613.069,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2613.236,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2613.39,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2625.032,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 2649.085,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2702.576,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2706.604,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 2817.47,
+      "content": " Tenant"
+    },
+    {
+      "timestamp_ms": 2817.746,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 2817.886,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 2818.007,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2818.119,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 2818.233,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2920.116,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2920.362,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 2920.435,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2920.494,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 2920.552,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 2935.024,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2949.306,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 3004.229,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 3004.478,
+      "content": "_account"
+    },
+    {
+      "timestamp_ms": 3006.119,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 3030.586,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3044.57,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 3124.978,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3125.272,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3125.435,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 3152.582,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3152.856,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3162.711,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 3226.52,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 3226.672,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3226.75,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3236.83,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3329.639,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 3329.875,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 3330.01,
+      "content": " Account"
+    },
+    {
+      "timestamp_ms": 3330.075,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 3330.126,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3419.656,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 3419.9,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3420.049,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3420.12,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 3440.779,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3455.619,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 3467.871,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3481.672,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3533.801,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3533.97,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3545.022,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 3636.131,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 3636.264,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 3636.332,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3636.393,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3636.444,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 3738.901,
+      "content": "cl"
+    },
+    {
+      "timestamp_ms": 3739.051,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3739.129,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3739.194,
+      "content": " terra"
+    },
+    {
+      "timestamp_ms": 3739.254,
+      "content": "form"
+    },
+    {
+      "timestamp_ms": 3751.231,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 3767.163,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 3841.858,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3842.008,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3842.08,
+      "content": " Make"
+    },
+    {
+      "timestamp_ms": 3845.586,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 3943.606,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3943.808,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 3943.948,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3944.118,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 3944.295,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 3958.637,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4006.669,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 4006.913,
+      "content": " committing"
+    },
+    {
+      "timestamp_ms": 4015.67,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4148.727,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4148.886,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 4148.952,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 4149.008,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4149.057,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4149.103,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 4154.714,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4207.404,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4207.583,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4207.658,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4250.905,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 4251.084,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 4262.005,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4353.646,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4353.841,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4353.923,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4353.981,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4356.467,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4376.615,
+      "content": "-sub"
+    },
+    {
+      "timestamp_ms": 4456.595,
+      "content": "scription"
+    },
+    {
+      "timestamp_ms": 4456.754,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 4456.826,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4456.886,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4472.006,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 4529.697,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 4529.866,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4529.953,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4660.426,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4660.57,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4660.64,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4660.694,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4660.747,
+      "content": "-client"
+    },
+    {
+      "timestamp_ms": 4660.798,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 4666.376,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4682.014,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4700.922,
+      "content": "_t"
+    },
+    {
+      "timestamp_ms": 4722.749,
+      "content": "enant"
+    },
+    {
+      "timestamp_ms": 4740.026,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 4865.514,
+      "content": "        "
+    },
+    {
+      "timestamp_ms": 4865.804,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4866.075,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4866.224,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4866.286,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4866.34,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4871.825,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4969.4,
+      "content": "tenant"
+    },
+    {
+      "timestamp_ms": 4969.539,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 4969.603,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4969.658,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 4986.277,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 4994.563,
+      "content": "_account"
+    },
+    {
+      "timestamp_ms": 5006.765,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 5026.833,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 5172.448,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5172.448,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5172.448,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5172.448,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5172.448,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 5172.448,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 5172.727,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 5179.204,
+      "content": "-access"
+    },
+    {
+      "timestamp_ms": 5275.328,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 5275.495,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5275.56,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 5275.615,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5275.668,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5299.122,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 5382.687,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 5382.836,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 5382.914,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5382.982,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5388.958,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5479.891,
+      "content": "Sensitive"
+    },
+    {
+      "timestamp_ms": 5480.131,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 5480.234,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5480.308,
+      "content": " Be"
+    },
+    {
+      "timestamp_ms": 5483.933,
+      "content": " cautious"
+    },
+    {
+      "timestamp_ms": 5566.584,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5566.734,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 5566.797,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 5566.916,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5684.948,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 5691.827,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5692.052,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5692.217,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 5692.375,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 5692.519,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5692.659,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 5713.937,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 5734.057,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 5756.366,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5772.917,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5796.215,
+      "content": " Avoid"
+    },
+    {
+      "timestamp_ms": 5809.327,
+      "content": " committing"
+    },
+    {
+      "timestamp_ms": 5889.056,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5890.946,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5891.199,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 5891.279,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 5906.482,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 5923.148,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5942.368,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 5995.459,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5995.652,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 5997.293,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 6052.783,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6052.783,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6064.297,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 6075.338,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 6096.808,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6114.459,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6198.709,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 6198.895,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6198.986,
+      "content": " leverage"
+    },
+    {
+      "timestamp_ms": 6199.043,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6208.325,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 6300.455,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6300.651,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6300.717,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 6300.771,
+      "content": " vault"
+    },
+    {
+      "timestamp_ms": 6317.788,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6325.288,
+      "content": " solution"
+    },
+    {
+      "timestamp_ms": 6401.661,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6416.69,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 6416.892,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 6416.964,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 6417.024,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 6504.301,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6504.504,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6512.325,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6512.516,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6512.583,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6532.35,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 6606.31,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6606.588,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6606.768,
+      "content": "Access"
+    },
+    {
+      "timestamp_ms": 6607.937,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 6708.66,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6708.8,
+      "content": " Assign"
+    },
+    {
+      "timestamp_ms": 6708.867,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6708.945,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 6709.051,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 6806.836,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 6806.836,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6807.014,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6807.118,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 6807.187,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 6816.695,
+      "content": " principal"
+    },
+    {
+      "timestamp_ms": 6914.196,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 6914.425,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6914.525,
+      "content": " Terra"
+    },
+    {
+      "timestamp_ms": 6914.604,
+      "content": "form"
+    },
+    {
+      "timestamp_ms": 6914.68,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7016.24,
+      "content": " interact"
+    },
+    {
+      "timestamp_ms": 7016.418,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7016.484,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7016.545,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7016.599,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 7026.651,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7074.939,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7075.388,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7089.514,
+      "content": "Environment"
+    },
+    {
+      "timestamp_ms": 7105.301,
+      "content": " Variables"
+    },
+    {
+      "timestamp_ms": 7191.918,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7192.135,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 7192.216,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7192.278,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 7199.801,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7219.123,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 7333.639,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 7333.84,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7333.906,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 7333.96,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7334.011,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 7334.057,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7427.106,
+      "content": " Terra"
+    },
+    {
+      "timestamp_ms": 7427.291,
+      "content": "form"
+    },
+    {
+      "timestamp_ms": 7427.432,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7427.514,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 7430.809,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 7449.254,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 7529.958,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7530.143,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7530.208,
+      "content": " prefix"
+    },
+    {
+      "timestamp_ms": 7530.266,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7541.893,
+      "content": "TF"
+    },
+    {
+      "timestamp_ms": 7630.688,
+      "content": "_VAR"
+    },
+    {
+      "timestamp_ms": 7634.494,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 7634.626,
+      "content": "`."
+    },
+    {
+      "timestamp_ms": 7634.755,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 7637.227,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 7705.724,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7705.893,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7705.956,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 7716.19,
+      "content": "shell"
+    },
+    {
+      "timestamp_ms": 7737.656,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7753.131,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7835.033,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 7835.229,
+      "content": " TF"
+    },
+    {
+      "timestamp_ms": 7835.303,
+      "content": "_VAR"
+    },
+    {
+      "timestamp_ms": 7849.707,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 7849.707,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 7903.152,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "-sub"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "scription"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": " TF"
+    },
+    {
+      "timestamp_ms": 8256.579,
+      "content": "_VAR"
+    },
+    {
+      "timestamp_ms": 8256.899,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 8256.978,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 8257.075,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 8257.172,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 8257.24,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 8257.304,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8257.365,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8268.588,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 8346.911,
+      "content": "-client"
+    },
+    {
+      "timestamp_ms": 8347.079,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 8347.144,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8347.2,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8362.343,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 8449.151,
+      "content": " TF"
+    },
+    {
+      "timestamp_ms": 8449.417,
+      "content": "_VAR"
+    },
+    {
+      "timestamp_ms": 8449.489,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 8449.545,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 8459.147,
+      "content": "_t"
+    },
+    {
+      "timestamp_ms": 8552.256,
+      "content": "enant"
+    },
+    {
+      "timestamp_ms": 8552.527,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8552.638,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 8552.694,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8553.576,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8658.905,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 8659.138,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8659.264,
+      "content": "tenant"
+    },
+    {
+      "timestamp_ms": 8659.379,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 8659.46,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8667.234,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8757.196,
+      "content": " export"
+    },
+    {
+      "timestamp_ms": 8757.44,
+      "content": " TF"
+    },
+    {
+      "timestamp_ms": 8757.568,
+      "content": "_VAR"
+    },
+    {
+      "timestamp_ms": 8757.692,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 8762.166,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 8858.814,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 8859.083,
+      "content": "_account"
+    },
+    {
+      "timestamp_ms": 8859.212,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 8859.292,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 8859.467,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 8961.639,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8961.796,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8961.937,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 8962.017,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 8962.075,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 8973.7,
+      "content": "-access"
+    },
+    {
+      "timestamp_ms": 9064.107,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 9064.269,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9064.343,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9064.406,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 9066.973,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9166.681,
+      "content": "By"
+    },
+    {
+      "timestamp_ms": 9166.997,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 9167.14,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9167.206,
+      "content": " guidelines"
+    },
+    {
+      "timestamp_ms": 9170.064,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9182.929,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9270.931,
+      "content": "'ll"
+    },
+    {
+      "timestamp_ms": 9271.102,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 9271.207,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9271.351,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9279.01,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 9370.967,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9371.246,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 9371.35,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 9371.428,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 9376.517,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9473.996,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 9474.207,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9474.306,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 9474.376,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 9474.433,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9575.889,
+      "content": " Terra"
+    },
+    {
+      "timestamp_ms": 9581.091,
+      "content": "form"
+    },
+    {
+      "timestamp_ms": 9581.358,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9581.452,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9581.585,
+      "type": "done"
+    }
+  ],
+  "full_response": "Below is a sample Terraform variables file, typically named `variables.tf`, that defines the necessary variables to store the Azure configuration details. In addition, there's a corresponding `terraform.tfvars` file, usually for assigning actual values to those variables for use in your Terraform configurations.\n\n### `variables.tf`\n\n```hcl\nvariable \"azure_subscription_id\" {\n  description = \"The Azure Subscription ID.\"\n  type        = string\n}\n\nvariable \"azure_client_secret\" {\n  description = \"The Client Secret for Azure App Registration.\"\n  type        = string\n}\n\nvariable \"azure_tenant_id\" {\n  description = \"The Azure Tenant ID.\"\n  type        = string\n}\n\nvariable \"azure_storage_account_access_key\" {\n  description = \"The Access Key for an Azure Storage Account.\"\n  type        = string\n}\n```\n\n### `terraform.tfvars`\n\n```hcl\n# terraform.tfvars\n# Make sure to store this file securely and avoid committing it to version control if it contains sensitive information.\n\nazure_subscription_id   = \"your-azure-subscription-id\"\nazure_client_secret     = \"your-azure-client-secret\"\nazure_tenant_id         = \"your-azure-tenant-id\"\nazure_storage_account_access_key = \"your-azure-storage-account-access-key\"\n```\n\n### Security Considerations\n\n- **Sensitive Data:** Be cautious with handling sensitive information such as your client secret and storage account access key. Avoid committing your `terraform.tfvars` file to source control if it contains sensitive information. Instead, leverage environment variables or a secure vaulting solution (like Azure Key Vault) for such data.\n  \n- **Access Management:** Assign the minimum necessary permissions to the Azure service principal used by Terraform to interact with your Azure resources.\n\n- **Environment Variables:** You can also use environment variables to set these values. Terraform can automatically use variables with the prefix `TF_VAR_`. For example:\n  ```shell\n  export TF_VAR_azure_subscription_id=your-azure-subscription-id\n  export TF_VAR_azure_client_secret=your-azure-client-secret\n  export TF_VAR_azure_tenant_id=your-azure-tenant-id\n  export TF_VAR_azure_storage_account_access_key=your-azure-storage-account-access-key\n  ```\n\nBy following these guidelines, you'll ensure a more secure and maintainable setup for managing your Azure infrastructure with Terraform.",
+  "response_chars": 2330,
+  "num_chunks": 487,
+  "ttft_ms": 347.04,
+  "total_ms": 9582.007,
+  "model_name": "model-medium"
+}

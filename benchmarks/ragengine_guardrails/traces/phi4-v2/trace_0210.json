@@ -1,0 +1,2071 @@
+{
+  "index": 210,
+  "prompt": "How does Git handle branching and merging internally?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 342.688,
+      "content": "Git"
+    },
+    {
+      "timestamp_ms": 342.937,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 343.05,
+      "content": " branching"
+    },
+    {
+      "timestamp_ms": 343.137,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 359.734,
+      "content": " merging"
+    },
+    {
+      "timestamp_ms": 414.076,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 430.52,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 430.663,
+      "content": " fundamentally"
+    },
+    {
+      "timestamp_ms": 435.49,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 452.748,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 549.44,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 549.651,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 549.743,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 549.814,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 549.876,
+      "content": " Sub"
+    },
+    {
+      "timestamp_ms": 565.327,
+      "content": "version"
+    },
+    {
+      "timestamp_ms": 585.162,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 653.717,
+      "content": "SV"
+    },
+    {
+      "timestamp_ms": 653.877,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 653.951,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 661.012,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 688.974,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 699.356,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 720.108,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 854.207,
+      "content": " explanation"
+    },
+    {
+      "timestamp_ms": 864.641,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 864.828,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 864.962,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 865.095,
+      "content": " manages"
+    },
+    {
+      "timestamp_ms": 865.177,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 865.238,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 869.728,
+      "content": " internally"
+    },
+    {
+      "timestamp_ms": 956.366,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 956.567,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 956.696,
+      "content": " Branch"
+    },
+    {
+      "timestamp_ms": 956.822,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 964.665,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 988.68,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1005.207,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1161.437,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1161.437,
+      "content": "Light"
+    },
+    {
+      "timestamp_ms": 1161.437,
+      "content": "weight"
+    },
+    {
+      "timestamp_ms": 1161.591,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1161.655,
+      "content": " Cheap"
+    },
+    {
+      "timestamp_ms": 1161.715,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1161.765,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1161.835,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1268.511,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1268.675,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 1268.764,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 1268.837,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1268.933,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1281.004,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 1292.153,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1325.862,
+      "content": " simply"
+    },
+    {
+      "timestamp_ms": 1329.843,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1352.161,
+      "content": " lightweight"
+    },
+    {
+      "timestamp_ms": 1373.184,
+      "content": " movable"
+    },
+    {
+      "timestamp_ms": 1390.454,
+      "content": " pointer"
+    },
+    {
+      "timestamp_ms": 1446.958,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1447.139,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1447.239,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 1480.706,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1482.653,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 1503.03,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 1575.275,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1575.408,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 1575.483,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 1577.412,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 1674.238,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 1674.457,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1674.552,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 1674.612,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 1674.668,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 1790.222,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1790.501,
+      "content": "master"
+    },
+    {
+      "timestamp_ms": 1790.698,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1790.855,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1791.007,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 1791.129,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1807.81,
+      "content": "main"
+    },
+    {
+      "timestamp_ms": 1882.417,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1882.632,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1882.76,
+      "content": " newer"
+    },
+    {
+      "timestamp_ms": 1884.094,
+      "content": " conventions"
+    },
+    {
+      "timestamp_ms": 1901.834,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 1982.519,
+      "content": " though"
+    },
+    {
+      "timestamp_ms": 1982.684,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1982.772,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1982.846,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 1996.336,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2079.23,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 2079.459,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2079.592,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 2079.7,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2093.372,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2186.207,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2186.385,
+      "content": " Creating"
+    },
+    {
+      "timestamp_ms": 2186.468,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2186.527,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 2190.817,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2209.041,
+      "content": " incredibly"
+    },
+    {
+      "timestamp_ms": 2235.573,
+      "content": " fast"
+    },
+    {
+      "timestamp_ms": 2248.828,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 2265.213,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2331.411,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 2331.566,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 2331.641,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 2339.507,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2361.275,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2494.487,
+      "content": " pointer"
+    },
+    {
+      "timestamp_ms": 2494.631,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2494.698,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2494.759,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 2494.809,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2494.858,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2510.403,
+      "content": " duplic"
+    },
+    {
+      "timestamp_ms": 2517.817,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 2594.191,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2594.375,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 2594.462,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 2594.525,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2605.585,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2697.778,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2698.014,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2698.223,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2698.346,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2700.516,
+      "content": "Commit"
+    },
+    {
+      "timestamp_ms": 2799.465,
+      "content": " IDs"
+    },
+    {
+      "timestamp_ms": 2799.621,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2799.711,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2799.773,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2799.825,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2816.362,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2836.327,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 2862.143,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2876.209,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 2966.142,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2966.328,
+      "content": " identified"
+    },
+    {
+      "timestamp_ms": 2966.417,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2966.483,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2967.802,
+      "content": " SHA"
+    },
+    {
+      "timestamp_ms": 2988.778,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3009.222,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3107.846,
+      "content": " hash"
+    },
+    {
+      "timestamp_ms": 3113.089,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3113.413,
+      "content": " Branch"
+    },
+    {
+      "timestamp_ms": 3113.508,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " hold"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " latest"
+    },
+    {
+      "timestamp_ms": 3257.436,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 3281.516,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3317.895,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3318.03,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3331.742,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3414.278,
+      "content": "HEAD"
+    },
+    {
+      "timestamp_ms": 3414.522,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3414.676,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3414.775,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3425.773,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3516.354,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3516.511,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3516.643,
+      "content": "HEAD"
+    },
+    {
+      "timestamp_ms": 3516.772,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3520.837,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3596.51,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3596.862,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 3597.111,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3599.392,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3618.99,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 3721.256,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 3721.39,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3721.453,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3721.518,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3721.596,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3768.454,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 3768.668,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3769.477,
+      "content": " checkout"
+    },
+    {
+      "timestamp_ms": 3830.18,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3830.406,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 3830.592,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 3845.045,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3898.871,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3899.004,
+      "content": "HEAD"
+    },
+    {
+      "timestamp_ms": 3904.905,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3926.922,
+      "content": " points"
+    },
+    {
+      "timestamp_ms": 3941.025,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4028.034,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4028.225,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 4028.307,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4028.369,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 4038.216,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4130.885,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4131.095,
+      "content": " easily"
+    },
+    {
+      "timestamp_ms": 4131.206,
+      "content": " switch"
+    },
+    {
+      "timestamp_ms": 4131.36,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 4131.495,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 4166.095,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4169.861,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4189.642,
+      "content": " M"
+    },
+    {
+      "timestamp_ms": 4212.869,
+      "content": "erging"
+    },
+    {
+      "timestamp_ms": 4340.047,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4340.047,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4340.047,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4340.21,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4340.274,
+      "content": "Fast"
+    },
+    {
+      "timestamp_ms": 4340.329,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4340.962,
+      "content": "Forward"
+    },
+    {
+      "timestamp_ms": 4360.539,
+      "content": " Merge"
+    },
+    {
+      "timestamp_ms": 4438.296,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4438.484,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4438.574,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4438.709,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4488.236,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4488.418,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4495.855,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 4522.575,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4544.237,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4552.387,
+      "content": " merging"
+    },
+    {
+      "timestamp_ms": 4643.16,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 4643.472,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4643.632,
+      "content": " diver"
+    },
+    {
+      "timestamp_ms": 4643.702,
+      "content": "ged"
+    },
+    {
+      "timestamp_ms": 4644.85,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4745.094,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4745.278,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 4745.394,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4745.478,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4745.545,
+      "content": " merging"
+    },
+    {
+      "timestamp_ms": 4760.411,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 4847.612,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4847.818,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 4847.987,
+      "content": ".e"
+    },
+    {
+      "timestamp_ms": 4848.089,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4855.924,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4895.697,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 4895.92,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4950.542,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4950.785,
+      "content": " descendant"
+    },
+    {
+      "timestamp_ms": 4950.926,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5053.007,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5053.144,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 5053.209,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5053.263,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5053.311,
+      "content": " merging"
+    },
+    {
+      "timestamp_ms": 5064.564,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 5116.694,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 5116.86,
+      "content": " performs"
+    },
+    {
+      "timestamp_ms": 5123.396,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5180.433,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5180.584,
+      "content": "fast"
+    },
+    {
+      "timestamp_ms": 5185.38,
+      "content": "-forward"
+    },
+    {
+      "timestamp_ms": 5199.444,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 5246.859,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 5247.081,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5265.184,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5277.699,
+      "content": " simply"
+    },
+    {
+      "timestamp_ms": 5296.409,
+      "content": " moves"
+    },
+    {
+      "timestamp_ms": 5360.648,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5360.843,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5360.941,
+      "content": "HEAD"
+    },
+    {
+      "timestamp_ms": 5369.01,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5422.23,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5422.383,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5432.218,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 5447.262,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 5541.104,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5541.268,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 5541.424,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5541.508,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5541.573,
+      "content": " latest"
+    },
+    {
+      "timestamp_ms": 5666.793,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 5666.945,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5667.018,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5667.075,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 5667.127,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 5667.235,
+      "content": " merged"
+    },
+    {
+      "timestamp_ms": 5674.24,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5770.495,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5770.694,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5770.806,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5770.885,
+      "content": "Three"
+    },
+    {
+      "timestamp_ms": 5771.005,
+      "content": "-W"
+    },
+    {
+      "timestamp_ms": 5879.52,
+      "content": "ay"
+    },
+    {
+      "timestamp_ms": 5879.75,
+      "content": " Merge"
+    },
+    {
+      "timestamp_ms": 5879.823,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5879.878,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5879.933,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5884.608,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5906.189,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 5963.318,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5963.631,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 5963.738,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5980.663,
+      "content": " diver"
+    },
+    {
+      "timestamp_ms": 6000.392,
+      "content": "ged"
+    },
+    {
+      "timestamp_ms": 6076.397,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6076.606,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 6076.673,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 6076.73,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6179.174,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 6179.344,
+      "content": "-way"
+    },
+    {
+      "timestamp_ms": 6179.435,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 6179.518,
+      "content": " strategy"
+    },
+    {
+      "timestamp_ms": 6179.59,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6281.224,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6281.479,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6288.049,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6288.236,
+      "content": "Base"
+    },
+    {
+      "timestamp_ms": 6288.356,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6288.505,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6305.063,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 6341.274,
+      "content": " ancestor"
+    },
+    {
+      "timestamp_ms": 6356.72,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6367.459,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6383.883,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 6403.273,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 6419.83,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6445.963,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6467.319,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6476.25,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6590.396,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 6590.691,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6590.994,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6591.16,
+      "content": " tip"
+    },
+    {
+      "timestamp_ms": 6591.289,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6591.391,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6619.623,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 6631.594,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 6667.615,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6667.765,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 6793.705,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 6793.858,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6793.93,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6793.986,
+      "content": " merging"
+    },
+    {
+      "timestamp_ms": 6794.036,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6794.086,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 6799.384,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6821.304,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6857.88,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6858.624,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 6877.109,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6998.706,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6998.879,
+      "content": " tip"
+    },
+    {
+      "timestamp_ms": 6998.948,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6999.075,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6999.198,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 6999.282,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 7009.33,
+      "content": " merged"
+    },
+    {
+      "timestamp_ms": 7100.771,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7101.006,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7101.197,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7101.383,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 7108.091,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 7203.073,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 7203.236,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 7203.315,
+      "content": " commits"
+    },
+    {
+      "timestamp_ms": 7203.391,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7203.532,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 7225.037,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 7241.025,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7262.111,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 7305.206,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7305.403,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 7315.137,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7407.611,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 7407.746,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 7407.813,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7407.866,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 7613.637,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 7613.637,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7613.637,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7613.637,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7613.637,
+      "content": " merged"
+    },
+    {
+      "timestamp_ms": 7613.637,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 7613.937,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7614.078,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 7614.177,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 7614.253,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7614.316,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7622.946,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7721.397,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7721.698,
+      "content": "Merge"
+    },
+    {
+      "timestamp_ms": 7721.844,
+      "content": " Comm"
+    },
+    {
+      "timestamp_ms": 7722.063,
+      "content": "its"
+    },
+    {
+      "timestamp_ms": 7722.207,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7826.04,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7830.535,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7830.683,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7830.763,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 7830.826,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 7830.939,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7923.591,
+      "content": " merged"
+    },
+    {
+      "timestamp_ms": 7923.741,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7923.819,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 7923.886,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 7932.77,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 8027.386,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 8042.066,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 8042.256,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8042.348,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 8042.412,
+      "content": " branches"
+    },
+    {
+      "timestamp_ms": 8043.671,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 8123.913,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 8124.048,
+      "content": " diver"
+    },
+    {
+      "timestamp_ms": 8124.136,
+      "content": "ged"
+    },
+    {
+      "timestamp_ms": 8124.231,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8141.136,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8156.56,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8187.506,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 8196.232,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 8329.393,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8329.393,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8329.555,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8329.625,
+      "content": "merge"
+    },
+    {
+      "timestamp_ms": 8329.69,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 8329.738,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 8334.767,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8347.473,
+      "content": " created"
+    },
+    {
+      "timestamp_ms": 8432.212,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8432.432,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8432.501,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 8432.556,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 8440.422,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 8505.104,
+      "content": " parents"
+    },
+    {
+      "timestamp_ms": 8505.279,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8505.357,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 8515.86,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 8537.351,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 8557.046,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 8636.206,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 8636.416,
+      "content": " merged"
+    },
+    {
+      "timestamp_ms": 8636.529,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8636.614,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8652.119,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8743.507,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8743.679,
+      "content": "Conflict"
+    },
+    {
+      "timestamp_ms": 8743.763,
+      "content": " Resolution"
+    },
+    {
+      "timestamp_ms": 8743.832,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8748.33,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8841.402,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8842.698,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8842.993,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 8843.102,
+      "content": " conflicting"
+    },
+    {
+      "timestamp_ms": 8843.176,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 8946.957,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8947.117,
+      "content": " detected"
+    },
+    {
+      "timestamp_ms": 8947.194,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 8947.249,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8947.298,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 8955.115,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9053.664,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 9053.837,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 9053.914,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 9053.976,
+      "content": " resolve"
+    },
+    {
+      "timestamp_ms": 9054.029,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 9069.941,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9095.988,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 9110.519,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 9129.242,
+      "content": " manually"
+    },
+    {
+      "timestamp_ms": 9251.111,
+      "content": " intervene"
+    },
+    {
+      "timestamp_ms": 9251.27,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9251.344,
+      "content": " resolve"
+    },
+    {
+      "timestamp_ms": 9251.438,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9251.538,
+      "content": " conflicts"
+    },
+    {
+      "timestamp_ms": 9251.602,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9260.573,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 9353.377,
+      "content": " marks"
+    },
+    {
+      "timestamp_ms": 9353.539,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9353.655,
+      "content": " conflicting"
+    },
+    {
+      "timestamp_ms": 9353.796,
+      "content": " areas"
+    },
+    {
+      "timestamp_ms": 9355.605,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9455.691,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9455.876,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 9455.998,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9456.08,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9456.142,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 9470.345,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 9518.516,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9518.693,
+      "content": " edit"
+    },
+    {
+      "timestamp_ms": 9530.912,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9660.705,
+      "content": " conflicts"
+    },
+    {
+      "timestamp_ms": 9660.882,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9660.974,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 9661.045,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 9661.108,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9661.17,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 9661.359,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9763.175,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 9763.332,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9763.403,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9763.524,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 9763.597,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 9777.938,
+      "content": "asing"
+    },
+    {
+      "timestamp_ms": 9851.738,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9852.022,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9852.179,
+      "content": " Alternative"
+    },
+    {
+      "timestamp_ms": 9867.454,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9879.587,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9890.98,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9967.507,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9967.647,
+      "content": " Before"
+    },
+    {
+      "timestamp_ms": 9967.712,
+      "content": " merging"
+    },
+    {
+      "timestamp_ms": 9967.764,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10070.38,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 10070.626,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 10070.731,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 10070.731,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10070.731,
+      "type": "done"
+    }
+  ],
+  "full_response": "Git handles branching and merging using a fundamentally different approach compared to systems like Subversion (SVN). Here’s a detailed explanation of how Git manages these operations internally:\n\n### Branching\n\n1. **Lightweight and Cheap**:\n   - In Git, a branch is simply a lightweight movable pointer to a commit. By default, every Git repository has a single branch called `master` (or `main` in newer conventions), though you can create any number of branches.\n   - Creating a branch is incredibly fast because it only involves creating a new pointer for the branch, not duplicating the entire project's data.\n\n2. **Commit IDs**:\n   - Each commit in Git is identified by a SHA-1 hash. Branches only hold the commit ID of their latest commit.\n\n3. **HEAD**:\n   - The `HEAD` is a reference to the current branch you are on. When you checkout a new branch, `HEAD` points to that branch, allowing you to easily switch between branches.\n\n### Merging\n\n1. **Fast-Forward Merge**:\n   - If the branch you are merging has not diverged from the branch you are merging into (i.e., your branch is a descendant of the branch you are merging), Git performs a \"fast-forward\" merge. It simply moves the `HEAD` of the current branch to point to the latest commit of the branch being merged.\n\n2. **Three-Way Merge**:\n   - If the branches have diverged, Git uses a three-way merge strategy:\n     - **Base**: The common ancestor of the two branches.\n     - **A**: The tip of the current branch (the one you are merging into).\n     - **B**: The tip of the branch being merged.\n   - Git uses these three commits to automatically merge the changes. A new merge commit is typically created, with the merged changes from both branches.\n\n3. **Merge Commits**:\n   - When branches are merged, if there have been changes in both branches since they diverged, a new commit known as the \"merge commit\" is created. This commit has two parents: one from each branch being merged.\n\n4. **Conflict Resolution**:\n   - If conflicting changes are detected during a merge, Git cannot automatically resolve them. You must manually intervene to resolve the conflicts. Git marks the conflicting areas in the files, and you need to edit these conflicts and then commit the merge.\n\n5. **Rebasing as an Alternative**:\n   - Before merging, you can also",
+  "response_chars": 2308,
+  "num_chunks": 512,
+  "ttft_ms": 342.688,
+  "total_ms": 10071.079,
+  "model_name": "model-medium"
+}

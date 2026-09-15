@@ -1,0 +1,2071 @@
+{
+  "index": 99,
+  "prompt": "Write a JSON schema definition for a user registration form with fields: username, email, password, date_of_birth, and address object.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 297.532,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 311.465,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 379.021,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 379.286,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 379.428,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 383.125,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 404.99,
+      "content": " Schema"
+    },
+    {
+      "timestamp_ms": 484.15,
+      "content": " definition"
+    },
+    {
+      "timestamp_ms": 490.649,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 490.804,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 586.728,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 586.728,
+      "content": " registration"
+    },
+    {
+      "timestamp_ms": 586.728,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 586.728,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 587.023,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 587.091,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 587.265,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 649.4,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 649.609,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 657.767,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 664.135,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 683.682,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 703.632,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 725.429,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 741.419,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 790.265,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 790.446,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 797.597,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 892.11,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 892.306,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 892.384,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 892.448,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 897.862,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 915.055,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 932.286,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 996.129,
+      "content": "address"
+    },
+    {
+      "timestamp_ms": 996.37,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 996.532,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 1009.547,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1097.013,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1097.243,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1097.324,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1097.405,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1105.326,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1198.831,
+      "content": " \"$"
+    },
+    {
+      "timestamp_ms": 1199.008,
+      "content": "schema"
+    },
+    {
+      "timestamp_ms": 1199.008,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1199.118,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1199.258,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 1301.489,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 1301.768,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1301.916,
+      "content": "-schema"
+    },
+    {
+      "timestamp_ms": 1302.024,
+      "content": ".org"
+    },
+    {
+      "timestamp_ms": 1302.083,
+      "content": "/d"
+    },
+    {
+      "timestamp_ms": 1315.04,
+      "content": "raft"
+    },
+    {
+      "timestamp_ms": 1403.743,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1403.935,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1404.062,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1404.143,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1406.403,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1515.122,
+      "content": "/schema"
+    },
+    {
+      "timestamp_ms": 1515.424,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1515.544,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1515.617,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1515.802,
+      "content": "title"
+    },
+    {
+      "timestamp_ms": 1522.834,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1609.423,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1609.649,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 1609.813,
+      "content": " Registration"
+    },
+    {
+      "timestamp_ms": 1609.911,
+      "content": " Form"
+    },
+    {
+      "timestamp_ms": 1617.715,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1713.712,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1714.063,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1714.241,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 1714.409,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1714.554,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1813.913,
+      "content": "object"
+    },
+    {
+      "timestamp_ms": 1814.279,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1814.376,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1814.451,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1814.569,
+      "content": "properties"
+    },
+    {
+      "timestamp_ms": 1827.46,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1921.079,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1921.289,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1921.362,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1921.424,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 1922.28,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1975.217,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1975.392,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1980.759,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2019.016,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 2120.472,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2130.283,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2130.456,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 2130.539,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2130.606,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2130.668,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2130.725,
+      "content": "min"
+    },
+    {
+      "timestamp_ms": 2224.534,
+      "content": "Length"
+    },
+    {
+      "timestamp_ms": 2224.686,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2224.756,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2224.81,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2228.743,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2325.195,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2325.405,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2325.574,
+      "content": "maxLength"
+    },
+    {
+      "timestamp_ms": 2325.679,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2325.827,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2338.942,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 2366.197,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 2378.522,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2427.636,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2427.813,
+      "content": "pattern"
+    },
+    {
+      "timestamp_ms": 2435.085,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2454.782,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2529.864,
+      "content": "^["
+    },
+    {
+      "timestamp_ms": 2530.06,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 2530.164,
+      "content": "-zA"
+    },
+    {
+      "timestamp_ms": 2530.395,
+      "content": "-Z"
+    },
+    {
+      "timestamp_ms": 2632.213,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2632.397,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2632.485,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 2632.551,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 2632.61,
+      "content": "]+$"
+    },
+    {
+      "timestamp_ms": 2644.061,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2734.644,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2734.786,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.849,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 2734.902,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2744.575,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2759.921,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 2791.838,
+      "content": " unique"
+    },
+    {
+      "timestamp_ms": 2807.011,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 2819.163,
+      "content": " consisting"
+    },
+    {
+      "timestamp_ms": 2939.756,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2939.91,
+      "content": " alphanumeric"
+    },
+    {
+      "timestamp_ms": 2940.05,
+      "content": " characters"
+    },
+    {
+      "timestamp_ms": 2940.123,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2940.183,
+      "content": " underscores"
+    },
+    {
+      "timestamp_ms": 2940.235,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 2949.397,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3042.005,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3042.145,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3042.21,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3042.261,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 3053.97,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3064.671,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3116.974,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3117.125,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3123.477,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3217.954,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3218.218,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3218.374,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 3235.369,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3235.6,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3246.072,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3255.255,
+      "content": "format"
+    },
+    {
+      "timestamp_ms": 3304.365,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3313.301,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3318.068,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 3332.939,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3369.123,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3453.132,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3453.324,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 3453.408,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3453.474,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3453.531,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 3464.264,
+      "content": " valid"
+    },
+    {
+      "timestamp_ms": 3524.884,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 3525.063,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 3525.138,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 3539.669,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3560.138,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3656.071,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3656.334,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3656.486,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 3656.582,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3659.285,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3674.684,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3694.585,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3714.13,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3758.777,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3758.91,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3768.461,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 3788.598,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3834.045,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 3834.188,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3844.646,
+      "content": "min"
+    },
+    {
+      "timestamp_ms": 3869.558,
+      "content": "Length"
+    },
+    {
+      "timestamp_ms": 3884.046,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3963.369,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3963.697,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 3963.782,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3963.848,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4066.454,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4066.643,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 4066.728,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4066.728,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4066.81,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 4074.203,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 4122.286,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4122.57,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4132.138,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 4168.11,
+      "content": " length"
+    },
+    {
+      "timestamp_ms": 4173.788,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4270.795,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4270.984,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 4271.067,
+      "content": " characters"
+    },
+    {
+      "timestamp_ms": 4271.121,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 4277.03,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4283.871,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4373.335,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4373.509,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4373.591,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 4373.654,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 4379.345,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 4476.192,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4476.356,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4476.421,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4476.477,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4476.532,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 4578.246,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4579.108,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4579.233,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 4579.473,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4579.586,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4589.071,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4683.307,
+      "content": "format"
+    },
+    {
+      "timestamp_ms": 4683.533,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4683.648,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4683.8,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 4684.043,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4784.631,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4784.887,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4785.065,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 4785.181,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4785.26,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4874.588,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 4874.792,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4874.854,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4874.907,
+      "content": " date"
+    },
+    {
+      "timestamp_ms": 4875.128,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4904.667,
+      "content": " birth"
+    },
+    {
+      "timestamp_ms": 4916.86,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 4987.942,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5091.533,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5091.533,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5091.533,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5091.533,
+      "content": "address"
+    },
+    {
+      "timestamp_ms": 5091.533,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5091.836,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5091.982,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5102.715,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5110.383,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 5124.415,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5192.693,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5192.869,
+      "content": "object"
+    },
+    {
+      "timestamp_ms": 5192.949,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5204.862,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5219.713,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5270.689,
+      "content": "properties"
+    },
+    {
+      "timestamp_ms": 5270.913,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5278.989,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5299.801,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5315.294,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5398.137,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 5398.328,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5398.393,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5398.45,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5409.093,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5501.268,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 5501.455,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5501.534,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5501.601,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 5518.966,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5525.583,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5602.965,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5603.173,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 5603.257,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5603.326,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5625.1,
+      "content": "Street"
+    },
+    {
+      "timestamp_ms": 5638.532,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 5685.842,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 5686.033,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5694.571,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5715.155,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5770.587,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5770.859,
+      "content": "city"
+    },
+    {
+      "timestamp_ms": 5770.997,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5796.312,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5820.372,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5829.864,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5909.61,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 5909.823,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5909.888,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5909.943,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 5924.573,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5961.922,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5976.087,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5987.075,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 6004.38,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6028.569,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6040.767,
+      "content": "City"
+    },
+    {
+      "timestamp_ms": 6121.668,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 6122.029,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 6122.163,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6122.255,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 6134.167,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6174.204,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6174.402,
+      "content": "state"
+    },
+    {
+      "timestamp_ms": 6193.781,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6212.339,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6230.713,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6248.052,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6318.758,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 6319.005,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6319.106,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6323.324,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 6397.348,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6397.542,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6397.612,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6414.237,
+      "content": "maxLength"
+    },
+    {
+      "timestamp_ms": 6420.644,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6525.952,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6526.163,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6526.231,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 6526.308,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6537.364,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6537.617,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 6562.741,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6578.852,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6596.848,
+      "content": "State"
+    },
+    {
+      "timestamp_ms": 6611.976,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6630.602,
+      "content": " province"
+    },
+    {
+      "timestamp_ms": 6733.218,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6733.423,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 6733.52,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6733.592,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 6733.656,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6745.641,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6764.321,
+      "content": "postal"
+    },
+    {
+      "timestamp_ms": 6804.263,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 6806.191,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6821.357,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6839.779,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6858.343,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6934.493,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 6934.706,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6934.799,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6939.003,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 6955.932,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7036.457,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7036.633,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7036.743,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 7036.816,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7048.578,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7138.665,
+      "content": "Postal"
+    },
+    {
+      "timestamp_ms": 7138.904,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7139.009,
+      "content": " ZIP"
+    },
+    {
+      "timestamp_ms": 7139.086,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7150.393,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 7166.554,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7240.392,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 7240.625,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7240.726,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7240.837,
+      "content": "country"
+    },
+    {
+      "timestamp_ms": 7343.509,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7343.674,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7343.757,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7355.319,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7355.458,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 7355.523,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7449.077,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7449.274,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 7449.364,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7449.435,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7449.501,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7548.052,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 7548.216,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7548.294,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7548.425,
+      "content": "Country"
+    },
+    {
+      "timestamp_ms": 7548.548,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 7564.19,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 7655.699,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7655.868,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 7655.946,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7656.009,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 7658.554,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7753.291,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7753.491,
+      "content": "required"
+    },
+    {
+      "timestamp_ms": 7753.595,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7753.654,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 7753.705,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 7855.519,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 7855.857,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7855.932,
+      "content": "city"
+    },
+    {
+      "timestamp_ms": 7855.988,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 7856.041,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7868.351,
+      "content": "postal"
+    },
+    {
+      "timestamp_ms": 7910.317,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 7913.253,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 7927.843,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7959.223,
+      "content": "country"
+    },
+    {
+      "timestamp_ms": 7963.008,
+      "content": "\"],\n"
+    },
+    {
+      "timestamp_ms": 7983.287,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 8063.688,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8063.987,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 8064.142,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8064.262,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8080.744,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 8161.732,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8161.937,
+      "content": " mailing"
+    },
+    {
+      "timestamp_ms": 8162.038,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 8162.116,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 8172.909,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8264.211,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 8264.345,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8264.409,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 8269.097,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8274.508,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8286.771,
+      "content": "required"
+    },
+    {
+      "timestamp_ms": 8330.587,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8369.33,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 8385.186,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 8385.329,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 8385.594,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8469.274,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 8469.451,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 8469.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8469.613,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 8477.4,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 8575.225,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8575.356,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 8575.42,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 8575.474,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 8587.134,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 8594.112,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8681.856,
+      "content": "address"
+    },
+    {
+      "timestamp_ms": 8682.023,
+      "content": "\"],\n"
+    },
+    {
+      "timestamp_ms": 8682.106,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8682.175,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8687.513,
+      "content": "description"
+    },
+    {
+      "timestamp_ms": 8754.802,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8754.943,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8755.015,
+      "content": "Schema"
+    },
+    {
+      "timestamp_ms": 8774.774,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8784.392,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8878.832,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8882.338,
+      "content": " registration"
+    },
+    {
+      "timestamp_ms": 8882.543,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 8882.675,
+      "content": ".\"\n"
+    },
+    {
+      "timestamp_ms": 8882.788,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 8899.812,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 8943.669,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8948.078,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 8955.202,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 9089.414,
+      "content": " Points"
+    },
+    {
+      "timestamp_ms": 9089.633,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9089.709,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9089.764,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9089.814,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 9089.861,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9093.316,
+      "content": " Must"
+    },
+    {
+      "timestamp_ms": 9187.204,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9187.363,
+      "content": " alphanumeric"
+    },
+    {
+      "timestamp_ms": 9187.437,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9187.496,
+      "content": " underscores"
+    },
+    {
+      "timestamp_ms": 9187.55,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9288.593,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 9290.862,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9290.972,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9291.036,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9291.092,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9297.994,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 9331.936,
+      "content": " characters"
+    },
+    {
+      "timestamp_ms": 9339.502,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9376.378,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9376.589,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9394.396,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 9415.407,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9464.419,
+      "content": " Must"
+    },
+    {
+      "timestamp_ms": 9464.591,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9470.181,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9522.835,
+      "content": " valid"
+    },
+    {
+      "timestamp_ms": 9527.708,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 9527.871,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 9598.025,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9598.396,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9598.543,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9604.413,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 9706.022,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9706.194,
+      "content": " Minimum"
+    },
+    {
+      "timestamp_ms": 9706.27,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9706.33,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9706.397,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 9720.112,
+      "content": " characters"
+    },
+    {
+      "timestamp_ms": 9770.551,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9770.71,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9775.023,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9855.87,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 9856.051,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 9856.051,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 9869.54,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9873.927,
+      "content": " Must"
+    },
+    {
+      "timestamp_ms": 9907.686,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9911.173,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10006.117,
+      "content": " valid"
+    },
+    {
+      "timestamp_ms": 10006.28,
+      "content": " date"
+    },
+    {
+      "timestamp_ms": 10006.356,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10006.421,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10009.131,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10108.38,
+      "content": "address"
+    },
+    {
+      "timestamp_ms": 10108.38,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10108.553,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a JSON Schema definition for a user registration form with the specified fields: `username`, `email`, `password`, `date_of_birth`, and an `address` object.\n\n```json\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"User Registration Form\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"username\": {\n      \"type\": \"string\",\n      \"minLength\": 3,\n      \"maxLength\": 30,\n      \"pattern\": \"^[a-zA-Z0-9_]+$\",\n      \"description\": \"A unique username consisting of alphanumeric characters and underscores.\"\n    },\n    \"email\": {\n      \"type\": \"string\",\n      \"format\": \"email\",\n      \"description\": \"A valid email address.\"\n    },\n    \"password\": {\n      \"type\": \"string\",\n      \"minLength\": 8,\n      \"description\": \"A password with a minimum length of 8 characters.\"\n    },\n    \"date_of_birth\": {\n      \"type\": \"string\",\n      \"format\": \"date\",\n      \"description\": \"The user's date of birth.\"\n    },\n    \"address\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"street\": {\n          \"type\": \"string\",\n          \"description\": \"Street address.\"\n        },\n        \"city\": {\n          \"type\": \"string\",\n          \"description\": \"City name.\"\n        },\n        \"state\": {\n          \"type\": \"string\",\n          \"maxLength\": 2,\n          \"description\": \"State or province code.\"\n        },\n        \"postal_code\": {\n          \"type\": \"string\",\n          \"description\": \"Postal or ZIP code.\"\n        },\n        \"country\": {\n          \"type\": \"string\",\n          \"description\": \"Country name.\"\n        }\n      },\n      \"required\": [\"street\", \"city\", \"postal_code\", \"country\"],\n      \"description\": \"User's mailing address.\"\n    }\n  },\n  \"required\": [\"username\", \"email\", \"password\", \"date_of_birth\", \"address\"],\n  \"description\": \"Schema for a user registration form.\"\n}\n```\n\n### Key Points:\n- **username**: Must be alphanumeric with underscores, between 3 and 30 characters.\n- **email**: Must be a valid email format.\n- **password**: Minimum of 8 characters.\n- **date_of_birth**: Must be a valid date.\n- **address",
+  "response_chars": 2052,
+  "num_chunks": 512,
+  "ttft_ms": 297.532,
+  "total_ms": 10108.862,
+  "model_name": "model-medium"
+}

@@ -1,0 +1,1667 @@
+{
+  "index": 176,
+  "prompt": "Describe the differences between TCP and UDP protocols.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1089.674,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " standing"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " Transmission"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " Datagram"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 1089.674,
+      "content": " kinds"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " internet"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " Connection"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " Establish"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": "ment"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1454.194,
+      "content": " establishes"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " On"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2316.094,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " Reliability"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " lost"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " corrupted"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 2667.362,
+      "content": " transmission"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " packet"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " numbered"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " delivered"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " retrans"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": "mission"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " lost"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " packets"
+    },
+    {
+      "timestamp_ms": 3378.649,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " correct"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " Error"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " Checking"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " Correction"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 4074.674,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " checking"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " correction"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 4204.468,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " checking"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " correction"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " encounters"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4454.277,
+      "content": " retrans"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": "mission"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " affected"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " On"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " checking"
+    },
+    {
+      "timestamp_ms": 5252.38,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " manually"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " handled"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " receiving"
+    },
+    {
+      "timestamp_ms": 5252.875,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " Speed"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " Efficiency"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 5717.763,
+      "content": " checking"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " correction"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " Usage"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " streaming"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " transfer"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " priorit"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": "izes"
+    },
+    {
+      "timestamp_ms": 6242.499,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6481.29,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " mostly"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " voice"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " chat"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " video"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " streaming"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " Header"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " Structure"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 7031.963,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " synchronization"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " acknowledgement"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " flags"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " partition"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " checksum"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " however"
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7592.08,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " simpler"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " destination"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " numbers"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": "for"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " checksum"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8372.715,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 8373.142,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8373.142,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " transfer"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 8808.561,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " occasional"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": " acceptable"
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9156.65,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9435.049,
+      "type": "done"
+    }
+  ],
+  "full_response": "TCP and UDP, standing for Transmission Control Protocol and User Datagram Protocol, are two distinct network protocols that are used for different kinds of communication on the internet. Here are the main differences:\n\n1. Connection Establishment: TCP is a connection-oriented protocol which means it establishes a connection between the data source and the destination before any data is sent. On the other hand, UDP is a connectionless protocol and does not establish a connection before sending data.\n\n2. Reliability: TCP is more reliable than UDP. It guarantees that no data is lost or corrupted during transmission. Each packet sent by TCP is independently numbered and is delivered in the same order it was sent. TCP also handles retransmission of lost packets and ensuring a correct sequence order. UDP does not provide these services, making it less reliable.\n\n3. Error Checking and Correction: TCP includes error checking and correction procedures, while UDP does not include error checking and correction. If TCP encounters an error, it will request the retransmission of the affected data. On the other hand, with UDP, error checking and must be manually handled by the sending and receiving programs.\n\n4. Speed and Efficiency: UDP is faster and more efficient than TCP since it does not have to establish connections, and does not perform any error checking or correction.\n\n5. Usage: TCP is typically used for streaming and data transfer, as it prioritizes reliability over speed. UDP, on the other hand, is used mostly for real-time applications like voice chat and video streaming where speed is more critical than reliability.\n\n6. Header Structure: TCP's header has many fields, including synchronization, acknowledgement, flags, partitioning information, windowing, and checksum. UDP's header, however, is simpler and only contains source and destination port numbers, sequence number (for TCP only), and checksum.\n\nIn summary, TCP is the protocol of choice for applications where reliable data transfer is more important than speed. UDP, on the other hand, is the protocol of choice for applications where speed is critical, and where occasional data loss or error is acceptable.",
+  "response_chars": 2196,
+  "num_chunks": 411,
+  "ttft_ms": 1089.674,
+  "total_ms": 9435.758,
+  "model_name": "Phi-4-mini-instruct"
+}

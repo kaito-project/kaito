@@ -1,0 +1,1191 @@
+{
+  "index": 36,
+  "prompt": "Generate a sample application.properties for Spring Boot with: spring.datasource.password=DbP@ss123, spring.mail.password=MailPass456, app.jwt.secret=MyJwtSecret789, and app.oauth2.client-secret=OAuthClientSec.",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 525.523,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 525.658,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 525.725,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 525.779,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 525.829,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 525.877,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 525.921,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 526.479,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 526.577,
+      "content": ".properties"
+    },
+    {
+      "timestamp_ms": 526.648,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 526.711,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 526.83,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 526.935,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 540.458,
+      "content": " Spring"
+    },
+    {
+      "timestamp_ms": 595.828,
+      "content": " Boot"
+    },
+    {
+      "timestamp_ms": 595.96,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 606.704,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 661.779,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 661.918,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 661.995,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 674.416,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 724.476,
+      "content": " datasource"
+    },
+    {
+      "timestamp_ms": 724.685,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 731.324,
+      "content": " mail"
+    },
+    {
+      "timestamp_ms": 817.101,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 817.261,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 817.371,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 817.519,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 827.827,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 944.055,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 944.227,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 944.314,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 944.383,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 944.445,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 944.529,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 959.563,
+      "content": "properties"
+    },
+    {
+      "timestamp_ms": 978.748,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1008.276,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1019.612,
+      "content": " DataSource"
+    },
+    {
+      "timestamp_ms": 1036.309,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 1056.779,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1074.275,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 1148.689,
+      "content": ".datasource"
+    },
+    {
+      "timestamp_ms": 1148.887,
+      "content": ".url"
+    },
+    {
+      "timestamp_ms": 1149.012,
+      "content": "=j"
+    },
+    {
+      "timestamp_ms": 1159.894,
+      "content": "dbc"
+    },
+    {
+      "timestamp_ms": 1171.716,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1306.628,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1306.78,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 1306.78,
+      "content": "_url"
+    },
+    {
+      "timestamp_ms": 1306.87,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1306.935,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 1306.992,
+      "content": ".datasource"
+    },
+    {
+      "timestamp_ms": 1307.046,
+      "content": ".username"
+    },
+    {
+      "timestamp_ms": 1321.672,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1340.945,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 1425.306,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 1425.306,
+      "content": "_username"
+    },
+    {
+      "timestamp_ms": 1425.572,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1425.71,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 1462.371,
+      "content": ".datasource"
+    },
+    {
+      "timestamp_ms": 1469.745,
+      "content": ".password"
+    },
+    {
+      "timestamp_ms": 1474.74,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1494.41,
+      "content": "Db"
+    },
+    {
+      "timestamp_ms": 1710.054,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 1710.292,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 1710.555,
+      "content": "ss"
+    },
+    {
+      "timestamp_ms": 1710.726,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1710.803,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1710.867,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 1710.918,
+      "content": " Mail"
+    },
+    {
+      "timestamp_ms": 1717.371,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 1717.796,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1717.981,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 1718.106,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 1721.418,
+      "content": ".host"
+    },
+    {
+      "timestamp_ms": 1740.751,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 1772.927,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2056.386,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2056.386,
+      "content": "server"
+    },
+    {
+      "timestamp_ms": 2056.386,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2056.386,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2056.594,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 2056.594,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2056.594,
+      "content": ".port"
+    },
+    {
+      "timestamp_ms": 2056.594,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2056.692,
+      "content": "587"
+    },
+    {
+      "timestamp_ms": 2056.757,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2056.815,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 2056.869,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2056.924,
+      "content": ".username"
+    },
+    {
+      "timestamp_ms": 2056.979,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2057.031,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2064.93,
+      "content": "_email"
+    },
+    {
+      "timestamp_ms": 2185.659,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 2185.92,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 2186.013,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2186.078,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 2186.078,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2186.144,
+      "content": ".password"
+    },
+    {
+      "timestamp_ms": 2201.199,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2261.551,
+      "content": "Mail"
+    },
+    {
+      "timestamp_ms": 2261.769,
+      "content": "Pass"
+    },
+    {
+      "timestamp_ms": 2264.844,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 2275.286,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2368.952,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 2369.2,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2369.357,
+      "content": ".properties"
+    },
+    {
+      "timestamp_ms": 2369.518,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2371.382,
+      "content": ".smtp"
+    },
+    {
+      "timestamp_ms": 2438.035,
+      "content": ".auth"
+    },
+    {
+      "timestamp_ms": 2438.176,
+      "content": "=true"
+    },
+    {
+      "timestamp_ms": 2438.241,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2446.505,
+      "content": "spring"
+    },
+    {
+      "timestamp_ms": 2469.108,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2484.922,
+      "content": ".properties"
+    },
+    {
+      "timestamp_ms": 2533.013,
+      "content": ".mail"
+    },
+    {
+      "timestamp_ms": 2533.336,
+      "content": ".smtp"
+    },
+    {
+      "timestamp_ms": 2541.703,
+      "content": ".start"
+    },
+    {
+      "timestamp_ms": 2560.487,
+      "content": "tls"
+    },
+    {
+      "timestamp_ms": 2826.554,
+      "content": ".enable"
+    },
+    {
+      "timestamp_ms": 2826.706,
+      "content": "=true"
+    },
+    {
+      "timestamp_ms": 2826.818,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2826.893,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 2826.951,
+      "content": " JWT"
+    },
+    {
+      "timestamp_ms": 2827.002,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 2827.05,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2827.096,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 2827.144,
+      "content": ".jwt"
+    },
+    {
+      "timestamp_ms": 2827.247,
+      "content": ".secret"
+    },
+    {
+      "timestamp_ms": 2827.358,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 2827.426,
+      "content": "My"
+    },
+    {
+      "timestamp_ms": 2827.482,
+      "content": "Jwt"
+    },
+    {
+      "timestamp_ms": 2828.882,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 2880.023,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 2880.203,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2883.936,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 2945.369,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 2945.574,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2945.64,
+      "content": " Client"
+    },
+    {
+      "timestamp_ms": 2961.47,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 3008.832,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3017.832,
+      "content": "app"
+    },
+    {
+      "timestamp_ms": 3018.044,
+      "content": ".oauth"
+    },
+    {
+      "timestamp_ms": 3172.541,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3172.714,
+      "content": ".client"
+    },
+    {
+      "timestamp_ms": 3172.84,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 3172.933,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 3173.007,
+      "content": "OAuth"
+    },
+    {
+      "timestamp_ms": 3173.075,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 3173.136,
+      "content": "Sec"
+    },
+    {
+      "timestamp_ms": 3173.194,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3226.893,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3227.056,
+      "content": " Additional"
+    },
+    {
+      "timestamp_ms": 3227.217,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 3253.211,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3266.704,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 3284.422,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3363.108,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 3363.378,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 3363.491,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3363.571,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3382.935,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 3439.494,
+      "content": ".oauth"
+    },
+    {
+      "timestamp_ms": 3439.713,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3439.806,
+      "content": ".client"
+    },
+    {
+      "timestamp_ms": 3456.156,
+      "content": "-id"
+    },
+    {
+      "timestamp_ms": 3592.361,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 3592.505,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 3592.59,
+      "content": "ClientId"
+    },
+    {
+      "timestamp_ms": 3592.673,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3592.739,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3592.798,
+      "content": " app"
+    },
+    {
+      "timestamp_ms": 3592.847,
+      "content": ".oauth"
+    },
+    {
+      "timestamp_ms": 3646.909,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3647.143,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3647.283,
+      "content": "issuer"
+    },
+    {
+      "timestamp_ms": 3684.2,
+      "content": "-uri"
+    },
+    {
+      "timestamp_ms": 3685.369,
+      "content": "=https"
+    },
+    {
+      "timestamp_ms": 3710.687,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 3721.964,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3773.273,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3773.427,
+      "content": "issuer"
+    },
+    {
+      "timestamp_ms": 3783.345,
+      "content": ".uri"
+    },
+    {
+      "timestamp_ms": 3874.808,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3883.636,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 3883.846,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3883.953,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3910.948,
+      "content": " Notes"
+    },
+    {
+      "timestamp_ms": 3910.948,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3918.578,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3931.865,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3955.821,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4298.889,
+      "content": "DataSource"
+    },
+    {
+      "timestamp_ms": 4298.889,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 4298.889,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4298.889,
+      "content": " Make"
+    },
+    {
+      "timestamp_ms": 4298.889,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 4298.889,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4299.156,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 4299.325,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4299.44,
+      "content": "jdbc"
+    },
+    {
+      "timestamp_ms": 4299.519,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4299.625,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4299.851,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 4299.971,
+      "content": "_url"
+    },
+    {
+      "timestamp_ms": 4300.088,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4300.15,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4300.204,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4300.254,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4300.3,
+      "content": "_db"
+    },
+    {
+      "timestamp_ms": 4318.109,
+      "content": "_username"
+    },
+    {
+      "timestamp_ms": 4340.64,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4353.607,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4469.071,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4478.78,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 4478.966,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4479.131,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 4479.232,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4479.392,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 4485.835,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4506.011,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4524.259,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4541.903,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4561.945,
+      "content": "Mail"
+    },
+    {
+      "timestamp_ms": 4591.043,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 4598.992,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4686.524,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 4686.714,
+      "content": " placeholders"
+    },
+    {
+      "timestamp_ms": 4686.791,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4686.848,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4694.689,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 4741.728,
+      "content": " mail"
+    },
+    {
+      "timestamp_ms": 4741.912,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4756.187,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 4770.717,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4805.653,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 4809.758,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4866.031,
+      "content": " host"
+    },
+    {
+      "timestamp_ms": 4866.303,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4866.565,
+      "content": " port"
+    },
+    {
+      "timestamp_ms": 4886.342,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4954.928,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4955.212,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 4955.35,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 4960.821,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4981.17,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5094.242,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5094.508,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5094.652,
+      "content": "JWT"
+    },
+    {
+      "timestamp_ms": 5094.768,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5094.878,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 5099.616,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5116.276,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5155.22,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5155.455,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 5219.403,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 5219.551,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 5219.63,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5231.508,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 5296.523,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 5296.669,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5296.806,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 5307.824,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5325.382,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 5501.38,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 5501.572,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5501.652,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 5501.725,
+      "content": " external"
+    },
+    {
+      "timestamp_ms": 5501.868,
+      "content": "izing"
+    },
+    {
+      "timestamp_ms": 5501.992,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 5502.098,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5502.192,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 5502.28,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 5515.555,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 5541.485,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5552.706,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5630.503,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 5630.659,
+      "content": " vault"
+    },
+    {
+      "timestamp_ms": 5630.741,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5632.088,
+      "content": "Let"
+    },
+    {
+      "timestamp_ms": 5647.542,
+      "content": " me"
+    },
+    {
+      "timestamp_ms": 5720.751,
+      "content": " know"
+    },
+    {
+      "timestamp_ms": 5720.902,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5721.04,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5726.242,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 5835.328,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 5835.482,
+      "content": " custom"
+    },
+    {
+      "timestamp_ms": 5835.618,
+      "content": "izations"
+    },
+    {
+      "timestamp_ms": 5835.7,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5835.763,
+      "content": " explanations"
+    },
+    {
+      "timestamp_ms": 5845.749,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 5918.28,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5918.28,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample `application.properties` file for a Spring Boot application including the specified configurations for datasource, mail, JWT secret, and OAuth2 client secret.\n\n```properties\n# DataSource Configuration\nspring.datasource.url=jdbc:your_database_url\nspring.datasource.username=your_db_username\nspring.datasource.password=DbP@ss123\n\n# Mail Configuration\nspring.mail.host=your.mailserver.com\nspring.mail.port=587\nspring.mail.username=your_email@example.com\nspring.mail.password=MailPass456\nspring.mail.properties.mail.smtp.auth=true\nspring.mail.properties.mail.smtp.starttls.enable=true\n\n# JWT Secret\napp.jwt.secret=MyJwtSecret789\n\n# OAuth2 Client Secret\napp.oauth2.client-secret=OAuthClientSec\n\n# Additional configurations for OAuth2 if needed\n# app.oauth2.client-id=YourClientId\n# app.oauth2.issuer-uri=https://your.issuer.uri\n```\n\n### Notes:\n1. **DataSource Configuration**: Make sure to replace `jdbc:your_database_url` and `your_db_username` with your actual database URL and username.\n2. **Mail Configuration**: Replace placeholders with your actual mail server details, including the host, port, and email username.\n3. **JWT and OAuth2**: The secrets provided here are basic configurations. In a real application, consider externalizing sensitive information using environment variables or a secure vault.\n\nLet me know if you need further customizations or explanations!",
+  "response_chars": 1400,
+  "num_chunks": 292,
+  "ttft_ms": 525.523,
+  "total_ms": 5918.664,
+  "model_name": "model-medium"
+}

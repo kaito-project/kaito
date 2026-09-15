@@ -1,0 +1,2071 @@
+{
+  "index": 1,
+  "prompt": "What are the key principles of object-oriented programming? Give examples in Python.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 315.27,
+      "content": "Object"
+    },
+    {
+      "timestamp_ms": 315.27,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 331.608,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 354.982,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 368.755,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 388.295,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 410.987,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 426.439,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 446.088,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 464.026,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 484.795,
+      "content": " paradigm"
+    },
+    {
+      "timestamp_ms": 502.486,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 521.382,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 540.441,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 560.894,
+      "content": " concept"
+    },
+    {
+      "timestamp_ms": 580.956,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 598.123,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 616.241,
+      "content": "objects"
+    },
+    {
+      "timestamp_ms": 636.519,
+      "content": ",\""
+    },
+    {
+      "timestamp_ms": 654.739,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 674.033,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 694.24,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 711.983,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 732.253,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 750.707,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 769.245,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 788.876,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 813.672,
+      "content": " fields"
+    },
+    {
+      "timestamp_ms": 826.055,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 845.889,
+      "content": "often"
+    },
+    {
+      "timestamp_ms": 864.415,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 883.497,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 902.956,
+      "content": " attributes"
+    },
+    {
+      "timestamp_ms": 923.462,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 942.799,
+      "content": " properties"
+    },
+    {
+      "timestamp_ms": 959.796,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 979.451,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 997.544,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1017.204,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1035.588,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1054.755,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 1074.661,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1093.343,
+      "content": " procedures"
+    },
+    {
+      "timestamp_ms": 1115.886,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1132.514,
+      "content": "often"
+    },
+    {
+      "timestamp_ms": 1150.34,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 1168.878,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1200.24,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 1212.509,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 1226.167,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1245.214,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1264.92,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 1287.182,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1302.446,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 1321.86,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 1340.597,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 1374.951,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1378.449,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1397.448,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1416.91,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1435.446,
+      "content": "Enc"
+    },
+    {
+      "timestamp_ms": 1454.832,
+      "content": "apsulation"
+    },
+    {
+      "timestamp_ms": 1474.068,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1492.958,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1511.983,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1531.838,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1563.112,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1569.743,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 1597.18,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1609.986,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 1628.576,
+      "content": " bund"
+    },
+    {
+      "timestamp_ms": 1646.579,
+      "content": "ling"
+    },
+    {
+      "timestamp_ms": 1665.809,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1683.451,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1702.42,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1722.204,
+      "content": "attributes"
+    },
+    {
+      "timestamp_ms": 1740.519,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1759.839,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1778.933,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 1799.409,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1816.929,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 1837.814,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1855.37,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1875.014,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1893.403,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1912.901,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1931.467,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 1951.339,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 1969.183,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 1988.878,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2007.294,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 2026.893,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2045.523,
+      "content": " Enc"
+    },
+    {
+      "timestamp_ms": 2064.627,
+      "content": "apsulation"
+    },
+    {
+      "timestamp_ms": 2084.095,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 2103.302,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 2128.379,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2140.764,
+      "content": " hiding"
+    },
+    {
+      "timestamp_ms": 2161.253,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2180.76,
+      "content": " restricting"
+    },
+    {
+      "timestamp_ms": 2205.114,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2217.681,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2236.775,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 2255.194,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 2274.325,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2293.191,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2312.22,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2331.232,
+      "content": " achieved"
+    },
+    {
+      "timestamp_ms": 2350.253,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2369.463,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2388.35,
+      "content": " modifiers"
+    },
+    {
+      "timestamp_ms": 2407.485,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2426.614,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2446.054,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2465.474,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2483.701,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 2502.918,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2521.916,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 2561.102,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2562.392,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2578.782,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 2620.801,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 2620.801,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2637.016,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 2659.762,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2674.617,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2694.144,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 2713.165,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 2732.365,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2752.633,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2769.848,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 2789.486,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2807.498,
+      "content": " hidden"
+    },
+    {
+      "timestamp_ms": 2827.471,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 2847.482,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2864.844,
+      "content": " outside"
+    },
+    {
+      "timestamp_ms": 2884.046,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2903.149,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2922.555,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 2942.685,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 2961.66,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2981.307,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2998.548,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 3019.663,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 3036.827,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3055.423,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3074.497,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 3093.699,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 3114.073,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 3135.071,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 3150.923,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 3180.411,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3190.167,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 3208.08,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3228.304,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3248.185,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3265.419,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3284.133,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 3306.756,
+      "content": ".__"
+    },
+    {
+      "timestamp_ms": 3322.175,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 3341.293,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3359.881,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 3380.468,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3399.441,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3418.632,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 3436.585,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 3455.769,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3475.345,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3493.648,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 3517.217,
+      "content": ".model"
+    },
+    {
+      "timestamp_ms": 3533.591,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3553.788,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3590.65,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3591.511,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3607.969,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 3627.002,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 3646.534,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3667.15,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3696.702,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 3703.072,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 3722.348,
+      "content": "_make"
+    },
+    {
+      "timestamp_ms": 3909.934,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 3911.325,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3911.453,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3911.453,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 3911.453,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 3911.453,
+      "content": ".__"
+    },
+    {
+      "timestamp_ms": 3911.453,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 3911.538,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3911.588,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3913.1,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 3959.071,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 3959.071,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3970.498,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3993.164,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 4013.232,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 4028.564,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4048.25,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4066.777,
+      "content": " car"
+    },
+    {
+      "timestamp_ms": 4085.025,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4103.544,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 4122.455,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 4143.632,
+      "content": "Toyota"
+    },
+    {
+      "timestamp_ms": 4163.511,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 4181.715,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4199.085,
+      "content": "Cor"
+    },
+    {
+      "timestamp_ms": 4218.391,
+      "content": "olla"
+    },
+    {
+      "timestamp_ms": 4238.057,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 4256.597,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4277.012,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 4294.871,
+      "content": "(car"
+    },
+    {
+      "timestamp_ms": 4314.137,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 4332.269,
+      "content": "_make"
+    },
+    {
+      "timestamp_ms": 4351.165,
+      "content": "())"
+    },
+    {
+      "timestamp_ms": 4370.969,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4390.828,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4409.795,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 4427.298,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4446.797,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 4464.863,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 4484.517,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 4503.447,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 4522.6,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 4543.317,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4564.894,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4580.989,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4599.122,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 4617.95,
+      "content": "(car"
+    },
+    {
+      "timestamp_ms": 4637.442,
+      "content": ".__"
+    },
+    {
+      "timestamp_ms": 4656.735,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 4675.274,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4694.106,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4713.345,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4732.528,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4751.256,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 4770.53,
+      "content": " raise"
+    },
+    {
+      "timestamp_ms": 4789.479,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4813.337,
+      "content": " AttributeError"
+    },
+    {
+      "timestamp_ms": 4827.674,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4848.078,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4866.793,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 4885.416,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4906.413,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4923.219,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4945.742,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4966.484,
+      "content": "Ab"
+    },
+    {
+      "timestamp_ms": 4981.003,
+      "content": "straction"
+    },
+    {
+      "timestamp_ms": 5001.242,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5018.545,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5038.16,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5058.361,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5078.424,
+      "content": " Ab"
+    },
+    {
+      "timestamp_ms": 5099.82,
+      "content": "straction"
+    },
+    {
+      "timestamp_ms": 5113.835,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 5133.083,
+      "content": " hiding"
+    },
+    {
+      "timestamp_ms": 5152.934,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5170.168,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 5190.053,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 5211.385,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 5228.215,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5247.13,
+      "content": " showing"
+    },
+    {
+      "timestamp_ms": 5266.867,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5285.296,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5305.029,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 5323.185,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 5343.293,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5363.372,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5380.384,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 5399.766,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5421.888,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5437.181,
+      "content": " enables"
+    },
+    {
+      "timestamp_ms": 5458.807,
+      "content": " focusing"
+    },
+    {
+      "timestamp_ms": 5475.102,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5494.216,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 5513.329,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5533.034,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 5555.234,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5571.386,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 5590.592,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 5609.877,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 5632.023,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5652.918,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5666.745,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5685.485,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5704.297,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5722.975,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 5744.606,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 5761.429,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5780.531,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5800.173,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5818.852,
+      "content": " abc"
+    },
+    {
+      "timestamp_ms": 5837.529,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 5856.678,
+      "content": " ABC"
+    },
+    {
+      "timestamp_ms": 5875.88,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5895.371,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 5915.032,
+      "content": "method"
+    },
+    {
+      "timestamp_ms": 5933.109,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5952.034,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5971.291,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 5991.34,
+      "content": " Animal"
+    },
+    {
+      "timestamp_ms": 6009.441,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 6029.112,
+      "content": "ABC"
+    },
+    {
+      "timestamp_ms": 6048.945,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6067.797,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6086.2,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6106.017,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 6124.454,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 6143.271,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 6161.974,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 6182.27,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6200.177,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 6219.129,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6238.124,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6258.432,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 6276.047,
+      "content": ".name"
+    },
+    {
+      "timestamp_ms": 6295.211,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6315.558,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 6333.235,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6352.226,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6371.385,
+      "content": " @"
+    },
+    {
+      "timestamp_ms": 6390.377,
+      "content": "abstractmethod"
+    },
+    {
+      "timestamp_ms": 6409.493,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6428.802,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6448.929,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6467.603,
+      "content": " speak"
+    },
+    {
+      "timestamp_ms": 6486.569,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 6504.916,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6524.026,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6546.014,
+      "content": " pass"
+    },
+    {
+      "timestamp_ms": 6565.51,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6584.112,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6600.129,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 6619.367,
+      "content": " Dog"
+    },
+    {
+      "timestamp_ms": 6641.725,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 6657.415,
+      "content": "Animal"
+    },
+    {
+      "timestamp_ms": 6677.536,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6699.097,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6715.653,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6733.885,
+      "content": " speak"
+    },
+    {
+      "timestamp_ms": 6752.993,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 6771.473,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6790.659,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6810.435,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 6828.816,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 6849.089,
+      "content": "\"{"
+    },
+    {
+      "timestamp_ms": 6867.136,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 6886.796,
+      "content": ".name"
+    },
+    {
+      "timestamp_ms": 6906.072,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 6924.863,
+      "content": " says"
+    },
+    {
+      "timestamp_ms": 6945.852,
+      "content": " Wo"
+    },
+    {
+      "timestamp_ms": 6962.552,
+      "content": "of"
+    },
+    {
+      "timestamp_ms": 6981.746,
+      "content": "!\"\n\n"
+    },
+    {
+      "timestamp_ms": 7003.148,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7019.712,
+      "content": " dog"
+    },
+    {
+      "timestamp_ms": 7040.398,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7058.639,
+      "content": " Dog"
+    },
+    {
+      "timestamp_ms": 7079.495,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 7096.771,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 7116.43,
+      "content": "uddy"
+    },
+    {
+      "timestamp_ms": 7142.475,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 7153.691,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7172.846,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 7192.072,
+      "content": "(d"
+    },
+    {
+      "timestamp_ms": 7210.352,
+      "content": "og"
+    },
+    {
+      "timestamp_ms": 7229.788,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 7248.404,
+      "content": "peak"
+    },
+    {
+      "timestamp_ms": 7268.31,
+      "content": "())"
+    },
+    {
+      "timestamp_ms": 7288.394,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7307.068,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7324.94,
+      "content": " Focus"
+    },
+    {
+      "timestamp_ms": 7344.105,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7363.938,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7382.454,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7402.252,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 7420.535,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 7440.718,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7458.888,
+      "content": "peak"
+    },
+    {
+      "timestamp_ms": 7479.375,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 7496.835,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 7515.455,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7534.479,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 7559.332,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7573.195,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7592.46,
+      "content": " implemented"
+    },
+    {
+      "timestamp_ms": 7611.815,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7630.214,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7649.094,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 7669.039,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7687.236,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7706.613,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7725.211,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7744.924,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 7768.373,
+      "content": "heritance"
+    },
+    {
+      "timestamp_ms": 7782.538,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7801.504,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7824.508,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7839.618,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7858.787,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 7878.075,
+      "content": "heritance"
+    },
+    {
+      "timestamp_ms": 8012.385,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 8012.544,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8013.303,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8013.427,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8013.495,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8013.552,
+      "content": " inherit"
+    },
+    {
+      "timestamp_ms": 8013.605,
+      "content": " attributes"
+    },
+    {
+      "timestamp_ms": 8030.407,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8049.539,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 8068.312,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8089.506,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8106.776,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 8126.664,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8144.769,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8163.8,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8184.548,
+      "content": " promotes"
+    },
+    {
+      "timestamp_ms": 8203.064,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8222.696,
+      "content": " re"
+    },
+    {
+      "timestamp_ms": 8240.026,
+      "content": "us"
+    },
+    {
+      "timestamp_ms": 8269.995,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 8280.465,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8299.588,
+      "content": " establishes"
+    },
+    {
+      "timestamp_ms": 8316.282,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8335.491,
+      "content": " relationship"
+    },
+    {
+      "timestamp_ms": 8355.397,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 8373.662,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8393.467,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8411.888,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8430.957,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8450.509,
+      "content": "subclass"
+    },
+    {
+      "timestamp_ms": 8469.297,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8490.367,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8508.356,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8528.063,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 8554.567,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8565.492,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8583.585,
+      "content": "super"
+    },
+    {
+      "timestamp_ms": 8602.511,
+      "content": "class"
+    },
+    {
+      "timestamp_ms": 8621.822,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 8640.433,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8659.518,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 8681.728,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 8701.986,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8716.684,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8736.965,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8755.901,
+      "content": " Vehicle"
+    },
+    {
+      "timestamp_ms": 8774.648,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8794.388,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 8819.762,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 8832.553,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 8868.376,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 8884.685,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 8893.374,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 8908.185,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8933.813,
+      "content": " brand"
+    },
+    {
+      "timestamp_ms": 8951.646,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8970.565,
+      "content": " color"
+    },
+    {
+      "timestamp_ms": 8987.412,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9003.19,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 9022.132,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 9041.807,
+      "content": ".brand"
+    },
+    {
+      "timestamp_ms": 9060.177,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9083.884,
+      "content": " brand"
+    },
+    {
+      "timestamp_ms": 9098.492,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9209.146,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 9209.146,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 9209.146,
+      "content": ".color"
+    },
+    {
+      "timestamp_ms": 9209.146,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9209.146,
+      "content": " color"
+    },
+    {
+      "timestamp_ms": 9216.32,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9232.452,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9253.963,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 9272.118,
+      "content": " describe"
+    },
+    {
+      "timestamp_ms": 9288.913,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 9310.138,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9332.201,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 9346.378,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 9365.803,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 9385.001,
+      "content": "\"This"
+    },
+    {
+      "timestamp_ms": 9405.099,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9427.528,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9441.496,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9460.927,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9479.631,
+      "content": ".color"
+    },
+    {
+      "timestamp_ms": 9500.32,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9517.963,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9536.86,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9565.495,
+      "content": ".brand"
+    },
+    {
+      "timestamp_ms": 9577.655,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9595.541,
+      "content": ".\"\n\n"
+    },
+    {
+      "timestamp_ms": 9613.67,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9634.146,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 9654.182,
+      "content": " Motorcycle"
+    },
+    {
+      "timestamp_ms": 9670.468,
+      "content": "(V"
+    },
+    {
+      "timestamp_ms": 9707.779,
+      "content": "ehicle"
+    },
+    {
+      "timestamp_ms": 9709.141,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9728.593,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9747.054,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 9766.044,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 9785.671,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 9804.251,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 9823.594,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9842.377,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9862.15,
+      "content": " brand"
+    },
+    {
+      "timestamp_ms": 9880.986,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9900.228,
+      "content": " color"
+    },
+    {
+      "timestamp_ms": 9920.831,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9938.295,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 9957.758,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9977.271,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 10001.027,
+      "content": " super"
+    },
+    {
+      "timestamp_ms": 10014.837,
+      "content": "().__"
+    },
+    {
+      "timestamp_ms": 10035.745,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 10035.745,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10035.854,
+      "type": "done"
+    }
+  ],
+  "full_response": "Object-oriented programming (OOP) is a programming paradigm based on the concept of \"objects,\" which can contain data in the form of fields (often known as attributes or properties) and code in the form of procedures (often known as methods). The key principles of OOP include:\n\n1. **Encapsulation**:\n   - This principle is about bundling the data (attributes) and methods that operate on the data into a single unit called a class. Encapsulation also involves data hiding by restricting access to certain components, which is achieved using access modifiers (e.g., private, protected, and public). This means that the internal representation of an object is hidden from the outside.\n\n   ```python\n   class Car:\n       def __init__(self, make, model):\n           self.__make = make  # private attribute\n           self.model = model  # public attribute\n\n       def get_make(self):\n           return self.__make  # public method to access private attribute\n\n   car = Car(\"Toyota\", \"Corolla\")\n   print(car.get_make())  # Accessing private attribute via public method\n   # print(car.__make)  # This will raise an AttributeError\n   ```\n\n2. **Abstraction**:\n   - Abstraction involves hiding the complex implementation details and showing only the essential features of the object. It enables focusing on what an object does rather than how it does it.\n\n   ```python\n   from abc import ABC, abstractmethod\n\n   class Animal(ABC):\n       def __init__(self, name):\n           self.name = name\n\n       @abstractmethod\n       def speak(self):\n           pass\n\n   class Dog(Animal):\n       def speak(self):\n           return f\"{self.name} says Woof!\"\n\n   dog = Dog(\"Buddy\")\n   print(dog.speak())  # Focus is on the behavior 'speak' not on how it's implemented\n   ```\n\n3. **Inheritance**:\n   - Inheritance allows a new class to inherit attributes and methods of an existing class. This promotes code reusability and establishes a relationship between the new class (subclass) and the existing class (superclass).\n\n   ```python\n   class Vehicle:\n       def __init__(self, brand, color):\n           self.brand = brand\n           self.color = color\n\n       def describe(self):\n           return f\"This is a {self.color} {self.brand}.\"\n\n   class Motorcycle(Vehicle):\n       def __init__(self, brand, color, type):\n           super().__init",
+  "response_chars": 2322,
+  "num_chunks": 512,
+  "ttft_ms": 315.27,
+  "total_ms": 10041.328,
+  "model_name": "model-medium"
+}

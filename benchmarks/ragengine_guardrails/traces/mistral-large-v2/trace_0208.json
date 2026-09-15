@@ -1,0 +1,911 @@
+{
+  "index": 208,
+  "prompt": "Generate sample output from a secrets scanning tool that found 8 different types of credentials in a repository, showing the file path, line number, and detected secret type for each.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 878.846,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "’s a sample"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": " output from a **"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "secrets scanning tool"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "** ("
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "e.g., Git"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "Guard"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "ian"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": ", Tru"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "ff"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "leH"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "og, G"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "itle"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "aks"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": ", or Git"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "Hub Secret"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": " Sc"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": "anning) that detected"
+    },
+    {
+      "timestamp_ms": 878.846,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": " credentials** in a"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": " repository:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "### **Se"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "crets Scan"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": " Report**\n"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "**Repository"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": ":** `https"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "://github.com/example"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "org/sample"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "-repo`\n**"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "Scan Time"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": ":** `"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "2023"
+    },
+    {
+      "timestamp_ms": 879.286,
+      "content": "-11-"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "15 "
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": ":30:"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "22 UTC`\n"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "**Total Secrets"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": " Found:**"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "8**\n\n| **"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "File Path"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "**                    "
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": " | **Line"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": " | **Secret"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": " Type**              "
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": " | **Sever"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": "ity** |"
+    },
+    {
+      "timestamp_ms": 1289.872,
+      "content": " **Match"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "** ("
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "Tr"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "uncated)         "
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": " |\n|--------------------------------"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "---|--------"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "--"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "|----------------"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "---------------|------------"
+    },
+    {
+      "timestamp_ms": 1290.366,
+      "content": "--|--------------------------------"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "--------|\n| `"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "src/config"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "/dev"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": ".env"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "              | 1"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "2       | **"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "AWS Access Key"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": " ID**        "
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": " | Critical"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "     | `"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "AKIAI"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "OS"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "ODNN"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "EXAMPLE"
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": "`                "
+    },
+    {
+      "timestamp_ms": 1662.543,
+      "content": " |\n| `scripts"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "/de"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "ploy.sh"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "`              "
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": " | 4"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "5       | **"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "GitHub Personal"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": " Access Token** |"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": " | `gh"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "_abc"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "23def"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "456..."
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "`                 "
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": " |\n| `backend"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "/."
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "env.pro"
+    },
+    {
+      "timestamp_ms": 2005.587,
+      "content": "duction"
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": "`        "
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": " | "
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": "        | **St"
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": "ripe API"
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": "**           "
+    },
+    {
+      "timestamp_ms": 2005.846,
+      "content": " | Critical"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "     | `sk"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "_test_5"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "ABC"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "123..."
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "`                  |\n|"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": " `tests"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "/f"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "ixtures/m"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "ock_data"
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": ".json`  "
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": " | "
+    },
+    {
+      "timestamp_ms": 2153.648,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "2     "
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": " | **"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "Slack Web"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "hook URL"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "**        "
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": " | Medium"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": " | `https"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "://hooks"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": ".slack"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": ".com/services"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "/T"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "...`|\n"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "| `frontend"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "/src"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "/utils"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "/auth"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": ".js`     "
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": " | 23"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "       | **"
+    },
+    {
+      "timestamp_ms": 2824.566,
+      "content": "Tw"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "ilio Account"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "ID**       "
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " | High"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "        "
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " | `AC"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "2345"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "6789"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "0abcdef..."
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "`               "
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " |\n| `docs"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "/api"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "_reference"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": ".md`          "
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " | "
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": "56       |"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " **Google"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 2869.892,
+      "content": " Client"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "** |"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "        "
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": " | `G"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "OC"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "SP"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "-abc"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "123def"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "456..."
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "`              "
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": " |\n| `terraform"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "/main"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": ".tf`"
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": "              "
+    },
+    {
+      "timestamp_ms": 3050.788,
+      "content": " | 34"
+    },
+    {
+      "timestamp_ms": 3638.197,
+      "content": "       | **"
+    },
+    {
+      "timestamp_ms": 3638.197,
+      "content": "Azure Storage"
+    },
+    {
+      "timestamp_ms": 3638.197,
+      "content": " Account"
+    },
+    {
+      "timestamp_ms": 3638.197,
+      "content": " Key** |"
+    },
+    {
+      "timestamp_ms": 3638.197,
+      "content": " Critical"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": "     | `Default"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": "End"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": "pointsProtocol"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": "=https"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": ";Account"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": "=...` |\n"
+    },
+    {
+      "timestamp_ms": 4281.826,
+      "content": "| `mobile"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": "/android"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": "gradle"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": ".properties`|"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": "7       "
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": " | **Firebase"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": " Key**         "
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": " | High"
+    },
+    {
+      "timestamp_ms": 4282.016,
+      "content": "         | `AI"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "zaSy"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "ABC"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "123def"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "456..."
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "`                 "
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": " |\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "Additional Details"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "Optional"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": ")**\n- **AWS"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": " Key ID"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "** (`src"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "/config/dev"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": ".env:"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "12`)\n "
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": " - **"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "content": "Risk:**"
+    },
+    {
+      "timestamp_ms": 4976.003,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4976.295,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a sample output from a **secrets scanning tool** (e.g., GitGuardian, TruffleHog, Gitleaks, or GitHub Secret Scanning) that detected ** credentials** in a repository:\n\n---\n\n### **Secrets Scan Report**\n**Repository:** `https://github.com/example-org/sample-repo`\n**Scan Time:** `2023-11-15 14:30:22 UTC`\n**Total Secrets Found:** **8**\n\n| **File Path**                     | **Line** | **Secret Type**               | **Severity** | **Match Example** (Truncated)          |\n|-----------------------------------|----------|-------------------------------|--------------|----------------------------------------|\n| `src/config/dev.env`              | 12       | **AWS Access Key ID**         | Critical     | `AKIAIOSFODNN7EXAMPLE`                 |\n| `scripts/deploy.sh`               | 45       | **GitHub Personal Access Token** | High       | `ghp_abc123def456...`                  |\n| `backend/.env.production`         | 8        | **Stripe API Key**            | Critical     | `sk_test_51ABC123...`                  |\n| `tests/fixtures/mock_data.json`   | 102      | **Slack Webhook URL**         | Medium       | `https://hooks.slack.com/services/T...`|\n| `frontend/src/utils/auth.js`      | 23       | **Twilio Account SID**        | High         | `AC1234567890abcdef...`                |\n| `docs/api_reference.md`           | 56       | **Google OAuth Client Secret** | High         | `GOCSPX-abc123def456...`               |\n| `terraform/main.tf`               | 34       | **Azure Storage Account Key** | Critical     | `DefaultEndpointsProtocol=https;AccountName=...` |\n| `mobile/android/gradle.properties`| 7        | **Firebase API Key**          | High         | `AIzaSyABC123def456...`                  |\n\n---\n\n### **Additional Details (Optional)**\n- **AWS Access Key ID** (`src/config/dev.env:12`)\n  - **Risk:**",
+  "response_chars": 1832,
+  "num_chunks": 222,
+  "ttft_ms": 878.846,
+  "total_ms": 4985.68,
+  "model_name": "Mistral-Large-3"
+}

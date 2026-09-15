@@ -1,0 +1,811 @@
+{
+  "index": 51,
+  "prompt": "Explain how HTTPS works, including the TLS handshake process.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 928.725,
+      "content": "HT"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": "TPS (Hyper"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": "text Transfer"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " Protocol Secure"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": ") is the"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " secure version"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " of HTTP"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": ", the"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " which data"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " is sent"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " between a"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " browser and a website"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": ". HTTPS"
+    },
+    {
+      "timestamp_ms": 928.725,
+      "content": " ensures that all communications"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " between your"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " browser and the website"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " are encrypted"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": ", providing"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " layers of protection:\n\n"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": "1. **Enc"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": "ryption**: Ens"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": "ures that data"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " exchanged is"
+    },
+    {
+      "timestamp_ms": 1306.035,
+      "content": " secure and cannot"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": " be intercepted by"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": "avesdro"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": "ppers.\n2."
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": " **Data"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": " Integrity**: Prevent"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": "s data from being"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": " modified or"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": " corrupted during transfer"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": " without detection"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": ".\n3. **"
+    },
+    {
+      "timestamp_ms": 1709.154,
+      "content": "Authentication**: Pro"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": "ves that users"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": " communicate with the"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": " intended website,"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": " protecting"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": " against man"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": "-in-the"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": "-middle attacks.\n\nHT"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": "TPS is implemented"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": " using **"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": "TLS (Transport"
+    },
+    {
+      "timestamp_ms": 2060.292,
+      "content": " Layer Security"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": ")**,"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": " successor to SSL"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": " (Secure S"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": "ockets Layer). Below"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": " is a detailed explanation"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": " of how"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": " HTTPS works, focusing"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": " on the **T"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": "LS handshake process"
+    },
+    {
+      "timestamp_ms": 2457.661,
+      "content": "**, which establishes"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " secure session"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": "How"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " HTTPS Works:"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " TLS Hand"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": "shake Process**\n\n"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " TLS handshake is"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " series of steps where"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " the client ("
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": ".g., your"
+    },
+    {
+      "timestamp_ms": 2968.505,
+      "content": " browser) and the"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " server (e"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": ".g., a website"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": ") establish"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " a secure connection"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " exchanging"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " data. Here’s"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " a step-by-step"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " breakdown:\n\n---\n\n####"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " **1. Client"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " Hello"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": "- The"
+    },
+    {
+      "timestamp_ms": 3383.971,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": "browser) initiates the"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " hand"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": "shake by sending a"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " **\""
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": "Client Hello\"**"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " message to the server"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": ".\n- This"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " message includes:\n "
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " - The"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " **TLS version"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": "** the"
+    },
+    {
+      "timestamp_ms": 3806.782,
+      "content": " client supports (e"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": ".g., TLS"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": " 1.2"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": ", TLS 1"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": ".3).\n "
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": " - A"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": " list of **c"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": "ipher suites"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": "** (enc"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": "ryption algorithms) the"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": " client supports (e"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": ".g., AES"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": " Cha"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": "Cha2"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": "0,"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": " RSA,"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": "CDHE"
+    },
+    {
+      "timestamp_ms": 4506.218,
+      "content": ").\n  - A"
+    },
+    {
+      "timestamp_ms": 4506.615,
+      "content": " random"
+    },
+    {
+      "timestamp_ms": 4605.287,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4605.287,
+      "content": " (a random byte"
+    },
+    {
+      "timestamp_ms": 4605.287,
+      "content": " string used"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " later"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " generation).\n  -"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " Option"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": "ally, a"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " list"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " of **com"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": "pression methods"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": "** (though"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " compression"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " is rarely used today"
+    },
+    {
+      "timestamp_ms": 5019.596,
+      "content": " due to security"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " risks"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " like C"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": "RIME attacks"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": ").\n\n---\n\n#### **"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": "2. Server"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " Hello**\n- The"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " server responds with a"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " **\"Server Hello\"**"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " message,"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " which includes:\n "
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": " - The **T"
+    },
+    {
+      "timestamp_ms": 5527.382,
+      "content": "LS version** to"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": " be used"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": " (ch"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "osen from the client"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": " supported"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": " versions"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": ").\n  - The"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": " **c"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "ipher suite** selected"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": " the client"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "’s list (e"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": ".g., `"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "TLS_E"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "CDHE"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "_RSA_WITH"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "_AES_"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "56_"
+    },
+    {
+      "timestamp_ms": 6386.584,
+      "content": "GCM_SHA"
+    },
+    {
+      "timestamp_ms": 6666.845,
+      "content": "38"
+    },
+    {
+      "timestamp_ms": 6666.845,
+      "content": "4`).\n "
+    },
+    {
+      "timestamp_ms": 6666.845,
+      "content": " - A"
+    },
+    {
+      "timestamp_ms": 6666.845,
+      "content": " **server random**"
+    },
+    {
+      "timestamp_ms": 6666.845,
+      "content": " (another random"
+    },
+    {
+      "timestamp_ms": 6666.845,
+      "content": " byte"
+    },
+    {
+      "timestamp_ms": 6666.845,
+      "content": " string for"
+    },
+    {
+      "timestamp_ms": 6864.437,
+      "content": " key generation).\n "
+    },
+    {
+      "timestamp_ms": 6864.437,
+      "content": " - The server"
+    },
+    {
+      "timestamp_ms": 6864.437,
+      "content": "’s **digital"
+    },
+    {
+      "timestamp_ms": 6864.437,
+      "content": " certificate** (containing"
+    },
+    {
+      "timestamp_ms": 6864.437,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6864.437,
+      "content": " public key, signed"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": " by a"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": " trusted **"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": "Certificate Authority ("
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": "CA)** like"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": " Let"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": "’s Enc"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": "rypt,"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": " DigiCert"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": ", etc"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": ".).\n  - If"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7274.203,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7360.664,
+      "type": "done"
+    }
+  ],
+  "full_response": "HTTPS (Hypertext Transfer Protocol Secure) is the secure version of HTTP, the protocol over which data is sent between a browser and a website. HTTPS ensures that all communications between your browser and the website are encrypted, providing three key layers of protection:\n\n1. **Encryption**: Ensures that data exchanged is secure and cannot be intercepted by eavesdroppers.\n2. **Data Integrity**: Prevents data from being modified or corrupted during transfer without detection.\n3. **Authentication**: Proves that users communicate with the intended website, protecting against man-in-the-middle attacks.\n\nHTTPS is implemented using **TLS (Transport Layer Security)**, the successor to SSL (Secure Sockets Layer). Below is a detailed explanation of how HTTPS works, focusing on the **TLS handshake process**, which establishes a secure session.\n\n---\n\n### **How HTTPS Works: The TLS Handshake Process**\n\nThe TLS handshake is a series of steps where the client (e.g., your browser) and the server (e.g., a website) establish a secure connection before exchanging data. Here’s a step-by-step breakdown:\n\n---\n\n#### **1. Client Hello**\n- The client (browser) initiates the handshake by sending a **\"Client Hello\"** message to the server.\n- This message includes:\n  - The **TLS version** the client supports (e.g., TLS 1.2, TLS 1.3).\n  - A list of **cipher suites** (encryption algorithms) the client supports (e.g., AES, ChaCha20, RSA, ECDHE).\n  - A random** (a random byte string used later for key generation).\n  - Optionally, a list of **compression methods** (though compression is rarely used today due to security risks like CRIME attacks).\n\n---\n\n#### **2. Server Hello**\n- The server responds with a **\"Server Hello\"** message, which includes:\n  - The **TLS version** to be used (chosen from the client’s supported versions).\n  - The **cipher suite** selected from the client’s list (e.g., `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`).\n  - A **server random** (another random byte string for key generation).\n  - The server’s **digital certificate** (containing its public key, signed by a trusted **Certificate Authority (CA)** like Let’s Encrypt, DigiCert, etc.).\n  - If the",
+  "response_chars": 2178,
+  "num_chunks": 197,
+  "ttft_ms": 928.725,
+  "total_ms": 7473.627,
+  "model_name": "Mistral-Large-3"
+}

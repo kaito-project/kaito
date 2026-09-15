@@ -1,0 +1,2039 @@
+{
+  "index": 108,
+  "prompt": "What are the best practices for designing RESTful APIs?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1116.886,
+      "content": "Design"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " building"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " nouns"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1116.886,
+      "content": " define"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " REST"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": " un"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": "amb"
+    },
+    {
+      "timestamp_ms": 1829.04,
+      "content": "iguous"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": "agn"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": "ostic"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " Sub"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": "-res"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": "ources"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " sliced"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1833.814,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " UR"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": "Is"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": "Predict"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " URLs"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2422.952,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " clients"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " predict"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2423.281,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " explicitly"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " map"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " correct"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": "GET"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " PUT"
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3168.622,
+      "content": " PATCH"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " DELETE"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " clearly"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " define"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " action"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " trying"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " achieve"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3881.624,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": "empot"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": "ent"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " modify"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3881.95,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " creates"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " PUT"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": "/re"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": "places"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " duplicate"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " DELETE"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " removes"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " PATCH"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": "partial"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 4399.113,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " negotiation"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 4726.563,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " let"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " inform"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " format"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4992.432,
+      "content": " prefers"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "Version"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " Make"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " breaking"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " integrations"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "Stat"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "eless"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "ness"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " Every"
+    },
+    {
+      "timestamp_ms": 5750.163,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " eliminating"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6335.563,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " session"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 6335.908,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " explicitly"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 6811.984,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6812.339,
+      "content": " correctly"
+    },
+    {
+      "timestamp_ms": 6812.339,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6812.339,
+      "content": " inform"
+    },
+    {
+      "timestamp_ms": 6812.339,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6812.339,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 6812.339,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 6958.317,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6958.317,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 6958.317,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6958.317,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6958.317,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 6958.317,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6958.317,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " OK"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " successful"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " GET"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " PUT"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " DELETE"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7787.76,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": "201"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " Created"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " successful"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": "400"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " Bad"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " Request"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": "’t"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " meet"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7800.221,
+      "content": " expectations"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "401"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " Unauthorized"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "-related"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "404"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " Found"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " requested"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "ATE"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "AS"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "Hyper"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": "media"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " Engine"
+    },
+    {
+      "timestamp_ms": 8699.377,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " Application"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " State"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " Include"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " hyper"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": "media"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " links"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": "Proper"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " formatted"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9225.206,
+      "content": " documented"
+    },
+    {
+      "timestamp_ms": 9310.036,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9310.036,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9310.036,
+      "content": " Define"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " endpoints"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " easily"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " readable"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " formats"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " endpoints"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": "/res"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": "ponses"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " bodies"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " status"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": " codes"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9824.709,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " HTTPS"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " encrypt"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10533.955,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " interception"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " man"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": "-the"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": "-middle"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10539.659,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": "Grace"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " failure"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " fails"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " actionable"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 11161.166,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " Allow"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " retry"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " “"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": "Too"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 11175.431,
+      "content": "”).\n\n"
+    },
+    {
+      "timestamp_ms": 11177.809,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 11177.809,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11237.969,
+      "type": "done"
+    }
+  ],
+  "full_response": "Designing RESTful APIs is a critical part of building scalable and maintainable web services. Here are some of the best practices:\n\n1. **Use nouns to define resources**: In a RESTful API, resources should be clear, unambiguous and resource-agnostic. Sub-resources can be sliced from these root resources using URIs or path parameters.\n\n2. **Predictable URLs structure**: The URL should follow a standard pattern to allow clients to predict how to access the various resources.\n\n3. **Use HTTP methods explicitly**: Each operation on a resource should map to the correct HTTP method (GET, POST, PUT, PATCH, DELETE) to clearly define the action you are trying to achieve.\n\n4. **empotent methods**: GET requests should not modify the state of the resource. POST creates new resources, PUT/replaces an existing resource without creating a duplicate, and DELETE removes resources. PATCH/partial updates should not create new resources either.\n\n5. **Content negotiation**: Use HTTP headers to let the client inform the server about what response format it prefers.\n\n6. **Versioning**: Make sure you version your API, so that changes can be made without breaking client integrations.\n\n7. **Statelessness**: Every request from any client to any server should contain all what information is necessary, eliminating the need the server to store any session information about the client.\n\n8. **Use status codes explicitly**: HTTP status codes should be correctly to inform the client about the status of the request. For example:\n   - 200 OK for successful GET, PUT or DELETE\n   -201 Created for successful POST\n   - 400 Bad Request if the input doesn’t meet the expectations\n   - 401 Unauthorized for access-related errors\n   - 404 Not Found for requested resources not found, etc.\n\n9. **HATEOAS (Hypermedia as the Engine of Application State)**: Include hypermedia links in your responses to guide the client on what actions are available.\n\n10. **Properly formatted and documented**: Define and document API endpoints with consistent, easily readable formats for endpoints, request/responses bodies, and possible status codes.\n\n11. **Use HTTPS**: Secure your API by using HTTPS to encrypt the data in and protect against interception and man-in-the-middle attacks.\n\n12. **Graceful failure handling**: When an API fails, provide clear, actionable error messages Allow retryable error responses (e.g., “Too many requests”).\n\n13",
+  "response_chars": 2415,
+  "num_chunks": 504,
+  "ttft_ms": 1116.886,
+  "total_ms": 11353.371,
+  "model_name": "Phi-4-mini-instruct"
+}

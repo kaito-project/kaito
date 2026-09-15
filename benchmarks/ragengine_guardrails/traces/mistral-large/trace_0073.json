@@ -1,0 +1,815 @@
+{
+  "index": 73,
+  "prompt": "Write a troubleshooting guide for a developer who accidentally committed their AWS credentials, GitHub personal access token, and database password to a public repository.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 679.653,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " **Tro"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": "ubleshooting Guide"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": ": Acc"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": "idental"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " Exposure"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " of S"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": "ensitive Credentials in"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " a Public"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " Repository**\n\nIf"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " you’ve accidentally committed"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 679.653,
+      "content": " credentials (AWS"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": ", GitHub tokens"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": ", database"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " passwords, etc.)"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " to a public"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " repository, **"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": "act immediately"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": "** to minimize"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " risks. Follow"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 894.894,
+      "content": " step-by-step guide"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " to rev"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": "oke,"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " rotate"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": ", and secure"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " your credentials"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": ".\n\n---\n\n## **"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": "⚠"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": "️ Immediate Actions"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " (Do"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " This First!)**\n"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " Rev"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": "oke the Exposed"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " Credentials**\n####"
+    },
+    {
+      "timestamp_ms": 1143.406,
+      "content": " **AWS"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " Credentials (Access"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " Key &"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " Secret Key)**\n-"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " **Go"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " to the AWS I"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": "AM Console**:\n"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": "  - Nav"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": "igate to **"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": "Users**"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " → Select"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " your user"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " → **Security"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " →"
+    },
+    {
+      "timestamp_ms": 1571.212,
+      "content": " **Access"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": "**.\n  - **"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": "Delete the exposed"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " key** (or"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " mark"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " it as inactive"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " need to investigate"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": ").\n "
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " - **Generate"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " a new key"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": "** (if needed"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": ") and update"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1895.237,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": ".\n\n-"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " **Check"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " for unauthorized"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": "**:\n"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": "  - Go"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " to **AWS"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " CloudTra"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": "il** →"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " **Event history"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": "** →"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " Filter by"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": "AM user.\n "
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " - Look for suspicious"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2285.888,
+      "content": " calls (e.g"
+    },
+    {
+      "timestamp_ms": 2509.298,
+      "content": "., `Create"
+    },
+    {
+      "timestamp_ms": 2509.298,
+      "content": "Instance`, `Delete"
+    },
+    {
+      "timestamp_ms": 2509.298,
+      "content": "Bucket`, `Get"
+    },
+    {
+      "timestamp_ms": 2509.298,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 2509.298,
+      "content": "Value"
+    },
+    {
+      "timestamp_ms": 2509.298,
+      "content": "`).\n\n#### **Git"
+    },
+    {
+      "timestamp_ms": 2586.825,
+      "content": "Hub Personal"
+    },
+    {
+      "timestamp_ms": 2586.825,
+      "content": " Access Token (P"
+    },
+    {
+      "timestamp_ms": 2586.825,
+      "content": "AT)**\n- **"
+    },
+    {
+      "timestamp_ms": 2586.825,
+      "content": "Revoke the"
+    },
+    {
+      "timestamp_ms": 2586.825,
+      "content": " token immediately**:\n "
+    },
+    {
+      "timestamp_ms": 2586.825,
+      "content": " - Go to **"
+    },
+    {
+      "timestamp_ms": 2586.825,
+      "content": "GitHub Settings**"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " → **Developer"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " settings** → **"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": "Personal access"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " tokens**.\n"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": "  - Find"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " the exposed"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " token and **click"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": "Revoke\""
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": "**.\n  - **"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": "Generate a new token"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": "** with"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2712.057,
+      "content": " least required"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": ".\n\n-"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": " **Check for unauthorized"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": " activity**:\n  -"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": " Go to **Git"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": "Hub Settings"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": "** → **Security"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": "** to"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": " see if the token"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": " was used mal"
+    },
+    {
+      "timestamp_ms": 3095.992,
+      "content": "iciously.\n\n####"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": " **Database"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": " Password**\n- **"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": "Change the password"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": " immediately**:\n"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": "  - If using"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": " **R"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": "DS/A"
+    },
+    {
+      "timestamp_ms": 3302.719,
+      "content": "urora**, go"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": " to the"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": "AWS R"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": "DS Console** →"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": " **Dat"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": "abases**"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": " → Select"
+    },
+    {
+      "timestamp_ms": 3509.93,
+      "content": " your DB"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " → **Modify**"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " → Change"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " the master"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " password.\n  -"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " If using a"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " **self-man"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": "aged DB"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " (Post"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": "greSQL, My"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": "SQL, etc.),"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " and run"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": ":\n    ```sql"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": "\n    AL"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": "TER USER"
+    },
+    {
+      "timestamp_ms": 4024.711,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " WITH"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " PASSWORD 'new"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": "_secure_password';\n"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": "    ```\n  -"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " **Rest"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": "art the"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " database** if"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": ".\n\n-"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " **Check for unauthorized"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " access**:\n  -"
+    },
+    {
+      "timestamp_ms": 4399.566,
+      "content": " Review database logs for"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " suspicious connections"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": "---\n\n### **2"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": ". Remove the"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " Credentials from Git"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " History**\nEven"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " if you"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " delete the file,"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " Git history"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " still"
+    },
+    {
+      "timestamp_ms": 4703.649,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 4728.201,
+      "content": " the credentials"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": ". You"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": " must **rew"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": "rite history"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": "** to remove them"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": " permanently.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": "Option "
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": "1: Use `"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": "git filter"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": "-repo"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5022.957,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5065.249,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **Troubleshooting Guide: Accidental Exposure of Sensitive Credentials in a Public Repository**\n\nIf you’ve accidentally committed sensitive credentials (AWS keys, GitHub tokens, database passwords, etc.) to a public repository, **act immediately** to minimize security risks. Follow this step-by-step guide to revoke, rotate, and secure your credentials.\n\n---\n\n## **⚠️ Immediate Actions (Do This First!)**\n### **1. Revoke the Exposed Credentials**\n#### **AWS Credentials (Access Key & Secret Key)**\n- **Go to the AWS IAM Console**:\n  - Navigate to **Users** → Select your user → **Security credentials** → **Access keys**.\n  - **Delete the exposed key** (or mark it as inactive if you need to investigate).\n  - **Generate a new key** (if needed) and update your applications.\n\n- **Check for unauthorized usage**:\n  - Go to **AWS CloudTrail** → **Event history** → Filter by your IAM user.\n  - Look for suspicious API calls (e.g., `CreateInstance`, `DeleteBucket`, `GetSecretValue`).\n\n#### **GitHub Personal Access Token (PAT)**\n- **Revoke the token immediately**:\n  - Go to **GitHub Settings** → **Developer settings** → **Personal access tokens**.\n  - Find the exposed token and **click \"Revoke\"**.\n  - **Generate a new token** with the least required permissions.\n\n- **Check for unauthorized activity**:\n  - Go to **GitHub Settings** → **Security log** to see if the token was used maliciously.\n\n#### **Database Password**\n- **Change the password immediately**:\n  - If using **RDS/Aurora**, go to the **AWS RDS Console** → **Databases** → Select your DB → **Modify** → Change the master password.\n  - If using a **self-managed DB** (PostgreSQL, MySQL, etc.), log in and run:\n    ```sql\n    ALTER USER your_user WITH PASSWORD 'new_secure_password';\n    ```\n  - **Restart the database** if required.\n\n- **Check for unauthorized access**:\n  - Review database logs for suspicious connections.\n\n---\n\n### **2. Remove the Credentials from Git History**\nEven if you delete the file, Git history still contains the credentials. You must **rewrite history** to remove them permanently.\n\n#### **Option 1: Use `git filter-repo`",
+  "response_chars": 2118,
+  "num_chunks": 198,
+  "ttft_ms": 679.653,
+  "total_ms": 5210.108,
+  "model_name": "Mistral-Large-3"
+}

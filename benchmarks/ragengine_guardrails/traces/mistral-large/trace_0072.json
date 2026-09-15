@@ -1,0 +1,871 @@
+{
+  "index": 72,
+  "prompt": "Explain the concept of zero-trust security architecture.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1228.611,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": " **Zero"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": "-Trust Security Architecture"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": ": An"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": " Overview**\n\nZero-"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": "Trust is"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": " a modern"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": " cybersecurity framework that"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": " assumes **"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": "no user"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": ", device, or"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": "—"
+    },
+    {
+      "timestamp_ms": 1228.611,
+      "content": "inside"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " or outside an"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " organization’s"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " network—"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": "should be trusted by"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " default**,"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " even if they are"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " already"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " inside"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " the corporate"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " perimeter. Instead,"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1611.381,
+      "content": "every access request"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": " must be continuously"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": " verified** before"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": " granting access"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": " to resources"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": "This approach"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": " contrasts with traditional"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": " **perimeter"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": "-based security models"
+    },
+    {
+      "timestamp_ms": 1954.921,
+      "content": "** (like"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " fire"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": "walls and"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " VPNs), which"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " assume that everything"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " inside the network is"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " safe. Zero"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": "-Trust eliminates"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " this implicit"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " trust and"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " enfor"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": "ces strict"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 2492.546,
+      "content": " verification"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": ", least"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": "-pr"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": "ivilege"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " access, and micro"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": "-se"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": "gmentation to"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " minimize"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " risks.\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " **Core"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " Principles of Zero-"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": "Trust**\nThe Zero"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": "-Trust model"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " built on"
+    },
+    {
+      "timestamp_ms": 2859.514,
+      "content": " the following key principles"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": ":\n\n###"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " **1. Never"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " Trust,"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " Always Verify**\n"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": "- **No"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " implicit"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " trust"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": "** is"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " granted based"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " on network"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " location ("
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": "e.g., being"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " inside"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": " corporate network"
+    },
+    {
+      "timestamp_ms": 3396.203,
+      "content": ").\n- **Every"
+    },
+    {
+      "timestamp_ms": 3513.066,
+      "content": " access request"
+    },
+    {
+      "timestamp_ms": 3513.066,
+      "content": "** (user"
+    },
+    {
+      "timestamp_ms": 3513.066,
+      "content": ", device, application"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": " or service) must"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": " be **auth"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": "enticated,"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": " authorized"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": ", and encrypted"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": "** before granting"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": " access.\n\n### **"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": "2. Le"
+    },
+    {
+      "timestamp_ms": 3899.659,
+      "content": "ast-Pr"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": "ivilege"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " Access**\n- Users"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " are granted"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " **only the minimum"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " permissions** required to"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " perform their tasks"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": ".\n- Access"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": " **time"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": "-bound"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 4383.499,
+      "content": "., temporary"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": ") and **context"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": "-aware** ("
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": "e.g., based"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": " on device"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": " health"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": ", location, or"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": " behavior).\n\n### **"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": "3. Assume"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": " Bre"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": "ach (Def"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": "ense in"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": " Depth)**\n- Oper"
+    },
+    {
+      "timestamp_ms": 4895.239,
+      "content": "ates under"
+    },
+    {
+      "timestamp_ms": 5186.709,
+      "content": " the assumption that **"
+    },
+    {
+      "timestamp_ms": 5186.709,
+      "content": "attack"
+    },
+    {
+      "timestamp_ms": 5186.709,
+      "content": "ers are already inside"
+    },
+    {
+      "timestamp_ms": 5186.709,
+      "content": " the network"
+    },
+    {
+      "timestamp_ms": 5186.709,
+      "content": "**.\n- Uses"
+    },
+    {
+      "timestamp_ms": 5186.709,
+      "content": " **micro"
+    },
+    {
+      "timestamp_ms": 5439.083,
+      "content": "-segmentation**"
+    },
+    {
+      "timestamp_ms": 5439.083,
+      "content": " to limit"
+    },
+    {
+      "timestamp_ms": 5439.083,
+      "content": " lateral"
+    },
+    {
+      "timestamp_ms": 5439.083,
+      "content": " movement ("
+    },
+    {
+      "timestamp_ms": 5439.083,
+      "content": "pre"
+    },
+    {
+      "timestamp_ms": 5439.083,
+      "content": "venting attackers from"
+    },
+    {
+      "timestamp_ms": 5439.083,
+      "content": " moving"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": " freely across"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": ").\n- Im"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "plements **continuous"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": " monitoring** and"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": " **real"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "-time threat"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": " detection**.\n\n"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "### **4."
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": " Ex"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "plicit Ver"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "ification**\n"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "- **Multi"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "-F"
+    },
+    {
+      "timestamp_ms": 6045.236,
+      "content": "actor Authentication"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": " (MFA"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": ")** is"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": " mandatory for"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": " all access requests"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": ".\n- **Device"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": " posture"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": "., up"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": "-to-date OS"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": ", antivirus,"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": ") are enforced"
+    },
+    {
+      "timestamp_ms": 6491.529,
+      "content": " before granting access"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": ".\n- **Behavior"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": "al analytics"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": "** detect"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": " anomalies"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": " unusual login times"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": " ex"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": "filtration"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": " attempts"
+    },
+    {
+      "timestamp_ms": 6924.271,
+      "content": ").\n\n### **5"
+    },
+    {
+      "timestamp_ms": 7083.009,
+      "content": ". Micro"
+    },
+    {
+      "timestamp_ms": 7083.009,
+      "content": "-S"
+    },
+    {
+      "timestamp_ms": 7083.009,
+      "content": "egmentation**\n-"
+    },
+    {
+      "timestamp_ms": 7083.009,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7083.009,
+      "content": " network is divided"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": " into **small"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": ", isolated segments"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": "., by"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": " department, application"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": " or data sensitivity"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": ").\n- **Strict"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": " access controls** are"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": " between segments"
+    },
+    {
+      "timestamp_ms": 7468.133,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " prevent unauthorized movement"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": ".\n- Example"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": ": A"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " finance"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": "’s systems"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " isolated from HR"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": ", even"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " if both"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " are inside"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " the corporate"
+    },
+    {
+      "timestamp_ms": 7931.033,
+      "content": " network.\n\n### **"
+    },
+    {
+      "timestamp_ms": 8110.994,
+      "content": "6. Continuous"
+    },
+    {
+      "timestamp_ms": 8110.994,
+      "content": " Monitoring &"
+    },
+    {
+      "timestamp_ms": 8110.994,
+      "content": " Adapt"
+    },
+    {
+      "timestamp_ms": 8110.994,
+      "content": "ive Access"
+    },
+    {
+      "timestamp_ms": 8110.994,
+      "content": "**\n- **Real"
+    },
+    {
+      "timestamp_ms": 8110.994,
+      "content": "-time monitoring** of"
+    },
+    {
+      "timestamp_ms": 8110.994,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 8211.387,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Zero-Trust Security Architecture: An Overview**\n\nZero-Trust is a modern cybersecurity framework that assumes **no user, device, or system—inside or outside an organization’s network—should be trusted by default**, even if they are already inside the corporate perimeter. Instead, **every access request must be continuously verified** before granting access to resources.\n\nThis approach contrasts with traditional **perimeter-based security models** (like firewalls and VPNs), which assume that everything inside the network is safe. Zero-Trust eliminates this implicit trust and enforces strict identity verification, least-privilege access, and micro-segmentation to minimize risks.\n\n---\n\n## **Core Principles of Zero-Trust**\nThe Zero-Trust model is built on the following key principles:\n\n### **1. Never Trust, Always Verify**\n- **No implicit trust** is granted based on network location (e.g., being inside the corporate network).\n- **Every access request** (user, device, application, or service) must be **authenticated, authorized, and encrypted** before granting access.\n\n### **2. Least-Privilege Access**\n- Users and systems are granted **only the minimum permissions** required to perform their tasks.\n- Access is **time-bound** (e.g., temporary credentials) and **context-aware** (e.g., based on device health, location, or behavior).\n\n### **3. Assume Breach (Defense in Depth)**\n- Operates under the assumption that **attackers are already inside the network**.\n- Uses **micro-segmentation** to limit lateral movement (preventing attackers from moving freely across systems).\n- Implements **continuous monitoring** and **real-time threat detection**.\n\n### **4. Explicit Verification**\n- **Multi-Factor Authentication (MFA)** is mandatory for all access requests.\n- **Device posture checks** (e.g., up-to-date OS, antivirus, encryption) are enforced before granting access.\n- **Behavioral analytics** detect anomalies (e.g., unusual login times, data exfiltration attempts).\n\n### **5. Micro-Segmentation**\n- The network is divided into **small, isolated segments** (e.g., by department, application, or data sensitivity).\n- **Strict access controls** are applied between segments to prevent unauthorized movement.\n- Example: A finance team’s systems are isolated from HR systems, even if both are inside the corporate network.\n\n### **6. Continuous Monitoring & Adaptive Access**\n- **Real-time monitoring** of",
+  "response_chars": 2425,
+  "num_chunks": 212,
+  "ttft_ms": 1228.611,
+  "total_ms": 8214.512,
+  "model_name": "Mistral-Large-3"
+}

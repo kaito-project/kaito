@@ -1,0 +1,2071 @@
+{
+  "index": 216,
+  "prompt": "What is graph-based data modeling and when should you use a graph database?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 410.238,
+      "content": "Graph"
+    },
+    {
+      "timestamp_ms": 410.423,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 410.502,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 410.562,
+      "content": " modeling"
+    },
+    {
+      "timestamp_ms": 410.616,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 410.757,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 424.328,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 442.793,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 511.121,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 511.251,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 511.314,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 522.041,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 574.796,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 574.957,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 582.299,
+      "content": " emphasizes"
+    },
+    {
+      "timestamp_ms": 612.658,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 614.919,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 715.258,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 715.486,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 715.594,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 715.673,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 715.743,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 821.512,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 821.702,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 821.786,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 821.852,
+      "content": " depicted"
+    },
+    {
+      "timestamp_ms": 821.908,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 825.413,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 871.005,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 871.2,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 921.472,
+      "content": " vertices"
+    },
+    {
+      "timestamp_ms": 921.619,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 921.693,
+      "content": " interconnected"
+    },
+    {
+      "timestamp_ms": 1022.673,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1022.855,
+      "content": " edges"
+    },
+    {
+      "timestamp_ms": 1022.944,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1023.005,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 1023.076,
+      "content": " links"
+    },
+    {
+      "timestamp_ms": 1036.059,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 1126.621,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1126.914,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 1127.036,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1127.115,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1137.23,
+      "content": " stark"
+    },
+    {
+      "timestamp_ms": 1148.365,
+      "content": " contrast"
+    },
+    {
+      "timestamp_ms": 1227.445,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1227.629,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 1227.709,
+      "content": " relational"
+    },
+    {
+      "timestamp_ms": 1227.785,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 1289.466,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 1289.604,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1289.669,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1301.188,
+      "content": " organized"
+    },
+    {
+      "timestamp_ms": 1349.082,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1349.223,
+      "content": " tables"
+    },
+    {
+      "timestamp_ms": 1479.647,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1479.647,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 1479.647,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 1479.647,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 1479.647,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 1479.647,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1495.42,
+      "content": " foreign"
+    },
+    {
+      "timestamp_ms": 1495.61,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1511.309,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1531.59,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 1551.424,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 1569.281,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 1597.289,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1606.3,
+      "content": " modeling"
+    },
+    {
+      "timestamp_ms": 1626.199,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1645.099,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1739.474,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 1755.439,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1755.596,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1755.703,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1755.774,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 1759.128,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1777.621,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 1847.881,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1848.127,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1848.21,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 1854.315,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 1918.663,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1918.869,
+      "content": " edges"
+    },
+    {
+      "timestamp_ms": 1919.17,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 1930.229,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1955.459,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 1967.146,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1988.951,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 2006.215,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 2046.182,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 2051.385,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 2063.568,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2148.867,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2149.038,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 2149.126,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2149.214,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 2162.137,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2196.924,
+      "content": " possess"
+    },
+    {
+      "timestamp_ms": 2197.248,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 2251.743,
+      "content": " properties"
+    },
+    {
+      "timestamp_ms": 2251.953,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2257.444,
+      "content": " attributes"
+    },
+    {
+      "timestamp_ms": 2272.702,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2302.377,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 2315.776,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 2335.455,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2350.252,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 2368.832,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2387.66,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 2410.174,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2425.451,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 2447.488,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 2464.72,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2482.529,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2504.782,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 2530.62,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2541.329,
+      "content": " extremely"
+    },
+    {
+      "timestamp_ms": 2564.531,
+      "content": " versatile"
+    },
+    {
+      "timestamp_ms": 2579.894,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2598.2,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 2660.696,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 2660.852,
+      "content": "-su"
+    },
+    {
+      "timestamp_ms": 2660.933,
+      "content": "ited"
+    },
+    {
+      "timestamp_ms": 2767.225,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2767.225,
+      "content": " scenarios"
+    },
+    {
+      "timestamp_ms": 2767.421,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2767.529,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 2767.678,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2768.205,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2868.412,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 2868.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2868.935,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 2869.022,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2869.09,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 2882.553,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 2967.693,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2967.855,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 2967.926,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2967.985,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2976.19,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 2996.517,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3017.201,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3040.73,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 3055.641,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3092.962,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 3093.254,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3109.724,
+      "content": " Graph"
+    },
+    {
+      "timestamp_ms": 3132.693,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 3151.295,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3168.494,
+      "content": "Graph"
+    },
+    {
+      "timestamp_ms": 3190.844,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 3205.976,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3235.665,
+      "content": " optimized"
+    },
+    {
+      "timestamp_ms": 3247.618,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3377.92,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 3378.057,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3378.124,
+      "content": " querying"
+    },
+    {
+      "timestamp_ms": 3378.178,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3378.228,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3378.301,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3378.418,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 3483.981,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 3484.133,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3484.246,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 3484.327,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3484.391,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 3494.664,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 3582.858,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 3583.031,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3583.107,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3583.166,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 3587.187,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 3684.545,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3684.766,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3684.904,
+      "content": " scenarios"
+    },
+    {
+      "timestamp_ms": 3684.989,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3685.052,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3796.346,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3796.545,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3796.638,
+      "content": "Complex"
+    },
+    {
+      "timestamp_ms": 3796.765,
+      "content": " Networks"
+    },
+    {
+      "timestamp_ms": 3796.901,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3796.999,
+      "content": " Relationships"
+    },
+    {
+      "timestamp_ms": 3889.799,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3890.021,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 3890.135,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3890.218,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3907.125,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 3914.414,
+      "content": " numerous"
+    },
+    {
+      "timestamp_ms": 3993.073,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 4003.93,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 4004.192,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4004.36,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 4005.876,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 4096.987,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 4097.231,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4097.328,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4097.448,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 4101.493,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 4197.159,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4197.366,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 4197.452,
+      "content": " capture"
+    },
+    {
+      "timestamp_ms": 4197.522,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4197.579,
+      "content": " intric"
+    },
+    {
+      "timestamp_ms": 4299.781,
+      "content": "acies"
+    },
+    {
+      "timestamp_ms": 4299.937,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4300.03,
+      "content": " dynamics"
+    },
+    {
+      "timestamp_ms": 4300.098,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4300.155,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 4311.059,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 4405.054,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4405.219,
+      "content": " Examples"
+    },
+    {
+      "timestamp_ms": 4405.306,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 4405.474,
+      "content": " social"
+    },
+    {
+      "timestamp_ms": 4405.783,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 4504.154,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4504.466,
+      "content": " recommendation"
+    },
+    {
+      "timestamp_ms": 4504.553,
+      "content": " engines"
+    },
+    {
+      "timestamp_ms": 4504.611,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4505.205,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4520.869,
+      "content": " organizational"
+    },
+    {
+      "timestamp_ms": 4608.158,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 4608.333,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4608.478,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4608.595,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4714.071,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4725.909,
+      "content": "High"
+    },
+    {
+      "timestamp_ms": 4726.072,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 4726.19,
+      "content": " Connected"
+    },
+    {
+      "timestamp_ms": 4726.271,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 4732.766,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4733.013,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4812.372,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4812.513,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4812.587,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4812.746,
+      "content": " heavily"
+    },
+    {
+      "timestamp_ms": 4826.084,
+      "content": " interconnected"
+    },
+    {
+      "timestamp_ms": 4847.807,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4892.089,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 4892.347,
+      "content": " travers"
+    },
+    {
+      "timestamp_ms": 4902.967,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4977.263,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 4977.394,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4977.46,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4980.074,
+      "content": " frequent"
+    },
+    {
+      "timestamp_ms": 5004.043,
+      "content": " operation"
+    },
+    {
+      "timestamp_ms": 5118.888,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5124.644,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5124.778,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 5124.941,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 5125.11,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5125.249,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 5130.732,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5220.992,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 5221.13,
+      "content": " querying"
+    },
+    {
+      "timestamp_ms": 5221.294,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 5221.413,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 5224.687,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 5344.93,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 5345.106,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 5345.181,
+      "content": " costly"
+    },
+    {
+      "timestamp_ms": 5345.241,
+      "content": " join"
+    },
+    {
+      "timestamp_ms": 5345.295,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 5345.343,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5360.428,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5426.304,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5426.462,
+      "content": " helpful"
+    },
+    {
+      "timestamp_ms": 5426.546,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5435.102,
+      "content": " social"
+    },
+    {
+      "timestamp_ms": 5530.901,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 5531.048,
+      "content": " travers"
+    },
+    {
+      "timestamp_ms": 5531.113,
+      "content": "als"
+    },
+    {
+      "timestamp_ms": 5531.167,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5531.271,
+      "content": " fraud"
+    },
+    {
+      "timestamp_ms": 5638.098,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 5638.232,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5638.32,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5638.417,
+      "content": " supply"
+    },
+    {
+      "timestamp_ms": 5638.536,
+      "content": " chain"
+    },
+    {
+      "timestamp_ms": 5733.325,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 5733.515,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5733.642,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5733.725,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5733.785,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5744.746,
+      "content": "Pattern"
+    },
+    {
+      "timestamp_ms": 5760.458,
+      "content": " Recognition"
+    },
+    {
+      "timestamp_ms": 5835.586,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5835.742,
+      "content": " Recommendation"
+    },
+    {
+      "timestamp_ms": 5835.821,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 5836.218,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5938.072,
+      "content": " Graph"
+    },
+    {
+      "timestamp_ms": 5938.219,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 5938.294,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5938.358,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 5938.414,
+      "content": "-su"
+    },
+    {
+      "timestamp_ms": 5948.948,
+      "content": "ited"
+    },
+    {
+      "timestamp_ms": 6040.5,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6040.708,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 6040.773,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6040.826,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 6045.942,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 6142.557,
+      "content": " recognition"
+    },
+    {
+      "timestamp_ms": 6142.694,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6142.76,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 6142.816,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6158.866,
+      "content": " recommendation"
+    },
+    {
+      "timestamp_ms": 6171.823,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 6179.451,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6244.984,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 6245.168,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6245.254,
+      "content": " recommend"
+    },
+    {
+      "timestamp_ms": 6254.769,
+      "content": " products"
+    },
+    {
+      "timestamp_ms": 6347.732,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6347.939,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 6348.014,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6348.076,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6351.448,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 6449.588,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6449.739,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 6449.812,
+      "content": " travers"
+    },
+    {
+      "timestamp_ms": 6449.873,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6449.932,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6464.515,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6552.476,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6552.615,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 6552.682,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6552.738,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6560.769,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6654.516,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6654.719,
+      "content": "Real"
+    },
+    {
+      "timestamp_ms": 6654.838,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 6757.263,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 6757.263,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6757.263,
+      "content": " Highly"
+    },
+    {
+      "timestamp_ms": 6757.263,
+      "content": " Dynamic"
+    },
+    {
+      "timestamp_ms": 6757.263,
+      "content": " Interaction"
+    },
+    {
+      "timestamp_ms": 6757.263,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6757.437,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 6772.752,
+      "content": " frequent"
+    },
+    {
+      "timestamp_ms": 6860.047,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 6860.193,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6860.268,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6860.341,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 6865.68,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6962.201,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6962.46,
+      "content": " entities"
+    },
+    {
+      "timestamp_ms": 6962.528,
+      "content": " themselves"
+    },
+    {
+      "timestamp_ms": 6962.582,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6962.744,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 7048.841,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7049.004,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 7049.092,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 7049.171,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7056.261,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 7079.26,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 7166.686,
+      "content": " benefits"
+    },
+    {
+      "timestamp_ms": 7167.107,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7167.258,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 7167.438,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7170.191,
+      "content": " querying"
+    },
+    {
+      "timestamp_ms": 7269.427,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 7269.618,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7269.703,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7269.79,
+      "content": " \n\n"
+    },
+    {
+      "timestamp_ms": 7269.855,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7283.982,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7379.826,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7380.059,
+      "content": "Collect"
+    },
+    {
+      "timestamp_ms": 7380.129,
+      "content": "ive"
+    },
+    {
+      "timestamp_ms": 7380.185,
+      "content": " Intelligence"
+    },
+    {
+      "timestamp_ms": 7380.237,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7433.766,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 7433.916,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7446.1,
+      "content": " analyze"
+    },
+    {
+      "timestamp_ms": 7576.491,
+      "content": " behaviors"
+    },
+    {
+      "timestamp_ms": 7593.451,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7593.583,
+      "content": " interactions"
+    },
+    {
+      "timestamp_ms": 7593.648,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 7593.701,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 7593.752,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7593.802,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 7608.265,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7612.235,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7678.515,
+      "content": " viral"
+    },
+    {
+      "timestamp_ms": 7678.712,
+      "content": " marketing"
+    },
+    {
+      "timestamp_ms": 7678.956,
+      "content": " approaches"
+    },
+    {
+      "timestamp_ms": 7691.255,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7705.618,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7781.038,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7781.171,
+      "content": " understanding"
+    },
+    {
+      "timestamp_ms": 7781.236,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7781.291,
+      "content": " collective"
+    },
+    {
+      "timestamp_ms": 7895.574,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 7895.897,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 7896.077,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 7896.15,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7896.209,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 7896.259,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7922.692,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7956.685,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7956.995,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8088.323,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 8092.805,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8093.018,
+      "content": " Rich"
+    },
+    {
+      "timestamp_ms": 8093.094,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 8093.154,
+      "content": " Context"
+    },
+    {
+      "timestamp_ms": 8093.207,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8093.256,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8191.656,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 8191.822,
+      "content": " contextual"
+    },
+    {
+      "timestamp_ms": 8191.895,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8191.967,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 8192.129,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 8199.845,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8293.499,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 8293.758,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8293.895,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8294.007,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 8295.935,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8375.997,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8376.203,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 8376.354,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 8376.46,
+      "content": " representing"
+    },
+    {
+      "timestamp_ms": 8394.83,
+      "content": " friendship"
+    },
+    {
+      "timestamp_ms": 8499.068,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 8499.258,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8499.35,
+      "content": " social"
+    },
+    {
+      "timestamp_ms": 8499.424,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 8499.639,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8505.71,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8604.971,
+      "content": " logistical"
+    },
+    {
+      "timestamp_ms": 8605.114,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 8605.181,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8605.238,
+      "content": " supply"
+    },
+    {
+      "timestamp_ms": 8605.287,
+      "content": " chains"
+    },
+    {
+      "timestamp_ms": 8620.299,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8643.612,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8703.314,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 8714.729,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 8714.913,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8715.094,
+      "content": " naturally"
+    },
+    {
+      "timestamp_ms": 8805.142,
+      "content": " accommodate"
+    },
+    {
+      "timestamp_ms": 8805.347,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 8805.442,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8805.518,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 8810.722,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8907.279,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8907.476,
+      "content": "Recursive"
+    },
+    {
+      "timestamp_ms": 8907.565,
+      "content": " Queries"
+    },
+    {
+      "timestamp_ms": 8907.635,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8907.699,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 9009.927,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 9019.818,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 9020.077,
+      "content": " frequently"
+    },
+    {
+      "timestamp_ms": 9020.237,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 9020.365,
+      "content": " recursive"
+    },
+    {
+      "timestamp_ms": 9020.482,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 9040.999,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9066.196,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 9082.421,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 9097.808,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 9216.116,
+      "content": " finding"
+    },
+    {
+      "timestamp_ms": 9216.353,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 9216.46,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 9216.581,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9216.676,
+      "content": " indirect"
+    },
+    {
+      "timestamp_ms": 9216.809,
+      "content": " connections"
+    },
+    {
+      "timestamp_ms": 9317.209,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9317.209,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9317.375,
+      "content": " particular"
+    },
+    {
+      "timestamp_ms": 9317.446,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 9317.502,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 9325.484,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 9419.616,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 9420.018,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 9420.253,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 9420.376,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9420.935,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 9523.014,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 9523.165,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9523.239,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 9523.306,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9523.363,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 9536.755,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 9624.31,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9624.471,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 9624.543,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 9624.597,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9630.132,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9726.837,
+      "content": " Popular"
+    },
+    {
+      "timestamp_ms": 9727.124,
+      "content": " Graph"
+    },
+    {
+      "timestamp_ms": 9727.248,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 9727.337,
+      "content": "atabases"
+    },
+    {
+      "timestamp_ms": 9727.467,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9828.978,
+      "content": "Some"
+    },
+    {
+      "timestamp_ms": 9829.11,
+      "content": " popular"
+    },
+    {
+      "timestamp_ms": 9829.172,
+      "content": " graph"
+    },
+    {
+      "timestamp_ms": 9829.225,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 9829.275,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 9842.047,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 9931.693,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9931.868,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9931.951,
+      "content": "Neo"
+    },
+    {
+      "timestamp_ms": 9932.168,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9935.623,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 10035.474,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 10035.636,
+      "content": " One"
+    },
+    {
+      "timestamp_ms": 10035.718,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10035.793,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10035.915,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 10136.161,
+      "content": " widely"
+    },
+    {
+      "timestamp_ms": 10136.161,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10136.161,
+      "type": "done"
+    }
+  ],
+  "full_response": "Graph-based data modeling is a method of representing data in a way that emphasizes the relationships between different data entities, which are typically depicted as nodes (or vertices) interconnected by edges (or links). This approach is in stark contrast to traditional relational models where data is organized into tables with predefined relationships through primary and foreign keys.\n\nIn graph-based data modeling, the structure of data is defined in terms of nodes representing entities and edges representing the relationships or connections between those entities. Each node and edge can possess various properties or attributes that provide additional information about the entities and their relationships. This model is extremely versatile and particularly well-suited for scenarios where relationships are as important, if not more important, than the data itself.\n\n### When to Use a Graph Database\n\nGraph databases are optimized for storing and querying data that is highly connected and complex. You should consider using a graph database in these scenarios:\n\n1. **Complex Networks and Relationships**: When your data involves numerous complex relationships and connections between entities, a graph database can efficiently capture the intricacies and dynamics of these relationships. Examples include social networks, recommendation engines, and organizational structures.\n\n2. **Highly Connected Data**: If your data is heavily interconnected, meaning traversing relationships is a frequent operation, a graph database can allow for efficient querying through these connections without requiring costly join operations. This is helpful for social graph traversals, fraud detection, and supply chain management.\n\n3. **Pattern Recognition and Recommendation Systems**: Graph databases are well-suited for applications that require pattern recognition, such as recommendation systems. They can recommend products, content, or connections by efficiently traversing the network of relationships.\n\n4. **Real-time Data and Highly Dynamic Interaction**: When frequent updates to the connections or the entities themselves are required, graph databases can offer performance benefits in maintaining and querying dynamic data. \n\n5. **Collective Intelligence**: Systems which analyze behaviors and interactions within networks, such as in viral marketing approaches, where the understanding of collective behavior through relationships is important.\n\n6. **Data with Richer Contexts**: If contextual information about relationships is crucial for your application (e.g., representing friendship types in social networks, or logistical dependencies in supply chains), a graph database can naturally accommodate this.\n\n7. **Recursive Queries**: When your application frequently requires recursive queries (e.g., finding all direct and indirect connections to a particular node), graph databases often offer more efficient mechanisms to perform these operations compared to traditional databases.\n\n### Popular Graph Databases\n\nSome popular graph databases include:\n\n- **Neo4j**: One of the most widely",
+  "response_chars": 3104,
+  "num_chunks": 512,
+  "ttft_ms": 410.238,
+  "total_ms": 10153.57,
+  "model_name": "model-medium"
+}

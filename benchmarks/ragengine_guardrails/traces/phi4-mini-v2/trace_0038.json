@@ -1,0 +1,2051 @@
+{
+  "index": 38,
+  "prompt": "Output a JSON document representing a company org chart with nested departments and employees. Include at least 3 levels of hierarchy.",
+  "prompt_category": "json",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1331.456,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "Company"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "Tech"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": " Innov"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": "ate"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": " Inc"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": ".\",\n"
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1331.456,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "Department"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "Research"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 1331.926,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "Dr"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": " Jane"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1963.02,
+      "content": "Head"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": " Research"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "Senior"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": " Scientist"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "Under"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "Head"
+    },
+    {
+      "timestamp_ms": 1963.549,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " []\n"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Dr"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Lab"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Chem"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "ist"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 2734.601,
+      "content": "Under"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "Head"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "Emily"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " Taylor"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "Research"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " Assistant"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": "olecular"
+    },
+    {
+      "timestamp_ms": 3470.561,
+      "content": " Bi"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "ologist"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "Assigned"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "Project"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "Bi"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "om"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "olecular"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " Analysis"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "Michael"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " Brown"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3876.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "Research"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " Assistant"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "Phys"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "ic"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "ist"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "Assigned"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "Project"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "Quantum"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " Experiment"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "ation"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4447.789,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "Sarah"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": " Collins"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4774.821,
+      "content": "Research"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": " Director"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": "Director"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": " Innovation"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": " Lab"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 5090.077,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "Under"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "Head"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "Rachel"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": " Green"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5745.928,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "Lead"
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": " Research"
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5763.917,
+      "content": "Material"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": " Sciences"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "Collabor"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": " {\""
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "Ac"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "me"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": " Corp"
+    },
+    {
+      "timestamp_ms": 6505.943,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "Project"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": " Lead"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "\"},\n"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "               "
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": " {\""
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": "Quantum"
+    },
+    {
+      "timestamp_ms": 6506.312,
+      "content": " Analytics"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "Scientific"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " Advisor"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "\"}\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6931.986,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7036.703,
+      "content": "Department"
+    },
+    {
+      "timestamp_ms": 7036.703,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 7036.703,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7036.703,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7036.703,
+      "content": "Human"
+    },
+    {
+      "timestamp_ms": 7036.703,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 7036.703,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "Tom"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " Clark"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "HR"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "Head"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " HR"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7807.165,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Under"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Head"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Anna"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " Murphy"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Recruit"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "ment"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " Specialist"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8405.846,
+      "content": "Career"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " Consultant"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "Sub"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "Deleg"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "Chris"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " Evans"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "olly"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " Mat"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "tox"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "Fre"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "der"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "ick"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": " Johnson"
+    },
+    {
+      "timestamp_ms": 9203.549,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9204.013,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 9204.013,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "Employee"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": " Relations"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": " Officer"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "Work"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "place"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": " Specialist"
+    },
+    {
+      "timestamp_ms": 9775.75,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": "Sub"
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": "Deleg"
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": " [\""
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": "Pat"
+    },
+    {
+      "timestamp_ms": 9776.008,
+      "content": "ricia"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " Williams"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "Ryan"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " Myers"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "\"]\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "Department"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "Finance"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " Accounting"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 10566.306,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "David"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " Lee"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "FO"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "Chief"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " Financial"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " Officer"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "Employees"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "Under"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "Head"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 11272.311,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 11272.632,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 11272.632,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 11283.427,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 11283.427,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 11283.427,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11283.427,
+      "type": "done"
+    }
+  ],
+  "full_response": "```json\n{\n  \"CompanyName\": \"Tech Innovate Inc.\",\n  \"\": [\n    {\n      \"DepartmentName\": \"Research & Development\",\n      \"Employees\": [\n        {\n          \"Name\": \"Dr. Jane Smith\",\n          \"Title\": \"Head Research\",\n          \"Position\": \"Senior Scientist\",\n          \"EmployeesUnderHead\": []\n        },\n        {\n          \"Name\": \"Dr. John Doe\",\n          \"Title\": \"Lab Manager\",\n          \"Position\": \"Chemist\",\n          \"EmployeesUnderHead\": [\n            {\n              \"Name\": \"Emily Taylor\",\n              \"Title\": \"Research Assistant\",\n              \"Position\": \"Molecular Biologist\",\n              \"AssignedProject\": \"Biomolecular Analysis\"\n            },\n            {\n              \"Name\": \"Michael Brown\",\n              \"Title\": \"Research Assistant\",\n              \"Position\": \"Physicist\",\n              \"AssignedProject\": \"Quantum Experimentation\"\n            }\n          ]\n        },\n        {\n          \"Name\": \"Sarah Collins\",\n          \"Title\": \"Research Director\",\n          \"Position\": \"Director of Innovation Lab\",\n          \"EmployeesUnderHead\": [\n            {\n              \"Name\": \"Rachel Green\",\n              \"\": \"Lead Researcher\",\n              \"Position\": \"Material Sciences\",\n              \"Collaborations\": [\n                {\"Name\": \"Acme Corp\",Position\": \"Project Lead\"},\n                {\"Name\": \"Quantum Analytics\", \"Position\": \"Scientific Advisor\"}\n              ]\n            }\n          ]\n        }\n      ]\n    },\n    {\n      \"DepartmentName\": \"Human Resources\",\n      \"Employees\": [\n        {\n          \"Name\": \"Tom Clark\",\n          \"Title\": \"HR Manager\",\n          \"Position\": \"Head of HR\",\n          \"EmployeesUnderHead\": [\n            {\n              \"Name\": \"Anna Murphy\",\n              \"Title\": \"Recruitment Specialist\",\n              \"Position\": \"Career Development Consultant\",\n              \"SubDelegates\": [\"Chris Evans\", \"Molly Mattox\"]\n            },\n            {\n              \"Name\": \"Frederick Johnson\",\n              \"Title\": \"Employee Relations Officer\",\n              \"Position\": \"Workplace Environment Specialist\",\n \"SubDelegates\": [\"Patricia Williams\", \"Ryan Myers\"]\n            }\n          ]\n        }\n      ]\n    },\n    {\n      \"DepartmentName\": \"Finance & Accounting\",\n      \"Employees\": [\n        {\n          \"Name\": \"David Lee\",\n          \"Title\": \"CFO\",\n          \"Position\": \"Chief Financial Officer\",\n          \"EmployeesUnderHead\": [\n            {\n              \"",
+  "response_chars": 2433,
+  "num_chunks": 507,
+  "ttft_ms": 1331.456,
+  "total_ms": 11579.116,
+  "model_name": "Phi-4-mini-instruct"
+}

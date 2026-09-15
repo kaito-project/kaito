@@ -1,0 +1,851 @@
+{
+  "index": 210,
+  "prompt": "How does Git handle branching and merging internally?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 803.135,
+      "content": "Git"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " branching and merging"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " mechanisms are fundamental"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " to its"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " control model"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": ". Here's"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " a detailed look"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " at how Git"
+    },
+    {
+      "timestamp_ms": 803.135,
+      "content": " handles them internally:\n\n"
+    },
+    {
+      "timestamp_ms": 1553.751,
+      "content": "---\n\n### **1"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": ". Branching in"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " Git**\nBran"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": "ching in"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " Git is lightweight"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " efficient because it doesn"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " copy"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " directories"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": ". Instead, it"
+    },
+    {
+      "timestamp_ms": 1553.918,
+      "content": " creates a new"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": "pointer** to"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " a commit"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": "#### **How Git"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " Branches Work"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " Internally:**\n"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": "- A"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " **branch** is"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " simply a **mov"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": "able pointer"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": "** to a"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " commit (st"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": "ored as"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " a file"
+    },
+    {
+      "timestamp_ms": 2249.33,
+      "content": " in `."
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "git/"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "refs/heads"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "/`).\n "
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " - Example: The"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "main` branch is"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " stored in"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " `.git/refs"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "/heads"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "/main` as"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " a "
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "40"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": "-character"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " SHA-1"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " hash of"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " the commit it"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " points to"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": ".\n-"
+    },
+    {
+      "timestamp_ms": 3072.723,
+      "content": " When you create a"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": " new branch (`"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "git branch feature"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "`),"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": " Git:\n"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "1. Creates a"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": " new file in"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": " `.git/refs"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "/heads/feature"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": " containing the current commit"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "'s hash"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": ".\n  "
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "2. Updates"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3596.587,
+      "content": "HEAD` (a"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " special pointer"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " to reference"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " the new branch"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " (if"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " you switch"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " to it"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " with `git checkout"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " or `git switch"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": "`).\n\n####"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": " **Key Points:**\n"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": "- Bran"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": "ches are **che"
+    },
+    {
+      "timestamp_ms": 4398.892,
+      "content": "ap** (just"
+    },
+    {
+      "timestamp_ms": 4399.149,
+      "content": " a pointer"
+    },
+    {
+      "timestamp_ms": 4399.149,
+      "content": ", no"
+    },
+    {
+      "timestamp_ms": 4399.149,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 4399.149,
+      "content": " duplication"
+    },
+    {
+      "timestamp_ms": 4399.149,
+      "content": ").\n- Switch"
+    },
+    {
+      "timestamp_ms": 4399.149,
+      "content": "ing branches (`git"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " checkout`) updates the"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " working directory to"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " match"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " the commit"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " points to"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": ".\n- Git"
+    },
+    {
+      "timestamp_ms": 4809.849,
+      "content": " uses **pack"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": "files"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": "** and"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " **d"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": "eltas** to store"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " efficiently, so"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " branching"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " doesn"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": "’t consume"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " disk"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " space.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " **2. M"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": "erging in Git"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": "**\nM"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": "erging combines"
+    },
+    {
+      "timestamp_ms": 5347.658,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " from one branch into"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " another. Git"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": "three-way"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " merging"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": "** (compar"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": "ing common"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " ancestors"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": ") to resolve"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": ".\n\n#### **How"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " Merges Work"
+    },
+    {
+      "timestamp_ms": 6098.073,
+      "content": " Internally:**\n1"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": ". **Find"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": " the Merge"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": " Base:**\n"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": "   - Git"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": " identifies the **common"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": " ancestor"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": "** (the"
+    },
+    {
+      "timestamp_ms": 6191.777,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 6372.765,
+      "content": " recent commit shared"
+    },
+    {
+      "timestamp_ms": 6372.765,
+      "content": " by both branches)"
+    },
+    {
+      "timestamp_ms": 6372.765,
+      "content": " using the commit"
+    },
+    {
+      "timestamp_ms": 6372.765,
+      "content": " history.\n"
+    },
+    {
+      "timestamp_ms": 6372.765,
+      "content": "   - Example:"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": " If merging"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": " `feature"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "` into"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": " `main"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "`, Git"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": " finds the last"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": " commit where `"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "main` and `"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "feature` diver"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "ged.\n\n2."
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": " **Three"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "-W"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "ay Merge:**\n  "
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": " - Git compares:\n"
+    },
+    {
+      "timestamp_ms": 6960.704,
+      "content": "     - The **"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": "merge base** ("
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": "common"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " ancestor).\n     -"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " The **tip"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " current branch** (`"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": "main`).\n    "
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " - The **tip"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " of the branch"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " merged** (`feature"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": "`).\n   -"
+    },
+    {
+      "timestamp_ms": 7621.217,
+      "content": " It generates"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": " a **merge"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": " commit"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": "** that"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": " combines"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": " changes from both branches"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": ".\n\n3. **"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": "Merge"
+    },
+    {
+      "timestamp_ms": 7780.895,
+      "content": " Strategies"
+    },
+    {
+      "timestamp_ms": 7781.151,
+      "content": ":**\n   - **"
+    },
+    {
+      "timestamp_ms": 7781.151,
+      "content": "Rec"
+    },
+    {
+      "timestamp_ms": 7781.151,
+      "content": "ursive ("
+    },
+    {
+      "timestamp_ms": 7781.151,
+      "content": "default):** For"
+    },
+    {
+      "timestamp_ms": 7781.151,
+      "content": " most"
+    },
+    {
+      "timestamp_ms": 8030.622,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 8030.622,
+      "content": ", Git"
+    },
+    {
+      "timestamp_ms": 8030.622,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 8030.622,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8030.622,
+      "content": " recursive merge"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": " strategy"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": " to handle cr"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": "iss-cross merg"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": "es.\n   -"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": " **Oct"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": "opus:** For"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": " merging multiple branches at"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "content": " once.\n"
+    },
+    {
+      "timestamp_ms": 8250.618,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 8250.9,
+      "type": "done"
+    }
+  ],
+  "full_response": "Git's branching and merging mechanisms are fundamental to its distributed version control model. Here's a detailed look at how Git handles them internally:\n\n---\n\n### **1. Branching in Git**\nBranching in Git is lightweight and efficient because it doesn't copy files or directories. Instead, it creates a new **pointer** to a commit.\n\n#### **How Git Branches Work Internally:**\n- A **branch** is simply a **movable pointer** to a commit (stored as a file in `.git/refs/heads/`).\n  - Example: The `main` branch is stored in `.git/refs/heads/main` as a 40-character SHA-1 hash of the commit it points to.\n- When you create a new branch (`git branch feature`), Git:\n  1. Creates a new file in `.git/refs/heads/feature` containing the current commit's hash.\n  2. Updates `HEAD` (a special pointer) to reference the new branch (if you switch to it with `git checkout` or `git switch`).\n\n#### **Key Points:**\n- Branches are **cheap** (just a pointer, no file duplication).\n- Switching branches (`git checkout`) updates the working directory to match the commit the branch points to.\n- Git uses **packfiles** and **deltas** to store changes efficiently, so branching doesn’t consume much disk space.\n\n---\n\n### **2. Merging in Git**\nMerging combines changes from one branch into another. Git uses **three-way merging** (comparing common ancestors) to resolve differences.\n\n#### **How Git Merges Work Internally:**\n1. **Find the Merge Base:**\n   - Git identifies the **common ancestor** (the most recent commit shared by both branches) using the commit history.\n   - Example: If merging `feature` into `main`, Git finds the last commit where `main` and `feature` diverged.\n\n2. **Three-Way Merge:**\n   - Git compares:\n     - The **merge base** (common ancestor).\n     - The **tip of the current branch** (`main`).\n     - The **tip of the branch being merged** (`feature`).\n   - It generates a **merge commit** that combines changes from both branches.\n\n3. **Merge Strategies:**\n   - **Recursive (default):** For most cases, Git uses a recursive merge strategy to handle criss-cross merges.\n   - **Octopus:** For merging multiple branches at once.\n",
+  "response_chars": 2136,
+  "num_chunks": 207,
+  "ttft_ms": 803.135,
+  "total_ms": 8251.25,
+  "model_name": "Mistral-Large-3"
+}

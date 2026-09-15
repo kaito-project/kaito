@@ -1,0 +1,2071 @@
+{
+  "index": 109,
+  "prompt": "What are the key principles of object-oriented programming? Give examples in Python.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 432.028,
+      "content": "Object"
+    },
+    {
+      "timestamp_ms": 432.318,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 432.49,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 432.647,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 432.779,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 432.862,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 432.928,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 534.059,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 534.192,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 534.256,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 534.42,
+      "content": " paradigm"
+    },
+    {
+      "timestamp_ms": 534.5,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 542.209,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 598.356,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 598.556,
+      "content": "objects"
+    },
+    {
+      "timestamp_ms": 615.316,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 628.756,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 637.486,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 746.821,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 746.971,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 747.048,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 747.112,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 747.171,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 757.833,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 842.433,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 842.433,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 842.646,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 842.783,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 846.918,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 943.737,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 943.96,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 944.089,
+      "content": " summarized"
+    },
+    {
+      "timestamp_ms": 944.191,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 944.279,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1056.047,
+      "content": " acronym"
+    },
+    {
+      "timestamp_ms": 1056.214,
+      "content": " SOL"
+    },
+    {
+      "timestamp_ms": 1056.301,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 1056.376,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1056.737,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 1057.024,
+      "content": " encaps"
+    },
+    {
+      "timestamp_ms": 1121.585,
+      "content": "ulation"
+    },
+    {
+      "timestamp_ms": 1121.766,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1121.853,
+      "content": " abstraction"
+    },
+    {
+      "timestamp_ms": 1136.174,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1153.416,
+      "content": " inheritance"
+    },
+    {
+      "timestamp_ms": 1250.827,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1251.013,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1251.13,
+      "content": " polym"
+    },
+    {
+      "timestamp_ms": 1251.2,
+      "content": "orphism"
+    },
+    {
+      "timestamp_ms": 1251.288,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1353.487,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1353.712,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1353.848,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1353.961,
+      "content": " brief"
+    },
+    {
+      "timestamp_ms": 1354.556,
+      "content": " explanation"
+    },
+    {
+      "timestamp_ms": 1366.296,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1455.806,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1459.278,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1459.415,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 1459.49,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1459.554,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 1517.872,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1517.872,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 1537.377,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1544.748,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1557.463,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1660.879,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1661.12,
+      "content": "Enc"
+    },
+    {
+      "timestamp_ms": 1661.268,
+      "content": "apsulation"
+    },
+    {
+      "timestamp_ms": 1661.361,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1661.462,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1666.063,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1762.942,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1763.083,
+      "content": " Enc"
+    },
+    {
+      "timestamp_ms": 1763.147,
+      "content": "apsulation"
+    },
+    {
+      "timestamp_ms": 1763.2,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1780.321,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1788.04,
+      "content": " bund"
+    },
+    {
+      "timestamp_ms": 1800.705,
+      "content": "ling"
+    },
+    {
+      "timestamp_ms": 1865.225,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1865.458,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1865.637,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1880.789,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1895.992,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 1922.215,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1937.695,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 1957.766,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2080.949,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2081.123,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2081.202,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2081.273,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2081.334,
+      "content": " restrict"
+    },
+    {
+      "timestamp_ms": 2081.385,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 2091.316,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 2125.35,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2133.897,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2146.07,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 2244.628,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2246.421,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2246.534,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 2246.612,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2246.767,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 2258.902,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2282.854,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2298.358,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2314.964,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2332.715,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 2353.121,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2480.28,
+      "content": " preventing"
+    },
+    {
+      "timestamp_ms": 2480.477,
+      "content": " accidental"
+    },
+    {
+      "timestamp_ms": 2485.191,
+      "content": " interference"
+    },
+    {
+      "timestamp_ms": 2582.891,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2582.891,
+      "content": " misuse"
+    },
+    {
+      "timestamp_ms": 2582.891,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2582.891,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2582.891,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2583.094,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2583.169,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2583.232,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 2583.29,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 2684.556,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2684.737,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2684.939,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 2685.138,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 2685.246,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2700.991,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 2716.071,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 2786.898,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 2787.036,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 2787.102,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 2791.476,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 2889.458,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2889.67,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 2889.82,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2889.922,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 2890.037,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 2904.92,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 2992.191,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 2992.357,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 2992.449,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 2992.523,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2999.362,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 3094.286,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3094.42,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3094.484,
+      "content": " _"
+    },
+    {
+      "timestamp_ms": 3094.597,
+      "content": " prefix"
+    },
+    {
+      "timestamp_ms": 3095.696,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3115.775,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3199.897,
+      "content": " convention"
+    },
+    {
+      "timestamp_ms": 3200.125,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3200.235,
+      "content": " indicate"
+    },
+    {
+      "timestamp_ms": 3200.373,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3298.437,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 3298.59,
+      "content": " member"
+    },
+    {
+      "timestamp_ms": 3298.661,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3298.732,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3298.859,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 3307.477,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 3353.268,
+      "content": "model"
+    },
+    {
+      "timestamp_ms": 3355.582,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3364.31,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3401.146,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3401.329,
+      "content": "       \n"
+    },
+    {
+      "timestamp_ms": 3503.826,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3504.067,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 3504.167,
+      "content": " display"
+    },
+    {
+      "timestamp_ms": 3511.481,
+      "content": "_info"
+    },
+    {
+      "timestamp_ms": 3511.677,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 3519.17,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3535.348,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3559.009,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 3606.362,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 3606.638,
+      "content": "\"This"
+    },
+    {
+      "timestamp_ms": 3611.303,
+      "content": " car"
+    },
+    {
+      "timestamp_ms": 3708.615,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3708.744,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3708.858,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 3708.95,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 3709.013,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 3724.756,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 3811.242,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 3811.507,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 3811.605,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 3811.672,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 3821.156,
+      "content": "model"
+    },
+    {
+      "timestamp_ms": 3913.203,
+      "content": "}."
+    },
+    {
+      "timestamp_ms": 3913.334,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 3913.399,
+      "content": "   \n"
+    },
+    {
+      "timestamp_ms": 3913.453,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3921.214,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 3933.22,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 4015.949,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4016.153,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 4016.485,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 4016.595,
+      "content": "Toyota"
+    },
+    {
+      "timestamp_ms": 4027.315,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 4120.217,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4120.451,
+      "content": "Cor"
+    },
+    {
+      "timestamp_ms": 4120.548,
+      "content": "olla"
+    },
+    {
+      "timestamp_ms": 4120.625,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 4221.508,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4221.747,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 4221.854,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 4221.936,
+      "content": ".display"
+    },
+    {
+      "timestamp_ms": 4222.003,
+      "content": "_info"
+    },
+    {
+      "timestamp_ms": 4222.064,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 4244.214,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4258.745,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4323.562,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 4323.724,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4323.886,
+      "content": " _"
+    },
+    {
+      "timestamp_ms": 4332.961,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 4425.696,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 4425.87,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4426.009,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 4426.092,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4434.731,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 4448.544,
+      "content": " discouraged"
+    },
+    {
+      "timestamp_ms": 4528.661,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4528.863,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4528.999,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4529.096,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 4630.351,
+      "content": "(my"
+    },
+    {
+      "timestamp_ms": 4636.183,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 4636.355,
+      "content": "._"
+    },
+    {
+      "timestamp_ms": 4636.445,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 4636.51,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4642.578,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4658.228,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4733.127,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 4733.334,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 4733.409,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4741.259,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4758.011,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 4773.542,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4835.523,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 4835.694,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4835.924,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4849.293,
+      "content": "Ab"
+    },
+    {
+      "timestamp_ms": 4867.659,
+      "content": "straction"
+    },
+    {
+      "timestamp_ms": 4937.898,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4938.07,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4938.147,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4943.206,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4992.987,
+      "content": " Ab"
+    },
+    {
+      "timestamp_ms": 4993.203,
+      "content": "straction"
+    },
+    {
+      "timestamp_ms": 4999.59,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 5047.432,
+      "content": " hiding"
+    },
+    {
+      "timestamp_ms": 5047.575,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5062.111,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 5077.009,
+      "content": " reality"
+    },
+    {
+      "timestamp_ms": 5141.95,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 5142.093,
+      "content": " exposing"
+    },
+    {
+      "timestamp_ms": 5142.168,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5152.173,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5245.119,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 5247.307,
+      "content": " parts"
+    },
+    {
+      "timestamp_ms": 5247.436,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5247.52,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5247.592,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 5347.168,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5347.391,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5347.56,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 5347.697,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5347.83,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 5449.448,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5449.687,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 5449.793,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5449.893,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 5552.286,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5552.485,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 5552.576,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5552.65,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5552.719,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5552.784,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5553.733,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5654.298,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 5654.477,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 5654.567,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5654.631,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5654.685,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5756.904,
+      "content": " abc"
+    },
+    {
+      "timestamp_ms": 5757.085,
+      "content": " import"
+    },
+    {
+      "timestamp_ms": 5757.193,
+      "content": " ABC"
+    },
+    {
+      "timestamp_ms": 5757.268,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5764.763,
+      "content": " abstract"
+    },
+    {
+      "timestamp_ms": 5765.005,
+      "content": "method"
+    },
+    {
+      "timestamp_ms": 6170.553,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6170.866,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6171.046,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 6171.14,
+      "content": " Vehicle"
+    },
+    {
+      "timestamp_ms": 6171.228,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 6171.342,
+      "content": "ABC"
+    },
+    {
+      "timestamp_ms": 6171.453,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6171.563,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6171.854,
+      "content": " @"
+    },
+    {
+      "timestamp_ms": 6171.956,
+      "content": "abstractmethod"
+    },
+    {
+      "timestamp_ms": 6172.031,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6172.099,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6172.165,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6172.232,
+      "content": " max"
+    },
+    {
+      "timestamp_ms": 6172.3,
+      "content": "_speed"
+    },
+    {
+      "timestamp_ms": 6172.363,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 6172.456,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6172.603,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6172.683,
+      "content": " pass"
+    },
+    {
+      "timestamp_ms": 6172.741,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6172.791,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6183.302,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 6381.98,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 6382.18,
+      "content": "(V"
+    },
+    {
+      "timestamp_ms": 6382.247,
+      "content": "ehicle"
+    },
+    {
+      "timestamp_ms": 6382.299,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6382.474,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6382.54,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 6382.589,
+      "content": " max"
+    },
+    {
+      "timestamp_ms": 6382.635,
+      "content": "_speed"
+    },
+    {
+      "timestamp_ms": 6382.683,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 6382.731,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6398.378,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 6417.133,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 6431.846,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6457.303,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 6475.161,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6491.404,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 6506.218,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 6572.492,
+      "content": " car"
+    },
+    {
+      "timestamp_ms": 6572.729,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6572.843,
+      "content": " maximum"
+    },
+    {
+      "timestamp_ms": 6592.218,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 6601.648,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6622.592,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6673.431,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 6673.629,
+      "content": " Boat"
+    },
+    {
+      "timestamp_ms": 6683.451,
+      "content": "(V"
+    },
+    {
+      "timestamp_ms": 6733.6,
+      "content": "ehicle"
+    },
+    {
+      "timestamp_ms": 6733.85,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6741.93,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 6754.629,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 7005.796,
+      "content": " max"
+    },
+    {
+      "timestamp_ms": 7005.796,
+      "content": "_speed"
+    },
+    {
+      "timestamp_ms": 7005.796,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 7005.796,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7005.796,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 7005.796,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 7006.057,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7006.151,
+      "content": "80"
+    },
+    {
+      "timestamp_ms": 7006.226,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7006.293,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7006.356,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 7006.418,
+      "content": " boat"
+    },
+    {
+      "timestamp_ms": 7006.475,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7198.269,
+      "content": " maximum"
+    },
+    {
+      "timestamp_ms": 7198.468,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 7198.55,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7198.631,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7206.183,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7206.375,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 7206.512,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7206.644,
+      "content": " Boat"
+    },
+    {
+      "timestamp_ms": 7206.728,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 7206.789,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7217.85,
+      "content": " max"
+    },
+    {
+      "timestamp_ms": 7231.378,
+      "content": "_speed"
+    },
+    {
+      "timestamp_ms": 7393.47,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 7393.709,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 7393.865,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7393.997,
+      "content": " Vehicle"
+    },
+    {
+      "timestamp_ms": 7394.091,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7394.167,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7394.362,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 7394.433,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7402.38,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7505.834,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7505.967,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7506.032,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 7506.088,
+      "content": "heritance"
+    },
+    {
+      "timestamp_ms": 7506.141,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7516.719,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7540.028,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7607.754,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7607.754,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 7621.39,
+      "content": "heritance"
+    },
+    {
+      "timestamp_ms": 7621.39,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7636.82,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7687.175,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 7800.357,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7800.357,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 7800.357,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7816.153,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 7816.153,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7816.325,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 7871.623,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7871.623,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 7871.623,
+      "content": " already"
+    },
+    {
+      "timestamp_ms": 7871.623,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 7883.688,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 7897.306,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7925.8,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7925.8,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 7937.548,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7959.478,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 7975.527,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8039.553,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 8039.719,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8039.806,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8061.779,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8070.648,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8095.126,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8111.462,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8173.35,
+      "content": " modified"
+    },
+    {
+      "timestamp_ms": 8179.788,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 8179.923,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8185.723,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 8387.764,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 8387.932,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8388.008,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8395.807,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8395.979,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 8396.08,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 8396.149,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8396.215,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8396.275,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8396.333,
+      "content": " Vehicle"
+    },
+    {
+      "timestamp_ms": 8497.342,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8497.342,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 8497.588,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 8497.691,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 8497.758,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 8497.813,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 8510.238,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 8531.81,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8841.673,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 8841.907,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8842.006,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 8842.081,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 8842.147,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 8842.207,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 8842.271,
+      "content": ".make"
+    },
+    {
+      "timestamp_ms": 8842.327,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8842.371,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 8842.416,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8842.461,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 8842.509,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 8842.881,
+      "content": ".model"
+    },
+    {
+      "timestamp_ms": 8842.993,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8843.069,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 8843.131,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8852.293,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 8876.839,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 8891.219,
+      "content": " display"
+    },
+    {
+      "timestamp_ms": 8912.208,
+      "content": "_info"
+    },
+    {
+      "timestamp_ms": 8929.919,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 8950.108,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 8976.746,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 8987.04,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 9161.132,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 9161.335,
+      "content": "\"This"
+    },
+    {
+      "timestamp_ms": 9161.511,
+      "content": " vehicle"
+    },
+    {
+      "timestamp_ms": 9161.658,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9161.787,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9161.894,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9161.992,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9162.135,
+      "content": ".make"
+    },
+    {
+      "timestamp_ms": 9162.377,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9178.547,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9256.49,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9256.71,
+      "content": ".model"
+    },
+    {
+      "timestamp_ms": 9256.835,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9256.913,
+      "content": ".\")\n\n"
+    },
+    {
+      "timestamp_ms": 9273.003,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9504.433,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 9504.609,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 9504.702,
+      "content": "(V"
+    },
+    {
+      "timestamp_ms": 9504.783,
+      "content": "ehicle"
+    },
+    {
+      "timestamp_ms": 9504.877,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9504.95,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9505.02,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 9505.089,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 9505.33,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 9505.33,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 9505.433,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9519.063,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9531.781,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 9543.765,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9562.147,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 9580.251,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9758.555,
+      "content": " horsepower"
+    },
+    {
+      "timestamp_ms": 9758.815,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9758.963,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 9759.076,
+      "content": " super"
+    },
+    {
+      "timestamp_ms": 9759.188,
+      "content": "().__"
+    },
+    {
+      "timestamp_ms": 9759.276,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 9763.397,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 9763.551,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 9772.945,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9773.166,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 9865.377,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 9865.672,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 9866.007,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 9866.157,
+      "content": ".h"
+    },
+    {
+      "timestamp_ms": 9866.304,
+      "content": "orse"
+    },
+    {
+      "timestamp_ms": 9914.787,
+      "content": "power"
+    },
+    {
+      "timestamp_ms": 9915.049,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9923.132,
+      "content": " horsepower"
+    },
+    {
+      "timestamp_ms": 10065.49,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 10065.662,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 10065.795,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 10065.871,
+      "content": " display"
+    },
+    {
+      "timestamp_ms": 10065.934,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 10065.988,
+      "content": "_info"
+    },
+    {
+      "timestamp_ms": 10066.042,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 10066.042,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10066.042,
+      "type": "done"
+    }
+  ],
+  "full_response": "Object-oriented programming (OOP) is a programming paradigm that uses \"objects\" to design applications and computer programs. The key principles of OOP, often summarized by the acronym SOLID, are encapsulation, abstraction, inheritance, and polymorphism. Here's a brief explanation of each, along with examples in Python:\n\n1. **Encapsulation**:\n   - Encapsulation is the bundling of data with the methods that operate on that data. It restricts direct access to some of an object's components, which is a means of preventing accidental interference and misuse of the data.\n\n   ```python\n   class Car:\n       def __init__(self, make, model):\n           self._make = make  # _ prefix is a convention to indicate a protected member\n           self._model = model\n       \n       def display_info(self):\n           print(f\"This car is a {self._make} {self._model}.\")\n   \n   my_car = Car(\"Toyota\", \"Corolla\")\n   my_car.display_info()\n   # Accessing _make directly is possible, but discouraged:\n   # print(my_car._make)  # Not recommended\n   ```\n\n2. **Abstraction**:\n   - Abstraction involves hiding the complex reality while exposing only the necessary parts. It allows you to focus on what the object does instead of how it does it.\n\n   ```python\n   from abc import ABC, abstractmethod\n\n   class Vehicle(ABC):\n       @abstractmethod\n       def max_speed(self):\n           pass\n\n   class Car(Vehicle):\n       def max_speed(self):\n           return 200  # A car's maximum speed\n\n   class Boat(Vehicle):\n       def max_speed(self):\n           return 80  # A boat's maximum speed\n\n   # Car and Boat implement the max_speed method defined in Vehicle.\n   ```\n\n3. **Inheritance**:\n   - Inheritance is a way to form new classes using classes that have already been defined. It provides a way to create a new class that is a modified version of an existing class.\n\n   ```python\n   class Vehicle:\n       def __init__(self, make, model):\n           self.make = make\n           self.model = model\n\n       def display_info(self):\n           print(f\"This vehicle is a {self.make} {self.model}.\")\n\n   class Car(Vehicle):\n       def __init__(self, make, model, horsepower):\n           super().__init__(make, model)\n           self.horsepower = horsepower\n\n       def display_car_info(self",
+  "response_chars": 2267,
+  "num_chunks": 512,
+  "ttft_ms": 432.028,
+  "total_ms": 10066.369,
+  "model_name": "model-medium"
+}

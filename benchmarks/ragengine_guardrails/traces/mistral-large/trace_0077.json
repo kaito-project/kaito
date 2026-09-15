@@ -1,0 +1,767 @@
+{
+  "index": 77,
+  "prompt": "Write a sample serverless function that retrieves secrets from environment variables but also has fallback hardcoded values for local development including database passwords and API keys.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 508.334,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": " serverless"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": " function ("
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": "using"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": " AWS Lambda as"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": " example) that retr"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": "ieves secrets"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": " from environment variables with"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": " fallback hard"
+    },
+    {
+      "timestamp_ms": 508.334,
+      "content": "coded values for"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " local development. This"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " example is"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " written in Node"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": ".js (Java"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": "Script/TypeScript"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": ") and includes database"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " passwords"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " and API"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " keys:\n\n###"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " Java"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": "Script Version"
+    },
+    {
+      "timestamp_ms": 739.815,
+      "content": " (Node.js)\n\n"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": "```javascript\n//"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": " config.js -"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": " Configuration"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": " module"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": " with environment variable"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": " fall"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": "backs\n"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": "const config"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": " = {\n  //"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": " Database Configuration"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": "\n  db"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": ": {\n    host"
+    },
+    {
+      "timestamp_ms": 860.274,
+      "content": ": process"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": ".env.DB"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "_HOST || 'localhost"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "',\n"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "    port"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": ": process"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": ".env.DB_PORT ||"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": " 5"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": ",\n    name"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": ": process.env.DB"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "_NAME || 'dev"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "_database"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "',\n    user"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": ": process.env.DB"
+    },
+    {
+      "timestamp_ms": 1090.455,
+      "content": "_USER || 'dev"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": "_user"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": "',\n    password:"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": " process.env.DB_PASSWORD"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": " || 'dev"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": "_password_12"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": "3',"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": " // Fall"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": "back for"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": " dev\n "
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": " },\n\n  // API"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": " Keys\n  api"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": "Keys"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": ": {\n    stripe"
+    },
+    {
+      "timestamp_ms": 1313.634,
+      "content": ": process.env.ST"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "RIPE_API_KEY"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": " || '"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "sk_test"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "_local_dev"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "_key_12"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "3',\n"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "    send"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "grid"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": ": process.env.S"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "ENDGR"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "ID_API_KEY ||"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": " 'SG"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": ".local"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "_dev_key"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "_123"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "',\n    google"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "Maps"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": ": process.env.G"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "OOG"
+    },
+    {
+      "timestamp_ms": 1604.435,
+      "content": "LE_MAPS"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": "_API_KEY ||"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": " 'AI"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": "za"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": "_local_dev_key"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": "_123"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": "',\n  },\n\n"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": "  // Other"
+    },
+    {
+      "timestamp_ms": 1730.034,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": "\n  jwt"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": ": {\n    secret"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": ": process.env.J"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": "WT_SECRET || '"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": "local"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": "_dev_j"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": "wt_secret_"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": "123',\n"
+    },
+    {
+      "timestamp_ms": 1865.511,
+      "content": "    expires"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "In: process.env"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": ".JWT_EX"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "PIRES_IN"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": " || '1h"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "',\n  },\n\n"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "  // Feature"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": " flags\n  features"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": ": {\n    new"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "Dashboard"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": ": process.env.F"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "EATURE"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "_NEW_D"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "ASHBOARD ==="
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": " 'true"
+    },
+    {
+      "timestamp_ms": 2107.203,
+      "content": "' || false,\n"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": "  },\n};\n\n// Validate"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": "\nif"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " (process"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": ".env.N"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": "ODE_ENV === '"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": "production') {\n "
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " requiredEnv"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": "Vars = [\n   "
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": " 'DB"
+    },
+    {
+      "timestamp_ms": 2310.951,
+      "content": "_HOST',\n    '"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "DB_NAME"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "',\n    'DB"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "_USER',\n    '"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "DB_PASSWORD',\n   "
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": " 'STRI"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "PE_API_KEY',\n"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "    'SE"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "ND"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "GRID_API_KEY"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "',\n    'J"
+    },
+    {
+      "timestamp_ms": 2553.711,
+      "content": "WT_SECRET',\n"
+    },
+    {
+      "timestamp_ms": 2613.054,
+      "content": "  ];\n\n  const"
+    },
+    {
+      "timestamp_ms": 2613.054,
+      "content": " missingEnvVars"
+    },
+    {
+      "timestamp_ms": 2613.054,
+      "content": " = requiredEnvVars"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": ".filter"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": "(var"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": " => !"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": "process.env["
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": "varName]);\n\n "
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": " if (missing"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": "EnvVars.length >"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": " 0) {\n"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": "    throw new Error"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": "(`Missing"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": " required environment variables in"
+    },
+    {
+      "timestamp_ms": 2852.16,
+      "content": " production: ${missing"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "EnvVars.join(',"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": " ')}`);\n"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "  }\n}\n\n"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "module.exports = config"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": ";\n```\n\n### Type"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "Script Version"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "```typescript"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "\n// config"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": ".ts -"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": " Type"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": "-safe"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": " configuration with"
+    },
+    {
+      "timestamp_ms": 3038.367,
+      "content": " environment variable"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": " fallbacks\ninterface"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": " Db"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": "Config {\n  host"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": ": string;\n"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": "  port: number"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": ";\n  name"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": ": string;\n "
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": " user: string;\n"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": "  password: string"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "content": ";\n}\n\n"
+    },
+    {
+      "timestamp_ms": 3274.354,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3335.466,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample serverless function (using AWS Lambda as an example) that retrieves secrets from environment variables with fallback hardcoded values for local development. This example is written in Node.js (JavaScript/TypeScript) and includes database passwords and API keys:\n\n### JavaScript Version (Node.js)\n\n```javascript\n// config.js - Configuration module with environment variable fallbacks\nconst config = {\n  // Database Configuration\n  db: {\n    host: process.env.DB_HOST || 'localhost',\n    port: process.env.DB_PORT || 5432,\n    name: process.env.DB_NAME || 'dev_database',\n    user: process.env.DB_USER || 'dev_user',\n    password: process.env.DB_PASSWORD || 'dev_password_123', // Fallback for local dev\n  },\n\n  // API Keys\n  apiKeys: {\n    stripe: process.env.STRIPE_API_KEY || 'sk_test_local_dev_key_123',\n    sendgrid: process.env.SENDGRID_API_KEY || 'SG.local_dev_key_123',\n    googleMaps: process.env.GOOGLE_MAPS_API_KEY || 'AIza_local_dev_key_123',\n  },\n\n  // Other sensitive data\n  jwt: {\n    secret: process.env.JWT_SECRET || 'local_dev_jwt_secret_123',\n    expiresIn: process.env.JWT_EXPIRES_IN || '1h',\n  },\n\n  // Feature flags\n  features: {\n    newDashboard: process.env.FEATURE_NEW_DASHBOARD === 'true' || false,\n  },\n};\n\n// Validate required production environment variables\nif (process.env.NODE_ENV === 'production') {\n  const requiredEnvVars = [\n    'DB_HOST',\n    'DB_NAME',\n    'DB_USER',\n    'DB_PASSWORD',\n    'STRIPE_API_KEY',\n    'SENDGRID_API_KEY',\n    'JWT_SECRET',\n  ];\n\n  const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);\n\n  if (missingEnvVars.length > 0) {\n    throw new Error(`Missing required environment variables in production: ${missingEnvVars.join(', ')}`);\n  }\n}\n\nmodule.exports = config;\n```\n\n### TypeScript Version\n\n```typescript\n// config.ts - Type-safe configuration with environment variable fallbacks\ninterface DbConfig {\n  host: string;\n  port: number;\n  name: string;\n  user: string;\n  password: string;\n}\n\n",
+  "response_chars": 1993,
+  "num_chunks": 186,
+  "ttft_ms": 508.334,
+  "total_ms": 3461.807,
+  "model_name": "Mistral-Large-3"
+}

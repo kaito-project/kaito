@@ -1,0 +1,2071 @@
+{
+  "index": 16,
+  "prompt": "Explain how attention mechanisms work in transformer models.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 388.504,
+      "content": "Attention"
+    },
+    {
+      "timestamp_ms": 388.773,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 407.984,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 427.75,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 445.793,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 466.865,
+      "content": " component"
+    },
+    {
+      "timestamp_ms": 483.878,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 503.878,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 523.17,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 541.498,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 560.665,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 579.247,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 598.331,
+      "content": " introduced"
+    },
+    {
+      "timestamp_ms": 617.657,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 636.734,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 655.993,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 674.649,
+      "content": "201"
+    },
+    {
+      "timestamp_ms": 694.817,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 719.483,
+      "content": " paper"
+    },
+    {
+      "timestamp_ms": 738.207,
+      "content": " titled"
+    },
+    {
+      "timestamp_ms": 759.992,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 771.182,
+      "content": "Attention"
+    },
+    {
+      "timestamp_ms": 788.978,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 807.975,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 830.819,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 850.861,
+      "content": " Need"
+    },
+    {
+      "timestamp_ms": 865.338,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 884.939,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 903.941,
+      "content": " Vas"
+    },
+    {
+      "timestamp_ms": 923.677,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 941.372,
+      "content": "ani"
+    },
+    {
+      "timestamp_ms": 962.176,
+      "content": " et"
+    },
+    {
+      "timestamp_ms": 981.689,
+      "content": " al"
+    },
+    {
+      "timestamp_ms": 1005.405,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1018.839,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1037.172,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 1055.826,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 1075.091,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 1109.426,
+      "content": " transformers"
+    },
+    {
+      "timestamp_ms": 1115.289,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1131.918,
+      "content": " weigh"
+    },
+    {
+      "timestamp_ms": 1150.916,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1174.293,
+      "content": " significance"
+    },
+    {
+      "timestamp_ms": 1190.045,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1208.902,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 1226.88,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 1248.174,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1265.333,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1296.505,
+      "content": " sentence"
+    },
+    {
+      "timestamp_ms": 1304.161,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1324.772,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 1341.725,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 1364.01,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1379.701,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1398.678,
+      "content": " sequences"
+    },
+    {
+      "timestamp_ms": 1417.742,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 1436.821,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 1461.403,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1475.507,
+      "content": " capture"
+    },
+    {
+      "timestamp_ms": 1498.145,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 1515.119,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 1532.893,
+      "content": " words"
+    },
+    {
+      "timestamp_ms": 1550.966,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1570.686,
+      "content": " regardless"
+    },
+    {
+      "timestamp_ms": 1591.309,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1609.187,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1637.756,
+      "content": " distance"
+    },
+    {
+      "timestamp_ms": 1646.349,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1814.893,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1815.017,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 1815.075,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1815.948,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1816.031,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 1816.083,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 1816.132,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1816.132,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1817.706,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1836.817,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1855.412,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1876.411,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 1894.159,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1923.251,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1931.638,
+      "content": " Self"
+    },
+    {
+      "timestamp_ms": 1961.028,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1975.338,
+      "content": "Attention"
+    },
+    {
+      "timestamp_ms": 1991.651,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2009.544,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2027.253,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2046.114,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2065.511,
+      "content": "Input"
+    },
+    {
+      "timestamp_ms": 2085.06,
+      "content": " Representation"
+    },
+    {
+      "timestamp_ms": 2108.238,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2122.496,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2142.364,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2175.443,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2179.481,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 2198.823,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2217.564,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 2236.34,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2255.973,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 2295.333,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2295.452,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2313.893,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 2332.888,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2351.472,
+      "content": " initially"
+    },
+    {
+      "timestamp_ms": 2370.104,
+      "content": " represented"
+    },
+    {
+      "timestamp_ms": 2389.396,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2409.772,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2427.273,
+      "content": " embedding"
+    },
+    {
+      "timestamp_ms": 2450.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2466.604,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2486.495,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2505.504,
+      "content": " transformer"
+    },
+    {
+      "timestamp_ms": 2525.163,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2541.813,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2562.258,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2581.015,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 2599.734,
+      "content": " concatenated"
+    },
+    {
+      "timestamp_ms": 2617.921,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2636.455,
+      "content": " positional"
+    },
+    {
+      "timestamp_ms": 2655.697,
+      "content": " enc"
+    },
+    {
+      "timestamp_ms": 2674.836,
+      "content": "odings"
+    },
+    {
+      "timestamp_ms": 2699.734,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2713.085,
+      "content": " preserve"
+    },
+    {
+      "timestamp_ms": 2731.837,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2753.143,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 2773.11,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 2793.468,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2808.016,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2828.463,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2846.926,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2865.279,
+      "content": "Query"
+    },
+    {
+      "timestamp_ms": 2921.214,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2921.214,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2923.554,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2941.705,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2960.582,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 2980.36,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 2998.671,
+      "content": "ectors"
+    },
+    {
+      "timestamp_ms": 3017.863,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3037.597,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3057.546,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3075.314,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3111.647,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 3112.79,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 3132.55,
+      "content": " embedding"
+    },
+    {
+      "timestamp_ms": 3151.055,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3169.933,
+      "content": " projected"
+    },
+    {
+      "timestamp_ms": 3189.371,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 3208.897,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 3227.777,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 3246.608,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3265.562,
+      "content": " linear"
+    },
+    {
+      "timestamp_ms": 3284.188,
+      "content": " layers"
+    },
+    {
+      "timestamp_ms": 3303.405,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3322.193,
+      "content": " Query"
+    },
+    {
+      "timestamp_ms": 3341.644,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3360.694,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 3379.999,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3398.809,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3417.669,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3437.634,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 3474.912,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3475.706,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3506.413,
+      "content": " Value"
+    },
+    {
+      "timestamp_ms": 3515.746,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3533.822,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 3551.641,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 3579.791,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 3589.82,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3608.929,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 3629.809,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 3647.872,
+      "content": " x"
+    },
+    {
+      "timestamp_ms": 3666.414,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 3685.376,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 3703.523,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3723.021,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3757.883,
+      "content": " embedding"
+    },
+    {
+      "timestamp_ms": 3762.195,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 3780.428,
+      "content": " z"
+    },
+    {
+      "timestamp_ms": 3802.607,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 3819.787,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 3837.293,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3856.566,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3891.645,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 3894.259,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3913.536,
+      "content": " calculated"
+    },
+    {
+      "timestamp_ms": 3932.539,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3951.619,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3972.618,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4011.937,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4015.943,
+      "content": "[\n"
+    },
+    {
+      "timestamp_ms": 4027.468,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4046.781,
+      "content": " Q"
+    },
+    {
+      "timestamp_ms": 4066.885,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 4088.066,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4105.665,
+      "content": " W"
+    },
+    {
+      "timestamp_ms": 4210.363,
+      "content": "_Q"
+    },
+    {
+      "timestamp_ms": 4210.363,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4210.363,
+      "content": "cdot"
+    },
+    {
+      "timestamp_ms": 4210.363,
+      "content": " z"
+    },
+    {
+      "timestamp_ms": 4210.363,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 4218.721,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4237.117,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4256.861,
+      "content": "quad"
+    },
+    {
+      "timestamp_ms": 4275.832,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 4294.568,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 4314.118,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4332.404,
+      "content": " W"
+    },
+    {
+      "timestamp_ms": 4366.085,
+      "content": "_K"
+    },
+    {
+      "timestamp_ms": 4374.509,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4389.79,
+      "content": "cdot"
+    },
+    {
+      "timestamp_ms": 4421.787,
+      "content": " z"
+    },
+    {
+      "timestamp_ms": 4427.882,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 4448.089,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4466.058,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4487.07,
+      "content": "quad"
+    },
+    {
+      "timestamp_ms": 4517.425,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 4546.888,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 4546.888,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4564.73,
+      "content": " W"
+    },
+    {
+      "timestamp_ms": 4580.681,
+      "content": "_V"
+    },
+    {
+      "timestamp_ms": 4599.231,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4628.698,
+      "content": "cdot"
+    },
+    {
+      "timestamp_ms": 4642.778,
+      "content": " z"
+    },
+    {
+      "timestamp_ms": 4660.836,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 4675.416,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4696.593,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4713.934,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4736.261,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 4752.463,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4790.226,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4790.353,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 4810.033,
+      "content": " W"
+    },
+    {
+      "timestamp_ms": 4828.221,
+      "content": "_Q"
+    },
+    {
+      "timestamp_ms": 4847.3,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4866.204,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 4885.437,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 4904.601,
+      "content": " W"
+    },
+    {
+      "timestamp_ms": 4923.188,
+      "content": "_K"
+    },
+    {
+      "timestamp_ms": 4943.227,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 4961.825,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 4980.665,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5004.751,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 5018.961,
+      "content": " W"
+    },
+    {
+      "timestamp_ms": 5038.93,
+      "content": "_V"
+    },
+    {
+      "timestamp_ms": 5058.356,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 5075.765,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5095.666,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5114.231,
+      "content": " learned"
+    },
+    {
+      "timestamp_ms": 5133.226,
+      "content": " weight"
+    },
+    {
+      "timestamp_ms": 5154.596,
+      "content": " matrices"
+    },
+    {
+      "timestamp_ms": 5173.848,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5191.349,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5215.838,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5228.839,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5247.779,
+      "content": "Scaled"
+    },
+    {
+      "timestamp_ms": 5266.755,
+      "content": " Dot"
+    },
+    {
+      "timestamp_ms": 5293.782,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5304.894,
+      "content": "Product"
+    },
+    {
+      "timestamp_ms": 5323.644,
+      "content": " Attention"
+    },
+    {
+      "timestamp_ms": 5342.656,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5361.844,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5380.695,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5400.24,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5420.606,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 5438.164,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5456.941,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 5475.938,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5495.257,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 5515.443,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5534.167,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 5557.722,
+      "content": " scores"
+    },
+    {
+      "timestamp_ms": 5571.658,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5591.466,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 5609.16,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5629.827,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 5647.719,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5668.998,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5687.654,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 5705.618,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5723.934,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5742.926,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5783.501,
+      "content": " done"
+    },
+    {
+      "timestamp_ms": 5783.501,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5817.143,
+      "content": " taking"
+    },
+    {
+      "timestamp_ms": 5819.092,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5839.171,
+      "content": " dot"
+    },
+    {
+      "timestamp_ms": 5857.533,
+      "content": " product"
+    },
+    {
+      "timestamp_ms": 5876.415,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5898.995,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5920.873,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 5937.043,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 5952.853,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5971.597,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 5990.668,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 6010.301,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6028.955,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6048.001,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6066.923,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 6087.28,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6105.236,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 6124.703,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 6178.402,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6178.402,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6184.163,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6200.715,
+      "content": " Scores"
+    },
+    {
+      "timestamp_ms": 6219.876,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6238.85,
+      "content": " scaled"
+    },
+    {
+      "timestamp_ms": 6257.775,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6276.693,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6296.008,
+      "content": " square"
+    },
+    {
+      "timestamp_ms": 6322.543,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 6338.555,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6354.996,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6373.608,
+      "content": " dimension"
+    },
+    {
+      "timestamp_ms": 6391.502,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6410.909,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6429.169,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6448.976,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 6468.833,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6486.815,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 6506.139,
+      "content": " extremely"
+    },
+    {
+      "timestamp_ms": 6524.627,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 6544.6,
+      "content": " gradients"
+    },
+    {
+      "timestamp_ms": 6568.894,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 6583.815,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 6604.691,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6619.887,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6641.69,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 6658.343,
+      "content": "[\n"
+    },
+    {
+      "timestamp_ms": 6681.483,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6718.752,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 6719.614,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 6749.681,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 6753.778,
+      "content": "score"
+    },
+    {
+      "timestamp_ms": 6772.485,
+      "content": "}("
+    },
+    {
+      "timestamp_ms": 6791.79,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 6811.938,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6830.515,
+      "content": " j"
+    },
+    {
+      "timestamp_ms": 6850.55,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6869.675,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6887.225,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 6906.403,
+      "content": "frac"
+    },
+    {
+      "timestamp_ms": 6925.459,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 6945.144,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 6965.864,
+      "content": "_i"
+    },
+    {
+      "timestamp_ms": 6982.678,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 7001.524,
+      "content": "cdot"
+    },
+    {
+      "timestamp_ms": 7022.033,
+      "content": " K"
+    },
+    {
+      "timestamp_ms": 7042.854,
+      "content": "_j"
+    },
+    {
+      "timestamp_ms": 7059.075,
+      "content": "^\\"
+    },
+    {
+      "timestamp_ms": 7078.749,
+      "content": "top"
+    },
+    {
+      "timestamp_ms": 7098.855,
+      "content": "}{"
+    },
+    {
+      "timestamp_ms": 7115.967,
+      "content": "\\"
+    },
+    {
+      "timestamp_ms": 7136.195,
+      "content": "sqrt"
+    },
+    {
+      "timestamp_ms": 7154.35,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 7174.834,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 7192.755,
+      "content": "_k"
+    },
+    {
+      "timestamp_ms": 7211.298,
+      "content": "}}\n"
+    },
+    {
+      "timestamp_ms": 7231.761,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 7255.179,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 7269.412,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 7287.77,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 7326.424,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7326.424,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7345.054,
+      "content": "Attention"
+    },
+    {
+      "timestamp_ms": 7367.48,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 7383.467,
+      "content": "ights"
+    },
+    {
+      "timestamp_ms": 7401.91,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7422.758,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7440.092,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7459.117,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7478.007,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7501.461,
+      "content": " raw"
+    },
+    {
+      "timestamp_ms": 7519.231,
+      "content": " scores"
+    },
+    {
+      "timestamp_ms": 7535.369,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7554.667,
+      "content": " passed"
+    },
+    {
+      "timestamp_ms": 7574.264,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 7593.026,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7611.445,
+      "content": " softmax"
+    },
+    {
+      "timestamp_ms": 7630.918,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 7650.836,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7669.054,
+      "content": " obtain"
+    },
+    {
+      "timestamp_ms": 7688.675,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7706.826,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 7726.235,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 7745.321,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7764.422,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7910.76,
+      "content": " represent"
+    },
+    {
+      "timestamp_ms": 7912.022,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7912.113,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 7912.156,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7912.193,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 7912.227,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 7912.258,
+      "content": " relative"
+    },
+    {
+      "timestamp_ms": 7916.756,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7936.866,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7955.298,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 7974.343,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7992.804,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8012.121,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8031.178,
+      "content": "[\n"
+    },
+    {
+      "timestamp_ms": 8050.647,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8069.722,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8088.659,
+      "content": "alpha"
+    },
+    {
+      "timestamp_ms": 8107.494,
+      "content": "_{"
+    },
+    {
+      "timestamp_ms": 8130.016,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 8151.5,
+      "content": ",j"
+    },
+    {
+      "timestamp_ms": 8164.756,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 8184.065,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8203.228,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8222.517,
+      "content": "frac"
+    },
+    {
+      "timestamp_ms": 8241.956,
+      "content": "{\\"
+    },
+    {
+      "timestamp_ms": 8261.577,
+      "content": "exp"
+    },
+    {
+      "timestamp_ms": 8279.66,
+      "content": "(\\"
+    },
+    {
+      "timestamp_ms": 8298.963,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 8318.502,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 8337.64,
+      "content": "score"
+    },
+    {
+      "timestamp_ms": 8356.401,
+      "content": "}("
+    },
+    {
+      "timestamp_ms": 8385.993,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 8484.708,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8484.708,
+      "content": " j"
+    },
+    {
+      "timestamp_ms": 8484.708,
+      "content": "))"
+    },
+    {
+      "timestamp_ms": 8484.708,
+      "content": "}{"
+    },
+    {
+      "timestamp_ms": 8484.708,
+      "content": "\\"
+    },
+    {
+      "timestamp_ms": 8489.75,
+      "content": "sum"
+    },
+    {
+      "timestamp_ms": 8516.915,
+      "content": "_{"
+    },
+    {
+      "timestamp_ms": 8527.901,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 8554.538,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 8566.57,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8588.401,
+      "content": "exp"
+    },
+    {
+      "timestamp_ms": 8603.589,
+      "content": "(\\"
+    },
+    {
+      "timestamp_ms": 8623.366,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 8642.163,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 8661.235,
+      "content": "score"
+    },
+    {
+      "timestamp_ms": 8679.968,
+      "content": "}("
+    },
+    {
+      "timestamp_ms": 8700.689,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 8718.296,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8737.463,
+      "content": " k"
+    },
+    {
+      "timestamp_ms": 8756.657,
+      "content": "))}\n"
+    },
+    {
+      "timestamp_ms": 8777.556,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8794.958,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 8814.357,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 8833.581,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 8851.393,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8871.546,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8890.572,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 8909.654,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8928.041,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8947.71,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8966.65,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8992.747,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 9003.914,
+      "content": " word"
+    },
+    {
+      "timestamp_ms": 9023.416,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9043.891,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 9068.039,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9082.22,
+      "content": " computed"
+    },
+    {
+      "timestamp_ms": 9099.639,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9118.959,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9138.369,
+      "content": " weighted"
+    },
+    {
+      "timestamp_ms": 9157.962,
+      "content": " sum"
+    },
+    {
+      "timestamp_ms": 9175.919,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9195.123,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9214.847,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 9233.273,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 9252.327,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9271.462,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 9290.872,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9309.486,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 9343.677,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 9349.947,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9368.876,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9386.657,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 9409.098,
+      "content": "[\n"
+    },
+    {
+      "timestamp_ms": 9423.954,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9475.996,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 9475.996,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 9486.265,
+      "content": "{"
+    },
+    {
+      "timestamp_ms": 9504.962,
+      "content": "Output"
+    },
+    {
+      "timestamp_ms": 9519.972,
+      "content": "}_"
+    },
+    {
+      "timestamp_ms": 9540.108,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 9558.852,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9595.472,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 9598.263,
+      "content": "sum"
+    },
+    {
+      "timestamp_ms": 9614.741,
+      "content": "_j"
+    },
+    {
+      "timestamp_ms": 9634.178,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 9653.101,
+      "content": "alpha"
+    },
+    {
+      "timestamp_ms": 9672.079,
+      "content": "_{"
+    },
+    {
+      "timestamp_ms": 9714.83,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 9714.932,
+      "content": ",j"
+    },
+    {
+      "timestamp_ms": 9729.165,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9748.666,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 9767.988,
+      "content": "cdot"
+    },
+    {
+      "timestamp_ms": 9791.597,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 9807.532,
+      "content": "_j"
+    },
+    {
+      "timestamp_ms": 9843.22,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9843.984,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9862.823,
+      "content": " \\"
+    },
+    {
+      "timestamp_ms": 9882.002,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 9901.36,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9924.846,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9940.293,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 9959.361,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 9978.114,
+      "content": " encaps"
+    },
+    {
+      "timestamp_ms": 9997.486,
+      "content": "ulates"
+    },
+    {
+      "timestamp_ms": 10016.704,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 10034.866,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 10054.861,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10089.406,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 10092.612,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 10124.893,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10124.893,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10124.893,
+      "type": "done"
+    }
+  ],
+  "full_response": "Attention mechanisms are a key component of transformer models, which were introduced in a 2017 paper titled \"Attention is All You Need\" by Vaswani et al. The attention mechanism allows transformers to weigh the significance of different words in a sentence, enabling them to process sequences more effectively and capture dependencies across words, regardless of their distance from each other in the input sequence. Here's how it works:\n\n### Self-Attention:\n\n1. **Input Representation**:\n   - For a given input sequence, each word is initially represented as an embedding. In a transformer, this is typically concatenated with positional encodings to preserve the order information.\n\n2. **Query, Key, and Value Vectors**:\n   - Each input embedding is projected into three vectors using linear layers: Query (Q), Key (K), and Value (V). For a word \\( x_i \\) with embedding \\( z_i \\), these vectors are calculated as:\n     \\[\n     Q_i = W_Q \\cdot z_i, \\quad K_i = W_K \\cdot z_i, \\quad V_i = W_V \\cdot z_i\n     \\]\n   - \\( W_Q \\), \\( W_K \\), and \\( W_V \\) are learned weight matrices.\n\n3. **Scaled Dot-Product Attention**:\n   - For each word, compute the attention scores with every other word in the sequence. This is done by taking the dot product of the query vector of one word with the key vector of another word.\n   - Scores are scaled by the square root of the dimension of the key vectors to avoid extremely small gradients during training.\n     \\[\n     \\text{score}(i, j) = \\frac{Q_i \\cdot K_j^\\top}{\\sqrt{d_k}}\n     \\]\n\n4. **Attention Weights**:\n   - The raw scores are passed through a softmax function to obtain the attention weights, which represent the importance of each word relative to the others.\n     \\[\n     \\alpha_{i,j} = \\frac{\\exp(\\text{score}(i, j))}{\\sum_{k} \\exp(\\text{score}(i, k))}\n     \\]\n\n5. **Output**:\n   - Each word's output is computed as a weighted sum of the value vectors, using the attention weights.\n     \\[\n     \\text{Output}_i = \\sum_j \\alpha_{i,j} \\cdot V_j\n     \\]\n   - This output encapsulates information about the entire sequence,",
+  "response_chars": 2074,
+  "num_chunks": 512,
+  "ttft_ms": 388.504,
+  "total_ms": 10125.34,
+  "model_name": "model-medium"
+}

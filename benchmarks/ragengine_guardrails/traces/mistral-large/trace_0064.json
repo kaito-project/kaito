@@ -1,0 +1,875 @@
+{
+  "index": 64,
+  "prompt": "Write a sample incident response report about a credential leak where API keys for payment processing, email services, and cloud infrastructure were exposed in a public GitHub repo.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 905.748,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": " **Incident Response"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": " Report:"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": " Cred"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "ential Le"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "ak in"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": " Public GitHub Repository"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "**\n\n**Inc"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "ident ID"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": ":** IR"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "-202"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "3-00"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "\n**Date of"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": " Incident:** ["
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": "Insert"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": " Date]\n**Date"
+    },
+    {
+      "timestamp_ms": 905.748,
+      "content": " of Detection"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": ":** [Insert"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " Date]\n**Report"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": ":** [Insert"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " Date]\n**Prepared"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " by:**"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " [Your"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " Name/"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": "Team]\n"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": "**Sever"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": "ity:** **"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": "Critical**"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " (High risk"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " of financial"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " fraud"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": ", data"
+    },
+    {
+      "timestamp_ms": 1387.727,
+      "content": " breach"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": ", and service"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " disruption)\n\n---\n\n##"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " **1. Executive"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " Summary**\nOn"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " **["
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": "Date of Detection"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": "]**, the"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " Operations"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " Center"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " (SOC"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": ") detected"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1823.195,
+      "content": " unauthorized exposure"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " of sensitive credentials"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " in a public"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " GitHub repository belonging"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " to **["
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": "Company Name]"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": "**. The leaked"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " credentials included:\n-"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " **Payment"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " Processing"
+    },
+    {
+      "timestamp_ms": 2252.806,
+      "content": " API Keys"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": "** (St"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": "ripe, Pay"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": "Pal, etc"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": ".)\n- **Email"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": " Service API"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": " Keys** (Send"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": "Grid, Mail"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": "chimp"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": ", etc"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": ".)\n- **Cloud"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": " Infrastructure Cred"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": "entials** (AWS"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": ", Azure"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": ", GCP)\n\n"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2625.453,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " was caused"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " by a"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " developer accidentally"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " committing"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " `.env` file"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " containing production"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " secrets to"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " a public repository"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": ". Im"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": "mediate containment"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 2993.666,
+      "content": " were taken"
+    },
+    {
+      "timestamp_ms": 3257.113,
+      "content": ", including key"
+    },
+    {
+      "timestamp_ms": 3257.113,
+      "content": " revocation, repository"
+    },
+    {
+      "timestamp_ms": 3257.113,
+      "content": " tak"
+    },
+    {
+      "timestamp_ms": 3257.113,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 3257.113,
+      "content": "own, and forensic"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": " analysis"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": ". No"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": " evidence"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": " of malicious exploitation"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": " found at"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": " the time of this"
+    },
+    {
+      "timestamp_ms": 3555.049,
+      "content": " report.\n\n**"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": "Impact:**\n"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": "- **Financial"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": " Risk:** Unauthorized"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": " payment"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": " processing could lead to"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": " fraudulent"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": " transactions.\n- **"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": "Oper"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": "ational Risk"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": ":** Cloud"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 4092.022,
+      "content": " compromise"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " could result"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " in data breaches"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " or service"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": "ages.\n- **"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": "Reputational Risk"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": ":** Loss"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " of customer"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " trust due to potential"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": " exposure.\n\n**"
+    },
+    {
+      "timestamp_ms": 4384.358,
+      "content": "Current Status:** **"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": "Contained** ("
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": "Credentials"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": " rev"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": "oked, repository"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": " secured"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": ", monitoring"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": " place)\n\n"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": "---\n\n## **2"
+    },
+    {
+      "timestamp_ms": 4756.215,
+      "content": ". Incident"
+    },
+    {
+      "timestamp_ms": 4929.707,
+      "content": " Timeline**\n\n|"
+    },
+    {
+      "timestamp_ms": 4929.707,
+      "content": " **Time"
+    },
+    {
+      "timestamp_ms": 4929.707,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4929.707,
+      "content": "UTC)**      "
+    },
+    {
+      "timestamp_ms": 4929.707,
+      "content": " | **Event"
+    },
+    {
+      "timestamp_ms": 4929.707,
+      "content": "** |\n"
+    },
+    {
+      "timestamp_ms": 4929.707,
+      "content": "|--------------------"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "--|--------"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "---|\n| **["
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "Date]"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": ":30**"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "     | Developer"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " commits"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "env` file to"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " GitHub repo"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " (acc"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "idental)."
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " |\n| **[Date"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "] 1"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "5:4"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": "5**     |"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " GitHub Secret"
+    },
+    {
+      "timestamp_ms": 5593.436,
+      "content": " Sc"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": "anning alerts"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " SOC"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " keys. |\n|"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " **[Date] "
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": "16:0"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": "0**     |"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " SOC"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " confirms"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " incident"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " initiates"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": ". |\n| **["
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": "Date] 1"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": "6:15"
+    },
+    {
+      "timestamp_ms": 6289.347,
+      "content": "**     | Repository"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " private;"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": "Hub support"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " contacted"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " for tak"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": "edown"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": ". |\n| **["
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": "Date] 1"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": "6:30"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": "**     | All"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " API keys rev"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": "oked and"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": " rotated"
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": ". |\n| **["
+    },
+    {
+      "timestamp_ms": 6833.616,
+      "content": "Date] 1"
+    },
+    {
+      "timestamp_ms": 6906.029,
+      "content": "7:0"
+    },
+    {
+      "timestamp_ms": 6906.029,
+      "content": "0**     |"
+    },
+    {
+      "timestamp_ms": 6906.029,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": " provider"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": "AWS/A"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": "zure/G"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": "CP) notified"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": " for additional"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": ". |\n| **["
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": "Date] 1"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "content": "8:30"
+    },
+    {
+      "timestamp_ms": 7338.982,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7443.624,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **Incident Response Report: Credential Leak in Public GitHub Repository**\n\n**Incident ID:** IR-2023-0045\n**Date of Incident:** [Insert Date]\n**Date of Detection:** [Insert Date]\n**Report Date:** [Insert Date]\n**Prepared by:** [Your Name/Team]\n**Severity:** **Critical** (High risk of financial fraud, data breach, and service disruption)\n\n---\n\n## **1. Executive Summary**\nOn **[Date of Detection]**, the Security Operations Center (SOC) detected an unauthorized exposure of sensitive credentials in a public GitHub repository belonging to **[Company Name]**. The leaked credentials included:\n- **Payment Processing API Keys** (Stripe, PayPal, etc.)\n- **Email Service API Keys** (SendGrid, Mailchimp, etc.)\n- **Cloud Infrastructure Credentials** (AWS, Azure, GCP)\n\nThe exposure was caused by a developer accidentally committing a `.env` file containing production secrets to a public repository. Immediate containment actions were taken, including key revocation, repository takedown, and forensic analysis. No evidence of malicious exploitation was found at the time of this report.\n\n**Impact:**\n- **Financial Risk:** Unauthorized payment processing could lead to fraudulent transactions.\n- **Operational Risk:** Cloud infrastructure compromise could result in data breaches or service outages.\n- **Reputational Risk:** Loss of customer trust due to potential data exposure.\n\n**Current Status:** **Contained** (Credentials revoked, repository secured, monitoring in place)\n\n---\n\n## **2. Incident Timeline**\n\n| **Time (UTC)**       | **Event** |\n|----------------------|-----------|\n| **[Date] 14:30**     | Developer commits `.env` file to public GitHub repo (accidental). |\n| **[Date] 15:45**     | GitHub Secret Scanning alerts SOC to exposed API keys. |\n| **[Date] 16:00**     | SOC confirms incident, initiates response protocol. |\n| **[Date] 16:15**     | Repository made private; GitHub support contacted for takedown. |\n| **[Date] 16:30**     | All exposed API keys revoked and rotated. |\n| **[Date] 17:00**     | Cloud provider (AWS/Azure/GCP) notified for additional monitoring. |\n| **[Date] 18:30",
+  "response_chars": 2108,
+  "num_chunks": 213,
+  "ttft_ms": 905.748,
+  "total_ms": 7526.488,
+  "model_name": "Mistral-Large-3"
+}

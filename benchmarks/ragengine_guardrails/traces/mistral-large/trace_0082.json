@@ -1,0 +1,827 @@
+{
+  "index": 82,
+  "prompt": "What is the difference between supervised, unsupervised, and reinforcement learning?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 787.345,
+      "content": "Super"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": "vised,"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " unsupervised,"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " and reinforcement learning are"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " three fundamental"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " paradigms in machine learning"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": ", each"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " with distinct approaches"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 787.345,
+      "content": " cases. Here’s"
+    },
+    {
+      "timestamp_ms": 1187.203,
+      "content": " a breakdown of their"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": " differences:\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": " **1. Super"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": "vised Learning**\n**"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": "Definition:**\n- The"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": " model is"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": " trained on"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": " a **l"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": "abeled dataset**,"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": " where each"
+    },
+    {
+      "timestamp_ms": 1187.331,
+      "content": " input ("
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": "feature"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": ") is"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": " paired with the"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": " correct output (label"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": "). The"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": " goal is to learn"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": " a mapping"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": " from inputs"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": " to outputs"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": ".\n\n**Key Characteristics"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": ":**\n- **L"
+    },
+    {
+      "timestamp_ms": 1610.597,
+      "content": "abeled Data:**"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " Requ"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": "ires pre"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": "-labeled"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " data (e.g"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": "., images"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " as \"cat\""
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " or \"dog\").\n"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": "- **Goal"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": ":** Predict the"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " output for new"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " unseen inputs ("
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": "re"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": "gression or"
+    },
+    {
+      "timestamp_ms": 2163.427,
+      "content": " classification).\n"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": "- **Feedback"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": ":** Direct"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " feedback"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " training (e.g"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": "., \"this"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " prediction"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": " correct/"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": "incorrect\").\n"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": "- **Examples"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": ":**\n  - **"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": "Classification:** Sp"
+    },
+    {
+      "timestamp_ms": 2679.207,
+      "content": "am detection"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " (email"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " →"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " spam/"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": "ham"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " recognition (image"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " → object"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": "Regression:** House"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " price prediction (features"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " → price"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": "), stock"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 3194.77,
+      "content": " forecasting.\n\n**Al"
+    },
+    {
+      "timestamp_ms": 3302.919,
+      "content": "gorithms:**\n- Linear"
+    },
+    {
+      "timestamp_ms": 3302.919,
+      "content": " Regression, Logistic Regression"
+    },
+    {
+      "timestamp_ms": 3302.919,
+      "content": ", Decision"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": " Trees, Random"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": " Forest"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": ", Support"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": " Vector Machines"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": " (SVM),"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": " Neural Networks.\n\n**"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": "Pro"
+    },
+    {
+      "timestamp_ms": 3551.014,
+      "content": "s:**\n- High"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " accuracy when"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " data is abundant"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": ".\n- Clear"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " evaluation"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " metrics (e.g"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": "., accuracy, precision"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " recall).\n\n**Cons"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": ":**\n- Requires"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 3971.368,
+      "content": " of labeled data ("
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": "exp"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": "ensive/time"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": "-consuming"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": " obtain"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": ").\n- Str"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": "uggles with"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": " where labels"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": " are ambiguous"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": " or unavailable"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": "2. Un"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": "supervised Learning**\n"
+    },
+    {
+      "timestamp_ms": 4459.39,
+      "content": "**Definition:**\n-"
+    },
+    {
+      "timestamp_ms": 4705.771,
+      "content": " The model is"
+    },
+    {
+      "timestamp_ms": 4705.771,
+      "content": " trained on an"
+    },
+    {
+      "timestamp_ms": 4705.771,
+      "content": " **unlabeled"
+    },
+    {
+      "timestamp_ms": 4705.771,
+      "content": " dataset**,"
+    },
+    {
+      "timestamp_ms": 4705.771,
+      "content": " where the goal"
+    },
+    {
+      "timestamp_ms": 4705.771,
+      "content": " is to find hidden"
+    },
+    {
+      "timestamp_ms": 4705.771,
+      "content": " patterns or intrinsic"
+    },
+    {
+      "timestamp_ms": 4779.168,
+      "content": " structures in"
+    },
+    {
+      "timestamp_ms": 4779.168,
+      "content": " the data without explicit"
+    },
+    {
+      "timestamp_ms": 4779.168,
+      "content": " guidance.\n\n**Key"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " Characteristics:**\n- **"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": "Unlabeled Data"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": ":** No predefined"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " labels;"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " model explores"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " the data autonom"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": "ously.\n- **"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": "Goal:** Discover"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " underlying"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5200.333,
+      "content": "e.g., clustering"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": ", dimensional"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": "ity reduction"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": ", anomaly"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": " detection).\n- **"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": "Feedback:** No explicit"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": " feedback; the"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": " model inf"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": "ers patterns.\n"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": "- **Examples:**\n"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": "  - **Cl"
+    },
+    {
+      "timestamp_ms": 5857.837,
+      "content": "ustering:** Customer"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": " segmentation ("
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": "group"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": " similar"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": " customers), document"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": " clustering.\n  -"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": " **D"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": "imensionality Reduction"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": ":** PCA"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6106.511,
+      "content": " feature extraction,"
+    },
+    {
+      "timestamp_ms": 6239.648,
+      "content": " t"
+    },
+    {
+      "timestamp_ms": 6239.648,
+      "content": "-SNE"
+    },
+    {
+      "timestamp_ms": 6239.648,
+      "content": " for visualization"
+    },
+    {
+      "timestamp_ms": 6239.648,
+      "content": ".\n  - **"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": "Anomaly Detection"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": ":** Fra"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": "ud detection (ident"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": "ify unusual"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": " transactions).\n"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": "  - **Association"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": " Market"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": " basket analysis"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": " \"people"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": " who buy X"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": " also buy Y"
+    },
+    {
+      "timestamp_ms": 6843.096,
+      "content": "\").\n\n**Al"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": "gorithms:**\n- K"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": "-Means,"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": " Hier"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": "archical Clustering,"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": " DBSCAN"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": ", Principal"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": " Component Analysis"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": " (PCA),"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": " Auto"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": "encoders"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": ", Ap"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": "riori"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": "for association"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": " rules).\n\n**Pro"
+    },
+    {
+      "timestamp_ms": 7513.573,
+      "content": "s:**\n- Works"
+    },
+    {
+      "timestamp_ms": 7590.766,
+      "content": " with unl"
+    },
+    {
+      "timestamp_ms": 7590.766,
+      "content": "abeled data ("
+    },
+    {
+      "timestamp_ms": 7590.766,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7706.147,
+      "type": "done"
+    }
+  ],
+  "full_response": "Supervised, unsupervised, and reinforcement learning are three fundamental paradigms in machine learning, each with distinct approaches and use cases. Here’s a breakdown of their differences:\n\n---\n\n### **1. Supervised Learning**\n**Definition:**\n- The model is trained on a **labeled dataset**, where each input (feature) is paired with the correct output (label). The goal is to learn a mapping from inputs to outputs.\n\n**Key Characteristics:**\n- **Labeled Data:** Requires pre-labeled data (e.g., images labeled as \"cat\" or \"dog\").\n- **Goal:** Predict the output for new, unseen inputs (regression or classification).\n- **Feedback:** Direct feedback is given during training (e.g., \"this prediction is correct/incorrect\").\n- **Examples:**\n  - **Classification:** Spam detection (email → spam/ham), image recognition (image → object class).\n  - **Regression:** House price prediction (features → price), stock market forecasting.\n\n**Algorithms:**\n- Linear Regression, Logistic Regression, Decision Trees, Random Forest, Support Vector Machines (SVM), Neural Networks.\n\n**Pros:**\n- High accuracy when labeled data is abundant.\n- Clear evaluation metrics (e.g., accuracy, precision, recall).\n\n**Cons:**\n- Requires large amounts of labeled data (expensive/time-consuming to obtain).\n- Struggles with tasks where labels are ambiguous or unavailable.\n\n---\n\n### **2. Unsupervised Learning**\n**Definition:**\n- The model is trained on an **unlabeled dataset**, where the goal is to find hidden patterns or intrinsic structures in the data without explicit guidance.\n\n**Key Characteristics:**\n- **Unlabeled Data:** No predefined labels; the model explores the data autonomously.\n- **Goal:** Discover underlying structure (e.g., clustering, dimensionality reduction, anomaly detection).\n- **Feedback:** No explicit feedback; the model infers patterns.\n- **Examples:**\n  - **Clustering:** Customer segmentation (group similar customers), document clustering.\n  - **Dimensionality Reduction:** PCA for feature extraction, t-SNE for visualization.\n  - **Anomaly Detection:** Fraud detection (identify unusual transactions).\n  - **Association:** Market basket analysis (e.g., \"people who buy X also buy Y\").\n\n**Algorithms:**\n- K-Means, Hierarchical Clustering, DBSCAN, Principal Component Analysis (PCA), Autoencoders, Apriori (for association rules).\n\n**Pros:**\n- Works with unlabeled data (",
+  "response_chars": 2378,
+  "num_chunks": 201,
+  "ttft_ms": 787.345,
+  "total_ms": 7706.532,
+  "model_name": "Mistral-Large-3"
+}

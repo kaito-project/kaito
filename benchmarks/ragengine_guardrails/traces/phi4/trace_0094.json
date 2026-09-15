@@ -1,0 +1,2071 @@
+{
+  "index": 94,
+  "prompt": "What are the main challenges of training large language models?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 245.124,
+      "content": "Training"
+    },
+    {
+      "timestamp_ms": 260.352,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 278.865,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 297.768,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 316.12,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 335.558,
+      "content": "LL"
+    },
+    {
+      "timestamp_ms": 354.622,
+      "content": "Ms"
+    },
+    {
+      "timestamp_ms": 373.47,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 430.049,
+      "content": " presents"
+    },
+    {
+      "timestamp_ms": 430.049,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 432.398,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 449.641,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 487.664,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 487.664,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 506.988,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 525.496,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 544.365,
+      "content": " broadly"
+    },
+    {
+      "timestamp_ms": 563.35,
+      "content": " categorized"
+    },
+    {
+      "timestamp_ms": 582.563,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 602.101,
+      "content": " technical"
+    },
+    {
+      "timestamp_ms": 620.9,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 639.867,
+      "content": " environmental"
+    },
+    {
+      "timestamp_ms": 658.573,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 677.853,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 696.927,
+      "content": " societal"
+    },
+    {
+      "timestamp_ms": 716.249,
+      "content": " aspects"
+    },
+    {
+      "timestamp_ms": 736.686,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 754.73,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 773.605,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 794.247,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 811.23,
+      "content": "Comput"
+    },
+    {
+      "timestamp_ms": 830.276,
+      "content": "ational"
+    },
+    {
+      "timestamp_ms": 850.942,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 887.644,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 887.871,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 912.389,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 926.0,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 957.623,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 963.675,
+      "content": "High"
+    },
+    {
+      "timestamp_ms": 1010.229,
+      "content": " Computational"
+    },
+    {
+      "timestamp_ms": 1010.229,
+      "content": " Cost"
+    },
+    {
+      "timestamp_ms": 1020.919,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1040.373,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 1058.559,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 1078.236,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 1097.08,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 1116.221,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 1135.222,
+      "content": " substantial"
+    },
+    {
+      "timestamp_ms": 1214.5,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1214.5,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 1214.5,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1214.5,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1230.866,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 1250.198,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 1268.56,
+      "content": " involve"
+    },
+    {
+      "timestamp_ms": 1287.833,
+      "content": " billions"
+    },
+    {
+      "timestamp_ms": 1306.374,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1325.277,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 1345.597,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1363.677,
+      "content": " necess"
+    },
+    {
+      "timestamp_ms": 1382.87,
+      "content": "itating"
+    },
+    {
+      "timestamp_ms": 1401.533,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 1426.696,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 1440.323,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1459.341,
+      "content": " GPUs"
+    },
+    {
+      "timestamp_ms": 1478.136,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1496.993,
+      "content": " TP"
+    },
+    {
+      "timestamp_ms": 1516.243,
+      "content": "Us"
+    },
+    {
+      "timestamp_ms": 1535.705,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1553.957,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 1573.15,
+      "content": " computations"
+    },
+    {
+      "timestamp_ms": 1592.886,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 1611.967,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1631.113,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1649.47,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1668.785,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1689.024,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 1706.618,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 1728.932,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 1744.399,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1763.517,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 1782.599,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 1801.842,
+      "content": " grow"
+    },
+    {
+      "timestamp_ms": 1820.668,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1842.347,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 1859.483,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1879.372,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 1897.217,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 1917.479,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 1935.218,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1958.207,
+      "content": " inference"
+    },
+    {
+      "timestamp_ms": 1973.078,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 1995.939,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 2026.66,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 2030.34,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 2049.395,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2068.754,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 2087.536,
+      "content": " sophisticated"
+    },
+    {
+      "timestamp_ms": 2107.344,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 2126.958,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 2144.584,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 2163.585,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2182.989,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2202.04,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2222.518,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2240.304,
+      "content": "Energy"
+    },
+    {
+      "timestamp_ms": 2259.787,
+      "content": " Consumption"
+    },
+    {
+      "timestamp_ms": 2278.66,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2297.579,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2316.929,
+      "content": " extensive"
+    },
+    {
+      "timestamp_ms": 2336.601,
+      "content": " computations"
+    },
+    {
+      "timestamp_ms": 2354.342,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 2373.405,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2392.544,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 2411.742,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 2430.612,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 2449.516,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 2468.6,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 2487.828,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2506.992,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 2526.298,
+      "content": " energy"
+    },
+    {
+      "timestamp_ms": 2545.16,
+      "content": " consumption"
+    },
+    {
+      "timestamp_ms": 2563.781,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2583.02,
+      "content": " raising"
+    },
+    {
+      "timestamp_ms": 2601.973,
+      "content": " concerns"
+    },
+    {
+      "timestamp_ms": 2621.478,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 2640.187,
+      "content": " sustainability"
+    },
+    {
+      "timestamp_ms": 2659.105,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2681.782,
+      "content": " operational"
+    },
+    {
+      "timestamp_ms": 2697.91,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 2717.227,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2735.325,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2754.189,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2773.462,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2792.725,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 2811.192,
+      "content": " Challenges"
+    },
+    {
+      "timestamp_ms": 2830.499,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2849.605,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2868.451,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2891.53,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2906.626,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2925.386,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 2944.417,
+      "content": " Quantity"
+    },
+    {
+      "timestamp_ms": 2963.715,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2982.734,
+      "content": " Quality"
+    },
+    {
+      "timestamp_ms": 3001.613,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3022.029,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 3040.432,
+      "content": " effective"
+    },
+    {
+      "timestamp_ms": 3058.914,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 3080.016,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 3097.193,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 3116.161,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 3135.285,
+      "content": " vast"
+    },
+    {
+      "timestamp_ms": 3154.283,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 3174.034,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3192.354,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 3211.59,
+      "content": "-quality"
+    },
+    {
+      "timestamp_ms": 3230.235,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3249.541,
+      "content": " diverse"
+    },
+    {
+      "timestamp_ms": 3271.195,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3300.064,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3307.602,
+      "content": " Ac"
+    },
+    {
+      "timestamp_ms": 3326.183,
+      "content": "quiring"
+    },
+    {
+      "timestamp_ms": 3344.984,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3364.216,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 3384.315,
+      "content": " poses"
+    },
+    {
+      "timestamp_ms": 3402.238,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 3421.067,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3440.293,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 3460.37,
+      "content": " obtaining"
+    },
+    {
+      "timestamp_ms": 3478.61,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 3497.209,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3516.551,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 3536.266,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3554.295,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 3573.663,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3594.088,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3613.344,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3631.196,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3649.977,
+      "content": "Bias"
+    },
+    {
+      "timestamp_ms": 3668.744,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3687.711,
+      "content": " Fair"
+    },
+    {
+      "timestamp_ms": 3707.107,
+      "content": "ness"
+    },
+    {
+      "timestamp_ms": 3725.826,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3745.048,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 3763.857,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3783.19,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3802.206,
+      "content": " contain"
+    },
+    {
+      "timestamp_ms": 3821.01,
+      "content": " biases"
+    },
+    {
+      "timestamp_ms": 3840.369,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3859.239,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3878.368,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3897.504,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 3916.92,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 3943.513,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3954.725,
+      "content": " replicate"
+    },
+    {
+      "timestamp_ms": 3974.016,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3992.9,
+      "content": " leading"
+    },
+    {
+      "timestamp_ms": 4011.545,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4030.632,
+      "content": " biased"
+    },
+    {
+      "timestamp_ms": 4049.772,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 4068.849,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4089.038,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4106.955,
+      "content": " perpet"
+    },
+    {
+      "timestamp_ms": 4126.371,
+      "content": "uate"
+    },
+    {
+      "timestamp_ms": 4145.022,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4164.258,
+      "content": " amplify"
+    },
+    {
+      "timestamp_ms": 4184.178,
+      "content": " societal"
+    },
+    {
+      "timestamp_ms": 4202.952,
+      "content": " inequalities"
+    },
+    {
+      "timestamp_ms": 4221.233,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4240.483,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4259.577,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4278.929,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4299.014,
+      "content": "Complex"
+    },
+    {
+      "timestamp_ms": 4316.636,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 4335.68,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4355.051,
+      "content": " Model"
+    },
+    {
+      "timestamp_ms": 4373.627,
+      "content": " Design"
+    },
+    {
+      "timestamp_ms": 4392.927,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4433.265,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4433.265,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4450.572,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4469.254,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4488.215,
+      "content": "Arch"
+    },
+    {
+      "timestamp_ms": 4507.587,
+      "content": "itect"
+    },
+    {
+      "timestamp_ms": 4526.359,
+      "content": "ural"
+    },
+    {
+      "timestamp_ms": 4545.657,
+      "content": " Complexity"
+    },
+    {
+      "timestamp_ms": 4564.644,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4584.163,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 4610.802,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 4624.54,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 4641.045,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4660.819,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 4679.118,
+      "content": " architectures"
+    },
+    {
+      "timestamp_ms": 4698.156,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4717.695,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 4736.612,
+      "content": " expertise"
+    },
+    {
+      "timestamp_ms": 4755.281,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4775.378,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 4794.221,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4812.753,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 4831.57,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 4850.384,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4870.737,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4891.32,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4907.754,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4927.198,
+      "content": "Hyper"
+    },
+    {
+      "timestamp_ms": 4945.82,
+      "content": "parameter"
+    },
+    {
+      "timestamp_ms": 4964.648,
+      "content": " Tun"
+    },
+    {
+      "timestamp_ms": 4983.898,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 5003.206,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5022.514,
+      "content": " Finding"
+    },
+    {
+      "timestamp_ms": 5040.941,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5059.965,
+      "content": " optimal"
+    },
+    {
+      "timestamp_ms": 5078.908,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 5098.938,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5118.33,
+      "content": " hyper"
+    },
+    {
+      "timestamp_ms": 5136.0,
+      "content": "parameters"
+    },
+    {
+      "timestamp_ms": 5170.819,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 5185.15,
+      "content": " extensive"
+    },
+    {
+      "timestamp_ms": 5193.823,
+      "content": " experimentation"
+    },
+    {
+      "timestamp_ms": 5227.815,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5232.347,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 5250.679,
+      "content": " involving"
+    },
+    {
+      "timestamp_ms": 5269.724,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 5288.843,
+      "content": " computational"
+    },
+    {
+      "timestamp_ms": 5307.622,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 5326.981,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5345.803,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5364.9,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5384.29,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5403.013,
+      "content": "Communication"
+    },
+    {
+      "timestamp_ms": 5422.11,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5507.567,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 5507.567,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5507.567,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5507.567,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5517.183,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5536.988,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5555.614,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 5575.877,
+      "content": " Transfer"
+    },
+    {
+      "timestamp_ms": 5593.816,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5612.809,
+      "content": " Moving"
+    },
+    {
+      "timestamp_ms": 5632.446,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 5652.045,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 5670.088,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5690.18,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 5708.093,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 5728.239,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 5776.35,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 5776.35,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5784.369,
+      "content": " compute"
+    },
+    {
+      "timestamp_ms": 5824.047,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 5824.047,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5841.226,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5860.497,
+      "content": " bandwidth"
+    },
+    {
+      "timestamp_ms": 5879.468,
+      "content": "-intensive"
+    },
+    {
+      "timestamp_ms": 5899.02,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5917.519,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5937.331,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5956.487,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5975.617,
+      "content": "Model"
+    },
+    {
+      "timestamp_ms": 5993.703,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 6012.953,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6031.676,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 6051.391,
+      "content": "oring"
+    },
+    {
+      "timestamp_ms": 6070.632,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 6090.966,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 6108.225,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6127.017,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6146.317,
+      "content": " checkpoints"
+    },
+    {
+      "timestamp_ms": 6165.33,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 6184.412,
+      "content": " substantial"
+    },
+    {
+      "timestamp_ms": 6204.019,
+      "content": " disk"
+    },
+    {
+      "timestamp_ms": 6224.106,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 6241.538,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6261.899,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6396.47,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6396.65,
+      "content": " increase"
+    },
+    {
+      "timestamp_ms": 6396.73,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 6396.792,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6396.845,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 6396.925,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 6397.005,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6416.141,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6432.788,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6451.197,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6470.637,
+      "content": "Rob"
+    },
+    {
+      "timestamp_ms": 6489.671,
+      "content": "ust"
+    },
+    {
+      "timestamp_ms": 6508.364,
+      "content": "ness"
+    },
+    {
+      "timestamp_ms": 6527.911,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6546.838,
+      "content": " General"
+    },
+    {
+      "timestamp_ms": 6565.876,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 6585.681,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6604.376,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6622.944,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6642.131,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6661.644,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6680.691,
+      "content": "Over"
+    },
+    {
+      "timestamp_ms": 6699.691,
+      "content": "fit"
+    },
+    {
+      "timestamp_ms": 6718.165,
+      "content": "ting"
+    },
+    {
+      "timestamp_ms": 6737.241,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6757.14,
+      "content": " Large"
+    },
+    {
+      "timestamp_ms": 6775.59,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 6795.162,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6814.177,
+      "content": " prone"
+    },
+    {
+      "timestamp_ms": 6834.085,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6852.921,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 6871.579,
+      "content": "fit"
+    },
+    {
+      "timestamp_ms": 6890.112,
+      "content": "ting"
+    },
+    {
+      "timestamp_ms": 6909.695,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6928.158,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 6947.865,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6966.786,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 6986.458,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 7004.675,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7024.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7044.795,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 7061.366,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7080.912,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7099.908,
+      "content": " poorly"
+    },
+    {
+      "timestamp_ms": 7118.937,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7138.502,
+      "content": " unseen"
+    },
+    {
+      "timestamp_ms": 7156.965,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7176.318,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7195.775,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7214.678,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7233.235,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7252.8,
+      "content": "General"
+    },
+    {
+      "timestamp_ms": 7272.088,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 7290.487,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7310.643,
+      "content": " Ens"
+    },
+    {
+      "timestamp_ms": 7329.631,
+      "content": "uring"
+    },
+    {
+      "timestamp_ms": 7347.792,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7366.649,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7385.941,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 7404.768,
+      "content": " general"
+    },
+    {
+      "timestamp_ms": 7423.855,
+      "content": "izes"
+    },
+    {
+      "timestamp_ms": 7442.907,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 7462.612,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7480.83,
+      "content": " diverse"
+    },
+    {
+      "timestamp_ms": 7500.154,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 7518.907,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7538.058,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 7571.63,
+      "content": "-world"
+    },
+    {
+      "timestamp_ms": 7576.511,
+      "content": " scenarios"
+    },
+    {
+      "timestamp_ms": 7595.537,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7616.339,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 7633.412,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7653.343,
+      "content": " challenging"
+    },
+    {
+      "timestamp_ms": 7671.459,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7690.938,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7709.79,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7729.431,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7747.758,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 7766.723,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7786.658,
+      "content": " Privacy"
+    },
+    {
+      "timestamp_ms": 7805.022,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7824.247,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7843.0,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7862.499,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7881.076,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7900.8,
+      "content": "Data"
+    },
+    {
+      "timestamp_ms": 7924.076,
+      "content": " Privacy"
+    },
+    {
+      "timestamp_ms": 7942.864,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7957.819,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 7977.189,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7996.718,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 8015.486,
+      "content": " datasets"
+    },
+    {
+      "timestamp_ms": 8033.346,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8053.026,
+      "content": " raise"
+    },
+    {
+      "timestamp_ms": 8072.058,
+      "content": " privacy"
+    },
+    {
+      "timestamp_ms": 8091.598,
+      "content": " concerns"
+    },
+    {
+      "timestamp_ms": 8109.906,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8129.298,
+      "content": " particularly"
+    },
+    {
+      "timestamp_ms": 8148.01,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8168.364,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8186.413,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8206.07,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 8224.592,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 8250.175,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8263.393,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8281.773,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8301.09,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8320.507,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8338.809,
+      "content": "Model"
+    },
+    {
+      "timestamp_ms": 8358.45,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 8377.525,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8396.553,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 8416.142,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 8438.204,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8453.374,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8472.799,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 8494.716,
+      "content": " exploited"
+    },
+    {
+      "timestamp_ms": 8511.935,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8529.977,
+      "content": " malicious"
+    },
+    {
+      "timestamp_ms": 8549.104,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 8567.639,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8586.835,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 8605.645,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8624.741,
+      "content": " generating"
+    },
+    {
+      "timestamp_ms": 8644.117,
+      "content": " misleading"
+    },
+    {
+      "timestamp_ms": 8662.966,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8682.314,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8702.623,
+      "content": " engaging"
+    },
+    {
+      "timestamp_ms": 8720.644,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8739.592,
+      "content": " harmful"
+    },
+    {
+      "timestamp_ms": 8758.456,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 8777.87,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8797.857,
+      "content": " necess"
+    },
+    {
+      "timestamp_ms": 8816.592,
+      "content": "itating"
+    },
+    {
+      "timestamp_ms": 8834.827,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 8854.282,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8873.376,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 8904.69,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8912.728,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 8930.001,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8949.444,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8968.396,
+      "content": "Eth"
+    },
+    {
+      "timestamp_ms": 8987.596,
+      "content": "ical"
+    },
+    {
+      "timestamp_ms": 9006.509,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9025.735,
+      "content": " Soci"
+    },
+    {
+      "timestamp_ms": 9044.919,
+      "content": "etal"
+    },
+    {
+      "timestamp_ms": 9063.964,
+      "content": " Impact"
+    },
+    {
+      "timestamp_ms": 9082.809,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9101.975,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9120.842,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9140.37,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9159.321,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9178.152,
+      "content": "Bias"
+    },
+    {
+      "timestamp_ms": 9197.424,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9216.031,
+      "content": " Discrim"
+    },
+    {
+      "timestamp_ms": 9235.525,
+      "content": "ination"
+    },
+    {
+      "timestamp_ms": 9254.462,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9273.643,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 9292.595,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 9311.715,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9331.663,
+      "content": " mitig"
+    },
+    {
+      "timestamp_ms": 9349.797,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 9368.517,
+      "content": " biases"
+    },
+    {
+      "timestamp_ms": 9388.179,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9417.04,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 9426.244,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 9445.347,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9464.908,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 9483.587,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9502.355,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 9528.885,
+      "content": " discrimination"
+    },
+    {
+      "timestamp_ms": 9540.693,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9559.882,
+      "content": " promote"
+    },
+    {
+      "timestamp_ms": 9703.985,
+      "content": " fairness"
+    },
+    {
+      "timestamp_ms": 9703.985,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9703.985,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9703.985,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9703.985,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9703.985,
+      "content": "Mis"
+    },
+    {
+      "timestamp_ms": 9703.985,
+      "content": "information"
+    },
+    {
+      "timestamp_ms": 9712.437,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9731.468,
+      "content": " There"
+    },
+    {
+      "timestamp_ms": 9750.484,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9773.874,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9792.311,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 9808.069,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9826.581,
+      "content": " L"
+    },
+    {
+      "timestamp_ms": 9845.762,
+      "content": "LM"
+    },
+    {
+      "timestamp_ms": 9866.21,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 9885.882,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9905.103,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9968.121,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9968.121,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9968.121,
+      "content": " generate"
+    },
+    {
+      "timestamp_ms": 9980.556,
+      "content": " misleading"
+    },
+    {
+      "timestamp_ms": 9980.556,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9980.556,
+      "type": "done"
+    }
+  ],
+  "full_response": "Training large language models (LLMs) presents several significant challenges, which can be broadly categorized into technical, environmental, and societal aspects:\n\n1. **Computational Resources**:\n   - **High Computational Cost**: Training LLMs requires substantial computing power. The models often involve billions of parameters, necessitating advanced hardware like GPUs or TPUs to handle computations efficiently.\n   - **Scalability**: As models grow in size, scaling up training and inference operations becomes more complex, requiring sophisticated parallelization techniques.\n   - **Energy Consumption**: The extensive computations required for training LLMs lead to high energy consumption, raising concerns about sustainability and operational costs.\n\n2. **Data Challenges**:\n   - **Data Quantity and Quality**: Training effective LLMs requires vast amounts of high-quality, diverse data. Acquiring such datasets poses challenges, including obtaining permissions and ensuring data integrity.\n   - **Bias and Fairness**: Training data can contain biases that the model may learn and replicate, leading to biased outputs that can perpetuate or amplify societal inequalities.\n\n3. **Complexity of Model Design**:\n   - **Architectural Complexity**: LLMs have complex architectures that require expertise to design and implement effectively.\n   - **Hyperparameter Tuning**: Finding the optimal set of hyperparameters requires extensive experimentation, often involving significant computational resources.\n\n4. **Communication and Storage**:\n   - **Data Transfer**: Moving large datasets and model parameters between storage and compute resources can be bandwidth-intensive.\n   - **Model Storage**: Storing large models and their checkpoints requires substantial disk space, which can increase costs and management complexity.\n\n5. **Robustness and Generalization**:\n   - **Overfitting**: Large models are prone to overfitting, where they perform well on the training data but poorly on unseen data.\n   - **Generalization**: Ensuring that the model generalizes well across diverse tasks and real-world scenarios is critical but challenging.\n\n6. **Security and Privacy**:\n   - **Data Privacy**: Training on large datasets can raise privacy concerns, particularly if the data includes sensitive information.\n   - **Model Security**: LLMs can be exploited for malicious purposes, such as generating misleading information or engaging in harmful behavior, necessitating robust security measures.\n\n7. **Ethical and Societal Impact**:\n   - **Bias and Discrimination**: Addressing and mitigating biases in model outputs is crucial to prevent discrimination and promote fairness.\n   - **Misinformation**: There is a risk that LLMs can be used to generate misleading",
+  "response_chars": 2759,
+  "num_chunks": 512,
+  "ttft_ms": 245.124,
+  "total_ms": 9983.988,
+  "model_name": "model-medium"
+}

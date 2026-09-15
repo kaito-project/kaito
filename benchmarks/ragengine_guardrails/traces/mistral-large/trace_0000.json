@@ -1,0 +1,735 @@
+{
+  "index": 0,
+  "prompt": "What are the SOLID principles in software engineering?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1499.972,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " **SOLID"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " principles are a set"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " of five"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " design principles in"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": "-oriented software engineering"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " that aim"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " to make"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " designs"
+    },
+    {
+      "timestamp_ms": 1499.972,
+      "content": " more understandable"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": ", flexible"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": ", and maintainable"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": ". They"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": " were introduced by **"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": "Robert C. Martin"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": "Uncle"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": " Bob)** and are"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": " widely used in modern"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": " software development.\n\nHere"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": "’s a"
+    },
+    {
+      "timestamp_ms": 2041.734,
+      "content": " breakdown of each principle"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": ":\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": " S –"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": " Single Respons"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": "ibility Principle (SR"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": "P)**\n**Definition"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": "*A class"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": " should have only one"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": " reason to"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": " change, meaning it"
+    },
+    {
+      "timestamp_ms": 2503.802,
+      "content": " should have only one"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " job"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " or responsibility.*\n\n**"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " Idea"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": ":**\n- A class"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " should focus"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " on a"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " single functionality"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": ".\n- If"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " a class has"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " multiple responsibilities, changes"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3024.758,
+      "content": " one may"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " affect the"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " others, leading"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " to bugs"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": "**Example:**\n"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": "❌ **Vi"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": "olation"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": ":**\n"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": "```java\nclass"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " User {\n    void"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " saveUserTo"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": "(User"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " user)"
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " { /* ..."
+    },
+    {
+      "timestamp_ms": 3636.797,
+      "content": " */ }\n    void"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": " sendEmail(User"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": " user) { /*"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": " ... */ }\n"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": "}\n```\n"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": "✅ **Solution"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": "Split"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": " into two"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": " classes):**\n```"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": "java\nclass User"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": "Repository {\n    void"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": " saveUserTo"
+    },
+    {
+      "timestamp_ms": 4125.107,
+      "content": "Database(User user)"
+    },
+    {
+      "timestamp_ms": 4305.306,
+      "content": " { /* ... */"
+    },
+    {
+      "timestamp_ms": 4305.306,
+      "content": " }\n}\n\n"
+    },
+    {
+      "timestamp_ms": 4305.306,
+      "content": "class Email"
+    },
+    {
+      "timestamp_ms": 4305.306,
+      "content": "Service {\n    void"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": " sendEmail(User user"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": ") { /* ..."
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": " */ }\n}\n```\n\n"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": "---\n\n### **2"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": ". O"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": " – Open"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": "Closed Principle (OC"
+    },
+    {
+      "timestamp_ms": 4578.758,
+      "content": "P)**\n**Definition"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": ":**\n*"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": "Software entities ("
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": "classes, modules"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": ", functions) should"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": " be **"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": "open for extension"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": "** but"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": " **closed for modification"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": "**.*\n\n"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": "**Key"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": " Idea:**\n- You"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 5048.939,
+      "content": " be able to add"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": " new functionality"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": " without changing existing"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": " code.\n- Ach"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": "ieved"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": " using **ab"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": "straction ("
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": "interfaces, abstract"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": " classes)** and **"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": "polymorphism**.\n\n"
+    },
+    {
+      "timestamp_ms": 5400.232,
+      "content": "**Example:**\n"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": "❌ **Vi"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": "olation ("
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": "Modifying existing"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": " new shapes"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": "):**\n```java"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": "\nclass Area"
+    },
+    {
+      "timestamp_ms": 5726.646,
+      "content": "Calculator {\n    double"
+    },
+    {
+      "timestamp_ms": 5814.188,
+      "content": " calculateArea(Object"
+    },
+    {
+      "timestamp_ms": 5814.188,
+      "content": " shape) {\n       "
+    },
+    {
+      "timestamp_ms": 5814.188,
+      "content": " if (shape instanceof"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": " Circle"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": ") {\n            return"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": " ((Circle) shape"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": ").radius"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": " * (("
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": "Circle) shape"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": ").radius *"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": " Math.PI;\n       "
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": " } else if ("
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": "shape instanceof Square"
+    },
+    {
+      "timestamp_ms": 6145.936,
+      "content": ") {\n            return"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": " ((Square"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": ") shape"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": ").side"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": " * (("
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": "Square) shape)."
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": "side;\n        }\n"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": "        // Adding"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": " a new shape requires"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": " modifying this"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": "!\n    }\n}\n"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": "```\n✅"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": " **Solution"
+    },
+    {
+      "timestamp_ms": 6530.126,
+      "content": " (Using"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": " abstraction):**\n```"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": "java\ninterface"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": " Shape {\n    double"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": " calculateArea();\n}\n\n"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": "class Circle implements"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": " Shape {\n    double"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": " radius;\n"
+    },
+    {
+      "timestamp_ms": 6752.757,
+      "content": "    public double calculate"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": "Area() {"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": " return radius"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": " * radius"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": " * Math"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": ".PI; }\n}\n\n"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": "class Square implements Shape"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": " {\n    double side"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": ";\n    public double"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": " calculateArea() {"
+    },
+    {
+      "timestamp_ms": 7039.911,
+      "content": " return side * side"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": "; }\n}\n\n//"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": " Now, adding"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": " new shape (e"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": ".g., Triangle)"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": " doesn't require modifying"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": " AreaCalculator.\n```\n\n"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "content": "---\n\n### **"
+    },
+    {
+      "timestamp_ms": 7255.846,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7314.532,
+      "type": "done"
+    }
+  ],
+  "full_response": "The **SOLID** principles are a set of five design principles in object-oriented software engineering that aim to make software designs more understandable, flexible, and maintainable. They were introduced by **Robert C. Martin (Uncle Bob)** and are widely used in modern software development.\n\nHere’s a breakdown of each principle:\n\n---\n\n### **1. S – Single Responsibility Principle (SRP)**\n**Definition:**\n*A class should have only one reason to change, meaning it should have only one job or responsibility.*\n\n**Key Idea:**\n- A class should focus on a single functionality.\n- If a class has multiple responsibilities, changes to one may affect the others, leading to bugs.\n\n**Example:**\n❌ **Violation:**\n```java\nclass User {\n    void saveUserToDatabase(User user) { /* ... */ }\n    void sendEmail(User user) { /* ... */ }\n}\n```\n✅ **Solution (Split into two classes):**\n```java\nclass UserRepository {\n    void saveUserToDatabase(User user) { /* ... */ }\n}\n\nclass EmailService {\n    void sendEmail(User user) { /* ... */ }\n}\n```\n\n---\n\n### **2. O – Open/Closed Principle (OCP)**\n**Definition:**\n*Software entities (classes, modules, functions) should be **open for extension** but **closed for modification**.*\n\n**Key Idea:**\n- You should be able to add new functionality without changing existing code.\n- Achieved using **abstraction (interfaces, abstract classes)** and **polymorphism**.\n\n**Example:**\n❌ **Violation (Modifying existing class for new shapes):**\n```java\nclass AreaCalculator {\n    double calculateArea(Object shape) {\n        if (shape instanceof Circle) {\n            return ((Circle) shape).radius * ((Circle) shape).radius * Math.PI;\n        } else if (shape instanceof Square) {\n            return ((Square) shape).side * ((Square) shape).side;\n        }\n        // Adding a new shape requires modifying this class!\n    }\n}\n```\n✅ **Solution (Using abstraction):**\n```java\ninterface Shape {\n    double calculateArea();\n}\n\nclass Circle implements Shape {\n    double radius;\n    public double calculateArea() { return radius * radius * Math.PI; }\n}\n\nclass Square implements Shape {\n    double side;\n    public double calculateArea() { return side * side; }\n}\n\n// Now, adding a new shape (e.g., Triangle) doesn't require modifying AreaCalculator.\n```\n\n---\n\n### **",
+  "response_chars": 2279,
+  "num_chunks": 178,
+  "ttft_ms": 1499.972,
+  "total_ms": 7317.955,
+  "model_name": "Mistral-Large-3"
+}

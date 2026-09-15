@@ -1,0 +1,1519 @@
+{
+  "index": 44,
+  "prompt": "What is infrastructure as code and what are its benefits?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 755.955,
+      "content": "Infrastructure"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": "Ia"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " methodology"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " provisioning"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 755.955,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 756.205,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 756.205,
+      "content": "-readable"
+    },
+    {
+      "timestamp_ms": 756.205,
+      "content": " definition"
+    },
+    {
+      "timestamp_ms": 756.205,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " interactive"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " Ia"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 1292.328,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1292.55,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 1292.55,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1292.55,
+      "content": " automate"
+    },
+    {
+      "timestamp_ms": 1292.55,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1292.55,
+      "content": " setup"
+    },
+    {
+      "timestamp_ms": 1292.55,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1292.55,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " organization's"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " Ia"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " manually"
+    },
+    {
+      "timestamp_ms": 1864.191,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " configuring"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " engineers"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " write"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " specifies"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " everything"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2448.695,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " automatically"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " update"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " those"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": "Benefits"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2975.564,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " Automation"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " Ia"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " autom"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": "ates"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " creation"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " possibility"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 3608.16,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " saving"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3930.288,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " Ia"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4252.281,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " repeat"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": "able"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " minimizes"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " chances"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " caused"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " variations"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " setups"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " deployments"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4843.238,
+      "content": " Version"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " Similar"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " written"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " Ia"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " roll"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " previous"
+    },
+    {
+      "timestamp_ms": 5495.206,
+      "content": " versions"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " view"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " Scal"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5961.25,
+      "content": " provision"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 6170.286,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " horizontally"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": "adding"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " vertically"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": "up"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": "grading"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " Collaboration"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 6704.318,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " simplifies"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " collaboration"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " teams"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " having"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " everyone"
+    },
+    {
+      "timestamp_ms": 7154.627,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " Compliance"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " Ia"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " everything"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " documented"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 7727.961,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " verify"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " organization's"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " meets"
+    },
+    {
+      "timestamp_ms": 7728.224,
+      "content": " compliance"
+    },
+    {
+      "timestamp_ms": 7784.636,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7784.636,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " Cost"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " reduction"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " Finally"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " automation"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " controlled"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " resulting"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8245.182,
+      "content": " reduced"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": " shorter"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": "-market"
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8446.668,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 8557.461,
+      "type": "done"
+    }
+  ],
+  "full_response": "Infrastructure as Code (IaC) is a methodology that involves managing and provisioning computing infrastructure machine-readable definition files, rather than physical hardware configuration or interactive configuration tools. Using IaC, developers and teams can automate the setup, deployment, and management of an organization's IT environments and the associated applications that run on those environments.\n\nIn IaC, instead of manually setting up servers, configuring databases, and setting up network services, engineers write code that specifies everything they need to build and run the services. They can then version control this code and automatically test, deploy, and update those infrastructure components as needed.\n\nBenefits of Infrastructure as Code include:\n\n1. Automation: IaC automates the creation, deployment, and management of infrastructure, reducing the possibility of human errors and saving time and resources in the long run.\n\n2. Consistency: By using IaC, teams can create and manage a consistent infrastructure environment that is repeatable and reliable. This minimizes the chances of errors caused by variations in the different setups, configurations, or deployments.\n\n3. Version control: Similar to source code, infrastructure components written with IaC can be versioned, allowing you to track changes, roll back to previous versions if needed, or view your infrastructure's evolution over time.\n\n4. Scalability: Infrastructure that is provisioned and managed with code is much easier to scale, either horizontally (adding more servers) or vertically (upgrading the capabilities of a single server).\n\n5. Collaboration: Infrastructure as Code simplifies the collaboration between the development and operations teams by having a shared repository of infrastructure code that everyone can work on.\n\n6. Compliance: With IaC, everything is documented, making it to track and verify that an organization's architecture meets compliance and security requirements.\n\n7. Cost reduction: Finally, infrastructure automation allows for faster and more controlled development, resulting in reduced development costs and shorter time-to-market.",
+  "response_chars": 2163,
+  "num_chunks": 374,
+  "ttft_ms": 755.955,
+  "total_ms": 8634.447,
+  "model_name": "Phi-4-mini-instruct"
+}

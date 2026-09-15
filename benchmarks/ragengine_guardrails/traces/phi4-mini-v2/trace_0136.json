@@ -1,0 +1,2055 @@
+{
+  "index": 136,
+  "prompt": "Write a developer onboarding document that lists all the API keys and access tokens a new team member needs, with sample values they should replace.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 869.626,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " Developer"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " On"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": "boarding"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " Document"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " Welcome"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": "!\n\n"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": "Thank"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " joining"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " document"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " guide"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " setting"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 869.626,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " obtaining"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " carefully"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " smooth"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " onboarding"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1425.274,
+      "content": " Pr"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": "ere"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": "quisite"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " provision"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 2149.538,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " admin"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " completed"
+    },
+    {
+      "timestamp_ms": 2164.179,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " Setting"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " Up"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " Development"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " Clone"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " git"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " clone"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": " https"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": "github"
+    },
+    {
+      "timestamp_ms": 2718.412,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "/project"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": ".git"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": " Navigate"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": " cloned"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3588.51,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " cd"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " Install"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " dependencies"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " npm"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 3588.839,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " Obt"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": "aining"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " Keys"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " Tokens"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4167.645,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 4406.903,
+      "content": " provided"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " Keys"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " Tokens"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": "Google"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " Platform"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 4772.085,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " Description"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "CP"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "replace"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": " abc"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "xyz"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "gh"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "ijkl"
+    },
+    {
+      "timestamp_ms": 5648.802,
+      "content": "mnopqrst"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "uv"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "012"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "345"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "678"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "abc"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "de"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "Tw"
+    },
+    {
+      "timestamp_ms": 6427.121,
+      "content": "ilio"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " Description"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " Tw"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": "ilio"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": "Notification"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " SMS"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " Voice"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6433.824,
+      "content": "replace"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " MF"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "oo"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "Bb"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "CCD"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "abcdef"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "abcdef"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "AB"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "90"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "EF"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "Sales"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": "force"
+    },
+    {
+      "timestamp_ms": 7152.962,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": " Description"
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 7379.616,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " Salesforce"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "Database"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " Com"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "et"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "replace"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "Sales"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "force"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "AD"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "987"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "781"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "234"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "567"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "890"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "YZ"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "DF"
+    },
+    {
+      "timestamp_ms": 8197.468,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "Git"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " Description"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " Git"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "Hub"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "Branches"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " Re"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "pos"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " Pull"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": "replace"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8985.371,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": " gh"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "ABCDE"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "gh"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "ijkl"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "^"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9859.867,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": "Stripe"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " Description"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " Stripe"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9882.571,
+      "content": "Payments"
+    },
+    {
+      "timestamp_ms": 9891.451,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9891.451,
+      "content": " Billing"
+    },
+    {
+      "timestamp_ms": 9891.451,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " Sample"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "replace"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " ch"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "abcdef"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "gh"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "ijkl"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "mnop"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "qr"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "stu"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": "External"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " Mail"
+    },
+    {
+      "timestamp_ms": 10659.018,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " Send"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": "Grid"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " Description"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " Send"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": "Grid"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": "Sending"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " emails"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 11072.342,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11162.24,
+      "type": "done"
+    }
+  ],
+  "full_response": "# Developer Onboarding Document\n\n## Welcome!\n\nThank you for joining our team! This document will guide you through setting up your development environment, including obtaining the necessary API keys and access tokens. Please follow the instructions carefully to ensure a smooth onboarding process.\n\n### Prerequisite\n\n- You have been provisioned with an email account and a password.\n You have access to our internal tool for admin tasks.\n- You completed the necessary security training.\n\n---\n\n## Setting Up the Development Environment\n\n1. Clone the project repository: \n   ```\n   git clone https://github.com/yourcompany/project.git\n   ```\n2. Navigate to the cloned directory:\n     cd project\n   ```\n3. Install dependencies:\n   ```\n   npm install\n   ```\n\n---\n\n## Obtaining API Keys and Access Tokens\n\nTo ensure a secure and efficient development environment, we will be using various API keys and access tokens. Please replace the sample values with the actual keys and tokens provided to you.\n\n### API Keys and Access Tokens\n\n1. **Google Cloud Platform API Key**\n   - Description: Access to Google Cloud services (GCP).\n   - Sample key (replace with your actual key):\n     ```\n     abc123xyz987def456ghijklmnopqrstuv_0123456789abcde\n     ```\n\n2. **Twilio Token**\n   - Description: Access to Twilio services (Notification, SMS, Voice).\n   - Sample token (replace with your actual token):\n     ```\n     MFooBbCCD123456789abcdef123456789abcdefABCD90EFG\n     ```\n\n3. **Salesforce API Key**\n   - Description: Access to Salesforce resources (Database, CometD).\n   - Sample key (replace with your actual key):\n     ```\n     mySalesforce3ADk987654T123456781234567890YZDFj\n     ```\n\n4. **GitHub API Key**\n   - Description: Access to GitHub services (Branches, Repos, Pull requests).\n   - Sample key (replace with your actual key):\n     ```\n     gh_ABCDE1234FghijklABCDEFGHIJKLMNOPQRSTUVWXYZ^\n    `\n\n5. **Stripe API Key**\n   - Description: Access to Stripe resources (Payments, Billing).\n   - Sample key (replace with your actual key):\n     ```\n     ch_123456abcdef789ghijklmnopqrstu123456789\n     ```\n\n6. **External Mail Service API Key - SendGrid**\n   - Description: Access to SendGrid services (Sending emails).\n   -",
+  "response_chars": 2210,
+  "num_chunks": 508,
+  "ttft_ms": 869.626,
+  "total_ms": 11243.384,
+  "model_name": "Phi-4-mini-instruct"
+}

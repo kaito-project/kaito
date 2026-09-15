@@ -1,0 +1,835 @@
+{
+  "index": 18,
+  "prompt": "Explain the concept of database sharding and when it should be used.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 809.56,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " **Database"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " Sh"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": "arding: Concept"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " and Use"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " Cases**\n\n####"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " **What"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " is Database"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " Sharding?**\n"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": "Sharding** is"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " a database"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " pattern"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " where a large"
+    },
+    {
+      "timestamp_ms": 809.56,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " is **"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": "horizontally partitioned"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": "** into smaller,"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " more manageable pieces"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " called **sh"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": "ards**. Each sh"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": "ard contains"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " subset of the data"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " operates"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1212.247,
+      "content": " independent database."
+    },
+    {
+      "timestamp_ms": 1638.254,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " key idea"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " is to distribute"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " across multiple servers"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": "or nodes"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": ") to improve"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " performance,"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " scalability, and"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": ".\n\nUnlike"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1638.469,
+      "content": "vertical partitioning"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": "** (s"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": "plitting tables"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": " by columns), sh"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": "arding splits data **"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": "by rows**,"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": " that each sh"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": "ard holds"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": " a unique"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": " portion of the dataset"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2029.668,
+      "content": "How Sh"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "arding Works**\n1"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": ". **Sh"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "arding Key Selection"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "**\n   - A"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": " **shard key"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "** ("
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "e.g., `"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "user_id`, `"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "region"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "`, `"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "timestamp`) determines"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": " data is distributed.\n"
+    },
+    {
+      "timestamp_ms": 3327.494,
+      "content": "   - Example:"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " If sh"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "arding by"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " `user_id`,"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " users with IDs"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " `1"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "-100"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "0` go"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " to **"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "Shard A"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "**, `"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "1001"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "-2"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "000`"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " to **"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "Shard B**,"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " etc.\n\n2."
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " **Data Distribution Strategies"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "**\n   - **"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "Range"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "-based Sh"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": "arding**:"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " is split into"
+    },
+    {
+      "timestamp_ms": 3538.628,
+      "content": " ranges (e.g"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": "., `A"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": "-F"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": "`, `G"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": "-M`, `N"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": "-Z`).\n  "
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": " - **Hash"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": "-based Sharding**:"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": " hash function"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": " dist"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": "ributes data evenly"
+    },
+    {
+      "timestamp_ms": 3626.117,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": " `hash(user"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "_id) % "
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "`).\n   -"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": " **Directory"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": " Sharding**: A"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": " lookup table maps"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": " to sh"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "ards ("
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "flex"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "ible but adds"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": " overhead).\n"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "   - **Ge"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "ographic Sh"
+    },
+    {
+      "timestamp_ms": 3953.763,
+      "content": "arding**: Data"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " is split by location"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " `US`,"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " `EU"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "`, `Asia"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "`).\n\n3. **"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "Query Rout"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "ing**\n"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "   - A **"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "shard"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "aware application"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "** or"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " **middleware"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " proxy"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " directs"
+    },
+    {
+      "timestamp_ms": 4509.617,
+      "content": " queries to the correct"
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": " shard.\n  "
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": " - Example: If"
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": " a query"
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": " `user_id="
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": "`, the system"
+    },
+    {
+      "timestamp_ms": 4725.498,
+      "content": " routes"
+    },
+    {
+      "timestamp_ms": 4831.356,
+      "content": " it to **"
+    },
+    {
+      "timestamp_ms": 4831.356,
+      "content": "Shard B**.\n\n"
+    },
+    {
+      "timestamp_ms": 4831.356,
+      "content": "---\n\n### **When"
+    },
+    {
+      "timestamp_ms": 4831.356,
+      "content": " Should Sh"
+    },
+    {
+      "timestamp_ms": 4831.356,
+      "content": "arding Be Used?"
+    },
+    {
+      "timestamp_ms": 4831.356,
+      "content": "**\nSh"
+    },
+    {
+      "timestamp_ms": 4831.356,
+      "content": "arding is **not"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "-size"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "-fits"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "-all solution"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "—it introduces"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " complexity and should"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " be used when necessary"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " sh"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "arding in these"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": " scenarios:\n\n#### **"
+    },
+    {
+      "timestamp_ms": 5077.396,
+      "content": "1. High"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " Write"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": "Read"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " Through"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": "put**\n"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": "   - When"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " a single database server"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": "cannot handle the"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " load** (e"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": ".g., millions"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " of transactions"
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " per second).\n  "
+    },
+    {
+      "timestamp_ms": 5337.121,
+      "content": " - Example: Social"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": " media platforms"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": " (Facebook"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": ", Twitter) sh"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": "ard user"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": " data to distribute"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": " writes"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": ".\n\n#### **2"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": ". Large"
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": " Dataset Size**\n  "
+    },
+    {
+      "timestamp_ms": 5472.212,
+      "content": " - When the"
+    },
+    {
+      "timestamp_ms": 5521.901,
+      "content": " dataset **"
+    },
+    {
+      "timestamp_ms": 5521.901,
+      "content": "ex"
+    },
+    {
+      "timestamp_ms": 5521.901,
+      "content": "ceeds the"
+    },
+    {
+      "timestamp_ms": 5521.901,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 5521.901,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5829.889,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Database Sharding: Concept and Use Cases**\n\n#### **What is Database Sharding?**\n**Sharding** is a database architecture pattern where a large database is **horizontally partitioned** into smaller, more manageable pieces called **shards**. Each shard contains a subset of the data and operates as an independent database. The key idea is to distribute data across multiple servers (or nodes) to improve performance, scalability, and availability.\n\nUnlike **vertical partitioning** (splitting tables by columns), sharding splits data **by rows**, ensuring that each shard holds a unique portion of the dataset.\n\n---\n\n### **How Sharding Works**\n1. **Sharding Key Selection**\n   - A **shard key** (e.g., `user_id`, `region`, `timestamp`) determines how data is distributed.\n   - Example: If sharding by `user_id`, users with IDs `1-1000` go to **Shard A**, `1001-2000` to **Shard B**, etc.\n\n2. **Data Distribution Strategies**\n   - **Range-based Sharding**: Data is split into ranges (e.g., `A-F`, `G-M`, `N-Z`).\n   - **Hash-based Sharding**: A hash function distributes data evenly (e.g., `hash(user_id) % 4`).\n   - **Directory-based Sharding**: A lookup table maps keys to shards (flexible but adds overhead).\n   - **Geographic Sharding**: Data is split by location (e.g., `US`, `EU`, `Asia`).\n\n3. **Query Routing**\n   - A **shard-aware application** or **middleware** (e.g., proxy) directs queries to the correct shard.\n   - Example: If a query requests `user_id=1500`, the system routes it to **Shard B**.\n\n---\n\n### **When Should Sharding Be Used?**\nSharding is **not a one-size-fits-all solution**—it introduces complexity and should only be used when necessary. Consider sharding in these scenarios:\n\n#### **1. High Write/Read Throughput**\n   - When a single database server **cannot handle the load** (e.g., millions of transactions per second).\n   - Example: Social media platforms (Facebook, Twitter) shard user data to distribute writes.\n\n#### **2. Large Dataset Size**\n   - When the dataset **exceeds the storage",
+  "response_chars": 2025,
+  "num_chunks": 203,
+  "ttft_ms": 809.56,
+  "total_ms": 5830.231,
+  "model_name": "Mistral-Large-3"
+}

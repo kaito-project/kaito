@@ -1,0 +1,859 @@
+{
+  "index": 178,
+  "prompt": "Explain how attention mechanisms work in transformer models.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 831.729,
+      "content": "Att"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": "ention mechanisms are a"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " innovation"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " in **"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": "Transformer models**, enabling"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " them to capture"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": "-range dependencies and"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " contextual"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " relationships in"
+    },
+    {
+      "timestamp_ms": 831.729,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": "e.g., text"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": ", images"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " or sequences"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": "). Here"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": "’s a"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " breakdown"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " of how they"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " work:\n\n"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": "---\n\n### **1"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": ". Core Idea"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " Attention**\nAtt"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": "ention allows"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": " model to **"
+    },
+    {
+      "timestamp_ms": 1431.434,
+      "content": "dynamically focus"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " on different parts of"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " input sequence when"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " producing"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " output."
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " of treating"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " input tokens equally"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": "like in R"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": "NNs/C"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": "NNs), it"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " assigns"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1949.118,
+      "content": "weights** to tokens"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " based on their relevance"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " to the current"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " task.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " **2. Key"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " Components of"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " Attention"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " **(A) Sc"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": "aled Dot"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": "Product Attention**\n"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": "The most"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " common"
+    },
+    {
+      "timestamp_ms": 2582.501,
+      "content": " form of"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": " attention in Transform"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "ers is"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "scaled dot-product"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": " attention**, defined"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": " as:\n\n"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "\\[\n\\text{"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "Attention}(Q"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": ", K"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": ", V) ="
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": " \\text{soft"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "max}\\"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "left(\\frac{Q"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "K^T"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "}{\\sqrt"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "{d_k"
+    },
+    {
+      "timestamp_ms": 3286.524,
+      "content": "}}\\right) V"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": "\n\\]\n\n-"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " **Query"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": "Q)**: Re"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": "presents the current token"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " \"question"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": "\" (what"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": "’s looking for in"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " other tokens).\n-"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " **Key"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " (K)**: Re"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": "presents other"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " tokens’"
+    },
+    {
+      "timestamp_ms": 4414.608,
+      "content": " \"ident"
+    },
+    {
+      "timestamp_ms": 4627.716,
+      "content": "ities"
+    },
+    {
+      "timestamp_ms": 4627.716,
+      "content": "\" (what"
+    },
+    {
+      "timestamp_ms": 4627.716,
+      "content": " they can"
+    },
+    {
+      "timestamp_ms": 4627.716,
+      "content": " offer).\n- **"
+    },
+    {
+      "timestamp_ms": 4627.716,
+      "content": "Value (V)**:"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": " Represents the actual"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": " content of other"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": " tokens (what"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": " to aggregate"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": "- **\\("
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": "_k\\)**: D"
+    },
+    {
+      "timestamp_ms": 4949.844,
+      "content": "imensionality of the"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " key vectors (used"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " for scaling to"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " avoid large"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " dot"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " products).\n\n**Steps"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": "**:\n1. **"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": "Compute Similar"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": "ity Scores"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": "QK"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": "^T\\) calculates"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " how much"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 5833.987,
+      "content": " align"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": "s with each"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " key ("
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": "dot"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " product measures"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " similarity).\n2."
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " **Scale and"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " Soft"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": "max**: Divide"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " by \\(\\"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": "sqrt{d_k}\\)"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " to prevent"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " gradient van"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": "ishing, then"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": " apply soft"
+    },
+    {
+      "timestamp_ms": 6793.578,
+      "content": "max to get **"
+    },
+    {
+      "timestamp_ms": 7167.555,
+      "content": "attention weights**"
+    },
+    {
+      "timestamp_ms": 7167.555,
+      "content": " (prob"
+    },
+    {
+      "timestamp_ms": 7167.555,
+      "content": "abilities summing"
+    },
+    {
+      "timestamp_ms": 7167.555,
+      "content": " to 1).\n"
+    },
+    {
+      "timestamp_ms": 7167.555,
+      "content": "3. **Weight"
+    },
+    {
+      "timestamp_ms": 7167.555,
+      "content": "ed Sum"
+    },
+    {
+      "timestamp_ms": 7167.555,
+      "content": "**: Multiply weights"
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": " by \\("
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": "V\\) to get"
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": " the **"
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": "contextualized"
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": " output**"
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": " the query"
+    },
+    {
+      "timestamp_ms": 7578.651,
+      "content": ".\n\n####"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " **("
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "B) Multi"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "-Head Attention"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "**\nInstead"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " of computing"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " attention"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " once, Transform"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "ers use"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " **multiple attention"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " heads** in"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " parallel:\n"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": ". **Split"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": " \\("
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "Q\\), \\(K"
+    },
+    {
+      "timestamp_ms": 8300.45,
+      "content": "\\), \\("
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": "V\\) into \\("
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": "h\\) smaller"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": " matrices"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": " (heads"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": ").\n2. Compute"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": "scaled dot-product"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": " attention** for each"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": " head independently"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": ".\n3. **"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": "Concatenate** the"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 8934.175,
+      "content": " and project"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " them back"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " to the"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " original dimension.\n\n**"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": "Why?"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": "**\n- Capt"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": "ures diverse"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " relationships"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " syntactic"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": ". semantic).\n-"
+    },
+    {
+      "timestamp_ms": 9529.659,
+      "content": " En"
+    },
+    {
+      "timestamp_ms": 9623.368,
+      "content": "ables parallelization"
+    },
+    {
+      "timestamp_ms": 9623.368,
+      "content": ".\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 9623.368,
+      "content": "### **3."
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": " Types of Attention in"
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": " Transformers**\n####"
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": " **(A) Self"
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": "-Att"
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": "ention (Encoder"
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": ")**\n- **Input"
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": "**: Same"
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "content": " sequence ("
+    },
+    {
+      "timestamp_ms": 11394.312,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11569.1,
+      "type": "done"
+    }
+  ],
+  "full_response": "Attention mechanisms are a key innovation in **Transformer models**, enabling them to capture long-range dependencies and contextual relationships in data (e.g., text, images, or sequences). Here’s a breakdown of how they work:\n\n---\n\n### **1. Core Idea of Attention**\nAttention allows a model to **dynamically focus** on different parts of the input sequence when producing an output. Instead of treating all input tokens equally (like in RNNs/CNNs), it assigns **weights** to tokens based on their relevance to the current task.\n\n---\n\n### **2. Key Components of Attention**\n#### **(A) Scaled Dot-Product Attention**\nThe most common form of attention in Transformers is **scaled dot-product attention**, defined as:\n\n\\[\n\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right) V\n\\]\n\n- **Query (Q)**: Represents the current token’s \"question\" (what it’s looking for in other tokens).\n- **Key (K)**: Represents other tokens’ \"identities\" (what they can offer).\n- **Value (V)**: Represents the actual content of other tokens (what to aggregate).\n- **\\(d_k\\)**: Dimensionality of the key vectors (used for scaling to avoid large dot products).\n\n**Steps**:\n1. **Compute Similarity Scores**: \\(QK^T\\) calculates how much each query aligns with each key (dot product measures similarity).\n2. **Scale and Softmax**: Divide by \\(\\sqrt{d_k}\\) to prevent gradient vanishing, then apply softmax to get **attention weights** (probabilities summing to 1).\n3. **Weighted Sum**: Multiply weights by \\(V\\) to get the **contextualized output** for the query.\n\n#### **(B) Multi-Head Attention**\nInstead of computing attention once, Transformers use **multiple attention heads** in parallel:\n1. **Split** \\(Q\\), \\(K\\), \\(V\\) into \\(h\\) smaller matrices (heads).\n2. Compute **scaled dot-product attention** for each head independently.\n3. **Concatenate** the outputs and project them back to the original dimension.\n\n**Why?**\n- Captures diverse relationships (e.g., syntactic vs. semantic).\n- Enables parallelization.\n\n---\n\n### **3. Types of Attention in Transformers**\n#### **(A) Self-Attention (Encoder)**\n- **Input**: Same sequence (",
+  "response_chars": 2137,
+  "num_chunks": 209,
+  "ttft_ms": 831.729,
+  "total_ms": 11569.717,
+  "model_name": "Mistral-Large-3"
+}

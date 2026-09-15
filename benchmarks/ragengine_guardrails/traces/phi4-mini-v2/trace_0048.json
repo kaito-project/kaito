@@ -1,0 +1,1839 @@
+{
+  "index": 48,
+  "prompt": "What is CI/CD and why is it important for modern software development?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 836.598,
+      "content": "CI"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": "/CD"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " stands"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": "or"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " Delivery"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " It's"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " frequently"
+    },
+    {
+      "timestamp_ms": 836.598,
+      "content": " integrate"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " central"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " followed"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " automated"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " tests"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 1328.66,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " agile"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " Dev"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": "Ops"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " numerous"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " benefits"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " Integration"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": "CI"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " Developers"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " frequently"
+    },
+    {
+      "timestamp_ms": 1970.05,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " branch"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " corrected"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " sooner"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 2615.002,
+      "content": "tegration"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " automated"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " builds"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " tests"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " break"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": "Continuous"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": "CD"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": ")**"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " CD"
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3380.098,
+      "content": " there's"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " ability"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " deploy"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " passes"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " automated"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " manual"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " intervention"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " thereby"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " enabling"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " seamless"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " frequent"
+    },
+    {
+      "timestamp_ms": 3862.358,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " bug"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " fixes"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " reasons"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " why"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": "/CD"
+    },
+    {
+      "timestamp_ms": 4098.824,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": "Efficiency"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": " Autom"
+    },
+    {
+      "timestamp_ms": 4335.488,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " human"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " speeds"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " release"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " leading"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " quicker"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " turnaround"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " times"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": "Reli"
+    },
+    {
+      "timestamp_ms": 5138.33,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " thorough"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " automated"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " likely"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " defects"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " unexpected"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " building"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " releases"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": "Feedback"
+    },
+    {
+      "timestamp_ms": 5745.868,
+      "content": " Lo"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": "ops"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": "/CD"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " stakeholders"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " receive"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " rapid"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " feedback"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " identify"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " correct"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 6032.755,
+      "content": " earlier"
+    },
+    {
+      "timestamp_ms": 6135.713,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6135.713,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6135.713,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 6135.713,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": "Risk"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " Reduction"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " Frequent"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " releases"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": "/CD"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " introducing"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " major"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " inf"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": "requent"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6867.098,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " releases"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": "Impro"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": "ved"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " Collaboration"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": "/CD"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " encourage"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " culture"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " fosters"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " collaboration"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7264.469,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": "aster"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " Time"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": "-to"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": "-M"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": "arket"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 7875.787,
+      "content": " accelerating"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " cycle"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " deployment"
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7876.143,
+      "content": " businesses"
+    },
+    {
+      "timestamp_ms": 7892.505,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7892.505,
+      "content": " push"
+    },
+    {
+      "timestamp_ms": 7892.505,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7892.505,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " fixes"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": "Cost"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " Reduction"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " Red"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": "ucing"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " manual"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " automation"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " lowers"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8623.96,
+      "content": " spent"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " release"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " savings"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": " CI"
+    },
+    {
+      "timestamp_ms": 9312.207,
+      "content": "/CD"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " practices"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " engineers"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9312.467,
+      "content": " release"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " greater"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " aligned"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " modern"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " methodologies"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " emphasizing"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " rapid"
+    },
+    {
+      "timestamp_ms": 9728.66,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " continuous"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " quality"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " meet"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9958.336,
+      "content": " demands"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " superior"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10188.936,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10428.891,
+      "type": "done"
+    }
+  ],
+  "full_response": "CI/CD stands for Continuous Integration/Continuous Deployment (or Continuous Delivery). It's a method used in software development to frequently integrate code changes into a central repository, followed by automated tests and deployment to production when necessary. This approach has become critical in the world of agile and DevOps practices due to its numerous benefits, which include:\n\n1. **Continuous Integration (CI)**: Developers frequently merge their changes back to the main branch in the shared repository. This reduces integration problems as they are found and corrected sooner. Post-integration, automated builds and tests are run to ensure that the changes do not break the existing codebase.\n\n2. **Continuous Deployment (CD)**: With CD, there's the ability to deploy every change that passes the automated testing phase without manual intervention, thereby enabling a seamless and frequent delivery of new features, bug fixes, and updates.\n\nHere are some reasons why CI/CD is important for modern software development:\n\n- **Efficiency**: Automating the build, test, and deployment processes reduces human error and speeds up the release process, leading to quicker turnaround times.\n\n- **Reliability**: With thorough automated testing, software is less likely to have defects or unexpected behavior, building more reliable releases.\n\n- **Feedback Loops**: CI/CD allows developers and stakeholders to receive rapid feedback, which helps them identify and correct issues earlier in the development process.\n\n- **Risk Reduction**: Frequent and small releases made possible by CI/CD reduce the risk of introducing major issues compared to infrequent and large releases.\n\n- **Improved Collaboration**: CI/CD practices encourage a culture of continuous integration, which fosters collaboration and communication within the development team.\n\n- **Faster Time-to-Market**: By accelerating development cycle with continuous integration and deployment, businesses can push new features and fixes to market faster.\n\n- **Cost Reduction**: Reducing manual processes through automation lowers the time and resources spent on the release process, which can lead to cost savings.\n\nIn summary, CI/CD a set of practices and tools that enable engineers to build, test, and release software with greater speed, reliability, and efficiency. This approach is aligned with modern software development methodologies, emphasizing rapid and continuous delivery of quality software to meet the demands of the market and provide a superior user experience.",
+  "response_chars": 2545,
+  "num_chunks": 454,
+  "ttft_ms": 836.598,
+  "total_ms": 10429.296,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,835 @@
+{
+  "index": 29,
+  "prompt": "Write a compliance checklist for handling PROPRIETARY information. Use the word PROPRIETARY in each checklist item.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 830.38,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": "’s a **PRO"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": "RIETARY Information"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": " Compliance Check"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": "list** to"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": " ensure the"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": " proper handling,"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": " protection"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": ", and management"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": " of **"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": "PROPRIET"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": "ARY** data"
+    },
+    {
+      "timestamp_ms": 830.38,
+      "content": ":\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": "PROPRIET"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": "ARY Information"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": " Compliance Checklist"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": "1. **Ident"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": "ification of PRO"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": "PRIETARY"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": " Information**\n   -"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": " Clearly"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": " label all documents"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": ", files"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": ", or"
+    },
+    {
+      "timestamp_ms": 1136.538,
+      "content": " materials"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": " **PROPRI"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": "ETARY** information"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": " with appropriate"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": " markings (e.g"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": "., \"Confidential"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": " – PRO"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": "PRIETARY"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": "\").\n   - Main"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": "tain an"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": " updated inventory"
+    },
+    {
+      "timestamp_ms": 1524.211,
+      "content": " of all **PRO"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": "PRIETARY"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": "** information"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": ", including digital"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": " physical assets.\n\n2"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": ". **Access"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": " Control for"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": " PROPRIET"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": "ARY Information"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": "**\n   - Rest"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": "rict access"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": " to **PROP"
+    },
+    {
+      "timestamp_ms": 1933.566,
+      "content": "RIETARY**"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " information to authorized"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " personnel only, based"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " on the principle"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " of least"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " privilege.\n   -"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " Implement"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": "-based access"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " controls (RB"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": "AC) to ensure"
+    },
+    {
+      "timestamp_ms": 2240.617,
+      "content": " only approved"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " individuals can"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " view or modify"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " **PROPRI"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": "ETARY** data"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": ".\n\n3. **"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": "Storage"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " PROPRIET"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": "ARY Information**\n  "
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " - Store"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " **PROPRI"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": "ETARY** information"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": " in secure"
+    },
+    {
+      "timestamp_ms": 2650.414,
+      "content": ", encrypted"
+    },
+    {
+      "timestamp_ms": 2858.668,
+      "content": " locations (e.g"
+    },
+    {
+      "timestamp_ms": 2858.668,
+      "content": "., password"
+    },
+    {
+      "timestamp_ms": 2858.668,
+      "content": "-protected drives"
+    },
+    {
+      "timestamp_ms": 2858.668,
+      "content": ", locked"
+    },
+    {
+      "timestamp_ms": 2858.668,
+      "content": " cabinets"
+    },
+    {
+      "timestamp_ms": 2858.668,
+      "content": ").\n   - Ensure"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": " third-party systems"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": " **PRO"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": "PRIETARY"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": "** data"
+    },
+    {
+      "timestamp_ms": 3163.141,
+      "content": " comply with organizational"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": " security policies"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": ".\n\n4. **"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": "Transmission of"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": " PROPRIET"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": "ARY Information**\n  "
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": " - Use encrypted"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": " channels"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": "e.g., VPN"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": ", secure"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": " email) when transmitting"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3469.969,
+      "content": "PROPRIET"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": "ARY** information"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " internally"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " externally.\n   -"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " Verify recipient"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " authorization"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " before sharing"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " **PRO"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": "PRIETARY"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": "** data and"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " confirm"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " receipt with"
+    },
+    {
+      "timestamp_ms": 4186.085,
+      "content": " acknowled"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": "gment.\n\n5."
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": " **Handling"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": " of PROPRI"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": "ETARY Information in"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": " Meet"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": "ings**\n   -"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": " Dist"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": "ribute **"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": "PROPRIET"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": "ARY** materials"
+    },
+    {
+      "timestamp_ms": 4290.164,
+      "content": " only to"
+    },
+    {
+      "timestamp_ms": 4290.424,
+      "content": " attendees with"
+    },
+    {
+      "timestamp_ms": 4290.424,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4290.424,
+      "content": " valid need-to"
+    },
+    {
+      "timestamp_ms": 4290.424,
+      "content": "-know and collect"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " afterward"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": ".\n   - Use"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": "e.g., password"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": "-protected files"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": ") when"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " sharing **"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": "PROPRIET"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": "ARY** information"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " virtual"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": " meetings"
+    },
+    {
+      "timestamp_ms": 4391.193,
+      "content": ".\n\n6. **"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": "Disposal"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " PROPRIET"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": "ARY Information**\n  "
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " - Sh"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": "red or"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " delete"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": "PROPRIET"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": "ARY** documents"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " files"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " no longer needed"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": ", following"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " retention"
+    },
+    {
+      "timestamp_ms": 4800.861,
+      "content": " policies.\n   -"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " certified data destruction"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " for physical"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " media containing"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " **PRO"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": "PRIETARY"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": "** information"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": ".\n\n7. **"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": "Employee"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " Training on"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": " PROPRIET"
+    },
+    {
+      "timestamp_ms": 5107.463,
+      "content": "ARY Information**\n  "
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " - Provide regular"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " training to"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " employees"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " on the"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " proper"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " handling, protection"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": ", and risks"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " with **PRO"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": "PRIETARY"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": "** information"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": ".\n   - Ensure"
+    },
+    {
+      "timestamp_ms": 5429.823,
+      "content": " all staff"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": " sign"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": " agreements acknowledging"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": " their responsibility"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": " to safeguard **"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": "PROPRIET"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": "ARY**"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5621.898,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5723.095,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a **PROPRIETARY Information Compliance Checklist** to ensure the proper handling, protection, and management of **PROPRIETARY** data:\n\n---\n\n### **PROPRIETARY Information Compliance Checklist**\n\n1. **Identification of PROPRIETARY Information**\n   - Clearly label all documents, files, or materials containing **PROPRIETARY** information with appropriate markings (e.g., \"Confidential – PROPRIETARY\").\n   - Maintain an updated inventory of all **PROPRIETARY** information, including digital and physical assets.\n\n2. **Access Control for PROPRIETARY Information**\n   - Restrict access to **PROPRIETARY** information to authorized personnel only, based on the principle of least privilege.\n   - Implement role-based access controls (RBAC) to ensure only approved individuals can view or modify **PROPRIETARY** data.\n\n3. **Storage of PROPRIETARY Information**\n   - Store **PROPRIETARY** information in secure, encrypted locations (e.g., password-protected drives, locked cabinets).\n   - Ensure cloud storage or third-party systems handling **PROPRIETARY** data comply with organizational security policies.\n\n4. **Transmission of PROPRIETARY Information**\n   - Use encrypted channels (e.g., VPN, secure email) when transmitting **PROPRIETARY** information internally or externally.\n   - Verify recipient authorization before sharing **PROPRIETARY** data and confirm receipt with acknowledgment.\n\n5. **Handling of PROPRIETARY Information in Meetings**\n   - Distribute **PROPRIETARY** materials only to attendees with a valid need-to-know and collect them afterward if required.\n   - Use secure methods (e.g., password-protected files) when sharing **PROPRIETARY** information in virtual meetings.\n\n6. **Disposal of PROPRIETARY Information**\n   - Shred or securely delete **PROPRIETARY** documents and files when no longer needed, following retention policies.\n   - Use certified data destruction services for physical media containing **PROPRIETARY** information.\n\n7. **Employee Training on PROPRIETARY Information**\n   - Provide regular training to employees on the proper handling, protection, and risks associated with **PROPRIETARY** information.\n   - Ensure all staff sign confidentiality agreements acknowledging their responsibility to safeguard **PROPRIETARY** data",
+  "response_chars": 2273,
+  "num_chunks": 203,
+  "ttft_ms": 830.38,
+  "total_ms": 5723.585,
+  "model_name": "Mistral-Large-3"
+}

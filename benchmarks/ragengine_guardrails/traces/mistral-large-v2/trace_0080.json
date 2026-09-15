@@ -1,0 +1,835 @@
+{
+  "index": 80,
+  "prompt": "What is the difference between horizontal and vertical scaling?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 692.481,
+      "content": "Horizontal"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " vertical scaling are two"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " approaches to increasing"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " the capacity"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " performance of a system"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": ", typically"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " in computing"
+    },
+    {
+      "timestamp_ms": 692.481,
+      "content": " or database environments."
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": " Here’s a breakdown"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": " of their"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": " differences:\n\n### **"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": "1. Vertical"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": " Scaling ("
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": "Scale"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": "-Up)**\n-"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": " **Definition**: Adding"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": " more resources ("
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": "CPU, RAM"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": ", storage"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": ") to an"
+    },
+    {
+      "timestamp_ms": 961.025,
+      "content": " existing machine"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " server to handle"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " load.\n- **"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": "How"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " it works**:\n "
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " - Up"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": "grade"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " the hardware"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " a single server"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " more powerful CPU,"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " RAM,"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 1326.75,
+      "content": " storage).\n  -"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " system remains a"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " single unit"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " but becomes"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " more powerful.\n-"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " **Pro"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": "s**:\n  -"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " Simpler to"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " (no need to"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " multiple machines"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": ").\n  - Lower"
+    },
+    {
+      "timestamp_ms": 1720.348,
+      "content": " latency (since"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " all processing"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " happens"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " on one"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " machine).\n  -"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " Easier to"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " maintain ("
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": "single"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " of management"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": ").\n-"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " **Cons**:\n "
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " - **"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": "Lim"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": "ited by"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": "** (you"
+    },
+    {
+      "timestamp_ms": 2843.304,
+      "content": " can only"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " upgrade so"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " much).\n  -"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " **Single"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " point of failure**"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " (if"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " the machine"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " crashes,"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " the entire"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " system goes down).\n"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": "  - **Dow"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": "ntime"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " upgrades** (may"
+    },
+    {
+      "timestamp_ms": 3257.32,
+      "content": " require restart"
+    },
+    {
+      "timestamp_ms": 3354.941,
+      "content": "ing the"
+    },
+    {
+      "timestamp_ms": 3354.941,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 3354.941,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 3354.941,
+      "content": "More"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": " expensive** (high"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": "-end hardware"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": ").\n-"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": " **Use Cases**:\n"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": "  - Mon"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": "olithic applications.\n"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": "  - Dat"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": "abases that don"
+    },
+    {
+      "timestamp_ms": 3676.118,
+      "content": "’t support sh"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": "arding (e.g"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": "., traditional"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " databases like"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " MySQL in"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " cases).\n  -"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " Small"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " medium workloads where"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " simplicity"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": " is preferred"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": ".\n\n### **2"
+    },
+    {
+      "timestamp_ms": 4089.843,
+      "content": ". Horizontal Scaling"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " (Scale"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": "Out)**\n- **"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": "Definition**: Adding more"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " machines or"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " to a system"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " to distribute the"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " load across multiple servers"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": ".\n- **How"
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " it works**:\n "
+    },
+    {
+      "timestamp_ms": 4481.954,
+      "content": " - Deploy"
+    },
+    {
+      "timestamp_ms": 4591.297,
+      "content": " additional"
+    },
+    {
+      "timestamp_ms": 4591.297,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 4591.297,
+      "content": " (physical"
+    },
+    {
+      "timestamp_ms": 4591.297,
+      "content": " or virtual) and"
+    },
+    {
+      "timestamp_ms": 4591.297,
+      "content": " distribute"
+    },
+    {
+      "timestamp_ms": 4591.297,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4591.297,
+      "content": " workload.\n"
+    },
+    {
+      "timestamp_ms": 4759.213,
+      "content": "  - Often"
+    },
+    {
+      "timestamp_ms": 4759.213,
+      "content": " requires load"
+    },
+    {
+      "timestamp_ms": 4759.213,
+      "content": " balancing (e.g"
+    },
+    {
+      "timestamp_ms": 4759.213,
+      "content": "., using a tool"
+    },
+    {
+      "timestamp_ms": 4759.213,
+      "content": " like Nginx"
+    },
+    {
+      "timestamp_ms": 4759.213,
+      "content": ", HA"
+    },
+    {
+      "timestamp_ms": 4759.213,
+      "content": "Proxy, or cloud"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": "-based load"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " balancers).\n "
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " - Data may"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " be partitioned"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " (sh"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": "arded) across multiple"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": ".\n- **Pro"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": "s**:\n  -"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " **High"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": "ly scalable** ("
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": "can add"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " as many machines"
+    },
+    {
+      "timestamp_ms": 5104.132,
+      "content": " as needed).\n "
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " - **Fault"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": "-tolerant**"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " (if"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " one node"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " fails, others"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " take"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " over).\n  -"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " **Cost"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": "-effective at"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " scale** (can"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " use commodity"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": "No downtime for"
+    },
+    {
+      "timestamp_ms": 5509.888,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": "** (can add"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": "remove nodes dynamically"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": ").\n-"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": " **Cons**:\n "
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": " - **More complex"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": "** (requires"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": " balancing, data"
+    },
+    {
+      "timestamp_ms": 5619.113,
+      "content": " partitioning"
+    },
+    {
+      "timestamp_ms": 5642.115,
+      "content": ", and distributed system"
+    },
+    {
+      "timestamp_ms": 5642.115,
+      "content": " management).\n  -"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": " **Higher latency"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": "** (due"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": " to network communication"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": " between nodes"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": "Data consistency challenges"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": "., eventual"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 5826.243,
+      "content": " in distributed databases"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": "Requ"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": "ires application"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": "** (not"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": " all apps"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": " designed for"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 5951.399,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6017.378,
+      "type": "done"
+    }
+  ],
+  "full_response": "Horizontal and vertical scaling are two different approaches to increasing the capacity or performance of a system, typically in computing or database environments. Here’s a breakdown of their differences:\n\n### **1. Vertical Scaling (Scale-Up)**\n- **Definition**: Adding more resources (CPU, RAM, storage) to an existing machine or server to handle increased load.\n- **How it works**:\n  - Upgrade the hardware of a single server (e.g., more powerful CPU, additional RAM, faster storage).\n  - The system remains a single unit but becomes more powerful.\n- **Pros**:\n  - Simpler to implement (no need to manage multiple machines).\n  - Lower latency (since all processing happens on one machine).\n  - Easier to maintain (single point of management).\n- **Cons**:\n  - **Limited by hardware limits** (you can only upgrade so much).\n  - **Single point of failure** (if the machine crashes, the entire system goes down).\n  - **Downtime during upgrades** (may require restarting the system).\n  - **More expensive** (high-end hardware costs more).\n- **Use Cases**:\n  - Monolithic applications.\n  - Databases that don’t support sharding (e.g., traditional SQL databases like MySQL in some cases).\n  - Small to medium workloads where simplicity is preferred.\n\n### **2. Horizontal Scaling (Scale-Out)**\n- **Definition**: Adding more machines or nodes to a system to distribute the load across multiple servers.\n- **How it works**:\n  - Deploy additional servers (physical or virtual) and distribute the workload.\n  - Often requires load balancing (e.g., using a tool like Nginx, HAProxy, or cloud-based load balancers).\n  - Data may be partitioned (sharded) across multiple nodes.\n- **Pros**:\n  - **Highly scalable** (can add as many machines as needed).\n  - **Fault-tolerant** (if one node fails, others take over).\n  - **Cost-effective at scale** (can use commodity hardware).\n  - **No downtime for scaling** (can add/remove nodes dynamically).\n- **Cons**:\n  - **More complex** (requires load balancing, data partitioning, and distributed system management).\n  - **Higher latency** (due to network communication between nodes).\n  - **Data consistency challenges** (e.g., eventual consistency in distributed databases).\n  - **Requires application support** (not all apps are designed for horizontal scaling",
+  "response_chars": 2292,
+  "num_chunks": 203,
+  "ttft_ms": 692.481,
+  "total_ms": 6150.99,
+  "model_name": "Mistral-Large-3"
+}

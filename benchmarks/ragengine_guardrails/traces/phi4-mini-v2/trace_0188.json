@@ -1,0 +1,247 @@
+{
+  "index": 188,
+  "prompt": "Generate a sample employee directory entry with name, work email, personal email, office phone, cell phone, and employee ID.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1357.123,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": " John"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": "Work"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": " john"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": "mith"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": "company"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": "Personal"
+    },
+    {
+      "timestamp_ms": 1357.123,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": " john"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": ".s"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "mith"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "Office"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "Cell"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "555"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "765"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "432"
+    },
+    {
+      "timestamp_ms": 1376.7,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": "Employee"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": "678"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 1534.714,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 1637.362,
+      "type": "done"
+    }
+  ],
+  "full_response": "Name: John Smith\n\nWork Email: john.smith@company.com\n\nPersonal Email john.smith@example.com\n\nOffice Phone: (555) 123-4567\n\nCell Phone: (555) 765-4321\n\nEmployee ID: 12345-6789",
+  "response_chars": 174,
+  "num_chunks": 56,
+  "ttft_ms": 1357.123,
+  "total_ms": 1721.442,
+  "model_name": "Phi-4-mini-instruct"
+}

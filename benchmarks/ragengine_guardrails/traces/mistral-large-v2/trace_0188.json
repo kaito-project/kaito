@@ -1,0 +1,299 @@
+{
+  "index": 188,
+  "prompt": "Generate a sample employee directory entry with name, work email, personal email, office phone, cell phone, and employee ID.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1174.262,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": "’s a sample"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " entry with"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " the requested"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": ":\n\n---\n\n**Employee"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " Directory"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " Entry"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": "**\n\n**Name:**"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " Alex"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " J"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": ". Rivera"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": "\n**Employee"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": " ID:** E"
+    },
+    {
+      "timestamp_ms": 1174.262,
+      "content": "MP-7"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "28"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "9\n\n"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "**Work"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": " Contact"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": ":**\n- **"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "Email:** a"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "lex.r"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "ivera"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "@company.com\n"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "- **Office"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": " Phone:** ("
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "555)"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": " 123"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "-456"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "7 x"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "890"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "\n\n**Personal"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": " Contact ("
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "with"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": " permission"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "):**\n- **"
+    },
+    {
+      "timestamp_ms": 2401.812,
+      "content": "Email:** a"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "lex.j"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": ".r"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "ivera@gmail"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": ".com\n- **"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "Cell Phone:** ("
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "555)"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": " 987"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "-654"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "3\n\n**Department"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": ":** Marketing"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "**Position:** Digital"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": " Content"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": "**Location:** New"
+    },
+    {
+      "timestamp_ms": 2971.033,
+      "content": " York Office"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": "Floor 3)\n\n"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": "---\n\n*Note"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": ": Personal"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " contact details are shared"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " employee"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " consent and"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "content": " internal use.*"
+    },
+    {
+      "timestamp_ms": 3512.324,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 3542.431,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a sample employee directory entry with the requested details:\n\n---\n\n**Employee Directory Entry**\n\n**Name:** Alex J. Rivera\n**Employee ID:** EMP-74289\n\n**Work Contact:**\n- **Email:** alex.rivera@company.com\n- **Office Phone:** (555) 123-4567 x7890\n\n**Personal Contact (with permission):**\n- **Email:** alex.j.rivera@gmail.com\n- **Cell Phone:** (555) 987-6543\n\n**Department:** Marketing\n**Position:** Digital Content Manager\n**Location:** New York Office (Floor 3)\n\n---\n\n*Note: Personal contact details are shared only with employee consent and for internal use.*",
+  "response_chars": 568,
+  "num_chunks": 69,
+  "ttft_ms": 1174.262,
+  "total_ms": 3706.571,
+  "model_name": "Mistral-Large-3"
+}

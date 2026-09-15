@@ -1,0 +1,2015 @@
+{
+  "index": 80,
+  "prompt": "What is the difference between horizontal and vertical scaling?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 294.34,
+      "content": "Horizontal"
+    },
+    {
+      "timestamp_ms": 313.167,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 324.424,
+      "content": " vertical"
+    },
+    {
+      "timestamp_ms": 398.205,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 398.405,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 398.584,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 399.748,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 422.178,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 438.623,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 548.566,
+      "content": " increase"
+    },
+    {
+      "timestamp_ms": 548.82,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 548.901,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 548.973,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 549.022,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 551.991,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 573.695,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 659.709,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 659.863,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 659.943,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 660.014,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 667.267,
+      "content": " loads"
+    },
+    {
+      "timestamp_ms": 687.459,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 704.298,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 799.882,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 800.087,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 800.209,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 800.335,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 800.431,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 819.076,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 841.135,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 918.841,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 919.026,
+      "content": " Horizontal"
+    },
+    {
+      "timestamp_ms": 919.101,
+      "content": " Scaling"
+    },
+    {
+      "timestamp_ms": 919.92,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 933.843,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 954.45,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 972.379,
+      "content": "Definition"
+    },
+    {
+      "timestamp_ms": 1042.995,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1043.196,
+      "content": " Also"
+    },
+    {
+      "timestamp_ms": 1043.293,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 1049.249,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1067.199,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 1088.316,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 1180.842,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1180.994,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 1181.071,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 1181.134,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 1181.385,
+      "content": " adding"
+    },
+    {
+      "timestamp_ms": 1202.105,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 1219.632,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 1291.195,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1291.478,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1291.577,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1297.228,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1315.164,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1337.235,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1413.974,
+      "content": " increase"
+    },
+    {
+      "timestamp_ms": 1414.109,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1414.173,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 1414.227,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1432.673,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1456.141,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1522.502,
+      "content": "Mech"
+    },
+    {
+      "timestamp_ms": 1522.668,
+      "content": "anism"
+    },
+    {
+      "timestamp_ms": 1522.778,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1523.57,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 1543.817,
+      "content": " spread"
+    },
+    {
+      "timestamp_ms": 1563.013,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1587.538,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 1601.646,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 1619.572,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 1659.249,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 1659.515,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1676.862,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 1697.075,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 1714.387,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 1736.183,
+      "content": " handles"
+    },
+    {
+      "timestamp_ms": 1753.071,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1773.058,
+      "content": " portion"
+    },
+    {
+      "timestamp_ms": 1792.705,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1823.385,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1829.447,
+      "content": " total"
+    },
+    {
+      "timestamp_ms": 1848.96,
+      "content": " workload"
+    },
+    {
+      "timestamp_ms": 1889.905,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1890.175,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1907.084,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1923.921,
+      "content": "Benefits"
+    },
+    {
+      "timestamp_ms": 1943.26,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1967.513,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1990.804,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2003.75,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2045.945,
+      "content": " Enhanced"
+    },
+    {
+      "timestamp_ms": 2046.159,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 2058.644,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 2082.326,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2131.122,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 2131.392,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 2133.035,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 2153.552,
+      "content": " fails"
+    },
+    {
+      "timestamp_ms": 2193.122,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2197.736,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 2228.456,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2235.314,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2248.235,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 2267.288,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2287.733,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 2324.024,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 2338.639,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2348.396,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 2427.734,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2428.001,
+      "content": " minimal"
+    },
+    {
+      "timestamp_ms": 2428.135,
+      "content": " disruption"
+    },
+    {
+      "timestamp_ms": 2428.212,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2446.686,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2461.006,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2686.076,
+      "content": " Flex"
+    },
+    {
+      "timestamp_ms": 2686.264,
+      "content": "ibility"
+    },
+    {
+      "timestamp_ms": 2686.332,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2686.387,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 2686.437,
+      "content": "asier"
+    },
+    {
+      "timestamp_ms": 2686.483,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2686.527,
+      "content": " add"
+    },
+    {
+      "timestamp_ms": 2686.572,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2686.617,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 2748.655,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 2748.655,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2748.655,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 2748.655,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 2748.655,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2748.905,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2763.366,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3057.282,
+      "content": " Cost"
+    },
+    {
+      "timestamp_ms": 3057.474,
+      "content": "-eff"
+    },
+    {
+      "timestamp_ms": 3057.55,
+      "content": "iciency"
+    },
+    {
+      "timestamp_ms": 3057.632,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3057.632,
+      "content": " Often"
+    },
+    {
+      "timestamp_ms": 3057.702,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 3057.757,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3057.808,
+      "content": " commodity"
+    },
+    {
+      "timestamp_ms": 3067.326,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 3067.522,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3067.59,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3067.648,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3067.697,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3067.746,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 3067.791,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 3067.919,
+      "content": "-effective"
+    },
+    {
+      "timestamp_ms": 3110.568,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 3110.819,
+      "content": " upgrading"
+    },
+    {
+      "timestamp_ms": 3125.028,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3144.494,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 3439.714,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 3439.892,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3439.971,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3440.029,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3440.082,
+      "content": "Ch"
+    },
+    {
+      "timestamp_ms": 3440.131,
+      "content": "allenges"
+    },
+    {
+      "timestamp_ms": 3440.18,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3440.224,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3440.384,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3440.44,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3440.488,
+      "content": " Increased"
+    },
+    {
+      "timestamp_ms": 3440.534,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 3440.58,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3440.626,
+      "content": " Requires"
+    },
+    {
+      "timestamp_ms": 3440.673,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 3450.979,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 3759.767,
+      "content": " techniques"
+    },
+    {
+      "timestamp_ms": 3760.01,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3760.104,
+      "content": " technologies"
+    },
+    {
+      "timestamp_ms": 3760.178,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3760.234,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 3760.285,
+      "content": " bal"
+    },
+    {
+      "timestamp_ms": 3762.766,
+      "content": "ancers"
+    },
+    {
+      "timestamp_ms": 3762.99,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3763.097,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3763.169,
+      "content": " replication"
+    },
+    {
+      "timestamp_ms": 3763.232,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 3763.289,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3763.343,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3763.522,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3763.589,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 3763.646,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 3772.946,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3799.195,
+      "content": " Diff"
+    },
+    {
+      "timestamp_ms": 3812.574,
+      "content": "icult"
+    },
+    {
+      "timestamp_ms": 3832.311,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3849.385,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 4181.517,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4181.814,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 4181.96,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 4182.015,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 4182.065,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 4182.111,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4182.165,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 4182.244,
+      "content": " Vertical"
+    },
+    {
+      "timestamp_ms": 4182.349,
+      "content": " Scaling"
+    },
+    {
+      "timestamp_ms": 4182.422,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4182.477,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4182.532,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4182.578,
+      "content": "Definition"
+    },
+    {
+      "timestamp_ms": 4182.627,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4182.67,
+      "content": " Also"
+    },
+    {
+      "timestamp_ms": 4182.713,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 4182.758,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4204.354,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 4216.983,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 4234.639,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4269.145,
+      "content": " vertical"
+    },
+    {
+      "timestamp_ms": 4269.343,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 4522.938,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 4523.122,
+      "content": " adding"
+    },
+    {
+      "timestamp_ms": 4523.185,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 4523.244,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4523.61,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4523.703,
+      "content": "such"
+    },
+    {
+      "timestamp_ms": 4523.766,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4523.821,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 4523.878,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4523.926,
+      "content": " RAM"
+    },
+    {
+      "timestamp_ms": 4523.971,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4524.016,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4527.167,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 4538.652,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4554.26,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4592.363,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4592.553,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 4783.673,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 4783.854,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4783.989,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4784.071,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4784.141,
+      "content": "Mech"
+    },
+    {
+      "timestamp_ms": 4784.202,
+      "content": "anism"
+    },
+    {
+      "timestamp_ms": 4784.256,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4789.091,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 4789.224,
+      "content": " upgrade"
+    },
+    {
+      "timestamp_ms": 4789.29,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4812.357,
+      "content": " specifications"
+    },
+    {
+      "timestamp_ms": 4828.065,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4840.152,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4887.248,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 4887.394,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 4960.233,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4973.768,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 4973.952,
+      "content": " higher"
+    },
+    {
+      "timestamp_ms": 4974.045,
+      "content": " loads"
+    },
+    {
+      "timestamp_ms": 4974.125,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4993.555,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5193.146,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5193.4,
+      "content": "Benefits"
+    },
+    {
+      "timestamp_ms": 5193.51,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5193.566,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5201.586,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5201.796,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5201.919,
+      "content": " Sim"
+    },
+    {
+      "timestamp_ms": 5201.993,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 5202.05,
+      "content": "licity"
+    },
+    {
+      "timestamp_ms": 5202.1,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5202.146,
+      "content": " E"
+    },
+    {
+      "timestamp_ms": 5245.286,
+      "content": "asier"
+    },
+    {
+      "timestamp_ms": 5245.402,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5259.692,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 5280.142,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5297.809,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5351.975,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 5352.123,
+      "content": " upgrading"
+    },
+    {
+      "timestamp_ms": 5354.931,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5380.996,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 5394.099,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 5460.239,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 5460.422,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 5460.507,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 5468.898,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 5587.301,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 5587.482,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 5587.591,
+      "content": " machines"
+    },
+    {
+      "timestamp_ms": 5587.663,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5594.185,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5594.363,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5602.321,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 5707.332,
+      "content": "istency"
+    },
+    {
+      "timestamp_ms": 5707.54,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5707.649,
+      "content": " Pres"
+    },
+    {
+      "timestamp_ms": 5707.721,
+      "content": "erved"
+    },
+    {
+      "timestamp_ms": 5707.786,
+      "content": " naturally"
+    },
+    {
+      "timestamp_ms": 5717.33,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6020.436,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 6020.567,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 6020.671,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6020.781,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6020.869,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 6020.93,
+      "content": "loads"
+    },
+    {
+      "timestamp_ms": 6020.981,
+      "content": " reside"
+    },
+    {
+      "timestamp_ms": 6021.027,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6021.072,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6021.115,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 6021.159,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 6021.348,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6021.409,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6021.464,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6021.516,
+      "content": "Ch"
+    },
+    {
+      "timestamp_ms": 6037.468,
+      "content": "allenges"
+    },
+    {
+      "timestamp_ms": 6044.118,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6060.191,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6334.337,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6334.574,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6334.71,
+      "content": " Limits"
+    },
+    {
+      "timestamp_ms": 6340.714,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6340.858,
+      "content": " There"
+    },
+    {
+      "timestamp_ms": 6340.858,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6340.858,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6341.018,
+      "content": " physical"
+    },
+    {
+      "timestamp_ms": 6341.096,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 6341.153,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6341.213,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 6341.27,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 6341.443,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6341.525,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 6367.662,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6378.617,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6480.951,
+      "content": " upgraded"
+    },
+    {
+      "timestamp_ms": 6481.227,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6481.426,
+      "content": " Eventually"
+    },
+    {
+      "timestamp_ms": 6481.572,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6482.992,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6492.724,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 6625.776,
+      "content": " hit"
+    },
+    {
+      "timestamp_ms": 6626.008,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6626.151,
+      "content": " maximum"
+    },
+    {
+      "timestamp_ms": 6626.263,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 6626.367,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6626.454,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6630.46,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 6643.607,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6792.603,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6792.868,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6793.027,
+      "content": " D"
+    },
+    {
+      "timestamp_ms": 6793.15,
+      "content": "ownt"
+    },
+    {
+      "timestamp_ms": 6793.252,
+      "content": "ime"
+    },
+    {
+      "timestamp_ms": 6798.658,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6798.811,
+      "content": " May"
+    },
+    {
+      "timestamp_ms": 6798.924,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 6948.612,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6948.773,
+      "content": " downtime"
+    },
+    {
+      "timestamp_ms": 6948.842,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6948.904,
+      "content": " upgrade"
+    },
+    {
+      "timestamp_ms": 6948.959,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 6949.011,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 6949.063,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6950.965,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7003.871,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7004.026,
+      "content": " Cost"
+    },
+    {
+      "timestamp_ms": 7007.984,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7101.477,
+      "content": " High"
+    },
+    {
+      "timestamp_ms": 7101.673,
+      "content": "-end"
+    },
+    {
+      "timestamp_ms": 7101.813,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 7101.982,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7102.96,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7237.017,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7237.017,
+      "content": " expensive"
+    },
+    {
+      "timestamp_ms": 7237.017,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7237.017,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7237.017,
+      "content": " persistent"
+    },
+    {
+      "timestamp_ms": 7237.017,
+      "content": " upgrades"
+    },
+    {
+      "timestamp_ms": 7238.507,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7524.457,
+      "content": " become"
+    },
+    {
+      "timestamp_ms": 7524.807,
+      "content": " costly"
+    },
+    {
+      "timestamp_ms": 7525.114,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 7525.258,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 7525.4,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7525.552,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 7525.632,
+      "content": " Usage"
+    },
+    {
+      "timestamp_ms": 7525.694,
+      "content": " Consider"
+    },
+    {
+      "timestamp_ms": 7525.75,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 7525.799,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7525.845,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7525.892,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7525.94,
+      "content": "Application"
+    },
+    {
+      "timestamp_ms": 7525.988,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 7526.055,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7659.836,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7672.166,
+      "content": " influence"
+    },
+    {
+      "timestamp_ms": 7672.295,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7672.387,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 7672.507,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 7672.578,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7672.636,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7680.394,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 7707.832,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7715.903,
+      "content": " Stateless"
+    },
+    {
+      "timestamp_ms": 7824.95,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7830.594,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 7830.745,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 7830.82,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 7830.879,
+      "content": " horizontally"
+    },
+    {
+      "timestamp_ms": 7838.472,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7851.585,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 7999.181,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 7999.39,
+      "content": "ful"
+    },
+    {
+      "timestamp_ms": 7999.49,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7999.557,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7999.626,
+      "content": " initially"
+    },
+    {
+      "timestamp_ms": 7999.68,
+      "content": " benefit"
+    },
+    {
+      "timestamp_ms": 7999.732,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8004.17,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 8018.8,
+      "content": " vertical"
+    },
+    {
+      "timestamp_ms": 8162.3,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 8162.481,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8162.562,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8162.634,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8162.691,
+      "content": "Budget"
+    },
+    {
+      "timestamp_ms": 8162.744,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 8162.793,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8170.62,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8484.639,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 8484.865,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 8484.965,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 8485.033,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 8485.091,
+      "content": " dictate"
+    },
+    {
+      "timestamp_ms": 8485.144,
+      "content": " practical"
+    },
+    {
+      "timestamp_ms": 8485.196,
+      "content": " choices"
+    },
+    {
+      "timestamp_ms": 8485.247,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8485.302,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8485.358,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8485.403,
+      "content": "Future"
+    },
+    {
+      "timestamp_ms": 8485.445,
+      "content": " growth"
+    },
+    {
+      "timestamp_ms": 8485.485,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8485.526,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 8485.567,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8485.611,
+      "content": " influence"
+    },
+    {
+      "timestamp_ms": 8498.232,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8575.123,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 8575.349,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8575.464,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8592.209,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 8602.346,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 8612.005,
+      "content": " generally"
+    },
+    {
+      "timestamp_ms": 8749.517,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 8749.673,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8749.737,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8749.79,
+      "content": " sustainable"
+    },
+    {
+      "timestamp_ms": 8749.838,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 8749.885,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8749.931,
+      "content": " long"
+    },
+    {
+      "timestamp_ms": 8764.972,
+      "content": "-term"
+    },
+    {
+      "timestamp_ms": 8787.923,
+      "content": " growth"
+    },
+    {
+      "timestamp_ms": 9097.979,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9098.319,
+      "content": "In"
+    },
+    {
+      "timestamp_ms": 9098.569,
+      "content": " summary"
+    },
+    {
+      "timestamp_ms": 9098.84,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9098.937,
+      "content": " vertical"
+    },
+    {
+      "timestamp_ms": 9099.171,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 9099.243,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9099.303,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 9099.431,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9099.509,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9099.574,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9099.636,
+      "content": " straightforward"
+    },
+    {
+      "timestamp_ms": 9099.694,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 9099.788,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9099.93,
+      "content": " inherent"
+    },
+    {
+      "timestamp_ms": 9100.014,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9107.188,
+      "content": " consistency"
+    },
+    {
+      "timestamp_ms": 9361.265,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9361.602,
+      "content": " whereas"
+    },
+    {
+      "timestamp_ms": 9368.254,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 9368.461,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 9368.604,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 9368.7,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 9368.747,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 9368.793,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 9368.841,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9368.841,
+      "content": " flexibility"
+    },
+    {
+      "timestamp_ms": 9368.895,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9368.94,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 9368.984,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 9374.17,
+      "content": " increases"
+    },
+    {
+      "timestamp_ms": 9400.158,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9412.301,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 9504.254,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 9504.441,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 9504.518,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9504.577,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 9507.906,
+      "content": " choice"
+    },
+    {
+      "timestamp_ms": 9698.595,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 9698.861,
+      "content": " depends"
+    },
+    {
+      "timestamp_ms": 9698.985,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9699.066,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9699.126,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 9699.179,
+      "content": " requirements"
+    },
+    {
+      "timestamp_ms": 9699.229,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9699.402,
+      "content": " constraints"
+    },
+    {
+      "timestamp_ms": 9699.518,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9699.616,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9773.59,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 9773.776,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9773.876,
+      "content": " question"
+    },
+    {
+      "timestamp_ms": 9784.871,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9799.738,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9799.738,
+      "type": "done"
+    }
+  ],
+  "full_response": "Horizontal and vertical scaling are two strategies used to increase the capacity and performance of a system to handle increased loads. Here are the differences between the two:\n\n### Horizontal Scaling\n- **Definition**: Also known as scaling out, horizontal scaling involves adding more machines or nodes to a system to increase its capacity.\n- **Mechanism**: You spread the load across multiple servers. Each server typically handles a portion of the total workload.\n- **Benefits**:\n  - Enhanced fault tolerance: If one server fails, others in the cluster can continue processing, often with minimal disruption.\n  - Flexibility: Easier to add or remove machines as demand changes.\n  - Cost-efficiency: Often involves using commodity hardware, which can be more cost-effective than upgrading a single machine.\n- **Challenges**:\n  - Increased complexity: Requires distributed computing techniques and technologies like load balancers and data replication strategies.\n  - Consistency: Difficult to maintain data consistency across distributed systems.\n\n### Vertical Scaling\n- **Definition**: Also known as scaling up, vertical scaling involves adding more resources (such as CPU, RAM, or storage) to an existing machine.\n- **Mechanism**: You upgrade the specifications of the existing hardware to handle higher loads.\n- **Benefits**:\n  - Simplicity: Easier to implement as it involves upgrading a single machine rather than distributing load across multiple machines.\n  - Consistency: Preserved naturally, as all data and workloads reside on a single server.\n- **Challenges**:\n  - Limits: There is a physical limit to how much a system can be upgraded. Eventually, you will hit the maximum capacity of the machine.\n  - Downtime: May require more downtime to upgrade hardware components.\n  - Cost: High-end hardware can be more expensive, and persistent upgrades can become costly over time.\n\n### Usage Considerations\n- **Application architecture** can influence which scaling method is more appropriate. Stateless applications usually scale well horizontally, while stateful applications might initially benefit more from vertical scaling.\n- **Budget constraints** and existing infrastructure might also dictate practical choices.\n- **Future growth** needs can influence the choice, as horizontal scaling generally provides a more sustainable path for long-term growth.\n\nIn summary, vertical scaling is often used for its straightforward implementation and inherent data consistency, whereas horizontal scaling offers better fault tolerance and flexibility to handle significant increases in load over time. The choice often depends on the specific requirements and constraints of the system in question.",
+  "response_chars": 2702,
+  "num_chunks": 498,
+  "ttft_ms": 294.34,
+  "total_ms": 9800.086,
+  "model_name": "model-medium"
+}

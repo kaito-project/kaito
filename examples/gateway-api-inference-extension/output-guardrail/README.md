@@ -14,7 +14,7 @@ This PR implements:
 - ✅ Receives response body from Envoy (via bidirectional gRPC stream)
 - ✅ Appends `" [GATEWAY_TEST]"` to the body
 - ✅ Returns modified body to Envoy
-- ✅ Proves response mutation chain works end-to-end
+- ⏳ End-to-end validation: verify Gateway response gets mutated through mock backend
 
 ## What This PR Does NOT Do
 
@@ -100,14 +100,16 @@ kubectl apply -f envoyfilter.yaml
 ### Step 4: Verify EnvoyFilter is Loaded
 
 ```bash
-# Get the gateway pod name
-GATEWAY_POD=$(kubectl get pods -n istio-system -l app=istio-ingressgateway -o jsonpath='{.items[0].metadata.name}')
+# Get the gateway pod name (inference-gateway runs in default namespace)
+GATEWAY_POD=$(kubectl get pods -n default \
+  -l gateway.networking.k8s.io/gateway-name=inference-gateway \
+  -o jsonpath='{.items[0].metadata.name}')
 
 # Check if filter is in the listener config
-istioctl proxy-config listener $GATEWAY_POD -n istio-system | grep -A 10 "ext_proc"
+istioctl proxy-config listener "$GATEWAY_POD" -n default | grep -A 10 "ext_proc"
 
 # Check the cluster was added
-istioctl proxy-config cluster $GATEWAY_POD -n istio-system | grep llm_guard
+istioctl proxy-config cluster "$GATEWAY_POD" -n default | grep llm_guard
 ```
 
 ## Test
@@ -152,16 +154,26 @@ curl -X POST "http://$GATEWAY_IP/v1/chat/completions" \
 
 The `[GATEWAY_TEST]` string is appended to the entire JSON body (yes, it breaks JSON - that's OK for this PoC, we'll fix parsing in PR2).
 
+## Current Status
+
+⚠️ **PoC In Progress**
+
+- ✅ Mock backend deployment and routing working
+- ✅ HTTPRoute correctly forwarding requests through Gateway
+- ⏳ **ext_proc filter activation**: EnvoyFilter applied but ext_proc not receiving requests yet
+  - Issue: EnvoyFilter may not be correctly patching the HTTP filter chain
+  - Next: Diagnose Envoy config generation and filter insertion point
+
 ## Success Criteria for This PR
 
 To validate before merge, must demonstrate all of:
 
-- [ ] ext_proc service starts without errors
-- [ ] EnvoyFilter is successfully applied to Gateway
-- [ ] Response body is received by processor
-- [ ] Response is modified and returned
-- [ ] Client receives modified response with `[GATEWAY_TEST]` appended
-- [ ] (Full E2E validation with inference-gateway routing deferred to PR4/full integration testing)
+- [x] ext_proc service starts without errors
+- [x] EnvoyFilter is successfully applied to Gateway
+- [ ] Response body is received by processor (check logs) ← **PENDING: ext_proc not activated**
+- [ ] Response is modified and returned ← **PENDING**
+- [ ] Client receives modified response with `[GATEWAY_TEST]` appended when calling via Gateway → HTTPRoute → mock-llm ← **PENDING**
+- [ ] EPP routing and other Gateway filters are not affected (deferred to full integration testing)
 
 ## Known Limitations
 

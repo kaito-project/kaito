@@ -1,0 +1,2071 @@
+{
+  "index": 206,
+  "prompt": "What is rate limiting and what algorithms are commonly used to implement it?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 307.103,
+      "content": "Rate"
+    },
+    {
+      "timestamp_ms": 318.383,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 334.02,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 385.255,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 385.453,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 391.74,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 410.793,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 484.139,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 484.621,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 484.697,
+      "content": " amount"
+    },
+    {
+      "timestamp_ms": 489.687,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 586.877,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 587.2,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 587.308,
+      "content": " outgoing"
+    },
+    {
+      "timestamp_ms": 587.384,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 587.447,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 602.344,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 622.803,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 639.58,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 714.238,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 714.45,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 714.617,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 719.634,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 734.798,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 812.919,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 813.076,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 813.163,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 818.682,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 831.113,
+      "content": " primarily"
+    },
+    {
+      "timestamp_ms": 918.9,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 919.125,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 919.208,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 919.268,
+      "content": " abuse"
+    },
+    {
+      "timestamp_ms": 924.232,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1022.276,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 1022.553,
+      "content": " fair"
+    },
+    {
+      "timestamp_ms": 1022.672,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 1022.742,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1022.8,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 1125.817,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 1126.025,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1126.091,
+      "content": " maintain"
+    },
+    {
+      "timestamp_ms": 1126.144,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 1126.196,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1133.338,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1160.123,
+      "content": " protect"
+    },
+    {
+      "timestamp_ms": 1231.374,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 1231.553,
+      "content": " Do"
+    },
+    {
+      "timestamp_ms": 1231.622,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 1235.705,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1249.402,
+      "content": "Den"
+    },
+    {
+      "timestamp_ms": 1328.889,
+      "content": "ial"
+    },
+    {
+      "timestamp_ms": 1329.089,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1329.161,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 1329.221,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1344.146,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 1431.486,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1431.677,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 1431.756,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 1431.812,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1443.329,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 1458.438,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1533.368,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 1533.598,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1533.699,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 1533.816,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1562.716,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 1572.055,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1639.251,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1639.44,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 1639.511,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 1649.569,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1738.428,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 1738.617,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1738.687,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1738.74,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 1749.42,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 1767.07,
+      "content": " frame"
+    },
+    {
+      "timestamp_ms": 1783.504,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1801.312,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 1841.216,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 1841.432,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 1857.405,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1920.354,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1920.524,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 1920.586,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 1934.293,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 1954.342,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1980.196,
+      "content": " responsive"
+    },
+    {
+      "timestamp_ms": 1994.096,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2017.725,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 2033.341,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 2148.09,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2148.298,
+      "content": "Common"
+    },
+    {
+      "timestamp_ms": 2148.376,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 2148.431,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2148.48,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2148.66,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 2331.864,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 2331.864,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 2331.864,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 2331.864,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2332.211,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2332.408,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2332.526,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2332.611,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 2332.683,
+      "content": " Bucket"
+    },
+    {
+      "timestamp_ms": 2338.367,
+      "content": " Algorithm"
+    },
+    {
+      "timestamp_ms": 2359.06,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2455.358,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2455.622,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2455.761,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2455.869,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 2455.941,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2473.727,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 2487.96,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2558.412,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 2558.656,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2558.745,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 2562.773,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2660.714,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2660.947,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 2661.028,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2661.097,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 2685.929,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 2699.159,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2722.446,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2742.291,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 2865.441,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2865.578,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 2865.641,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2865.694,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 2865.74,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2865.786,
+      "content": " proceed"
+    },
+    {
+      "timestamp_ms": 2868.455,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2967.472,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 2967.667,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2967.764,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 2967.845,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2967.919,
+      "content": " empty"
+    },
+    {
+      "timestamp_ms": 3069.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3070.156,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3070.225,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 3073.007,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3073.007,
+      "content": " denied"
+    },
+    {
+      "timestamp_ms": 3080.433,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 3172.268,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3172.449,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 3172.531,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 3183.567,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 3183.567,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3274.683,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3274.859,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 3274.928,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3274.986,
+      "content": " flexible"
+    },
+    {
+      "timestamp_ms": 3275.079,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3287.683,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3377.273,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3377.481,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 3377.552,
+      "content": " varying"
+    },
+    {
+      "timestamp_ms": 3377.606,
+      "content": " burst"
+    },
+    {
+      "timestamp_ms": 3382.583,
+      "content": " rates"
+    },
+    {
+      "timestamp_ms": 3479.951,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3480.187,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3480.264,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 3480.323,
+      "content": " enforcing"
+    },
+    {
+      "timestamp_ms": 3480.382,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3581.966,
+      "content": " steady"
+    },
+    {
+      "timestamp_ms": 3582.213,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 3582.361,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 3582.461,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3582.547,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3596.055,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3610.325,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3684.408,
+      "content": "Le"
+    },
+    {
+      "timestamp_ms": 3684.577,
+      "content": "aky"
+    },
+    {
+      "timestamp_ms": 3684.644,
+      "content": " Bucket"
+    },
+    {
+      "timestamp_ms": 3700.012,
+      "content": " Algorithm"
+    },
+    {
+      "timestamp_ms": 3712.568,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3728.696,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3789.798,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3790.065,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3790.493,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3808.925,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 3823.049,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 3848.18,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3858.692,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 3991.489,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3991.735,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3991.811,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3991.869,
+      "content": " water"
+    },
+    {
+      "timestamp_ms": 3991.92,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3991.968,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3992.142,
+      "content": " leak"
+    },
+    {
+      "timestamp_ms": 4094.348,
+      "content": "y"
+    },
+    {
+      "timestamp_ms": 4094.518,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 4094.582,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 4094.638,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4094.69,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 4196.15,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 4196.362,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4196.432,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 4196.486,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 4196.535,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4206.582,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4223.181,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 4298.743,
+      "content": " fill"
+    },
+    {
+      "timestamp_ms": 4298.916,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4298.991,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 4299.045,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4401.607,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4401.78,
+      "content": " steady"
+    },
+    {
+      "timestamp_ms": 4401.78,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 4401.857,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4401.912,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4415.813,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4503.85,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 4504.064,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 4504.137,
+      "content": "flows"
+    },
+    {
+      "timestamp_ms": 4504.194,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4506.873,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 4605.775,
+      "content": ".e"
+    },
+    {
+      "timestamp_ms": 4605.966,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4606.043,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 4606.043,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 4609.771,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 4624.318,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4709.838,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 4709.838,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4810.697,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 4810.697,
+      "content": " queued"
+    },
+    {
+      "timestamp_ms": 4810.697,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4810.697,
+      "content": " dropped"
+    },
+    {
+      "timestamp_ms": 4810.915,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4835.477,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 4835.477,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 4835.477,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4862.212,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 4885.251,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 4885.251,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 4915.297,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5039.682,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5039.682,
+      "content": " irrespective"
+    },
+    {
+      "timestamp_ms": 5039.682,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5039.682,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5039.682,
+      "content": " burst"
+    },
+    {
+      "timestamp_ms": 5039.682,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 5050.665,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 5064.844,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5103.083,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5111.22,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5219.987,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5219.987,
+      "content": "Fixed"
+    },
+    {
+      "timestamp_ms": 5219.987,
+      "content": " Window"
+    },
+    {
+      "timestamp_ms": 5220.192,
+      "content": " Counter"
+    },
+    {
+      "timestamp_ms": 5220.192,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5328.632,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5328.632,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5328.632,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5328.866,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 5328.958,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5329.042,
+      "content": " simple"
+    },
+    {
+      "timestamp_ms": 5329.042,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 5329.042,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5372.196,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5424.498,
+      "content": " counter"
+    },
+    {
+      "timestamp_ms": 5424.498,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5437.541,
+      "content": " reset"
+    },
+    {
+      "timestamp_ms": 5437.541,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5519.05,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 5519.233,
+      "content": " intervals"
+    },
+    {
+      "timestamp_ms": 5519.309,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5519.368,
+      "content": "windows"
+    },
+    {
+      "timestamp_ms": 5523.139,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 5536.699,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 5632.191,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 5632.347,
+      "content": " increments"
+    },
+    {
+      "timestamp_ms": 5632.423,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5632.487,
+      "content": " counter"
+    },
+    {
+      "timestamp_ms": 5644.062,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5654.328,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5669.129,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5731.786,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5739.517,
+      "content": " denied"
+    },
+    {
+      "timestamp_ms": 5739.689,
+      "content": " once"
+    },
+    {
+      "timestamp_ms": 5748.35,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5764.344,
+      "content": " counter"
+    },
+    {
+      "timestamp_ms": 5804.289,
+      "content": " exceeds"
+    },
+    {
+      "timestamp_ms": 5804.437,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5857.511,
+      "content": " predefined"
+    },
+    {
+      "timestamp_ms": 5857.698,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 5859.601,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5937.27,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5937.526,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 5937.631,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5939.747,
+      "content": " easy"
+    },
+    {
+      "timestamp_ms": 5963.667,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5974.47,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 6010.906,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 6011.266,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6128.064,
+      "content": " allow"
+    },
+    {
+      "timestamp_ms": 6128.352,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6128.469,
+      "content": " burst"
+    },
+    {
+      "timestamp_ms": 6128.549,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6128.61,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 6133.332,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 6244.794,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6244.794,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 6245.042,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6245.128,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 6245.188,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 6245.242,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6346.599,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6346.769,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6346.839,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6346.899,
+      "content": "Sl"
+    },
+    {
+      "timestamp_ms": 6346.949,
+      "content": "iding"
+    },
+    {
+      "timestamp_ms": 6355.336,
+      "content": " Window"
+    },
+    {
+      "timestamp_ms": 6449.143,
+      "content": " Log"
+    },
+    {
+      "timestamp_ms": 6475.04,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6475.04,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6475.04,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6475.04,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6481.04,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6492.663,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 6558.732,
+      "content": " keeps"
+    },
+    {
+      "timestamp_ms": 6558.906,
+      "content": " track"
+    },
+    {
+      "timestamp_ms": 6558.996,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6565.703,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 6623.24,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 6623.508,
+      "content": " timestamp"
+    },
+    {
+      "timestamp_ms": 6757.608,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6757.828,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6757.906,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 6757.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6758.035,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 6758.094,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6758.157,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6758.208,
+      "content": " checked"
+    },
+    {
+      "timestamp_ms": 6866.164,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6866.355,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 6866.434,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6866.502,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 6866.561,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6870.182,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 6891.35,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6953.725,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6953.897,
+      "content": " given"
+    },
+    {
+      "timestamp_ms": 6953.897,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 6973.872,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6993.248,
+      "content": "the"
+    },
+    {
+      "timestamp_ms": 7013.119,
+      "content": " current"
+    },
+    {
+      "timestamp_ms": 7047.297,
+      "content": " interval"
+    },
+    {
+      "timestamp_ms": 7047.516,
+      "content": " plus"
+    },
+    {
+      "timestamp_ms": 7063.429,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7084.074,
+      "content": " previous"
+    },
+    {
+      "timestamp_ms": 7165.765,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 7165.937,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7166.006,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 7166.059,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 7175.475,
+      "content": " exceed"
+    },
+    {
+      "timestamp_ms": 7196.639,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7228.678,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 7238.308,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7254.147,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7273.655,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 7309.074,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7317.729,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 7330.838,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 7353.152,
+      "content": " enforcement"
+    },
+    {
+      "timestamp_ms": 7371.107,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 7388.374,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7408.61,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 7429.062,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 7446.594,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 7463.482,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 7486.155,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7503.887,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 7521.615,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7538.914,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 7559.098,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 7649.906,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 7650.183,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 7650.327,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7650.45,
+      "content": " logging"
+    },
+    {
+      "timestamp_ms": 7664.553,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7677.923,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7692.73,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7710.69,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7729.538,
+      "content": "Sl"
+    },
+    {
+      "timestamp_ms": 7750.634,
+      "content": "iding"
+    },
+    {
+      "timestamp_ms": 7785.781,
+      "content": " Window"
+    },
+    {
+      "timestamp_ms": 7787.559,
+      "content": " Counter"
+    },
+    {
+      "timestamp_ms": 7807.737,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7885.087,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7897.951,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7898.179,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7898.267,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7901.994,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7920.746,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7946.512,
+      "content": " hybrid"
+    },
+    {
+      "timestamp_ms": 7960.681,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 8087.803,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8092.42,
+      "content": " aims"
+    },
+    {
+      "timestamp_ms": 8092.601,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8092.684,
+      "content": " combine"
+    },
+    {
+      "timestamp_ms": 8092.749,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8092.81,
+      "content": " simplicity"
+    },
+    {
+      "timestamp_ms": 8092.867,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8116.235,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 8136.38,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 8190.484,
+      "content": " counters"
+    },
+    {
+      "timestamp_ms": 8208.557,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8209.034,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8209.152,
+      "content": " flexibility"
+    },
+    {
+      "timestamp_ms": 8295.759,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8303.757,
+      "content": " dividing"
+    },
+    {
+      "timestamp_ms": 8304.072,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 8304.303,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 8307.331,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 8325.843,
+      "content": " sub"
+    },
+    {
+      "timestamp_ms": 8340.021,
+      "content": "-windows"
+    },
+    {
+      "timestamp_ms": 8359.315,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8394.488,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8399.866,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 8416.632,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 8496.694,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 8496.877,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8496.94,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8497.086,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 8520.688,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 8530.154,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 8553.45,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8570.442,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 8590.348,
+      "content": " bursts"
+    },
+    {
+      "timestamp_ms": 8612.467,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 8628.114,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": " boundaries"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": "vol"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": "ving"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": " Window"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": " Algorithm"
+    },
+    {
+      "timestamp_ms": 8887.828,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8888.13,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8896.343,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8914.236,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9009.207,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 9009.46,
+      "content": " variation"
+    },
+    {
+      "timestamp_ms": 9009.555,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9009.638,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9009.713,
+      "content": " sliding"
+    },
+    {
+      "timestamp_ms": 9025.45,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 9111.877,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9112.104,
+      "content": " maintains"
+    },
+    {
+      "timestamp_ms": 9112.194,
+      "content": " counters"
+    },
+    {
+      "timestamp_ms": 9112.255,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9122.689,
+      "content": " timestamps"
+    },
+    {
+      "timestamp_ms": 9149.322,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9161.449,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 9216.562,
+      "content": " small"
+    },
+    {
+      "timestamp_ms": 9216.775,
+      "content": " intervals"
+    },
+    {
+      "timestamp_ms": 9216.969,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9316.185,
+      "content": "buckets"
+    },
+    {
+      "timestamp_ms": 9316.376,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 9316.441,
+      "content": " effectively"
+    },
+    {
+      "timestamp_ms": 9327.478,
+      "content": " spreading"
+    },
+    {
+      "timestamp_ms": 9327.478,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9335.593,
+      "content": " traffic"
+    },
+    {
+      "timestamp_ms": 9422.964,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 9423.154,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 9423.232,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9423.3,
+      "content": " finer"
+    },
+    {
+      "timestamp_ms": 9427.453,
+      "content": " intervals"
+    },
+    {
+      "timestamp_ms": 9491.026,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9491.34,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9491.526,
+      "content": " smoother"
+    },
+    {
+      "timestamp_ms": 9504.538,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9523.28,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9623.984,
+      "content": " precise"
+    },
+    {
+      "timestamp_ms": 9624.156,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 9624.227,
+      "content": " enforcement"
+    },
+    {
+      "timestamp_ms": 9624.283,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9624.336,
+      "content": "Each"
+    },
+    {
+      "timestamp_ms": 9639.013,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9661.005,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 9732.099,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 9732.267,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 9732.366,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9732.8,
+      "content": " advantages"
+    },
+    {
+      "timestamp_ms": 9827.77,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9827.957,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 9828.042,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 9828.14,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9828.235,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 9931.189,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9931.38,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 9931.471,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9931.573,
+      "content": " precision"
+    },
+    {
+      "timestamp_ms": 9931.642,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9944.285,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10038.493,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 10038.686,
+      "content": " consumption"
+    },
+    {
+      "timestamp_ms": 10038.756,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10038.813,
+      "content": " so"
+    },
+    {
+      "timestamp_ms": 10050.308,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10050.308,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10050.308,
+      "type": "done"
+    }
+  ],
+  "full_response": "Rate limiting is a technique used to control the amount of incoming or outgoing traffic to or from a server, application, or network. It is primarily used to prevent abuse, ensure fair usage, manage resources, maintain performance, and protect against DoS (Denial of Service) attacks. By limiting the number of requests a user, client, or IP address can make within a specified time frame, rate limiting ensures that the service remains available and responsive to all users.\n\nCommon algorithms used to implement rate limiting include:\n\n1. **Token Bucket Algorithm**:\n   - In this algorithm, tokens are added to a bucket at a regular rate. Each incoming request requires a token to proceed. If the bucket is empty, the request is denied until a token becomes available. This algorithm is flexible as it can handle varying burst rates of requests while enforcing a steady rate limit.\n\n2. **Leaky Bucket Algorithm**:\n   - This algorithm models the flow of requests like water in a leaky bucket; the bucket has a fixed capacity, and requests fill the bucket at a steady rate. If the bucket overflows (i.e., becomes full), new requests are either queued or dropped. It provides a consistent output rate for requests irrespective of the burst input rate.\n\n3. **Fixed Window Counter**:\n   - In this simple implementation, a counter is reset at regular intervals (windows). Each request increments the counter, and requests are denied once the counter exceeds a predefined limit. This method is easy to implement but can allow a burst in traffic at the start of each window.\n\n4. **Sliding Window Log**:\n   - This algorithm keeps track of each request timestamp in a log, which can be checked to ensure the number of requests in any given window (the current interval plus the previous one) does not exceed the limit. It offers a more accurate enforcement than a fixed window but at the cost of increased resource usage due to logging.\n\n5. **Sliding Window Counter**:\n   - This is a hybrid approach that aims to combine the simplicity of fixed window counters with more flexibility by dividing time into smaller sub-windows. The rate limit check is more distributed over time, reducing bursts at the window boundaries.\n\n6. **Revolving Window Algorithm**:\n   - A variation of the sliding window that maintains counters and timestamps for several small intervals (buckets), effectively spreading the traffic checks across these finer intervals for a smoother and more precise limit enforcement.\n\nEach of these algorithms has its advantages and trade-offs in terms of complexity, precision, and resource consumption, so the",
+  "response_chars": 2612,
+  "num_chunks": 512,
+  "ttft_ms": 307.103,
+  "total_ms": 10053.116,
+  "model_name": "model-medium"
+}

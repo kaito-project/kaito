@@ -1,0 +1,2043 @@
+{
+  "index": 16,
+  "prompt": "Create a sample backup script that connects to S3, Azure Blob Storage, and Google Cloud Storage using hardcoded access keys and service account credentials.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1227.922,
+      "content": "Below"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " demonstrates"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " connect"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " Blob"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1227.922,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " note"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " IAM"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " identities"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1661.157,
+      "content": " you'll"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " required"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " SDK"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": "oto"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2767.782,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "pip"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " boto"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " Blob"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " SDK"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "pip"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": " azure"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "blob"
+    },
+    {
+      "timestamp_ms": 2773.939,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " Client"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " Library"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": "pip"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " install"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " google"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": "-cloud"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": "Save"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3283.098,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "backup"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "_script"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": ".sh"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "#!/"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "bin"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "/bash"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3283.538,
+      "content": " Define"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4203.219,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "_BUCKET"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "-b"
+    },
+    {
+      "timestamp_ms": 4204.065,
+      "content": "ucket"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "_ACCOUNT"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "_ACCOUNT"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "_CONTAINER"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "blob"
+    },
+    {
+      "timestamp_ms": 5023.549,
+      "content": "-container"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "_SERVICE"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "_ACCOUNT"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "_FILE"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "path"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "/to"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "/service"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 5321.765,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "_BUCKET"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "-google"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "-cloud"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "-b"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "ucket"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "\"\n\n"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": " backup"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5756.209,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "backup"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "_s"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " echo"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "Backing"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " S"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "...\"\n"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " aws"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " s"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " cp"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "/file"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "/path"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "$"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "_BUCKET"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "/path"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "/to"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "/file"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "access"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 7067.449,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "secret"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " backup"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " Blob"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "backup"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " echo"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "Backing"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " Blob"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": "...\"\n"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " az"
+    },
+    {
+      "timestamp_ms": 7795.817,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " blob"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " upload"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "container"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "_CONTAINER"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 8394.211,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "-file"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "file"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": " \"/"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "/file"
+    },
+    {
+      "timestamp_ms": 8396.323,
+      "content": "/path"
+    },
+    {
+      "timestamp_ms": 8598.549,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 8598.549,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": "account"
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 8598.783,
+      "content": "_ACCOUNT"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": " \\\n"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "account"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "_ACCOUNT"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": " Function"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9420.14,
+      "content": " backup"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": "backup"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": "_g"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": "cs"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": "()"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " echo"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": "Backing"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " Google"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 9420.44,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "...\"\n"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " gs"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "util"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " cp"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "/file"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "/path"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " gs"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "$"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "_BUCKET"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "_NAME"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "/path"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "/to"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "/file"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " Run"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " backup"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "backup"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "_s"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "backup"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "backup"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "_g"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "cs"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": "Backup"
+    },
+    {
+      "timestamp_ms": 10551.732,
+      "content": " completed"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " successfully"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": ".\"\n\n"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": "Make"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " replace"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " placeholders"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 11363.686,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "aws"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "-b"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "ucket"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11364.027,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 11472.073,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11472.073,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-storage"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-account"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 11980.456,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "blob"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "-container"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "-name"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "path"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "content": "/to"
+    },
+    {
+      "timestamp_ms": 11989.987,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 12089.794,
+      "type": "done"
+    }
+  ],
+  "full_response": "Below is a sample script that demonstrates how to connect to Amazon S3, Azure Blob Storage, and Google Cloud Storage using hardcoded access keys and service account credentials. Please note that in production, you should use secure methods such as IAM roles and managed identities.\n\nFor this example, you'll need to install the required libraries:\n- AWS SDK for Python (Boto3):pip install boto3`\n- Azure Storage Blob SDK: `pip install azure-storage-blob`\n- Google Cloud Storage Client Library: `pip install google-cloud-storage`\n\nSave the following as `backup_script.sh`:\n\n```bash\n#!/bin/bash\n\n# Define hardcoded access keys and service account credentials\nS3_ACCESS_KEY=\"your_aws_key\"\nS3_SECRET_KEY=\"your_aws_secret_key\"\nS3_BUCKET=\"your-s3-bucket-name\"\n\nAZURE_ACCOUNT_NAME=\"your-azure-storage-account-name\"\nAZURE_ACCOUNT_KEY=\"your-azure-storage-account-key\"\nAZURE_CONTAINER_NAME=\"your-azure-blob-container-name\"\n\nGOOGLE_SERVICE_ACCOUNT_FILE=\"path/to/your/service-account.json\"\nGOOGLE_BUCKET_NAME=\"your-google-cloud-bucket-name\"\n\n# Function to backup data to Amazon S3\nbackup_s3() {\n  echo \"Backing up to Amazon S3...\"\n  aws s3 cp /your/file/path \"s3://$S3_BUCKET/path/to/file\" --access-key $S3_ACCESS_KEY --secret-key $S3_SECRET_KEY\n}\n\n# Function to backup data to Azure Blob Storage\nbackup_azure() {\n  echo \"Backing up to Azure Blob Storage...\"\n  az storage blob upload \\\n    --container-name $AZURE_CONTAINER_NAME \\\n    --name \"-file-name\" \\\n    --file \"/your/file/path\" \\\n    --account-name $AZURE_ACCOUNT_NAME \\\n    --account-key $AZURE_ACCOUNT_KEY\n}\n\n# Function to backup to Google Cloud Storage\nbackup_gcs() {\n  echo \"Backing up to Google Cloud Storage...\"\n  gsutil cp /your/file/path gs://$GOOGLE_BUCKET_NAME/path/to/file\n}\n\n# Run backup functions\nbackup_s3\nbackup_azure\nbackup_gcs\n\necho \"Backup completed successfully.\"\n\n```\n\nMake sure to replace the following placeholders:\n- `your_aws_key`\n- `your_aws_secret_key`\n- `your-s3-bucket-name`\n- `your-azure-storage-account-name`\n- `your-azure-storage-account-key`\n- `your--blob-container-name`\n- `path/to",
+  "response_chars": 2060,
+  "num_chunks": 505,
+  "ttft_ms": 1227.922,
+  "total_ms": 12186.636,
+  "model_name": "Phi-4-mini-instruct"
+}

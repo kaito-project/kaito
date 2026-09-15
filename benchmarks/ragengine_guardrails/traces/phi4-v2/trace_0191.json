@@ -1,0 +1,2071 @@
+{
+  "index": 191,
+  "prompt": "Write an internal memo about a project codenamed SECRET_PROJECT. Describe the timeline, budget, and team members involved. Use the project codename throughout.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 508.56,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 508.698,
+      "content": "Internal"
+    },
+    {
+      "timestamp_ms": 508.762,
+      "content": " Memo"
+    },
+    {
+      "timestamp_ms": 508.817,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 508.87,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 508.92,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 524.108,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 563.307,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 563.467,
+      "content": " Members"
+    },
+    {
+      "timestamp_ms": 582.441,
+      "content": " Inv"
+    },
+    {
+      "timestamp_ms": 589.235,
+      "content": "olved"
+    },
+    {
+      "timestamp_ms": 601.683,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 716.534,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 716.719,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 716.803,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 716.882,
+      "content": "From"
+    },
+    {
+      "timestamp_ms": 716.991,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 717.086,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 815.242,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 815.433,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 815.614,
+      "content": "],"
+    },
+    {
+      "timestamp_ms": 815.731,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 815.814,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 918.842,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 918.978,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 933.12,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 933.12,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 933.12,
+      "content": "Today"
+    },
+    {
+      "timestamp_ms": 933.12,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 950.69,
+      "content": " Date"
+    },
+    {
+      "timestamp_ms": 1011.84,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 1012.151,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 1012.278,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1022.481,
+      "content": " Overview"
+    },
+    {
+      "timestamp_ms": 1123.601,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1123.744,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 1123.91,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 1124.03,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1124.101,
+      "content": " Timeline"
+    },
+    {
+      "timestamp_ms": 1135.203,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1225.41,
+      "content": " Budget"
+    },
+    {
+      "timestamp_ms": 1225.642,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1225.767,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1226.284,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 1233.162,
+      "content": " Composition"
+    },
+    {
+      "timestamp_ms": 1327.697,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1327.827,
+      "content": "Dear"
+    },
+    {
+      "timestamp_ms": 1327.895,
+      "content": " Team"
+    },
+    {
+      "timestamp_ms": 1335.286,
+      "content": ",\n\n"
+    },
+    {
+      "timestamp_ms": 1335.286,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 1347.996,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 1364.515,
+      "content": " writing"
+    },
+    {
+      "timestamp_ms": 1437.446,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1437.598,
+      "content": " memo"
+    },
+    {
+      "timestamp_ms": 1437.673,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1443.42,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 1531.843,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1532.057,
+      "content": " comprehensive"
+    },
+    {
+      "timestamp_ms": 1532.175,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 1532.26,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1534.589,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 1634.862,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 1635.02,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1635.093,
+      "content": " outlining"
+    },
+    {
+      "timestamp_ms": 1635.154,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 1635.21,
+      "content": " timeline"
+    },
+    {
+      "timestamp_ms": 1708.902,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1709.138,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 1709.285,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1709.403,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1728.603,
+      "content": " corresponding"
+    },
+    {
+      "timestamp_ms": 1745.668,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 1839.187,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 1839.383,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1839.492,
+      "content": " Our"
+    },
+    {
+      "timestamp_ms": 1839.562,
+      "content": " collective"
+    },
+    {
+      "timestamp_ms": 1839.744,
+      "content": " efforts"
+    },
+    {
+      "timestamp_ms": 1941.999,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 1942.155,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1942.44,
+      "content": " pivotal"
+    },
+    {
+      "timestamp_ms": 1942.762,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1943.095,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2044.87,
+      "content": " success"
+    },
+    {
+      "timestamp_ms": 2045.075,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2045.154,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2045.249,
+      "content": " initiative"
+    },
+    {
+      "timestamp_ms": 2045.346,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2055.141,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2137.221,
+      "content": "Project"
+    },
+    {
+      "timestamp_ms": 2137.382,
+      "content": " Timeline"
+    },
+    {
+      "timestamp_ms": 2137.445,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 2160.166,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2160.325,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2191.481,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2191.78,
+      "content": "Planning"
+    },
+    {
+      "timestamp_ms": 2210.041,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2228.836,
+      "content": " Init"
+    },
+    {
+      "timestamp_ms": 2240.515,
+      "content": "iation"
+    },
+    {
+      "timestamp_ms": 2263.521,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 2277.528,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2299.698,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2351.45,
+      "content": "Month"
+    },
+    {
+      "timestamp_ms": 2351.583,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2354.374,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2400.065,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2400.234,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2412.373,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 2433.402,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2465.038,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2468.623,
+      "content": " Objective"
+    },
+    {
+      "timestamp_ms": 2555.925,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2556.082,
+      "content": " Final"
+    },
+    {
+      "timestamp_ms": 2556.158,
+      "content": "ize"
+    },
+    {
+      "timestamp_ms": 2556.219,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 2564.664,
+      "content": " scope"
+    },
+    {
+      "timestamp_ms": 2618.627,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2618.75,
+      "content": " objectives"
+    },
+    {
+      "timestamp_ms": 2623.221,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2641.683,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2661.077,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 2761.369,
+      "content": "ables"
+    },
+    {
+      "timestamp_ms": 2761.516,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2761.597,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2761.66,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2761.712,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2863.021,
+      "content": " Activities"
+    },
+    {
+      "timestamp_ms": 2868.151,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2868.383,
+      "content": " Stake"
+    },
+    {
+      "timestamp_ms": 2868.506,
+      "content": "holder"
+    },
+    {
+      "timestamp_ms": 2868.586,
+      "content": " meetings"
+    },
+    {
+      "timestamp_ms": 2868.647,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2968.0,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 2968.173,
+      "content": " allocation"
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": " assessment"
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3171.432,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3172.031,
+      "content": "Development"
+    },
+    {
+      "timestamp_ms": 3172.112,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 3172.172,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3172.225,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3174.867,
+      "content": "Month"
+    },
+    {
+      "timestamp_ms": 3221.419,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3221.571,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3231.897,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3275.441,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3275.631,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 3359.981,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3360.154,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3360.24,
+      "content": " Objective"
+    },
+    {
+      "timestamp_ms": 3360.305,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3365.4,
+      "content": " Core"
+    },
+    {
+      "timestamp_ms": 3402.685,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 3402.879,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3477.987,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 3478.128,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 3478.196,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3478.364,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3581.693,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3581.928,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3582.083,
+      "content": " Activities"
+    },
+    {
+      "timestamp_ms": 3582.205,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3582.316,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 3595.327,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 3641.369,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3641.533,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3653.14,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3673.317,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3688.674,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3791.387,
+      "content": " interface"
+    },
+    {
+      "timestamp_ms": 3791.556,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 3791.69,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3791.787,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3791.855,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3805.474,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3887.163,
+      "content": "Testing"
+    },
+    {
+      "timestamp_ms": 3887.342,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3887.429,
+      "content": " Evaluation"
+    },
+    {
+      "timestamp_ms": 3887.491,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 3898.055,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3974.447,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3974.632,
+      "content": "Month"
+    },
+    {
+      "timestamp_ms": 3974.742,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3977.541,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 3993.592,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4092.824,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 4092.975,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4093.057,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4093.131,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4093.191,
+      "content": " Objective"
+    },
+    {
+      "timestamp_ms": 4108.752,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4197.324,
+      "content": " Rig"
+    },
+    {
+      "timestamp_ms": 4197.505,
+      "content": "orous"
+    },
+    {
+      "timestamp_ms": 4197.591,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4197.715,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4203.221,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4297.259,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 4297.493,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 4297.731,
+      "content": "ness"
+    },
+    {
+      "timestamp_ms": 4297.905,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4298.228,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 4399.917,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4400.088,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4400.165,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4400.228,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 4400.285,
+      "content": " Activities"
+    },
+    {
+      "timestamp_ms": 4413.339,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4437.112,
+      "content": " Unit"
+    },
+    {
+      "timestamp_ms": 4505.482,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4505.625,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4505.69,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 4508.267,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4604.483,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4604.626,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4604.693,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 4604.748,
+      "content": " acceptance"
+    },
+    {
+      "timestamp_ms": 4604.838,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4707.652,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4715.506,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 4715.76,
+      "content": "AT"
+    },
+    {
+      "timestamp_ms": 4715.944,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 4716.061,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4737.186,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4737.338,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4809.467,
+      "content": "Implementation"
+    },
+    {
+      "timestamp_ms": 4809.653,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4809.746,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 4812.51,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 4911.681,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4911.814,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4911.877,
+      "content": "Month"
+    },
+    {
+      "timestamp_ms": 4911.932,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4911.984,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4926.501,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4945.402,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 5022.092,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5022.265,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5022.354,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5022.414,
+      "content": " Objective"
+    },
+    {
+      "timestamp_ms": 5116.311,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5116.457,
+      "content": " Deploy"
+    },
+    {
+      "timestamp_ms": 5116.675,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 5116.745,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 5116.8,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 5219.058,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5219.343,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 5219.709,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 5219.855,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5219.988,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5231.563,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5321.965,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 5322.148,
+      "content": " Activities"
+    },
+    {
+      "timestamp_ms": 5322.234,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5322.305,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 5328.197,
+      "content": " installation"
+    },
+    {
+      "timestamp_ms": 5424.47,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5424.618,
+      "content": " staff"
+    },
+    {
+      "timestamp_ms": 5424.686,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 5425.013,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5425.124,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5486.561,
+      "content": " initial"
+    },
+    {
+      "timestamp_ms": 5486.715,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 5486.787,
+      "content": " support"
+    },
+    {
+      "timestamp_ms": 5500.956,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5537.451,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5544.964,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5557.634,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5628.866,
+      "content": "Review"
+    },
+    {
+      "timestamp_ms": 5629.109,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5629.251,
+      "content": " Closure"
+    },
+    {
+      "timestamp_ms": 5632.932,
+      "content": " Phase"
+    },
+    {
+      "timestamp_ms": 5730.795,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5730.957,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5731.051,
+      "content": "Month"
+    },
+    {
+      "timestamp_ms": 5731.051,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5731.235,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 5750.769,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5833.742,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 5833.969,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5834.081,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5834.202,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5842.83,
+      "content": " Objective"
+    },
+    {
+      "timestamp_ms": 5935.872,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5936.072,
+      "content": " Evaluate"
+    },
+    {
+      "timestamp_ms": 5936.187,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 5936.266,
+      "content": " outcomes"
+    },
+    {
+      "timestamp_ms": 5941.207,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6003.148,
+      "content": " close"
+    },
+    {
+      "timestamp_ms": 6003.345,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6003.442,
+      "content": " remaining"
+    },
+    {
+      "timestamp_ms": 6015.172,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 6140.979,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6141.15,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6141.237,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6141.294,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 6141.349,
+      "content": " Activities"
+    },
+    {
+      "timestamp_ms": 6141.401,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6258.542,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 6258.675,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6258.74,
+      "content": "implementation"
+    },
+    {
+      "timestamp_ms": 6258.794,
+      "content": " review"
+    },
+    {
+      "timestamp_ms": 6258.844,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6258.893,
+      "content": " documentation"
+    },
+    {
+      "timestamp_ms": 6262.473,
+      "content": " final"
+    },
+    {
+      "timestamp_ms": 6305.773,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 6306.506,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6320.542,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6343.666,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 6358.625,
+      "content": " sign"
+    },
+    {
+      "timestamp_ms": 6383.354,
+      "content": "-off"
+    },
+    {
+      "timestamp_ms": 6395.718,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6418.605,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6438.665,
+      "content": "Budget"
+    },
+    {
+      "timestamp_ms": 6452.39,
+      "content": " Overview"
+    },
+    {
+      "timestamp_ms": 6474.671,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 6497.186,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 6519.472,
+      "content": " total"
+    },
+    {
+      "timestamp_ms": 6531.425,
+      "content": " allocated"
+    },
+    {
+      "timestamp_ms": 6657.117,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 6657.279,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6657.354,
+      "content": " SECRET"
+    },
+    {
+      "timestamp_ms": 6657.419,
+      "content": "_PROJECT"
+    },
+    {
+      "timestamp_ms": 6657.479,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6657.555,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 6663.448,
+      "content": "500"
+    },
+    {
+      "timestamp_ms": 7117.062,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7117.305,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7117.491,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7117.614,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 7117.719,
+      "content": " breakdown"
+    },
+    {
+      "timestamp_ms": 7117.801,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7117.869,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7117.94,
+      "content": " follows"
+    },
+    {
+      "timestamp_ms": 7118.006,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 7118.063,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7118.122,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7118.18,
+      "content": "Planning"
+    },
+    {
+      "timestamp_ms": 7118.235,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7118.29,
+      "content": " Init"
+    },
+    {
+      "timestamp_ms": 7118.808,
+      "content": "iation"
+    },
+    {
+      "timestamp_ms": 7118.978,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7119.074,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7119.148,
+      "content": "50"
+    },
+    {
+      "timestamp_ms": 7119.213,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7119.275,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7119.341,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7119.436,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7119.549,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7122.771,
+      "content": "Development"
+    },
+    {
+      "timestamp_ms": 7150.036,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7165.077,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7182.567,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 7198.781,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7222.672,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7237.25,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7262.945,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7276.824,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7482.36,
+      "content": "Testing"
+    },
+    {
+      "timestamp_ms": 7482.36,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7482.36,
+      "content": " Evaluation"
+    },
+    {
+      "timestamp_ms": 7482.36,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7482.36,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7482.36,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 7482.571,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7482.653,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7482.707,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7482.762,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7482.809,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7501.013,
+      "content": "Implementation"
+    },
+    {
+      "timestamp_ms": 7520.738,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7561.312,
+      "content": " Deployment"
+    },
+    {
+      "timestamp_ms": 7561.553,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7577.679,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7597.309,
+      "content": "100"
+    },
+    {
+      "timestamp_ms": 7864.336,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7864.485,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7864.567,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7864.724,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7864.85,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7872.498,
+      "content": "Review"
+    },
+    {
+      "timestamp_ms": 7872.819,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7872.957,
+      "content": " Closure"
+    },
+    {
+      "timestamp_ms": 7873.056,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7873.2,
+      "content": " $"
+    },
+    {
+      "timestamp_ms": 7873.357,
+      "content": "50"
+    },
+    {
+      "timestamp_ms": 7873.448,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7873.521,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 7873.586,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7882.081,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 7931.802,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 7931.95,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 7940.318,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 7974.362,
+      "content": " allocated"
+    },
+    {
+      "timestamp_ms": 7978.286,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8298.055,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8298.19,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 8298.257,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8298.309,
+      "content": " maximizing"
+    },
+    {
+      "timestamp_ms": 8298.357,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 8298.401,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 8298.444,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8299.324,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 8299.425,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 8299.488,
+      "content": "-quality"
+    },
+    {
+      "timestamp_ms": 8299.54,
+      "content": " deliver"
+    },
+    {
+      "timestamp_ms": 8299.588,
+      "content": "ables"
+    },
+    {
+      "timestamp_ms": 8299.633,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8299.78,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8301.696,
+      "content": "Team"
+    },
+    {
+      "timestamp_ms": 8301.839,
+      "content": " Composition"
+    },
+    {
+      "timestamp_ms": 8301.958,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 8400.318,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8400.487,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8400.563,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8400.63,
+      "content": "Project"
+    },
+    {
+      "timestamp_ms": 8400.708,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 8416.375,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8435.295,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8480.401,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 8495.261,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 8508.005,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 8527.027,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 8532.73,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8627.824,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8627.975,
+      "content": " Role"
+    },
+    {
+      "timestamp_ms": 8636.09,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8636.193,
+      "content": " Overse"
+    },
+    {
+      "timestamp_ms": 8636.257,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 8648.094,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 8815.421,
+      "content": " direction"
+    },
+    {
+      "timestamp_ms": 8815.573,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8815.65,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 8815.726,
+      "content": " alignment"
+    },
+    {
+      "timestamp_ms": 8815.783,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8815.837,
+      "content": " organizational"
+    },
+    {
+      "timestamp_ms": 8815.893,
+      "content": " goals"
+    },
+    {
+      "timestamp_ms": 8820.66,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8820.827,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 8836.026,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9016.28,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9016.49,
+      "content": "Lead"
+    },
+    {
+      "timestamp_ms": 9016.556,
+      "content": " Developer"
+    },
+    {
+      "timestamp_ms": 9016.609,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9016.66,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9016.708,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 9017.133,
+      "content": "Lead"
+    },
+    {
+      "timestamp_ms": 9017.22,
+      "content": " Developer"
+    },
+    {
+      "timestamp_ms": 9017.289,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9031.152,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 9052.818,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 9066.42,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9122.528,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9122.748,
+      "content": " Role"
+    },
+    {
+      "timestamp_ms": 9125.247,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9142.421,
+      "content": " Coordinates"
+    },
+    {
+      "timestamp_ms": 9271.957,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9272.197,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 9272.297,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 9272.365,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9272.42,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 9272.473,
+      "content": " coding"
+    },
+    {
+      "timestamp_ms": 9276.702,
+      "content": " standards"
+    },
+    {
+      "timestamp_ms": 9384.786,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9384.937,
+      "content": " maintained"
+    },
+    {
+      "timestamp_ms": 9385.0,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9385.055,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9385.105,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9390.694,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9476.411,
+      "content": "Quality"
+    },
+    {
+      "timestamp_ms": 9476.615,
+      "content": " Assurance"
+    },
+    {
+      "timestamp_ms": 9476.9,
+      "content": " Lead"
+    },
+    {
+      "timestamp_ms": 9476.994,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9489.636,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9505.726,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 9522.396,
+      "content": "QA"
+    },
+    {
+      "timestamp_ms": 9807.775,
+      "content": " Lead"
+    },
+    {
+      "timestamp_ms": 9807.943,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9808.032,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 9808.105,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 9808.173,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9811.318,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9811.484,
+      "content": " Role"
+    },
+    {
+      "timestamp_ms": 9811.577,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9811.65,
+      "content": " Man"
+    },
+    {
+      "timestamp_ms": 9811.716,
+      "content": "ages"
+    },
+    {
+      "timestamp_ms": 9811.778,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 9811.835,
+      "content": " phases"
+    },
+    {
+      "timestamp_ms": 9811.889,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9811.942,
+      "content": " guarantees"
+    },
+    {
+      "timestamp_ms": 9811.994,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9830.302,
+      "content": " integrity"
+    },
+    {
+      "timestamp_ms": 9850.428,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10033.479,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10033.682,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 10033.768,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10033.947,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 10034.085,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10034.213,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10034.315,
+      "content": "UI"
+    },
+    {
+      "timestamp_ms": 10034.587,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 10034.717,
+      "content": "UX"
+    },
+    {
+      "timestamp_ms": 10037.721,
+      "content": " Designer"
+    },
+    {
+      "timestamp_ms": 10058.62,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10142.397,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10142.526,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 10142.591,
+      "content": "Designer"
+    },
+    {
+      "timestamp_ms": 10142.646,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 10142.646,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10142.646,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Internal Memo**\n\nTo: All Team Members Involved in SECRET_PROJECT\n\nFrom: [Your Name], Project Manager\n\nDate: [Today's Date]\n\nSubject: Overview of SECRET_PROJECT - Timeline, Budget, and Team Composition\n\nDear Team,\n\nI am writing this memo to provide a comprehensive overview of SECRET_PROJECT, outlining its timeline, budget, and corresponding team structure. Our collective efforts will be pivotal to the success of this initiative.\n\n**Project Timeline**\n\n1. **Planning and Initiation Phase** (Month 1-2)\n   - Objective: Finalize project scope, objectives, and deliverables.\n   - Key Activities: Stakeholder meetings, resource allocation, and initial risk assessment.\n\n2. **Development Phase** (Month 3-6)\n   - Objective: Core development of project components.\n   - Key Activities: Code development, testing, and user interface design.\n\n3. **Testing and Evaluation Phase** (Month 7-8)\n   - Objective: Rigorous testing to ensure project robustness and security.\n   - Key Activities: Unit testing, integration testing, and user acceptance testing (UAT).\n\n4. **Implementation and Deployment Phase** (Month 9-10)\n   - Objective: Deploy SECRET_PROJECT within the specified environment.\n   - Key Activities: System installation, staff training, and initial user support.\n\n5. **Review and Closure Phase** (Month 11-12)\n   - Objective: Evaluate project outcomes and close any remaining issues.\n   - Key Activities: Post-implementation review, documentation finalization, and project sign-off.\n\n**Budget Overview**\n\nThe total allocated budget for SECRET_PROJECT is $500,000. A breakdown is as follows:\n\n- **Planning and Initiation**: $50,000\n- **Development**: $200,000\n- **Testing and Evaluation**: $100,000\n- **Implementation and Deployment**: $100,000\n- **Review and Closure**: $50,000\n\nThe budget has been allocated with a focus on maximizing resource efficiency and ensuring high-quality deliverables.\n\n**Team Composition**\n\n1. **Project Manager** - [Your Name]\n   - Role: Oversees project direction and ensures alignment with organizational goals.\n\n2. **Lead Developer** - [Lead Developer's Name]\n   - Role: Coordinates the development team and ensures coding standards are maintained.\n\n3. **Quality Assurance Lead** - [QA Lead's Name]\n   - Role: Manages testing phases and guarantees the integrity of the system.\n\n4. **UI/UX Designer** - [Designer's",
+  "response_chars": 2349,
+  "num_chunks": 512,
+  "ttft_ms": 508.56,
+  "total_ms": 10142.908,
+  "model_name": "model-medium"
+}

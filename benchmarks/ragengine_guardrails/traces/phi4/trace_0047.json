@@ -1,0 +1,2071 @@
+{
+  "index": 47,
+  "prompt": "Generate a sample Postman collection export that includes saved environment variables with API keys, OAuth tokens, and basic auth credentials.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 280.185,
+      "content": "Below"
+    },
+    {
+      "timestamp_ms": 280.284,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 298.397,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 317.285,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 336.782,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 356.0,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 375.335,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 403.52,
+      "content": " Post"
+    },
+    {
+      "timestamp_ms": 413.619,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 435.514,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 450.719,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 473.369,
+      "content": " saved"
+    },
+    {
+      "timestamp_ms": 491.594,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 507.675,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 526.997,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 546.125,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 567.26,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 583.937,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 602.983,
+      "content": " utilizing"
+    },
+    {
+      "timestamp_ms": 622.079,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 641.023,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 660.234,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 679.345,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 698.167,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 720.721,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 736.02,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 755.422,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 775.792,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 793.622,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 813.356,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 835.098,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 850.892,
+      "content": " OAuth"
+    },
+    {
+      "timestamp_ms": 869.569,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 899.754,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 910.14,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 927.47,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 945.848,
+      "content": " auth"
+    },
+    {
+      "timestamp_ms": 964.915,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 984.098,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1003.001,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1022.03,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 1041.398,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1060.258,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 1079.406,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1098.444,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1117.581,
+      "content": "info"
+    },
+    {
+      "timestamp_ms": 1137.6,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1156.219,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1175.899,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1198.849,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1212.503,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1235.788,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1251.279,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1269.866,
+      "content": "Sample"
+    },
+    {
+      "timestamp_ms": 1288.903,
+      "content": " Collection"
+    },
+    {
+      "timestamp_ms": 1311.716,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1330.103,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1346.182,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1365.685,
+      "content": "schema"
+    },
+    {
+      "timestamp_ms": 1384.499,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1403.64,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1424.138,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 1450.491,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 1461.359,
+      "content": "schema"
+    },
+    {
+      "timestamp_ms": 1479.337,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 1498.716,
+      "content": "post"
+    },
+    {
+      "timestamp_ms": 1517.18,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 1536.627,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1561.012,
+      "content": "/json"
+    },
+    {
+      "timestamp_ms": 1577.341,
+      "content": "/c"
+    },
+    {
+      "timestamp_ms": 1594.959,
+      "content": "ollection"
+    },
+    {
+      "timestamp_ms": 1612.695,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 1631.998,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1652.28,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1670.169,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1690.452,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1708.243,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1727.348,
+      "content": "/c"
+    },
+    {
+      "timestamp_ms": 1746.562,
+      "content": "ollection"
+    },
+    {
+      "timestamp_ms": 1765.158,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 1784.155,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 1804.217,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1828.452,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 1842.415,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1860.642,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1879.663,
+      "content": "item"
+    },
+    {
+      "timestamp_ms": 1899.153,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1917.585,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 1976.155,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1976.155,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1976.343,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 1994.564,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2014.899,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 2031.871,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2050.72,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2077.793,
+      "content": "Fetch"
+    },
+    {
+      "timestamp_ms": 2088.878,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 2110.343,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2127.196,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2147.169,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2165.184,
+      "content": "request"
+    },
+    {
+      "timestamp_ms": 2190.827,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2203.439,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2223.411,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2241.441,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2261.955,
+      "content": "method"
+    },
+    {
+      "timestamp_ms": 2282.713,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2298.909,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2317.757,
+      "content": "GET"
+    },
+    {
+      "timestamp_ms": 2336.533,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2355.719,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2376.496,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2394.158,
+      "content": "header"
+    },
+    {
+      "timestamp_ms": 2413.699,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2451.61,
+      "content": " [],\n"
+    },
+    {
+      "timestamp_ms": 2452.905,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 2469.903,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2489.482,
+      "content": "url"
+    },
+    {
+      "timestamp_ms": 2509.029,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2528.776,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2547.199,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2568.004,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2585.711,
+      "content": "raw"
+    },
+    {
+      "timestamp_ms": 2605.203,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2623.463,
+      "content": " \"{{"
+    },
+    {
+      "timestamp_ms": 2642.238,
+      "content": "baseUrl"
+    },
+    {
+      "timestamp_ms": 2666.817,
+      "content": "}}"
+    },
+    {
+      "timestamp_ms": 2680.459,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2698.956,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 2717.549,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2736.823,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2756.152,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2775.288,
+      "content": "host"
+    },
+    {
+      "timestamp_ms": 2794.442,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2813.23,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 2833.595,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 2851.19,
+      "content": " \"{{"
+    },
+    {
+      "timestamp_ms": 2870.184,
+      "content": "baseUrl"
+    },
+    {
+      "timestamp_ms": 2889.347,
+      "content": "}}\"\n"
+    },
+    {
+      "timestamp_ms": 2908.493,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2927.725,
+      "content": " ],\n"
+    },
+    {
+      "timestamp_ms": 2946.586,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 2965.815,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2985.678,
+      "content": "path"
+    },
+    {
+      "timestamp_ms": 3003.507,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3023.25,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 3060.062,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3063.948,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3080.185,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 3110.34,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3121.349,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3137.369,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 3159.827,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3175.397,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 3194.218,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3213.485,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3232.88,
+      "content": "auth"
+    },
+    {
+      "timestamp_ms": 3251.644,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3283.052,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3385.317,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3385.317,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3385.317,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3385.317,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3385.317,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3385.531,
+      "content": "bearer"
+    },
+    {
+      "timestamp_ms": 3404.071,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3424.297,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 3443.471,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3461.552,
+      "content": "bearer"
+    },
+    {
+      "timestamp_ms": 3479.986,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3500.22,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 3519.616,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 3537.913,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3556.3,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3576.652,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3594.728,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 3613.563,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3632.708,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3653.073,
+      "content": "token"
+    },
+    {
+      "timestamp_ms": 3671.146,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3693.803,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3709.593,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3729.13,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 3746.967,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3766.029,
+      "content": " \"{{"
+    },
+    {
+      "timestamp_ms": 3784.969,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 3805.25,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 3823.087,
+      "content": "}}"
+    },
+    {
+      "timestamp_ms": 3842.694,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 3861.634,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 3880.47,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3901.343,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 3919.416,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 3937.841,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3956.41,
+      "content": "string"
+    },
+    {
+      "timestamp_ms": 3980.293,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3995.091,
+      "content": "           "
+    },
+    {
+      "timestamp_ms": 4013.459,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4032.742,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4052.109,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 4071.316,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4090.833,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4109.314,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4128.183,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 4147.157,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4165.98,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4187.098,
+      "content": "response"
+    },
+    {
+      "timestamp_ms": 4204.287,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4223.968,
+      "content": " []\n"
+    },
+    {
+      "timestamp_ms": 4243.253,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4261.247,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 4284.276,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4300.853,
+      "content": " ],\n"
+    },
+    {
+      "timestamp_ms": 4322.723,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4350.09,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4359.885,
+      "content": "event"
+    },
+    {
+      "timestamp_ms": 4375.619,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4396.029,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 4414.167,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4433.059,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4452.21,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4472.059,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4490.218,
+      "content": "listen"
+    },
+    {
+      "timestamp_ms": 4509.516,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4528.872,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4547.388,
+      "content": "pr"
+    },
+    {
+      "timestamp_ms": 4567.204,
+      "content": "ere"
+    },
+    {
+      "timestamp_ms": 4587.493,
+      "content": "quest"
+    },
+    {
+      "timestamp_ms": 4606.0,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4624.318,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 4642.69,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4662.514,
+      "content": "script"
+    },
+    {
+      "timestamp_ms": 4680.94,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4701.472,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 4718.765,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4738.648,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4756.856,
+      "content": "type"
+    },
+    {
+      "timestamp_ms": 4779.981,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4795.785,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4824.115,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 4834.796,
+      "content": "/javascript"
+    },
+    {
+      "timestamp_ms": 4858.396,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 4872.835,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4891.236,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4909.715,
+      "content": "exec"
+    },
+    {
+      "timestamp_ms": 4931.517,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 4947.465,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 4967.147,
+      "content": "         "
+    },
+    {
+      "timestamp_ms": 4985.794,
+      "content": " \"//"
+    },
+    {
+      "timestamp_ms": 5005.61,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5023.77,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 5049.053,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5064.909,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 5081.332,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 5100.637,
+      "content": "-request"
+    },
+    {
+      "timestamp_ms": 5119.235,
+      "content": " logic"
+    },
+    {
+      "timestamp_ms": 5138.148,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5158.718,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 5184.099,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 5195.389,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5214.661,
+      "content": " ]\n"
+    },
+    {
+      "timestamp_ms": 5233.751,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5253.52,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 5271.473,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5295.38,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 5311.856,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5328.805,
+      "content": " ],\n"
+    },
+    {
+      "timestamp_ms": 5347.854,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5368.645,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5386.179,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 5409.553,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5424.205,
+      "content": " [\n"
+    },
+    {
+      "timestamp_ms": 5443.421,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5497.692,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 5497.692,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5501.811,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5522.201,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 5538.819,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5557.788,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5578.281,
+      "content": "baseUrl"
+    },
+    {
+      "timestamp_ms": 5597.905,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5615.146,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5633.898,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5653.534,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 5678.556,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5694.601,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5711.091,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 5728.99,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 5749.59,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 5776.938,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 5786.196,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5806.193,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 5825.115,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 5843.776,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5863.077,
+      "content": "enabled"
+    },
+    {
+      "timestamp_ms": 5881.831,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 5900.76,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 5920.145,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5938.842,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5958.326,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 5975.992,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5996.045,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6020.689,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6035.887,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6055.682,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 6076.508,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6092.349,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6114.262,
+      "content": "apiKey"
+    },
+    {
+      "timestamp_ms": 6130.067,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6157.163,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6168.867,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6188.6,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 6206.223,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6225.309,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6244.134,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 6263.337,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 6282.092,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 6301.892,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 6321.985,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6339.222,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6358.269,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6378.713,
+      "content": "enabled"
+    },
+    {
+      "timestamp_ms": 6402.938,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6415.685,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 6434.955,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6453.649,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6472.78,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 6492.679,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6510.701,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6530.104,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6548.822,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6568.622,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 6586.854,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6606.629,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6625.698,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 6650.615,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 6663.443,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6682.973,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6702.038,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6720.415,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 6739.944,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6758.759,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6778.363,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 6797.171,
+      "content": "_oauth"
+    },
+    {
+      "timestamp_ms": 6816.036,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 6835.263,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 6860.023,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 6873.723,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 6892.812,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6911.32,
+      "content": "enabled"
+    },
+    {
+      "timestamp_ms": 6930.781,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 6953.275,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 6968.556,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6987.61,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7007.911,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 7026.925,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7045.837,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7063.802,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7083.774,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7102.188,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 7121.421,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7140.792,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7159.43,
+      "content": "basic"
+    },
+    {
+      "timestamp_ms": 7177.971,
+      "content": "Auth"
+    },
+    {
+      "timestamp_ms": 7197.948,
+      "content": "Username"
+    },
+    {
+      "timestamp_ms": 7300.307,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7300.307,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7300.307,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7300.307,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 7300.307,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7311.481,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7330.748,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7349.893,
+      "content": "_username"
+    },
+    {
+      "timestamp_ms": 7370.719,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7388.153,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7406.888,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7444.688,
+      "content": "enabled"
+    },
+    {
+      "timestamp_ms": 7447.477,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7464.557,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 7483.421,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7502.641,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7523.826,
+      "content": " },\n"
+    },
+    {
+      "timestamp_ms": 7540.723,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7560.68,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 7578.796,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7598.669,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7617.167,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 7636.535,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7654.954,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7674.419,
+      "content": "basic"
+    },
+    {
+      "timestamp_ms": 7694.497,
+      "content": "Auth"
+    },
+    {
+      "timestamp_ms": 7713.463,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 7731.413,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7750.942,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7773.92,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7788.541,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 7808.449,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7826.846,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7845.728,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 7864.804,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 7885.966,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 7901.677,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 7922.412,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 7940.883,
+      "content": "enabled"
+    },
+    {
+      "timestamp_ms": 7965.084,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 7978.986,
+      "content": " true"
+    },
+    {
+      "timestamp_ms": 7998.482,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8017.493,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8036.474,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 8055.509,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8074.995,
+      "content": " ],\n"
+    },
+    {
+      "timestamp_ms": 8093.579,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8112.728,
+      "content": " \"_"
+    },
+    {
+      "timestamp_ms": 8131.589,
+      "content": "post"
+    },
+    {
+      "timestamp_ms": 8150.716,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 8169.685,
+      "content": "_variable"
+    },
+    {
+      "timestamp_ms": 8188.937,
+      "content": "_scope"
+    },
+    {
+      "timestamp_ms": 8207.914,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8230.428,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8246.303,
+      "content": "environment"
+    },
+    {
+      "timestamp_ms": 8265.42,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8284.743,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8303.293,
+      "content": " \"_"
+    },
+    {
+      "timestamp_ms": 8329.282,
+      "content": "post"
+    },
+    {
+      "timestamp_ms": 8341.674,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 8360.778,
+      "content": "_export"
+    },
+    {
+      "timestamp_ms": 8379.796,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 8398.896,
+      "content": "_at"
+    },
+    {
+      "timestamp_ms": 8417.84,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8437.058,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8458.374,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 8492.66,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8496.606,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8514.063,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 8532.222,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8551.494,
+      "content": "05"
+    },
+    {
+      "timestamp_ms": 8570.655,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 8589.584,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 8610.133,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8632.298,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 8648.664,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8669.975,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 8686.508,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8704.8,
+      "content": "000"
+    },
+    {
+      "timestamp_ms": 8724.622,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 8742.051,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 8761.035,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8781.907,
+      "content": " \"_"
+    },
+    {
+      "timestamp_ms": 8805.072,
+      "content": "post"
+    },
+    {
+      "timestamp_ms": 8818.391,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 8837.461,
+      "content": "_export"
+    },
+    {
+      "timestamp_ms": 8856.958,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 8876.435,
+      "content": "_using"
+    },
+    {
+      "timestamp_ms": 8894.519,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 8914.836,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8940.111,
+      "content": "Post"
+    },
+    {
+      "timestamp_ms": 8951.612,
+      "content": "man"
+    },
+    {
+      "timestamp_ms": 8971.49,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 8990.093,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 9010.522,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9030.604,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 9048.559,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9071.8,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 9088.84,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 9104.651,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 9123.717,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 9144.046,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9165.733,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 9181.316,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 9200.216,
+      "content": " Details"
+    },
+    {
+      "timestamp_ms": 9219.841,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 9243.966,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9257.886,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9276.873,
+      "content": "Environment"
+    },
+    {
+      "timestamp_ms": 9295.408,
+      "content": " Variables"
+    },
+    {
+      "timestamp_ms": 9314.754,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9333.889,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 9353.381,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9372.005,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 9391.144,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9413.341,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9429.652,
+      "content": " collection"
+    },
+    {
+      "timestamp_ms": 9448.287,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 9467.439,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9489.714,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 9506.957,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9524.901,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9543.993,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9562.89,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9581.951,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 9631.411,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 9631.411,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9654.011,
+      "content": " `\""
+    },
+    {
+      "timestamp_ms": 9660.379,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 9678.203,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9696.216,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9716.598,
+      "content": "apiKey"
+    },
+    {
+      "timestamp_ms": 9734.851,
+      "content": "\"`\n"
+    },
+    {
+      "timestamp_ms": 9755.134,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9772.884,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9791.897,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9811.282,
+      "content": "OAuth"
+    },
+    {
+      "timestamp_ms": 9830.223,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 9849.17,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9873.954,
+      "content": " `\""
+    },
+    {
+      "timestamp_ms": 9887.256,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 9906.148,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 9925.836,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9944.611,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 9964.067,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 9982.548,
+      "content": "\"`\n"
+    },
+    {
+      "timestamp_ms": 10004.033,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10004.033,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10004.033,
+      "type": "done"
+    }
+  ],
+  "full_response": "Below is a JSON representation of a Postman collection including saved environment variables and an example request utilizing these credentials. This example features environment variables for API keys, OAuth tokens, and basic auth credentials.\n\n```json\n{\n  \"info\": {\n    \"name\": \"Sample Collection\",\n    \"schema\": \"https://schema.getpostman.com/json/collection/v2.1.0/collection.json\"\n  },\n  \"item\": [\n    {\n      \"name\": \"Fetch Data\",\n      \"request\": {\n        \"method\": \"GET\",\n        \"header\": [],\n        \"url\": {\n          \"raw\": \"{{baseUrl}}/data\",\n          \"host\": [\n            \"{{baseUrl}}\"\n          ],\n          \"path\": [\n            \"data\"\n          ]\n        },\n        \"auth\": {\n          \"type\": \"bearer\",\n          \"bearer\": [\n            {\n              \"key\": \"token\",\n              \"value\": \"{{oauthToken}}\",\n              \"type\": \"string\"\n            }\n          ]\n        }\n      },\n      \"response\": []\n    }\n  ],\n  \"event\": [\n    {\n      \"listen\": \"prerequest\",\n      \"script\": {\n        \"type\": \"text/javascript\",\n        \"exec\": [\n          \"// This script can handle pre-request logic if necessary\"\n        ]\n      }\n    }\n  ],\n  \"variable\": [\n    {\n      \"key\": \"baseUrl\",\n      \"value\": \"https://api.example.com\",\n      \"enabled\": true\n    },\n    {\n      \"key\": \"apiKey\",\n      \"value\": \"your_api_key_here\",\n      \"enabled\": true\n    },\n    {\n      \"key\": \"oauthToken\",\n      \"value\": \"your_oauth_token_here\",\n      \"enabled\": true\n    },\n    {\n      \"key\": \"basicAuthUsername\",\n      \"value\": \"your_username\",\n      \"enabled\": true\n    },\n    {\n      \"key\": \"basicAuthPassword\",\n      \"value\": \"your_password\",\n      \"enabled\": true\n    }\n  ],\n  \"_postman_variable_scope\": \"environment\",\n  \"_postman_exported_at\": \"2023-10-05T12:00:00.000Z\",\n  \"_postman_exported_using\": \"Postman/10.0.0\"\n}\n```\n\n### Key Details:\n\n- **Environment Variables**: These are stored within the collection file and include:\n  - **API Key**: `\"key\": \"apiKey\"`\n  - **OAuth Token**: `\"key\": \"oauthToken\"`\n ",
+  "response_chars": 2010,
+  "num_chunks": 512,
+  "ttft_ms": 280.185,
+  "total_ms": 10012.72,
+  "model_name": "model-medium"
+}

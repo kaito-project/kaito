@@ -1,0 +1,831 @@
+{
+  "index": 224,
+  "prompt": "What is a service mesh and why would you use one in a microservices architecture?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 963.601,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": "What is a Service"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " Mesh?**\nA"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " **service"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " mesh** is a"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " dedicated infrastructure layer that"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " manages"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": "-to-service communication within"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": " a micros"
+    },
+    {
+      "timestamp_ms": 963.601,
+      "content": "ervices architecture. It"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " provides a"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " transparent"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " and language"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": "agnostic way"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " to handle"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " networking"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " concerns"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " as:\n\n- **"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": "Service Discovery** –"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": " Loc"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": "ating services dynamically"
+    },
+    {
+      "timestamp_ms": 1485.284,
+      "content": ".\n- **Load"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": " Balancing** –"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": " Distributing traffic"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": " across service"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": " instances.\n- **"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": "Tra"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": "ffic Management** –"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": " Rout"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": "ing, ret"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": "ries, time"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": "outs, and circuit"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": " breaking.\n- **"
+    },
+    {
+      "timestamp_ms": 2112.911,
+      "content": "Security** – Enc"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "ryption ("
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "m"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "TLS"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "), authentication"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": ", and authorization.\n"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "- **Observ"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "ability** – Met"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "rics, logging,"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": " and distributed"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": " tracing.\n- **"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "Res"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": "ilience** – Handling"
+    },
+    {
+      "timestamp_ms": 2407.017,
+      "content": " failures grace"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "fully ("
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "ret"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "ries, fall"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "backs).\n\nInstead"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": " of implementing"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": " these features"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": " in each"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": " micros"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "ervice, a service"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": " mesh off"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "load"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "s them"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": " to a **side"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "car proxy"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": "** (e"
+    },
+    {
+      "timestamp_ms": 3128.468,
+      "content": ".g., Env"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": "oy, Link"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": "erd"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": ") that runs alongside"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": " each service instance"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": "Why Use a Service"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": " Mesh in Mic"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": "roservices?"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": "**\nMic"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": "roservices introduce"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3533.564,
+      "content": " networking"
+    },
+    {
+      "timestamp_ms": 3738.288,
+      "content": ", security"
+    },
+    {
+      "timestamp_ms": 3738.288,
+      "content": ", and observ"
+    },
+    {
+      "timestamp_ms": 3738.288,
+      "content": "ability. A"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": " service mesh helps"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": ":\n\n####"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": " **1. Dec"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": "oupling Network"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": "ing Logic"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": " Business"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": " Logic"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": "**\n- Develop"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": "ers focus"
+    },
+    {
+      "timestamp_ms": 4148.177,
+      "content": " on application"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " while"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " service mesh handles networking"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": ".\n- No"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " need to"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " rewrite"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " networking"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " logic when"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " switching"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " languages or"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " frameworks.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": "2. Improving"
+    },
+    {
+      "timestamp_ms": 4557.735,
+      "content": " Res"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": "ilience & Fault"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": " Tolerance**\n-"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": " **C"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": "ircuit Breaking**"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": " – Prevents casc"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": "ading failures by"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": " stopping requests to"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": " unhealthy"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": " services.\n- **"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": "Ret"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": "ries & Time"
+    },
+    {
+      "timestamp_ms": 4966.732,
+      "content": "outs** – Autom"
+    },
+    {
+      "timestamp_ms": 5192.231,
+      "content": "atically ret"
+    },
+    {
+      "timestamp_ms": 5192.231,
+      "content": "ries failed requests with"
+    },
+    {
+      "timestamp_ms": 5192.231,
+      "content": " configurable delays.\n-"
+    },
+    {
+      "timestamp_ms": 5192.231,
+      "content": " **Rate"
+    },
+    {
+      "timestamp_ms": 5192.231,
+      "content": " Limiting** –"
+    },
+    {
+      "timestamp_ms": 5192.231,
+      "content": " Protect"
+    },
+    {
+      "timestamp_ms": 5372.077,
+      "content": "s services"
+    },
+    {
+      "timestamp_ms": 5372.077,
+      "content": " from being"
+    },
+    {
+      "timestamp_ms": 5372.077,
+      "content": " overwhelmed"
+    },
+    {
+      "timestamp_ms": 5372.077,
+      "content": ".\n\n#### **3"
+    },
+    {
+      "timestamp_ms": 5372.077,
+      "content": ". Enh"
+    },
+    {
+      "timestamp_ms": 5372.077,
+      "content": "ancing Security**\n"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "- **m"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "TLS (Mut"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "ual TLS"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": ")** – Encrypt"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "s all service"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "-to-service traffic by"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": " default.\n- **"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "Fine"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "-G"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "rained Access Control"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "** – Enfor"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": "ces policies"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": " \"Service"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 5945.486,
+      "content": " can only call"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " Service B\").\n-"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " **Identity"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "** – Uses"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " SPI"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "FF"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "E/S"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "PIRE"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " for service"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " identity.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "4. Sim"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "plifying Observ"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "ability**\n- **"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "Metrics"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": "** – Tracks"
+    },
+    {
+      "timestamp_ms": 6716.565,
+      "content": " latency, error"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": " rates, and request"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": " volumes"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": "Prom"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": "etheus,"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": " Grafana).\n-"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": " **Dist"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": "ributed T"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": "racing** – Follow"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": "s requests"
+    },
+    {
+      "timestamp_ms": 7027.582,
+      "content": " across services"
+    },
+    {
+      "timestamp_ms": 7225.517,
+      "content": " (Ja"
+    },
+    {
+      "timestamp_ms": 7225.517,
+      "content": "eger, Zip"
+    },
+    {
+      "timestamp_ms": 7225.517,
+      "content": "kin).\n- **"
+    },
+    {
+      "timestamp_ms": 7225.517,
+      "content": "Logging"
+    },
+    {
+      "timestamp_ms": 7225.517,
+      "content": "** – Central"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": "izes logs"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " for debugging.\n\n####"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " **5. En"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": "abling Advanced"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " Traffic Management**\n-"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " **Canary Deploy"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": "ments** – Grad"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": "ually roll"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " out new versions"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " a subset"
+    },
+    {
+      "timestamp_ms": 7527.696,
+      "content": " of users.\n-"
+    },
+    {
+      "timestamp_ms": 7797.127,
+      "content": " **A/B"
+    },
+    {
+      "timestamp_ms": 7797.127,
+      "content": " Testing** – Route"
+    },
+    {
+      "timestamp_ms": 7797.127,
+      "content": " traffic based"
+    },
+    {
+      "timestamp_ms": 7797.127,
+      "content": " on headers"
+    },
+    {
+      "timestamp_ms": 7797.127,
+      "content": " or user"
+    },
+    {
+      "timestamp_ms": 7797.127,
+      "content": " segments"
+    },
+    {
+      "timestamp_ms": 7797.127,
+      "content": ".\n- **Blue"
+    },
+    {
+      "timestamp_ms": 7834.559,
+      "content": "-Green"
+    },
+    {
+      "timestamp_ms": 7834.559,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7834.559,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **What is a Service Mesh?**\nA **service mesh** is a dedicated infrastructure layer that manages service-to-service communication within a microservices architecture. It provides a transparent and language-agnostic way to handle networking concerns such as:\n\n- **Service Discovery** – Locating services dynamically.\n- **Load Balancing** – Distributing traffic across service instances.\n- **Traffic Management** – Routing, retries, timeouts, and circuit breaking.\n- **Security** – Encryption (mTLS), authentication, and authorization.\n- **Observability** – Metrics, logging, and distributed tracing.\n- **Resilience** – Handling failures gracefully (retries, fallbacks).\n\nInstead of implementing these features in each microservice, a service mesh offloads them to a **sidecar proxy** (e.g., Envoy, Linkerd) that runs alongside each service instance.\n\n---\n\n### **Why Use a Service Mesh in Microservices?**\nMicroservices introduce complexity in networking, security, and observability. A service mesh helps by:\n\n#### **1. Decoupling Networking Logic from Business Logic**\n- Developers focus on application code while the service mesh handles networking.\n- No need to rewrite networking logic when switching languages or frameworks.\n\n#### **2. Improving Resilience & Fault Tolerance**\n- **Circuit Breaking** – Prevents cascading failures by stopping requests to unhealthy services.\n- **Retries & Timeouts** – Automatically retries failed requests with configurable delays.\n- **Rate Limiting** – Protects services from being overwhelmed.\n\n#### **3. Enhancing Security**\n- **mTLS (Mutual TLS)** – Encrypts all service-to-service traffic by default.\n- **Fine-Grained Access Control** – Enforces policies (e.g., \"Service A can only call Service B\").\n- **Identity & Authentication** – Uses SPIFFE/SPIRE for service identity.\n\n#### **4. Simplifying Observability**\n- **Metrics** – Tracks latency, error rates, and request volumes (Prometheus, Grafana).\n- **Distributed Tracing** – Follows requests across services (Jaeger, Zipkin).\n- **Logging** – Centralizes logs for debugging.\n\n#### **5. Enabling Advanced Traffic Management**\n- **Canary Deployments** – Gradually roll out new versions to a subset of users.\n- **A/B Testing** – Route traffic based on headers or user segments.\n- **Blue-Green",
+  "response_chars": 2287,
+  "num_chunks": 202,
+  "ttft_ms": 963.601,
+  "total_ms": 7835.191,
+  "model_name": "Mistral-Large-3"
+}

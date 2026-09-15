@@ -1,0 +1,24 @@
+data: {"choices":[],"created":0,"id":"","model":"","object":"","prompt_filter_results":[{"prompt_index":0,"content_filter_results":{"hate":{"filtered":false,"severity":"safe"},"jailbreak":{"detected":false,"filtered":false},"self_harm":{"filtered":false,"severity":"safe"},"sexual":{"filtered":false,"severity":"safe"},"violence":{"filtered":false,"severity":"safe"}}}]}
+
+data: {"choices":[{"content_filter_results":{},"delta":{"content":"","refusal":null,"role":"assistant"},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"va6jp","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":"Hello"},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"5H","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":","},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"xQIcHB","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":" it's"},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"wP","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":" nice"},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"2Z","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":" to"},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"JDoK","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":" meet"},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"9X","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":" you"},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"Ej1","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{"protected_material_code":{"detected":false,"filtered":false}},"delta":{"content":"."},"finish_reason":null,"index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"TbEzdP","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: {"choices":[{"content_filter_results":{},"delta":{},"finish_reason":"stop","index":0,"logprobs":null}],"created":1783570332,"id":"chatcmpl-DzaPMyew0kqvdZrJT7Ovf4ImGmzRv","model":"gpt-5.1-2025-11-13","obfuscation":"1","object":"chat.completion.chunk","service_tier":"default","system_fingerprint":null}
+
+data: [DONE]
+

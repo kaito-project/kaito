@@ -1,0 +1,1779 @@
+{
+  "index": 14,
+  "prompt": "Describe the actor model for concurrent programming.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 917.426,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " conceptual"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " aids"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " treating"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": "actors"
+    },
+    {
+      "timestamp_ms": 917.426,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " fundamental"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " units"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " computation"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 922.549,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " represents"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": "-contained"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " computation"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " incoming"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " asynchronously"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " reacting"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 1531.67,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 1532.051,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1532.051,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 1532.051,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 1532.051,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1532.051,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " terminating"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " itself"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " few"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2096.609,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " Actors"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " They"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " elements"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2102.147,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " unique"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " identity"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " thread"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " capable"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " performing"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " computation"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 2660.898,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " concurrently"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " blocking"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " Message"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " Passing"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " spaces"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " communicate"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3170.936,
+      "content": " passing"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " way"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " along"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " directed"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " channel"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " inbox"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " recipient"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 3964.791,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " accordingly"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": "currency"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 4098.189,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " simultaneously"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4501.972,
+      "content": " enables"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " traditional"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " approaches"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " rely"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " Isolation"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " Actors"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5023.439,
+      "content": " isolated"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " don't"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " mutable"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " state"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " don't"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " interfere"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " other's"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " computations"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " isolation"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5528.658,
+      "content": " safely"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " restarted"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " replaced"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " affecting"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " overall"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " Location"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " Transparency"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " Actors"
+    },
+    {
+      "timestamp_ms": 5869.427,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " processors"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 6040.502,
+      "content": " runtime"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " affecting"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " flexibility"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " horizontal"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " scaling"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " improves"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " tolerance"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " Res"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": "ilience"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": " Actor"
+    },
+    {
+      "timestamp_ms": 6560.895,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " tend"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " handle"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " failures"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " gracefully"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " fails"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " unexpectedly"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " rest"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7269.159,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " functioning"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " normal"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7269.737,
+      "content": " failing"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " simply"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " restarted"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " Other"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " depended"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " recover"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7783.823,
+      "content": " res"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": " later"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": "Implement"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7784.229,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 7794.854,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 7794.854,
+      "content": " differ"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " languages"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " libraries"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " Some"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " popular"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " Ak"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "ka"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "for"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " Scala"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " language"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " Orleans"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "for"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "NET"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " Ray"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": "an"
+    },
+    {
+      "timestamp_ms": 8419.423,
+      "content": " open"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": "-source"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " library"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": "Overall"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " actor"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " abstraction"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " concurrency"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " simplifies"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9122.147,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " reason"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " reason"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " interactions"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " complex"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " expressive"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " design"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " unified"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " actors"
+    },
+    {
+      "timestamp_ms": 9420.909,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9522.82,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9522.82,
+      "content": " utilized"
+    },
+    {
+      "timestamp_ms": 9522.82,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9522.82,
+      "content": " build"
+    },
+    {
+      "timestamp_ms": 9522.82,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": "-t"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": "oler"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": "ant"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": " concurrent"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9828.602,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9930.215,
+      "type": "done"
+    }
+  ],
+  "full_response": "The actor model is a conceptual model that aids in concurrent programming by treating \"actors\" the fundamental units of computation. Each actor in this model represents a self-contained unit of computation that processes incoming messages asynchronously, reacting by sending to other actors, creating new actors, or terminating itself. Here are a few key concepts associated with the actor:\n\n1. Actors: They are the primary elements in an actor-based system. Each actor has a unique identity and a separate thread of control, making them capable of performing a computation and processing messages independently and concurrently without blocking other operations.\n\n2. Message Passing: Instead of using shared memory spaces, actors communicate by passing messages to each other. A message makes its way along a directed communication channel, also known as an inbox, to the recipient actor, which then processes the message accordingly.\n\n3. Concurrency: In an actor-based system, actors can run simultaneously, each processing its messages independently. This enables concurrent execution of operations, making it more efficient than traditional approaches that might rely on shared memory.\n\n4. Isolation: Actors are isolated from one another, meaning they don't share mutable state and don't interfere with each other's computations. This isolation also allows actors to be safely restarted or replaced without affecting the overall system.\n\n5. Location Transparency: Actors can be distributed across different processors or even runtime environments without affecting their behavior. This flexibility allows for horizontal scaling and improves fault tolerance.\n\n6. Resilience: Actor-based systems tend to handle failures gracefully. If an actor fails unexpectedly, the rest of the can continue functioning as normal, and the failing actor may simply be restarted. Other actors that depended on it can also recover or res at a later time.\n\nImplementations of the actor model differ across programming languages and libraries. Some popular examples include Akka (for the Scala programming language), Orleans (for .NET), and Ray (an open-source Python library).\n\nOverall, the actor model offers a high-level abstraction of concurrency that simplifies concurrent programming by making it easier to reason about and reason about their interactions in a complex and dynamic environment. With its expressive design and unified approach, actors can be utilized to build scalable, fault-tolerant, and highly concurrent applications and systems.",
+  "response_chars": 2536,
+  "num_chunks": 439,
+  "ttft_ms": 917.426,
+  "total_ms": 10031.965,
+  "model_name": "Phi-4-mini-instruct"
+}

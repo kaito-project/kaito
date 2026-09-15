@@ -1,0 +1,2071 @@
+{
+  "index": 74,
+  "prompt": "Describe how a B-tree index works in a relational database.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 304.048,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 304.168,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 308.908,
+      "content": "-tree"
+    },
+    {
+      "timestamp_ms": 367.735,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 367.911,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 367.991,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 405.656,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 405.817,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 422.419,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 443.207,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 508.078,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 508.291,
+      "content": " relational"
+    },
+    {
+      "timestamp_ms": 508.374,
+      "content": " databases"
+    },
+    {
+      "timestamp_ms": 610.349,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 610.59,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 610.686,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 610.754,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 611.094,
+      "content": " retrieve"
+    },
+    {
+      "timestamp_ms": 614.038,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 712.648,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 712.831,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 712.923,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 712.995,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 713.065,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 765.819,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 765.984,
+      "content": " quick"
+    },
+    {
+      "timestamp_ms": 771.342,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 785.755,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 869.593,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 869.735,
+      "content": " rows"
+    },
+    {
+      "timestamp_ms": 869.802,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 869.861,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 879.158,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 899.691,
+      "content": " balanced"
+    },
+    {
+      "timestamp_ms": 948.047,
+      "content": " tree"
+    },
+    {
+      "timestamp_ms": 948.197,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 954.634,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1020.258,
+      "content": " enhances"
+    },
+    {
+      "timestamp_ms": 1020.412,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1020.485,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 1032.07,
+      "content": " speeds"
+    },
+    {
+      "timestamp_ms": 1122.041,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1122.189,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1122.261,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1122.335,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1131.218,
+      "content": " breakdown"
+    },
+    {
+      "timestamp_ms": 1226.971,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1233.324,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1233.512,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1233.672,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 1233.771,
+      "content": "-tree"
+    },
+    {
+      "timestamp_ms": 1244.192,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 1330.195,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 1330.363,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1345.366,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1345.518,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1351.875,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1357.398,
+      "content": "Structure"
+    },
+    {
+      "timestamp_ms": 1429.115,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1429.298,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1429.425,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1432.323,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1531.766,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1531.921,
+      "content": "Tree"
+    },
+    {
+      "timestamp_ms": 1532.067,
+      "content": " Nodes"
+    },
+    {
+      "timestamp_ms": 1532.191,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1532.266,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1634.518,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 1634.693,
+      "content": "-tree"
+    },
+    {
+      "timestamp_ms": 1634.757,
+      "content": " consists"
+    },
+    {
+      "timestamp_ms": 1634.809,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1634.86,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1645.815,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1661.404,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1737.226,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1737.483,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 1737.626,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 1743.666,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 1757.871,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1776.509,
+      "content": " top"
+    },
+    {
+      "timestamp_ms": 1839.591,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1839.801,
+      "content": " internal"
+    },
+    {
+      "timestamp_ms": 1839.917,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 1853.312,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1872.942,
+      "content": "non"
+    },
+    {
+      "timestamp_ms": 1941.942,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1942.172,
+      "content": "leaf"
+    },
+    {
+      "timestamp_ms": 1942.305,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1951.59,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1967.245,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1994.062,
+      "content": " middle"
+    },
+    {
+      "timestamp_ms": 2006.956,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2044.122,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2044.303,
+      "content": " leaf"
+    },
+    {
+      "timestamp_ms": 2060.855,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2156.833,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2157.044,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2157.146,
+      "content": " bottom"
+    },
+    {
+      "timestamp_ms": 2157.271,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2157.42,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2256.515,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 2256.778,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 2256.87,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2256.942,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2257.025,
+      "content": " pointers"
+    },
+    {
+      "timestamp_ms": 2273.507,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2324.966,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2325.371,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2327.372,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2453.652,
+      "content": "Keys"
+    },
+    {
+      "timestamp_ms": 2460.885,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2461.037,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2461.123,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2461.243,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2461.407,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 2461.504,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2555.096,
+      "content": " help"
+    },
+    {
+      "timestamp_ms": 2555.648,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2555.833,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2555.974,
+      "content": " retrieval"
+    },
+    {
+      "timestamp_ms": 2568.544,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2577.906,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2761.385,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 2761.385,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2761.385,
+      "content": " sort"
+    },
+    {
+      "timestamp_ms": 2761.385,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 2761.719,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2761.882,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2762.01,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2762.128,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 2762.239,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2769.78,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 2787.684,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2863.016,
+      "content": " ordered"
+    },
+    {
+      "timestamp_ms": 2866.271,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2866.447,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2866.668,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2880.216,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2965.826,
+      "content": "Point"
+    },
+    {
+      "timestamp_ms": 2965.958,
+      "content": "ers"
+    },
+    {
+      "timestamp_ms": 2966.021,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2966.077,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 2977.156,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3067.898,
+      "content": " references"
+    },
+    {
+      "timestamp_ms": 3068.065,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3068.156,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3068.23,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3072.039,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3170.484,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 3170.484,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 3170.666,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3170.731,
+      "content": "leaf"
+    },
+    {
+      "timestamp_ms": 3170.786,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3271.581,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3282.076,
+      "content": " pointers"
+    },
+    {
+      "timestamp_ms": 3282.254,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 3282.334,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3282.396,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 3282.451,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3378.697,
+      "content": " towards"
+    },
+    {
+      "timestamp_ms": 3378.858,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3378.935,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 3379.001,
+      "content": " subtree"
+    },
+    {
+      "timestamp_ms": 3379.059,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3477.314,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 3479.943,
+      "content": " leaf"
+    },
+    {
+      "timestamp_ms": 3480.301,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 3480.498,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3480.691,
+      "content": " pointers"
+    },
+    {
+      "timestamp_ms": 3489.283,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 3579.791,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 3580.019,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3682.421,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 3682.591,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3682.716,
+      "content": " records"
+    },
+    {
+      "timestamp_ms": 3682.82,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3682.896,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 3683.339,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 3683.455,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3785.221,
+      "content": " detail"
+    },
+    {
+      "timestamp_ms": 3785.221,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3785.405,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3785.478,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3785.54,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3785.596,
+      "content": "Bal"
+    },
+    {
+      "timestamp_ms": 3794.604,
+      "content": "anced"
+    },
+    {
+      "timestamp_ms": 3888.848,
+      "content": " Tree"
+    },
+    {
+      "timestamp_ms": 3888.999,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3889.068,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3889.123,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3905.724,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3916.952,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 3989.594,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 3989.756,
+      "content": "-tree"
+    },
+    {
+      "timestamp_ms": 3989.835,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3989.835,
+      "content": " balanced"
+    },
+    {
+      "timestamp_ms": 4100.106,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4100.282,
+      "content": " meaning"
+    },
+    {
+      "timestamp_ms": 4100.427,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4100.519,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 4100.592,
+      "content": " leaf"
+    },
+    {
+      "timestamp_ms": 4100.656,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 4194.568,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4194.764,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 4194.864,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4194.953,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 4210.425,
+      "content": " depth"
+    },
+    {
+      "timestamp_ms": 4216.542,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4297.221,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4297.438,
+      "content": " balance"
+    },
+    {
+      "timestamp_ms": 4297.519,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 4297.572,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 4309.001,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 4348.324,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 4348.497,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4399.154,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4399.368,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4404.629,
+      "content": " path"
+    },
+    {
+      "timestamp_ms": 4502.139,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4502.337,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4502.425,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 4502.496,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4502.557,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4604.384,
+      "content": " leaf"
+    },
+    {
+      "timestamp_ms": 4604.638,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 4604.735,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4604.788,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4604.838,
+      "content": " consistent"
+    },
+    {
+      "timestamp_ms": 4620.995,
+      "content": " length"
+    },
+    {
+      "timestamp_ms": 4706.971,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4707.108,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4707.173,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4707.227,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4715.303,
+      "content": "Node"
+    },
+    {
+      "timestamp_ms": 4731.198,
+      "content": " Capacity"
+    },
+    {
+      "timestamp_ms": 4809.477,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4809.711,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4809.931,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4810.062,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4825.65,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 4917.095,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 4917.274,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 4917.369,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4917.514,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 4921.266,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5015.248,
+      "content": " maximum"
+    },
+    {
+      "timestamp_ms": 5015.474,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 5015.628,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5015.823,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 5016.124,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5079.117,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 5079.343,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5079.468,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5094.728,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 5113.078,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5219.425,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5219.574,
+      "content": " B"
+    },
+    {
+      "timestamp_ms": 5219.645,
+      "content": "-tree"
+    },
+    {
+      "timestamp_ms": 5219.748,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5219.827,
+      "content": " Typically"
+    },
+    {
+      "timestamp_ms": 5225.577,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5284.435,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 5284.726,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 5284.996,
+      "content": " except"
+    },
+    {
+      "timestamp_ms": 5320.647,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5335.298,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 5341.337,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 5377.226,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5380.672,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5397.238,
+      "content": " least"
+    },
+    {
+      "timestamp_ms": 5527.412,
+      "content": " half"
+    },
+    {
+      "timestamp_ms": 5527.566,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5527.631,
+      "content": " maximum"
+    },
+    {
+      "timestamp_ms": 5527.763,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 5527.854,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5527.916,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 5535.85,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5551.394,
+      "content": "also"
+    },
+    {
+      "timestamp_ms": 5578.089,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 5590.159,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5627.989,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 5637.186,
+      "content": " half"
+    },
+    {
+      "timestamp_ms": 5647.841,
+      "content": "-full"
+    },
+    {
+      "timestamp_ms": 5665.58,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 5730.617,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5730.8,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5730.988,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 5739.312,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 5807.34,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5807.527,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 5807.603,
+      "content": " least"
+    },
+    {
+      "timestamp_ms": 5820.332,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 5837.815,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 5935.243,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5935.523,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5935.653,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5935.711,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5941.481,
+      "content": "Insert"
+    },
+    {
+      "timestamp_ms": 5953.581,
+      "content": "ion"
+    },
+    {
+      "timestamp_ms": 5973.587,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5993.823,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6007.076,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6037.096,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6045.499,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 6098.428,
+      "content": " inserting"
+    },
+    {
+      "timestamp_ms": 6098.736,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6102.606,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6127.549,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6140.802,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6224.341,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6231.427,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 6231.604,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 6231.685,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6234.346,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 6255.78,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6345.053,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6345.287,
+      "content": " insertion"
+    },
+    {
+      "timestamp_ms": 6345.392,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6345.479,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 6350.787,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6406.078,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6406.22,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 6409.189,
+      "content": " room"
+    },
+    {
+      "timestamp_ms": 6447.634,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6447.768,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6550.165,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 6550.881,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6550.988,
+      "content": " inserted"
+    },
+    {
+      "timestamp_ms": 6551.066,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6551.125,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 6563.709,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6652.223,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6652.388,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6652.47,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 6652.53,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6653.829,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6678.505,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6724.989,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 6725.157,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6735.609,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6829.083,
+      "content": " split"
+    },
+    {
+      "timestamp_ms": 6829.251,
+      "content": " occurs"
+    },
+    {
+      "timestamp_ms": 6829.355,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6837.048,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 6837.196,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6844.345,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 6865.462,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6911.057,
+      "content": " divided"
+    },
+    {
+      "timestamp_ms": 6911.307,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 6923.339,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 6941.459,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 6964.185,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7061.931,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7062.083,
+      "content": " middle"
+    },
+    {
+      "timestamp_ms": 7062.154,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7062.208,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7074.606,
+      "content": " promoted"
+    },
+    {
+      "timestamp_ms": 7179.669,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7179.978,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7180.114,
+      "content": " parent"
+    },
+    {
+      "timestamp_ms": 7180.229,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 7180.322,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7187.386,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 7189.639,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 7223.729,
+      "content": " cause"
+    },
+    {
+      "timestamp_ms": 7228.164,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7247.26,
+      "content": " chain"
+    },
+    {
+      "timestamp_ms": 7266.243,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7331.437,
+      "content": " splits"
+    },
+    {
+      "timestamp_ms": 7331.614,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 7331.706,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7340.942,
+      "content": " parent"
+    },
+    {
+      "timestamp_ms": 7471.973,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7479.59,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 7479.59,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 7479.59,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7479.59,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7479.59,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7479.59,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7573.796,
+      "content": "De"
+    },
+    {
+      "timestamp_ms": 7574.562,
+      "content": "letion"
+    },
+    {
+      "timestamp_ms": 7574.707,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7574.797,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7574.868,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7589.471,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7677.134,
+      "content": " Deleting"
+    },
+    {
+      "timestamp_ms": 7677.303,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7677.407,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 7677.48,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 7685.798,
+      "content": " removing"
+    },
+    {
+      "timestamp_ms": 7778.614,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7778.791,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 7778.958,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7779.072,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 7794.683,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7801.394,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 7881.542,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 7881.755,
+      "content": " results"
+    },
+    {
+      "timestamp_ms": 7881.909,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7882.005,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 7894.041,
+      "content": " under"
+    },
+    {
+      "timestamp_ms": 7913.392,
+      "content": "flow"
+    },
+    {
+      "timestamp_ms": 7983.715,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7983.862,
+      "content": "having"
+    },
+    {
+      "timestamp_ms": 7983.94,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 7995.547,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 8009.903,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8093.961,
+      "content": " minimum"
+    },
+    {
+      "timestamp_ms": 8094.117,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 8094.19,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8094.247,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 8105.352,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8150.339,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8150.533,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 8163.679,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 8189.258,
+      "content": " attempt"
+    },
+    {
+      "timestamp_ms": 8200.604,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8241.023,
+      "content": " borrow"
+    },
+    {
+      "timestamp_ms": 8241.428,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8292.924,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 8293.113,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 8294.446,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8393.541,
+      "content": " sibling"
+    },
+    {
+      "timestamp_ms": 8393.839,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 8401.072,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8401.431,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 8401.714,
+      "content": " borrowing"
+    },
+    {
+      "timestamp_ms": 8410.158,
+      "content": " isn"
+    },
+    {
+      "timestamp_ms": 8496.36,
+      "content": "’t"
+    },
+    {
+      "timestamp_ms": 8496.497,
+      "content": " possible"
+    },
+    {
+      "timestamp_ms": 8496.581,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8496.677,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8505.755,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 8573.99,
+      "content": " merge"
+    },
+    {
+      "timestamp_ms": 8574.131,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 8574.197,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8580.212,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8603.71,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8701.193,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 8701.346,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 8701.468,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 8701.544,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8701.605,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8714.828,
+      "content": " tree"
+    },
+    {
+      "timestamp_ms": 8733.432,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 8802.866,
+      "content": " balanced"
+    },
+    {
+      "timestamp_ms": 8803.108,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 8810.474,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 8810.7,
+      "content": " delet"
+    },
+    {
+      "timestamp_ms": 8854.437,
+      "content": "ions"
+    },
+    {
+      "timestamp_ms": 8854.609,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8905.117,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 8905.264,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8905.404,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9011.096,
+      "content": "Search"
+    },
+    {
+      "timestamp_ms": 9011.275,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9011.354,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9011.43,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9011.536,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9019.67,
+      "content": " Searching"
+    },
+    {
+      "timestamp_ms": 9109.522,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 9109.908,
+      "content": " travers"
+    },
+    {
+      "timestamp_ms": 9110.046,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 9110.126,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9122.222,
+      "content": " tree"
+    },
+    {
+      "timestamp_ms": 9135.198,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9211.829,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9212.04,
+      "content": " root"
+    },
+    {
+      "timestamp_ms": 9226.721,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 9226.885,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9232.17,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 9314.643,
+      "content": " pointers"
+    },
+    {
+      "timestamp_ms": 9314.791,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 9314.909,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 9314.99,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 9324.806,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9417.408,
+      "content": " desired"
+    },
+    {
+      "timestamp_ms": 9419.883,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 9420.085,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9420.236,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 9420.349,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9522.784,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9523.178,
+      "content": " leaf"
+    },
+    {
+      "timestamp_ms": 9523.325,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " Due"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " ordered"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9725.595,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 9725.933,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9726.277,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 9827.181,
+      "content": " node"
+    },
+    {
+      "timestamp_ms": 9827.33,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9836.181,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9836.289,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 9836.361,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9840.394,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 9866.18,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9878.314,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 9929.575,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9929.716,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9935.072,
+      "content": " logarith"
+    },
+    {
+      "timestamp_ms": 10032.108,
+      "content": "mic"
+    },
+    {
+      "timestamp_ms": 10032.357,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 10032.498,
+      "content": " complexity"
+    },
+    {
+      "timestamp_ms": 10032.626,
+      "content": " depending"
+    },
+    {
+      "timestamp_ms": 10032.626,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10032.747,
+      "type": "done"
+    }
+  ],
+  "full_response": "A B-tree index is a commonly used data structure in relational databases to efficiently store, retrieve, and manage information. It allows quick access to data rows by maintaining a balanced tree structure that enhances data retrieval speeds. Here's a breakdown of how a B-tree index works:\n\n1. **Structure**:\n   - **Tree Nodes**: The B-tree consists of nodes, with the root node at the top, internal nodes (non-leaf) in the middle, and leaf nodes at the bottom. Each node contains keys and pointers.\n   - **Keys**: These are the values that help in data retrieval and are used to sort records. The keys within a node are ordered.\n   - **Pointers**: These are references to other nodes. In non-leaf nodes, pointers direct the search process towards the appropriate subtree. In leaf nodes, pointers usually point to actual data records or another level of detail.\n\n2. **Balanced Tree**:\n   - A B-tree is balanced, meaning that all leaf nodes are at the same depth. This balance ensures efficient search operations, as the path from the root to any leaf node is of consistent length.\n\n3. **Node Capacity**:\n   - Each node has a minimum and maximum number of keys, defined by the order of the B-tree. Typically, every node except the root must have at least half the maximum number of keys (also known as being half-full), and the root must have at least one key.\n\n4. **Insertion**:\n   - When inserting a new key, the algorithm checks the appropriate node for insertion. If the node has room, the key is inserted in order.\n   - If the node is full, a split occurs, where the node is divided into two nodes and the middle key is promoted to the parent node. This might cause a chain of splits if the parent is also full.\n\n5. **Deletion**:\n   - Deleting a key involves removing it from the node. If this results in an underflow (having less than the minimum number of keys), the database will attempt to borrow a key from a sibling node. If borrowing isn’t possible, it might merge nodes.\n   - The algorithm ensures that the tree remains balanced even after deletions.\n\n6. **Search**:\n   - Searching involves traversing the tree from the root node, following pointers through nodes until the desired key is found in a leaf node.\n   - Due to the ordered nature of the keys within each node, the search is efficient, typically with a logarithmic time complexity depending",
+  "response_chars": 2364,
+  "num_chunks": 512,
+  "ttft_ms": 304.048,
+  "total_ms": 10033.049,
+  "model_name": "model-medium"
+}

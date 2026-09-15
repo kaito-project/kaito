@@ -1,0 +1,2047 @@
+{
+  "index": 175,
+  "prompt": "Draft a training slide deck outline about protecting CLASSIFIED_DATA and CONFIDENTIAL materials in the workplace.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 966.84,
+      "content": "Sure"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " Here's"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " outline"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " slide"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " deck"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " protecting"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " classified"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " confidential"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " materials"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " workplace"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " Title"
+    },
+    {
+      "timestamp_ms": 966.84,
+      "content": " Slide"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " Title"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " Protect"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " Classified"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " Materials"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " Workplace"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": " Subtitle"
+    },
+    {
+      "timestamp_ms": 1533.142,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " Practices"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " Legal"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " Oblig"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " /"
+    },
+    {
+      "timestamp_ms": 1533.549,
+      "content": " Organization"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " Logo"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " Agenda"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " Points"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2226.108,
+      "content": " Protect"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " Understanding"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " Classified"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " Materials"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " Best"
+    },
+    {
+      "timestamp_ms": 2239.471,
+      "content": " Practices"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " Legal"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " Framework"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " Conse"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": "quences"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": " Bre"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": "ach"
+    },
+    {
+      "timestamp_ms": 3211.856,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " Q"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "&A"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " References"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " Introduction"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " Importance"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " Protect"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 3212.123,
+      "content": " Sensitive"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Types"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Classified"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Conse"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "quences"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Mis"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "use"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Def"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": "ining"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Classified"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3775.839,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " Classification"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " Levels"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " Public"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " Sensitive"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 4476.401,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " Nature"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " Employee"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " Personal"
+    },
+    {
+      "timestamp_ms": 4486.499,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": " Business"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": " Propriet"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": "ary"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": " Financial"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": " Records"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": " Why"
+    },
+    {
+      "timestamp_ms": 4538.003,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " Classification"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " Risk"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " Mit"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": "igation"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " Legal"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4895.855,
+      "content": " Ethical"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Protection"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Laws"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " GDPR"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "CPA"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "UI"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "-R"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "ules"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Applicable"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " U"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": ".S"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": ".)\n"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Ethical"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Oblig"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "ations"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Employer"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Society"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Clar"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": "ifications"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 5870.035,
+      "content": " Ownership"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Ident"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "ifying"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Class"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "ifying"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Steps"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Ident"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "ifying"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Sensitive"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Employee"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Awareness"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Regular"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": " Aud"
+    },
+    {
+      "timestamp_ms": 6761.398,
+      "content": "its"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Reviews"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Determ"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": "ining"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Sens"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": "itivity"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Matrix"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Importance"
+    },
+    {
+      "timestamp_ms": 6792.661,
+      "content": " Level"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " Impact"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " Bre"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": "ach"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " Best"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " Practices"
+    },
+    {
+      "timestamp_ms": 7170.471,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Classified"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Confidential"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Creating"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Lists"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": "ACL"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Physical"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Measures"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Digital"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 7676.331,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Encryption"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Access"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Controls"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Handling"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Disposal"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Documents"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Media"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8505.309,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Principles"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Strong"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Policies"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Period"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "ic"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Changes"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Avoid"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "ance"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Password"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Multi"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "-F"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "actor"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": "FA"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9147.965,
+      "content": " Its"
+    },
+    {
+      "timestamp_ms": 9148.427,
+      "content": " Importance"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Transmission"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Channels"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Communication"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Storage"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Offline"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 9677.065,
+      "content": " Solutions"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " Keeping"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " Software"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " Updated"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10214.217,
+      "content": " Compliance"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " Continuous"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " Education"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " Employees"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " Modules"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10233.79,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Availability"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Documentation"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Record"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "-K"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "eping"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "Slide"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "11"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Aud"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "iting"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Regular"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Aud"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "its"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " System"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Integrity"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " Monitoring"
+    },
+    {
+      "timestamp_ms": 10962.592,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 11039.044,
+      "content": " Susp"
+    },
+    {
+      "timestamp_ms": 11039.044,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11039.044,
+      "type": "done"
+    }
+  ],
+  "full_response": "Sure! Here's an outline for a training slide deck about protecting classified and confidential materials in the workplace:\n\n---\n\n**Slide 1: Title Slide**\n- Title: Protecting Classified and Confidential Materials in the Workplace\n- Subtitle: Practices and Legal Obligations\n- Your Name / Organization Logo\n\n---\n\n**Slide 2: Agenda**\n- 3 Key Points to Protect Information\n  1. Understanding Classified and Confidential Materials\n  2. Best Practices for Handling Data\n  3. Legal Framework and Consequences of Breach\n Q&A and References\n\n---\n\n**Slide 3: Introduction**\n- Importance of Protecting Sensitive Information\n- Common Types: Classified and Confidential Data\n- Consequences of Information Misuse\n\n---\n\n**Slide 4: Defining Classified and Confidential Data**\n- Classification Levels (e.g., Public, Sensitive, Confidential, Secret, Secret)\n- Nature of Confidential Data (e.g., Employee Personal Information, Business Proprietary Information, Financial Records)\n- Why Data Classification: Risk Management and Mitigation\n\n---\n\n**Slide 5: Legal and Ethical**\n- Data Protection Laws (e.g., GDPR, CCPA, CUI-Rules Applicable to U.S.)\n- Ethical Obligations to Employer and Society\n- Clarifications on Data Ownership\n\n---\n\n**Slide 6: Identifying and Classifying Data**\n- Steps for Identifying Sensitive Data\n  - Employee Training and Awareness\n  - Regular Data Audits and Access Reviews\n- Determining Confidentiality: Data Sensitivity Matrix\n  - Importance Level vs. Impact of Breach\n\n---\n\n**Slide 7: Best Practices for Handling Classified and Confidential Data**\n- Creating and Using Access Control Lists (ACLs)\n- Physical Security Measures\n- Digital Security Protocols (e.g., Encryption, Access Controls)\n- Secure Handling and Disposal of Documents and Media\n\n---\n\n**Slide 8: Password Security and Management**\n- Basic Principles of Strong Password Policies\n- Periodic Password Changes and Avoidance of Common Passwords\n- Multi-Factor Authentication (MFA) and Its Importance\n\n---\n\n**Slide 9: Data Transmission and Storage**\n- Secure Channels and Communication Protocols\n- Data Storage Management: Offline and Cloud Solutions\n- Keeping Software and Systems Updated\n\n---\n\n**Slide 10: Training and Compliance- Continuous Education for Employees\n- Training Modules and Resources Availability\n- Documentation and Record-Keeping\n\n---\n\n**Slide 11: Monitoring and Auditing**\n- Regular IT Audits for System Integrity\n- Monitoring for Susp",
+  "response_chars": 2423,
+  "num_chunks": 506,
+  "ttft_ms": 966.84,
+  "total_ms": 11296.994,
+  "model_name": "Phi-4-mini-instruct"
+}

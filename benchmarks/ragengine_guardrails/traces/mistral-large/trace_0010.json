@@ -1,0 +1,803 @@
+{
+  "index": 10,
+  "prompt": "Write a sample data export from a CRM system showing 5 customer records with fields: name, company, email, phone, address, last_purchase_date, lifetime_value.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 537.604,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": "’s a sample"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " export from"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " a CRM"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " system in CSV"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " format,"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " showing 5 customer"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " records with the"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": " requested fields:\n\n```"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": "csv\nname"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": ",company"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": ",email"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": ",phone"
+    },
+    {
+      "timestamp_ms": 537.604,
+      "content": ",address"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": ",last"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "_purchase_date,l"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "ifetime_value\n"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": " Smith"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": ",Ac"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "me Corporation"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": ",j"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "ohn.s"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "mith@ac"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "me.com,+"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "1 ("
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "55"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "5)"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": " 123"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "-456"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "7,\""
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "123 Business"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": " Ave, Suite"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": " 10"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "0, New York"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": ", NY"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": " 100"
+    },
+    {
+      "timestamp_ms": 881.243,
+      "content": "01\","
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "2023"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "-10"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "-15,"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "125"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "00.5"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "0\nSarah"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": " Johnson,Glob"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "ex"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": " Inc"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": ",s"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "arah"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": ".j@"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "glob"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "ex.com,+"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "1 (5"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "55) "
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "987-"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "654"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "3,\""
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "6 Tech Park,"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": " San"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": " Francisco"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": ", CA"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": " 94"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "5\","
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "2023"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "-11"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "-2"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": ",8"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "0.7"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": "5\nMichael"
+    },
+    {
+      "timestamp_ms": 1548.95,
+      "content": " Brown"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": ",In"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "novate"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " Ltd"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": ",m"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "ichael.b"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "@"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "inn"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "ovate.com,"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "+4"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "4 "
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "20 "
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "79"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "46"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " 0"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "95"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "8,\"7"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "89 Oxford"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " St, London,"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " W1D"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " 1BS"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " UK\",20"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "23-0"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "9-0"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "5,22"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "00.0"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "0\nEmily"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " Davis"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": ",Tech"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": " Solutions"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "emily.d"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "@te"
+    },
+    {
+      "timestamp_ms": 2060.283,
+      "content": "chsol"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "utions"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": ".com,+1"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": " (555"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": ") 4"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "56-7"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "890,\""
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "21 Silicon"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": " Bl"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "vd, Austin"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": ", TX"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": " 7"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "87"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "01\","
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "2023"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "-12"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "-0"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "1,1"
+    },
+    {
+      "timestamp_ms": 2588.637,
+      "content": "53"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "\nDavid Wilson"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": ",Alpha"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": " Enterprises"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": ",d"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "avid.w"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "@alpha"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": ".com,+"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "1 "
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": " 9"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "76"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": " 543"
+    },
+    {
+      "timestamp_ms": 2589.013,
+      "content": "2,\""
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "1 Market St,"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " Sydney, NSW"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " 200"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "0, Australia"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "\",20"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "23-1"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "0-3"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "0,9"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "80"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "0.9"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "0\n```\n\n"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "### Alternative"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " Formats"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": "If"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " you'd"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " prefer a different format"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " JSON, Excel,"
+    },
+    {
+      "timestamp_ms": 2902.127,
+      "content": " or SQL"
+    },
+    {
+      "timestamp_ms": 3032.4,
+      "content": "), let"
+    },
+    {
+      "timestamp_ms": 3032.4,
+      "content": " me know!"
+    },
+    {
+      "timestamp_ms": 3032.4,
+      "content": " Here’s a"
+    },
+    {
+      "timestamp_ms": 3032.4,
+      "content": " JSON example for reference"
+    },
+    {
+      "timestamp_ms": 3032.4,
+      "content": ":\n\n```json"
+    },
+    {
+      "timestamp_ms": 3032.4,
+      "content": "\n[\n"
+    },
+    {
+      "timestamp_ms": 3032.4,
+      "content": "  {\n    \""
+    },
+    {
+      "timestamp_ms": 3242.141,
+      "content": "name\": \"John"
+    },
+    {
+      "timestamp_ms": 3242.141,
+      "content": " Smith\",\n    \""
+    },
+    {
+      "timestamp_ms": 3242.141,
+      "content": "company\": \"Ac"
+    },
+    {
+      "timestamp_ms": 3242.141,
+      "content": "me Corporation\",\n   "
+    },
+    {
+      "timestamp_ms": 3242.141,
+      "content": " \"email\": \""
+    },
+    {
+      "timestamp_ms": 3242.141,
+      "content": "john.smith"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "@ac"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "me.com\",\n   "
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": " \"phone\": \"+"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "1 (55"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "5) 1"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "23-4"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "567\",\n"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "    \"address"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "\": \"12"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "3 Business Ave,"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": " Suite 10"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "0, New"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": " York, NY "
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "1000"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "content": "1\",\n"
+    },
+    {
+      "timestamp_ms": 3326.406,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 3355.171,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here’s a sample data export from a CRM system in CSV format, showing 5 customer records with the requested fields:\n\n```csv\nname,company,email,phone,address,last_purchase_date,lifetime_value\nJohn Smith,Acme Corporation,john.smith@acme.com,+1 (555) 123-4567,\"123 Business Ave, Suite 100, New York, NY 10001\",2023-10-15,12500.50\nSarah Johnson,Globex Inc,sarah.j@globex.com,+1 (555) 987-6543,\"456 Tech Park, San Francisco, CA 94105\",2023-11-20,8750.75\nMichael Brown,Innovate Ltd,michael.b@innovate.com,+44 20 7946 0958,\"789 Oxford St, London, W1D 1BS, UK\",2023-09-05,22000.00\nEmily Davis,Tech Solutions,emily.d@techsolutions.com,+1 (555) 456-7890,\"321 Silicon Blvd, Austin, TX 78701\",2023-12-01,1535\nDavid Wilson,Alpha Enterprises,david.w@alpha.com,+61 2 9876 5432,\"101 Market St, Sydney, NSW 2000, Australia\",2023-10-30,9800.90\n```\n\n### Alternative Formats:\nIf you'd prefer a different format (e.g., JSON, Excel, or SQL), let me know! Here’s a JSON example for reference:\n\n```json\n[\n  {\n    \"name\": \"John Smith\",\n    \"company\": \"Acme Corporation\",\n    \"email\": \"john.smith@acme.com\",\n    \"phone\": \"+1 (555) 123-4567\",\n    \"address\": \"123 Business Ave, Suite 100, New York, NY 10001\",\n",
+  "response_chars": 1181,
+  "num_chunks": 195,
+  "ttft_ms": 537.604,
+  "total_ms": 3513.952,
+  "model_name": "Mistral-Large-3"
+}

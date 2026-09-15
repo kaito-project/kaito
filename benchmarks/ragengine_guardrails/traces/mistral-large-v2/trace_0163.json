@@ -1,0 +1,791 @@
+{
+  "index": 163,
+  "prompt": "Write a meeting notes document that mentions attendees by full name and email, includes a conference call dial-in number, and references an internal IP address 192.168.1.50.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1540.934,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": "Meeting Notes"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": "**Date:** ["
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": "Insert Date]\n**"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": "Time:** [Insert"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": " Start"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": " Time]"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": " – [Insert"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": " End Time]\n**"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": "Meeting"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": " Title"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": ":** [Insert"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": " Meeting Title"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": "]\n**Prepared"
+    },
+    {
+      "timestamp_ms": 1540.934,
+      "content": " by:**"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " [Your Full"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " Name]\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": "### **1."
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " Meeting Details**\n-"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " **Conference Call"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " Dial-In"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " Number:** +"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": "1 (XXX"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": ") XXX"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": "-XXXX"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " (Access"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " Code: XX"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": "XXXX"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": "- **Internal"
+    },
+    {
+      "timestamp_ms": 2352.703,
+      "content": " Reference"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": "192."
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": "168."
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": "1.5"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": "0 (for internal"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " network access)\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": "### **2."
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " Attendees**\n"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": "|"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " **Full"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " Name**              "
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": " | **Email Address"
+    },
+    {
+      "timestamp_ms": 3275.833,
+      "content": "**                     | **"
+    },
+    {
+      "timestamp_ms": 3949.301,
+      "content": "Attendance"
+    },
+    {
+      "timestamp_ms": 3949.301,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3949.301,
+      "content": "✔"
+    },
+    {
+      "timestamp_ms": 3949.301,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": "✖"
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": ")** |\n"
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": "|----------------------------"
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": "-|------------------------------------"
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": "---|--------------------"
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": "--|\n| ["
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": "First Name] ["
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": "Last Name]   "
+    },
+    {
+      "timestamp_ms": 3949.488,
+      "content": " | [email"
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": "]                  "
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " ✔                   "
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " |\n| [First"
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " Name] [Last"
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " Name]   "
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " | [email"
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": "@example.com]                  "
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " | ✔                   "
+    },
+    {
+      "timestamp_ms": 4505.166,
+      "content": " |\n| [First"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " Name] [Last"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " Name]    |"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " [email@example.com"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "]                  "
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " | ✖"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "Ap"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "ologies"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": ")       "
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " |\n\n"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "*("
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "Add"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " remove rows"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " as needed.)"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "*\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "3. Ag"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": "enda Items"
+    },
+    {
+      "timestamp_ms": 5424.665,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": " Discussion Summary"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": "####"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": " **3"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": ".1 ["
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": "Ag"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": "enda Item 1"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": "**\n- **"
+    },
+    {
+      "timestamp_ms": 5733.054,
+      "content": "Key Points:**\n"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": "  - [Br"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": "ief summary"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": " of discussion"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": "]\n  - ["
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": "Action items"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": " decisions made"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 6047.256,
+      "content": "- **Action"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": " Items"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": ":**\n  - ["
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "Ass"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "ignee"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "]:"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": " [Task"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "] ("
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "Dead"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "line: [Date"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "])\n\n#### **3"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": ".2 [Ag"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "enda Item 2"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "]**\n- **"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "Key Points:**\n "
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": " - [Br"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "ief summary of discussion"
+    },
+    {
+      "timestamp_ms": 6819.132,
+      "content": "]\n  - Reference"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": " internal resource"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": ": `"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "192."
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "168."
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "1.50"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "` (e"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": ".g., server"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": " access, shared"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": " drive"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "- **Action"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": " Items:**\n  -"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": " [Ass"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "ignee"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": " Name]: [Task"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "] (Dead"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "line: [Date"
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "])\n\n*("
+    },
+    {
+      "timestamp_ms": 7590.063,
+      "content": "Add additional"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": " agenda"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": " items as needed.)"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": "*\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": "4. Next"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": " Steps"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": " Follow"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": "-Up**\n- **"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": "Next Meeting"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": ":** [Date/"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": "Time if"
+    },
+    {
+      "timestamp_ms": 8172.153,
+      "content": " applicable]\n- **"
+    },
+    {
+      "timestamp_ms": 8250.086,
+      "content": "Open Items"
+    },
+    {
+      "timestamp_ms": 8250.086,
+      "content": ":**\n  - ["
+    },
+    {
+      "timestamp_ms": 8250.086,
+      "content": "List"
+    },
+    {
+      "timestamp_ms": 8250.086,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 8250.086,
+      "content": " unresolved topics"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": " or pending actions"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": "---\n\n### **5"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": ". Additional"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": " Notes**\n- ["
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": "Any"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": " other relevant notes"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": ", e"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": ".g., \""
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": "Recording"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": " at [link]"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": ".\""
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": "]\n\n**"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": "End of Meeting"
+    },
+    {
+      "timestamp_ms": 8830.103,
+      "content": " Notes**\n\n---\n**"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": "Distribution"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": " List"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": ":**\n-"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": " All"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": " attendees (via"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": " email)\n"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": "- [Additional"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": " stakeholders"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": " if applicable"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 9324.319,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9328.654,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Meeting Notes**\n**Date:** [Insert Date]\n**Time:** [Insert Start Time] – [Insert End Time]\n**Meeting Title:** [Insert Meeting Title]\n**Prepared by:** [Your Full Name]\n\n---\n\n### **1. Meeting Details**\n- **Conference Call Dial-In Number:** +1 (XXX) XXX-XXXX (Access Code: XXXXXX)\n- **Internal Reference:** IP Address 192.168.1.50 (for internal network access)\n\n---\n\n### **2. Attendees**\n| **Full Name**               | **Email Address**                     | **Attendance (✔/✖)** |\n|-----------------------------|---------------------------------------|----------------------|\n| [First Name] [Last Name]    | [email@example.com]                   | ✔                    |\n| [First Name] [Last Name]    | [email@example.com]                   | ✔                    |\n| [First Name] [Last Name]    | [email@example.com]                   | ✖ (Apologies)        |\n\n*(Add or remove rows as needed.)*\n\n---\n\n### **3. Agenda Items & Discussion Summary**\n#### **3.1 [Agenda Item 1]**\n- **Key Points:**\n  - [Brief summary of discussion]\n  - [Action items or decisions made]\n- **Action Items:**\n  - [Assignee Name]: [Task] (Deadline: [Date])\n\n#### **3.2 [Agenda Item 2]**\n- **Key Points:**\n  - [Brief summary of discussion]\n  - Reference to internal resource: `192.168.1.50` (e.g., server access, shared drive).\n- **Action Items:**\n  - [Assignee Name]: [Task] (Deadline: [Date])\n\n*(Add additional agenda items as needed.)*\n\n---\n\n### **4. Next Steps & Follow-Up**\n- **Next Meeting:** [Date/Time if applicable]\n- **Open Items:**\n  - [List any unresolved topics or pending actions]\n\n---\n\n### **5. Additional Notes**\n- [Any other relevant notes, e.g., \"Recording available at [link].\"]\n\n**End of Meeting Notes**\n\n---\n**Distribution List:**\n- All attendees (via email)\n- [Additional stakeholders if applicable]",
+  "response_chars": 1795,
+  "num_chunks": 192,
+  "ttft_ms": 1540.934,
+  "total_ms": 9433.621,
+  "model_name": "Mistral-Large-3"
+}

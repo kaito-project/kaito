@@ -1,0 +1,1235 @@
+{
+  "index": 192,
+  "prompt": "Draft an email marked CONFIDENTIAL about the upcoming merger. Begin the email with 'CONFIDENTIAL' and reference the confidentiality requirement throughout.",
+  "prompt_category": "ban_substrings",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 962.504,
+      "content": "Subject"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": " Preliminary"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": " Regarding"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": " Upcoming"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": " Mer"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "ger"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "CONF"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "IDENT"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "IAL"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "Dear"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "Recipient"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": "],\n\n"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " hope"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " finds"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " well"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 965.87,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " accordance"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " recent"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " communications"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " carries"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " CONF"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": "IDENT"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": "IAL"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " label"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " contains"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1558.138,
+      "content": " upcoming"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " merger"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " reviewed"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " necessary"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": "Our"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " senior"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " recently"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " confirmed"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " advanced"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 2042.697,
+      "content": " strategic"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " planning"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " now"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " set"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " commence"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " merger"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " market"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " streamline"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2531.905,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " areas"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " working"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " closely"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " industry"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " experts"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " stakeholders"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " companies"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " seamless"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " \n\n"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " merger"
+    },
+    {
+      "timestamp_ms": 3095.169,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " result"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " creation"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " substantial"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " economies"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " driving"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " increased"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " allocation"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " Although"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3549.724,
+      "content": " yet"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " disclosed"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " publicly"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " expect"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " lead"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3909.482,
+      "content": " considerable"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " growth"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " profitability"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " companies"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " appreciate"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4083.212,
+      "content": " discretion"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": "Please"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " adhere"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " agreements"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " refrain"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " discussing"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " contents"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4639.373,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " parties"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " We"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " placed"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " importance"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " confidentiality"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " continues"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " develop"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": "Should"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 5140.336,
+      "content": " questions"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " clarification"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " regarding"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " role"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " upcoming"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " merger"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " please"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " hesitate"
+    },
+    {
+      "timestamp_ms": 5555.928,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": " touch"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": " me"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": "Conf"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": "idential"
+    },
+    {
+      "timestamp_ms": 5763.699,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " yours"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": ",\n\n"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " Job"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " Title"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " Company"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "Contact"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": ".S"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " contents"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " remain"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " CONF"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "IDENT"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": "IAL"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 6473.077,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " dissemin"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": "ated"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " prior"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": " approval"
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6776.884,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 6790.074,
+      "type": "done"
+    }
+  ],
+  "full_response": "Subject: Preliminary Information Regarding Upcoming Merger\n\nCONFIDENTIAL\n\nDear [Recipient’s],\n\nI hope this message finds you well. As part of your role and in accordance with our recent communications, this email carries a CONFIDENTIAL label and contains sensitive information regarding the upcoming merger. Please ensure this email is reviewed no further than necessary.\n\nOur senior management has recently confirmed that an advanced phase in our strategic planning process is now set to commence. The merger is designed to significantly enhance our market capabilities and streamline operations in several key areas. We are working closely with several industry experts and stakeholders from both companies to ensure a seamless integration. \n\nThis merger will result in the creation of substantial economies of scale, driving increased efficiency, and better resource allocation. Although some details are yet to be disclosed publicly, you can expect that this will lead to considerable growth and profitability for both our companies. We appreciate your discretion regarding this information.\n\nPlease adhere to our confidentiality agreements and refrain from discussing any of the contents of this email with unauthorized parties. We have placed significant importance on maintaining the confidentiality of this process as it continues to develop.\n\nShould you have any questions or require further clarification regarding your role in this upcoming merger, please do not hesitate to in touch with me directly.\n\nConfidentially yours,\n\n[Your Name]  \n[Your Job Title]  \n[Your Company]  \n[Contact Information]  \n\nP.S. This email and its contents remain CONFIDENTIAL and should not be shared or disseminated in any form without prior approval.",
+  "response_chars": 1741,
+  "num_chunks": 303,
+  "ttft_ms": 962.504,
+  "total_ms": 6981.783,
+  "model_name": "Phi-4-mini-instruct"
+}

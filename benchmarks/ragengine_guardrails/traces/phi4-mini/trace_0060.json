@@ -1,0 +1,927 @@
+{
+  "index": 60,
+  "prompt": "Write a Python function that calculates the Fibonacci sequence using dynamic programming.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 758.937,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " calculates"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " Fibonacci"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " iterative"
+    },
+    {
+      "timestamp_ms": 758.937,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " optimization"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " fibonacci"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "(n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " Handle"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " =="
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " elif"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " =="
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1753.217,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " Initialize"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " Fibonacci"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " numbers"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " Calculate"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " Fibonacci"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " numbers"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " iter"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "atively"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " _"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " range"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " n"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 2888.674,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_f"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "ib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " +"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_f"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "ib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " fib"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "print"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "\"The"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": "th"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " Fibonacci"
+    },
+    {
+      "timestamp_ms": 4042.428,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "ibonacci"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "(n"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": ")}"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "You"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "ibonacci"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "-negative"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " integer"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " Fibonacci"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 4968.216,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " extra"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": "(n"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " calculating"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " large"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " Fibonacci"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": " numbers"
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5486.134,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 5534.715,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a Python function that calculates the Fibonacci sequence using dynamic programming. This implementation uses an iterative approach for space optimization.\n\n```python\ndef fibonacci(n):\n    # Handle base cases\n    if n == 0:\n        return 0\n    elif n == 1:\n        return 1\n\n    # Initialize the first two Fibonacci numbers\n    fib_0 = 0\n    fib_1 = 1\n\n    # Calculate Fibonacci numbers iteratively\n    for _ in range(2, n + 1):\n        next_fib = fib_0 + fib_1\n        fib_0 = fib_1\n        fib_1 = next_fib\n\n    return fib_1\n\n# Example usage:\nn = 10\nprint(f\"The {n}th Fibonacci number is: {fibonacci(n)}\")\n```\n\nYou can call the `fibonacci` function with any non-negative integer `n` to find the `n`! Fibonacci number. This function uses only O(1) extra space and O(n) time, making it efficient for calculating large Fibonacci numbers.",
+  "response_chars": 856,
+  "num_chunks": 226,
+  "ttft_ms": 758.937,
+  "total_ms": 5673.739,
+  "model_name": "Phi-4-mini-instruct"
+}

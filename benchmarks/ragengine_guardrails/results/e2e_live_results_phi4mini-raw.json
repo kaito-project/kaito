@@ -1,0 +1,66 @@
+{
+  "metadata": {
+    "model_url": "https://yiqiwang-7081-resource.services.ai.azure.com/openai/v1/chat/completions",
+    "model_name": "Phi-4-mini-instruct",
+    "label": "phi4mini-raw",
+    "num_prompts": 95,
+    "iterations": 1
+  },
+  "baseline": {
+    "latency_ms": {
+      "p50": 10253.009,
+      "p95": 12282.733,
+      "p99": 12466.897,
+      "mean": 9215.654
+    },
+    "ttft_ms": {
+      "p50": 10252.993,
+      "p95": 12282.715,
+      "p99": 12466.879,
+      "mean": 9215.642
+    },
+    "total_requests": 95
+  },
+  "block_only": {
+    "latency_ms": {
+      "p50": 10043.446,
+      "p95": 12273.0,
+      "p99": 12472.423,
+      "mean": 9328.959
+    },
+    "ttft_ms": {
+      "p50": 10032.381,
+      "p95": 12259.415,
+      "p99": 12459.707,
+      "mean": 9318.392
+    },
+    "total_requests": 95
+  },
+  "redact_block": {
+    "latency_ms": {
+      "p50": 9856.712,
+      "p95": 12254.593,
+      "p99": 12387.986,
+      "mean": 9168.079
+    },
+    "ttft_ms": {
+      "p50": 9812.187,
+      "p95": 12185.663,
+      "p99": 12327.48,
+      "mean": 9124.848
+    },
+    "total_requests": 95
+  },
+  "overhead_block_only": {
+    "abs_p50_ms": -209.563,
+    "abs_p95_ms": -9.733,
+    "rel_p50_pct": -2.04,
+    "ttft_abs_p50_ms": -220.612
+  },
+  "overhead_redact_block": {
+    "abs_p50_ms": -396.297,
+    "abs_p95_ms": -28.14,
+    "rel_p50_pct": -3.87,
+    "ttft_abs_p50_ms": -440.806
+  }
+}

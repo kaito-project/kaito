@@ -1,0 +1,2071 @@
+{
+  "index": 124,
+  "prompt": "Draft a reference letter that includes the applicant's full name, current employer, email address, phone number, and the referee's contact information.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 302.602,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 302.786,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 409.704,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 409.879,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 409.969,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 410.025,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 410.076,
+      "content": " template"
+    },
+    {
+      "timestamp_ms": 418.91,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 432.486,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 506.581,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 506.581,
+      "content": " letter"
+    },
+    {
+      "timestamp_ms": 506.926,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 507.014,
+      "content": " You"
+    },
+    {
+      "timestamp_ms": 613.167,
+      "content": "'ll"
+    },
+    {
+      "timestamp_ms": 613.356,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 613.521,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 613.664,
+      "content": " fill"
+    },
+    {
+      "timestamp_ms": 613.809,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 620.302,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 642.551,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 675.231,
+      "content": " details"
+    },
+    {
+      "timestamp_ms": 695.019,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 702.175,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 716.317,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 772.36,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 772.508,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 777.344,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 794.637,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 916.533,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 916.686,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 916.762,
+      "content": " Position"
+    },
+    {
+      "timestamp_ms": 916.828,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 916.886,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 916.942,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 927.191,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 979.44,
+      "content": " Company"
+    },
+    {
+      "timestamp_ms": 979.595,
+      "content": "/O"
+    },
+    {
+      "timestamp_ms": 983.142,
+      "content": "rganization"
+    },
+    {
+      "timestamp_ms": 1001.052,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1023.671,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1040.047,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1060.44,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 1080.043,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 1097.987,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1229.359,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1229.53,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1229.602,
+      "content": "City"
+    },
+    {
+      "timestamp_ms": 1229.657,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1229.708,
+      "content": " State"
+    },
+    {
+      "timestamp_ms": 1229.754,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1229.799,
+      "content": " ZIP"
+    },
+    {
+      "timestamp_ms": 1326.853,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 1327.003,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1327.083,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1327.158,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1327.71,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 1343.939,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 1363.983,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 1428.515,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1428.724,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1428.849,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1495.672,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 1495.828,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 1495.905,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 1502.476,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1515.752,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 1535.35,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1633.284,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 1633.434,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 1633.507,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1633.569,
+      "content": "Recipient"
+    },
+    {
+      "timestamp_ms": 1752.723,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1752.988,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1753.179,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1753.377,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1753.535,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1753.679,
+      "content": "Recipient"
+    },
+    {
+      "timestamp_ms": 1753.833,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1763.822,
+      "content": " Position"
+    },
+    {
+      "timestamp_ms": 1845.084,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1845.225,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1845.293,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 1845.353,
+      "content": "Recipient"
+    },
+    {
+      "timestamp_ms": 1857.463,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 1921.385,
+      "content": " Company"
+    },
+    {
+      "timestamp_ms": 1921.534,
+      "content": "/O"
+    },
+    {
+      "timestamp_ms": 1921.609,
+      "content": "rganization"
+    },
+    {
+      "timestamp_ms": 1943.519,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1958.907,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1974.299,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 2042.822,
+      "content": "Recipient"
+    },
+    {
+      "timestamp_ms": 2042.954,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2043.016,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 2050.459,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 2146.256,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 2146.462,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 2146.534,
+      "content": "City"
+    },
+    {
+      "timestamp_ms": 2146.602,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2149.766,
+      "content": " State"
+    },
+    {
+      "timestamp_ms": 2166.973,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2252.431,
+      "content": " ZIP"
+    },
+    {
+      "timestamp_ms": 2252.687,
+      "content": " Code"
+    },
+    {
+      "timestamp_ms": 2252.947,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 2253.124,
+      "content": "  \n\n"
+    },
+    {
+      "timestamp_ms": 2259.524,
+      "content": "Dear"
+    },
+    {
+      "timestamp_ms": 2278.725,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2350.636,
+      "content": "Recipient"
+    },
+    {
+      "timestamp_ms": 2350.817,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2350.898,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 2356.013,
+      "content": "],\n\n"
+    },
+    {
+      "timestamp_ms": 2555.905,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 2556.055,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 2556.131,
+      "content": " writing"
+    },
+    {
+      "timestamp_ms": 2556.312,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2556.453,
+      "content": " whole"
+    },
+    {
+      "timestamp_ms": 2556.639,
+      "content": "heart"
+    },
+    {
+      "timestamp_ms": 2556.735,
+      "content": "edly"
+    },
+    {
+      "timestamp_ms": 2556.809,
+      "content": " recommend"
+    },
+    {
+      "timestamp_ms": 2556.871,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 2556.922,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 2562.421,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 2595.593,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2610.793,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 2626.668,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 2760.278,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 2760.486,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2760.61,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2760.724,
+      "content": " position"
+    },
+    {
+      "timestamp_ms": 2760.862,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2761.008,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2761.096,
+      "content": " esteemed"
+    },
+    {
+      "timestamp_ms": 2773.301,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 2861.951,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2862.107,
+      "content": " I"
+    },
+    {
+      "timestamp_ms": 2862.188,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2862.256,
+      "content": " had"
+    },
+    {
+      "timestamp_ms": 2871.889,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2964.349,
+      "content": " pleasure"
+    },
+    {
+      "timestamp_ms": 2964.501,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3024.921,
+      "content": " working"
+    },
+    {
+      "timestamp_ms": 3024.921,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3024.921,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3024.921,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 3024.921,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 3025.101,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3042.434,
+      "content": " First"
+    },
+    {
+      "timestamp_ms": 3171.426,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 3173.627,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 3173.772,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3173.95,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3174.046,
+      "content": "Current"
+    },
+    {
+      "timestamp_ms": 3174.169,
+      "content": " Employer"
+    },
+    {
+      "timestamp_ms": 3174.352,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 3273.305,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3273.478,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3273.543,
+      "content": "duration"
+    },
+    {
+      "timestamp_ms": 3273.597,
+      "content": "],"
+    },
+    {
+      "timestamp_ms": 3273.648,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 3287.877,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 3358.402,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 3358.592,
+      "content": " consistently"
+    },
+    {
+      "timestamp_ms": 3358.742,
+      "content": " demonstrated"
+    },
+    {
+      "timestamp_ms": 3363.666,
+      "content": " exceptional"
+    },
+    {
+      "timestamp_ms": 3389.103,
+      "content": " skills"
+    },
+    {
+      "timestamp_ms": 3403.651,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3476.214,
+      "content": " dedication"
+    },
+    {
+      "timestamp_ms": 3476.484,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3476.669,
+      "content": "During"
+    },
+    {
+      "timestamp_ms": 3477.323,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 3579.252,
+      "content": " tenure"
+    },
+    {
+      "timestamp_ms": 3579.449,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3579.537,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3579.654,
+      "content": "Current"
+    },
+    {
+      "timestamp_ms": 3579.755,
+      "content": " Employer"
+    },
+    {
+      "timestamp_ms": 3592.557,
+      "content": "],"
+    },
+    {
+      "timestamp_ms": 3681.373,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3681.507,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 3681.572,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 3681.624,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3690.417,
+      "content": " First"
+    },
+    {
+      "timestamp_ms": 3767.861,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 3768.013,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 3768.089,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 3768.396,
+      "content": " made"
+    },
+    {
+      "timestamp_ms": 3787.007,
+      "content": " significant"
+    },
+    {
+      "timestamp_ms": 3805.122,
+      "content": " contributions"
+    },
+    {
+      "timestamp_ms": 3826.49,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3892.929,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 3893.099,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 3893.195,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3899.419,
+      "content": " success"
+    },
+    {
+      "timestamp_ms": 3938.049,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3938.249,
+      "content": " Their"
+    },
+    {
+      "timestamp_ms": 3988.441,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3988.595,
+      "content": "mention"
+    },
+    {
+      "timestamp_ms": 3992.392,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 4045.806,
+      "content": " skills"
+    },
+    {
+      "timestamp_ms": 4045.955,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4054.066,
+      "content": " achievements"
+    },
+    {
+      "timestamp_ms": 4071.344,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4090.287,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 4110.914,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4126.97,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4151.661,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4166.473,
+      "content": "project"
+    },
+    {
+      "timestamp_ms": 4209.083,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 4209.305,
+      "content": " skills"
+    },
+    {
+      "timestamp_ms": 4224.343,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4278.395,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 4285.261,
+      "content": " invaluable"
+    },
+    {
+      "timestamp_ms": 4285.455,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4298.956,
+      "content": " completing"
+    },
+    {
+      "timestamp_ms": 4352.456,
+      "content": " projects"
+    },
+    {
+      "timestamp_ms": 4359.33,
+      "content": " ahead"
+    },
+    {
+      "timestamp_ms": 4359.638,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4398.895,
+      "content": " schedule"
+    },
+    {
+      "timestamp_ms": 4411.778,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4411.992,
+      "content": " under"
+    },
+    {
+      "timestamp_ms": 4500.932,
+      "content": " budget"
+    },
+    {
+      "timestamp_ms": 4501.082,
+      "content": "\"]."
+    },
+    {
+      "timestamp_ms": 4501.175,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 4501.316,
+      "content": "He"
+    },
+    {
+      "timestamp_ms": 4505.76,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4530.878,
+      "content": "She"
+    },
+    {
+      "timestamp_ms": 4605.634,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 4605.796,
+      "content": "They"
+    },
+    {
+      "timestamp_ms": 4605.89,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 4605.958,
+      "content": " possess"
+    },
+    {
+      "timestamp_ms": 4705.236,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4705.447,
+      "content": " remarkable"
+    },
+    {
+      "timestamp_ms": 4705.584,
+      "content": " ability"
+    },
+    {
+      "timestamp_ms": 4705.701,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4705.779,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 4772.861,
+      "content": "mention"
+    },
+    {
+      "timestamp_ms": 4773.013,
+      "content": " another"
+    },
+    {
+      "timestamp_ms": 4773.147,
+      "content": " notable"
+    },
+    {
+      "timestamp_ms": 4775.653,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 4797.299,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4817.855,
+      "content": " skill"
+    },
+    {
+      "timestamp_ms": 4833.709,
+      "content": "],"
+    },
+    {
+      "timestamp_ms": 4880.612,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 4880.827,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 4891.066,
+      "content": " greatly"
+    },
+    {
+      "timestamp_ms": 4911.384,
+      "content": " benefited"
+    },
+    {
+      "timestamp_ms": 4927.923,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 4945.096,
+      "content": " projects"
+    },
+    {
+      "timestamp_ms": 5014.696,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5014.873,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 5014.944,
+      "content": " dynamics"
+    },
+    {
+      "timestamp_ms": 5023.146,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5042.599,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 5067.535,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 5083.574,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 5100.4,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 5221.604,
+      "content": " First"
+    },
+    {
+      "timestamp_ms": 5229.751,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 5229.885,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 5229.961,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5230.114,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 5230.222,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 5230.295,
+      "content": " highly"
+    },
+    {
+      "timestamp_ms": 5282.744,
+      "content": " competent"
+    },
+    {
+      "timestamp_ms": 5282.891,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5287.97,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 5326.77,
+      "content": " possesses"
+    },
+    {
+      "timestamp_ms": 5326.953,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5429.783,
+      "content": " exceptional"
+    },
+    {
+      "timestamp_ms": 5430.057,
+      "content": " work"
+    },
+    {
+      "timestamp_ms": 5430.142,
+      "content": " ethic"
+    },
+    {
+      "timestamp_ms": 5430.216,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5430.317,
+      "content": " always"
+    },
+    {
+      "timestamp_ms": 5441.418,
+      "content": " going"
+    },
+    {
+      "timestamp_ms": 5488.356,
+      "content": " above"
+    },
+    {
+      "timestamp_ms": 5488.751,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5502.803,
+      "content": " beyond"
+    },
+    {
+      "timestamp_ms": 5635.587,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5635.743,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 5635.818,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5635.875,
+      "content": " objectives"
+    },
+    {
+      "timestamp_ms": 5635.923,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5635.981,
+      "content": " met"
+    },
+    {
+      "timestamp_ms": 5636.029,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5650.003,
+      "content": " excellence"
+    },
+    {
+      "timestamp_ms": 5732.95,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5733.175,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 5733.279,
+      "content": "He"
+    },
+    {
+      "timestamp_ms": 5733.36,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5748.431,
+      "content": "She"
+    },
+    {
+      "timestamp_ms": 5765.114,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5831.51,
+      "content": "They"
+    },
+    {
+      "timestamp_ms": 5831.681,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 5831.76,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 6045.273,
+      "content": "mention"
+    },
+    {
+      "timestamp_ms": 6045.273,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 6045.273,
+      "content": " teamwork"
+    },
+    {
+      "timestamp_ms": 6045.273,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6045.273,
+      "content": " leadership"
+    },
+    {
+      "timestamp_ms": 6045.578,
+      "content": " qualities"
+    },
+    {
+      "timestamp_ms": 6045.578,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6045.578,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 6045.706,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 6045.759,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 6045.807,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 6054.553,
+      "content": "excel"
+    },
+    {
+      "timestamp_ms": 6075.528,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6148.975,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6165.481,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 6165.659,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6165.738,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6172.97,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 6241.356,
+      "content": " taking"
+    },
+    {
+      "timestamp_ms": 6241.51,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6241.574,
+      "content": " initiative"
+    },
+    {
+      "timestamp_ms": 6245.743,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6262.187,
+      "content": " mentor"
+    },
+    {
+      "timestamp_ms": 6343.826,
+      "content": " newer"
+    },
+    {
+      "timestamp_ms": 6343.986,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 6344.064,
+      "content": " members"
+    },
+    {
+      "timestamp_ms": 6344.152,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6356.817,
+      "content": " foster"
+    },
+    {
+      "timestamp_ms": 6383.588,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6399.64,
+      "content": " collaborative"
+    },
+    {
+      "timestamp_ms": 6414.613,
+      "content": " spirit"
+    },
+    {
+      "timestamp_ms": 6437.421,
+      "content": "\"]"
+    },
+    {
+      "timestamp_ms": 6456.794,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6470.407,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 6551.778,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 6551.977,
+      "content": " confident"
+    },
+    {
+      "timestamp_ms": 6552.077,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6552.142,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 6565.369,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 6650.81,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 6651.019,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6651.145,
+      "content": " First"
+    },
+    {
+      "timestamp_ms": 6651.259,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 6662.529,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 6753.736,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 6753.917,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 6754.004,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6754.075,
+      "content": " excellent"
+    },
+    {
+      "timestamp_ms": 6768.89,
+      "content": " addition"
+    },
+    {
+      "timestamp_ms": 6775.793,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6794.898,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6814.14,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 6833.868,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6958.916,
+      "content": " am"
+    },
+    {
+      "timestamp_ms": 6959.131,
+      "content": " sure"
+    },
+    {
+      "timestamp_ms": 6959.232,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6959.301,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 6959.359,
+      "content": "he"
+    },
+    {
+      "timestamp_ms": 6959.438,
+      "content": "/she"
+    },
+    {
+      "timestamp_ms": 6971.001,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 6985.632,
+      "content": "they"
+    },
+    {
+      "timestamp_ms": 7011.114,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 7024.576,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 7056.712,
+      "content": " bring"
+    },
+    {
+      "timestamp_ms": 7066.71,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7080.843,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 7163.231,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 7163.366,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7163.432,
+      "content": " enthusiasm"
+    },
+    {
+      "timestamp_ms": 7163.487,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7175.017,
+      "content": " dedication"
+    },
+    {
+      "timestamp_ms": 7266.331,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7266.48,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 7266.553,
+      "content": "recipient"
+    },
+    {
+      "timestamp_ms": 7266.688,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7271.827,
+      "content": " company"
+    },
+    {
+      "timestamp_ms": 7367.984,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7368.192,
+      "content": "organization"
+    },
+    {
+      "timestamp_ms": 7368.335,
+      "content": "].\n\n"
+    },
+    {
+      "timestamp_ms": 7368.467,
+      "content": "Please"
+    },
+    {
+      "timestamp_ms": 7368.572,
+      "content": " feel"
+    },
+    {
+      "timestamp_ms": 7481.016,
+      "content": " free"
+    },
+    {
+      "timestamp_ms": 7481.169,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7481.256,
+      "content": " contact"
+    },
+    {
+      "timestamp_ms": 7481.33,
+      "content": " me"
+    },
+    {
+      "timestamp_ms": 7481.39,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 7481.447,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 7564.311,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 7564.609,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 7564.683,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 7564.741,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 7577.25,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7678.858,
+      "content": " via"
+    },
+    {
+      "timestamp_ms": 7679.003,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 7679.084,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 7679.143,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 7686.168,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 7690.056,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 7775.39,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 7775.656,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 7775.818,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 7775.995,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7784.725,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 7833.796,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 7834.121,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 7843.352,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 7880.258,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7883.932,
+      "content": "Thank"
+    },
+    {
+      "timestamp_ms": 7983.326,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7983.55,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7983.667,
+      "content": " considering"
+    },
+    {
+      "timestamp_ms": 7983.82,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 7983.963,
+      "content": " recommendation"
+    },
+    {
+      "timestamp_ms": 8199.472,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8199.472,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 8199.472,
+      "content": "incerely"
+    },
+    {
+      "timestamp_ms": 8199.472,
+      "content": ",\n\n"
+    },
+    {
+      "timestamp_ms": 8199.472,
+      "content": "["
+    },
+    {
+      "timestamp_ms": 8199.472,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 8199.926,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 8200.031,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 8200.099,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 8200.156,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8200.209,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 8205.887,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 8227.502,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8248.067,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 8264.121,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8310.943,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 8311.101,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8318.66,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8396.639,
+      "content": "Full"
+    },
+    {
+      "timestamp_ms": 8396.834,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 8396.965,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8397.125,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 8444.931,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 8445.101,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 8495.055,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8495.271,
+      "content": " Full"
+    },
+    {
+      "timestamp_ms": 8495.411,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 8510.287,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 8529.584,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8577.494,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8577.719,
+      "content": "Current"
+    },
+    {
+      "timestamp_ms": 8588.009,
+      "content": " Employer"
+    },
+    {
+      "timestamp_ms": 8607.083,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8699.649,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 8699.897,
+      "content": "Current"
+    },
+    {
+      "timestamp_ms": 8699.992,
+      "content": " Employer"
+    },
+    {
+      "timestamp_ms": 8700.051,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 8705.297,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8720.331,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8740.052,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 8808.265,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 8808.557,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8808.696,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 8815.772,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 8903.579,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 8903.85,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 8903.939,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 8904.01,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 8910.894,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 8994.176,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8994.42,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8994.523,
+      "content": "Phone"
+    },
+    {
+      "timestamp_ms": 8994.601,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 9007.783,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9028.386,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 9074.808,
+      "content": "App"
+    },
+    {
+      "timestamp_ms": 9074.979,
+      "content": "licant"
+    },
+    {
+      "timestamp_ms": 9083.008,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9218.356,
+      "content": " Phone"
+    },
+    {
+      "timestamp_ms": 9218.663,
+      "content": " Number"
+    },
+    {
+      "timestamp_ms": 9218.788,
+      "content": "]\n\n"
+    },
+    {
+      "timestamp_ms": 9218.896,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9218.979,
+      "content": "Ref"
+    },
+    {
+      "timestamp_ms": 9219.037,
+      "content": "eree"
+    },
+    {
+      "timestamp_ms": 9219.088,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 9313.819,
+      "content": " Contact"
+    },
+    {
+      "timestamp_ms": 9313.98,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 9314.043,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9314.113,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 9314.162,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9416.693,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9416.933,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 9417.07,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9417.22,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 9417.37,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 9536.683,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 9536.852,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 9536.944,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9537.005,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9537.055,
+      "content": "Position"
+    },
+    {
+      "timestamp_ms": 9537.099,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9559.439,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 9570.476,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 9585.305,
+      "content": " Position"
+    },
+    {
+      "timestamp_ms": 9599.301,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 9734.703,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9734.909,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9734.973,
+      "content": "Company"
+    },
+    {
+      "timestamp_ms": 9735.027,
+      "content": "/O"
+    },
+    {
+      "timestamp_ms": 9735.078,
+      "content": "rganization"
+    },
+    {
+      "timestamp_ms": 9735.218,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9735.291,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 9849.264,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 9849.396,
+      "content": " Company"
+    },
+    {
+      "timestamp_ms": 9849.459,
+      "content": "/O"
+    },
+    {
+      "timestamp_ms": 9849.51,
+      "content": "rganization"
+    },
+    {
+      "timestamp_ms": 9849.56,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 9849.607,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9865.595,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9928.689,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 9928.925,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 9929.157,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9943.455,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 10030.548,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 10030.764,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 10030.937,
+      "content": " Address"
+    },
+    {
+      "timestamp_ms": 10031.13,
+      "content": "]\n"
+    },
+    {
+      "timestamp_ms": 10031.13,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10031.13,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Here's a sample template for a reference letter. You'll need to fill in the specific details:\n\n---\n\n[Your Name]  \n[Your Position]  \n[Your Company/Organization]  \n[Your Address]  \n[City, State, ZIP Code]  \n[Your Email Address]  \n[Your Phone Number]  \n\n[Date]\n\n[Recipient's Name]  \n[Recipient's Position]  \n[Recipient's Company/Organization]  \n[Recipient's Address]  \n[City, State, ZIP Code]  \n\nDear [Recipient's Name],\n\nI am writing to wholeheartedly recommend [Applicant's Full Name] for the position at your esteemed organization. I have had the pleasure of working with [Applicant's First Name] at [Current Employer] for [duration], where they have consistently demonstrated exceptional skills and dedication.\n\nDuring their tenure at [Current Employer], [Applicant's First Name] has made significant contributions to our team's success. Their [mention specific skills or achievements, e.g., \"project management skills have been invaluable in completing projects ahead of schedule and under budget\"]. [He/She/They] possess a remarkable ability to [mention another notable attribute or skill], which has greatly benefited our projects and team dynamics.\n\n[Applicant's First Name] is not only highly competent but also possesses an exceptional work ethic, always going above and beyond to ensure that objectives are met with excellence. [He/She/They] [mention any teamwork or leadership qualities, e.g., \"excel in a team environment, often taking the initiative to mentor newer team members and foster a collaborative spirit\"].\n\nI am confident that [Applicant's First Name] would be an excellent addition to your team and am sure that [he/she/they] will bring the same level of enthusiasm and dedication to [recipient's company/organization].\n\nPlease feel free to contact me at [Your Phone Number] or via email at [Your Email Address] if you require any further information.\n\nThank you for considering my recommendation.\n\nSincerely,\n\n[Your Name]\n\n---\n\n**Applicant's Information:**\n\n- **Full Name:** [Applicant's Full Name]\n- **Current Employer:** [Current Employer]\n- **Email Address:** [Applicant's Email Address]\n- **Phone Number:** [Applicant's Phone Number]\n\n**Referee's Contact Information:**\n\n- **Name:** [Your Name]\n- **Position:** [Your Position]\n- **Company/Organization:** [Your Company/Organization]\n- **Email Address:** [Your Email Address]\n",
+  "response_chars": 2363,
+  "num_chunks": 512,
+  "ttft_ms": 302.602,
+  "total_ms": 10031.614,
+  "model_name": "model-medium"
+}

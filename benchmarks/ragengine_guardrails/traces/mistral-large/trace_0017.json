@@ -1,0 +1,835 @@
+{
+  "index": 17,
+  "prompt": "Write a sample git commit message and diff that shows a developer removing hardcoded credentials from source code and moving them to environment variables.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 689.242,
+      "content": "Here"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": "'s a sample"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": " Git commit message"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": " and diff"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": " that demonstrates a"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": " developer removing hard"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": "coded credentials and"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": " moving them to environment"
+    },
+    {
+      "timestamp_ms": 689.242,
+      "content": " variables:\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": "### **Commit"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": " Message"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": "**\n```\n"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": "feat"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": "(config"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": "): move"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": "coded credentials to"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": " environment variables\n\n-"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": " Remove"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": " hardcoded database"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": " credentials from"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": " `config"
+    },
+    {
+      "timestamp_ms": 1130.359,
+      "content": "/db.js"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": "`\n- Add"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " environment variable"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " checks"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " fallback defaults"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": "\n- Update"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": "env.example"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": "` with"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " new required"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " variables\n- Add"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " instructions"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " README"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": ".md"
+    },
+    {
+      "timestamp_ms": 1641.307,
+      "content": " for setting"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " up environment"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " variables\n\nSecurity"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " change"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " reduces the"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " risk of exposing sensitive"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " credentials in version"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " control.\n```\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": "### **Sample"
+    },
+    {
+      "timestamp_ms": 2090.31,
+      "content": " Diff**\n\n####"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " **1. `"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "config/db.js"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "` ("
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "Before"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " After)**\n```diff"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "\n//"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " Before"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " Hardcoded credentials"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "\n-"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " const"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " db"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "Config = {\n-"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "   host"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": ": 'localhost"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "',\n-  "
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " user: 'admin"
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": "',\n-  "
+    },
+    {
+      "timestamp_ms": 2766.635,
+      "content": " password: 's"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "3cr"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "3t"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "@ss"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "w0"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "rd',\n"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "-  "
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": " database: 'app"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "_db'\n- };\n\n"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "// After"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": ": Using"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": " environment variables with"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": " fall"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "backs\n+"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": " const dbConfig"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": " = {\n+"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "   host"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": ": process"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": ".env.DB"
+    },
+    {
+      "timestamp_ms": 3414.667,
+      "content": "_HOST || 'localhost"
+    },
+    {
+      "timestamp_ms": 3792.544,
+      "content": "',\n+   user"
+    },
+    {
+      "timestamp_ms": 3792.544,
+      "content": ": process"
+    },
+    {
+      "timestamp_ms": 3792.544,
+      "content": ".env.DB_USER"
+    },
+    {
+      "timestamp_ms": 3792.544,
+      "content": " || 'admin"
+    },
+    {
+      "timestamp_ms": 3792.544,
+      "content": "',\n+  "
+    },
+    {
+      "timestamp_ms": 3792.544,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 3980.465,
+      "content": ": process.env.DB"
+    },
+    {
+      "timestamp_ms": 3980.465,
+      "content": "_PASSWORD || '',"
+    },
+    {
+      "timestamp_ms": 3980.465,
+      "content": " // No"
+    },
+    {
+      "timestamp_ms": 3980.465,
+      "content": " fallback"
+    },
+    {
+      "timestamp_ms": 3980.465,
+      "content": " for security\n+"
+    },
+    {
+      "timestamp_ms": 3980.465,
+      "content": "   database: process"
+    },
+    {
+      "timestamp_ms": 3980.465,
+      "content": ".env.DB_NAME"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " || 'app"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": "_db'\n+"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " };\n"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": "+\n"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": "+ if (!"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": "process"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": ".env.DB_PASSWORD"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": ") {\n+"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": "   throw new"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " Error('Database password"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " be set in environment"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " variables');\n"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " }\n```\n\n####"
+    },
+    {
+      "timestamp_ms": 4301.382,
+      "content": " **2. `."
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "env.example"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "` (New"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": " File)**\n```diff"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "\n+"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": " Database"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": " Configuration\n+"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": " DB_HOST="
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "localhost\n+ DB"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "_USER=admin"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "\n+ DB_PASSWORD"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "= "
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": " # Required"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": " no default\n"
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "+ DB_NAME="
+    },
+    {
+      "timestamp_ms": 4891.473,
+      "content": "app_db\n+\n"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": " # Other"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": " variables...\n```\n\n####"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": " **3. `"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": "README.md` ("
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": "Updated"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": ")**\n"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": "```diff\n+"
+    },
+    {
+      "timestamp_ms": 5194.783,
+      "content": " ## Environment Setup"
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": "\n+\n"
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": "+ "
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": "1. Copy"
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": "env.example` to"
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": " `.env`:\n"
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 5492.823,
+      "content": "    ```sh"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "\n+"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "    cp .env"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": ".example .env\n"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "+   "
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": " ```\n+"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": " 2. Update"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "env` with"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": " your actual"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": ":\n+   "
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": " ```ini"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "\n+"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "    DB_PASSWORD"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "=your_"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "secure_password_h"
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": "ere\n+   "
+    },
+    {
+      "timestamp_ms": 6046.264,
+      "content": " ```\n+"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": " 3. Never"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": " commit `."
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": "env` to"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": " control.\n```\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": " **Key Impro"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": "vements in the Change"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": "**\n1. **"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": "Security**: No"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": " hardcoded secrets"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": " in the code"
+    },
+    {
+      "timestamp_ms": 6585.006,
+      "content": "base.\n2."
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": " **Validation"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": "**: Ex"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": "plicit check"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": " for required"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": " `DB_PASSWORD`.\n"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": "3. **Document"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": "ation**: Clear"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": " instructions for future"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": ".\n4. **"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": "allbacks"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": "**: Safe"
+    },
+    {
+      "timestamp_ms": 7078.548,
+      "content": " defaults for non-sensitive"
+    },
+    {
+      "timestamp_ms": 7221.636,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 7221.636,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 7221.636,
+      "content": " `DB"
+    },
+    {
+      "timestamp_ms": 7221.636,
+      "content": "_HOST`).\n\nWould you"
+    },
+    {
+      "timestamp_ms": 7221.636,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 7267.915,
+      "type": "done"
+    }
+  ],
+  "full_response": "Here's a sample Git commit message and diff that demonstrates a developer removing hardcoded credentials and moving them to environment variables:\n\n---\n\n### **Commit Message**\n```\nfeat(config): move hardcoded credentials to environment variables\n\n- Remove hardcoded database credentials from `config/db.js`\n- Add environment variable checks with fallback defaults\n- Update `.env.example` with new required variables\n- Add instructions in README.md for setting up environment variables\n\nSecurity: This change reduces the risk of exposing sensitive credentials in version control.\n```\n\n---\n\n### **Sample Diff**\n\n#### **1. `config/db.js` (Before & After)**\n```diff\n// Before: Hardcoded credentials\n- const dbConfig = {\n-   host: 'localhost',\n-   user: 'admin',\n-   password: 's3cr3tP@ssw0rd',\n-   database: 'app_db'\n- };\n\n// After: Using environment variables with fallbacks\n+ const dbConfig = {\n+   host: process.env.DB_HOST || 'localhost',\n+   user: process.env.DB_USER || 'admin',\n+   password: process.env.DB_PASSWORD || '', // No fallback for security\n+   database: process.env.DB_NAME || 'app_db'\n+ };\n+\n+ if (!process.env.DB_PASSWORD) {\n+   throw new Error('Database password must be set in environment variables');\n+ }\n```\n\n#### **2. `.env.example` (New File)**\n```diff\n+ # Database Configuration\n+ DB_HOST=localhost\n+ DB_USER=admin\n+ DB_PASSWORD=  # Required, no default\n+ DB_NAME=app_db\n+\n+ # Other environment variables...\n```\n\n#### **3. `README.md` (Updated)**\n```diff\n+ ## Environment Setup\n+\n+ 1. Copy `.env.example` to `.env`:\n+    ```sh\n+    cp .env.example .env\n+    ```\n+ 2. Update `.env` with your actual credentials:\n+    ```ini\n+    DB_PASSWORD=your_secure_password_here\n+    ```\n+ 3. Never commit `.env` to version control.\n```\n\n---\n\n### **Key Improvements in the Change**\n1. **Security**: No hardcoded secrets in the codebase.\n2. **Validation**: Explicit check for required `DB_PASSWORD`.\n3. **Documentation**: Clear instructions for future developers.\n4. **Fallbacks**: Safe defaults for non-sensitive values (e.g., `DB_HOST`).\n\nWould you",
+  "response_chars": 2059,
+  "num_chunks": 203,
+  "ttft_ms": 689.242,
+  "total_ms": 7271.479,
+  "model_name": "Mistral-Large-3"
+}

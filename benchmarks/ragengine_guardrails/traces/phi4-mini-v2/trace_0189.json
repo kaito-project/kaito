@@ -1,0 +1,2063 @@
+{
+  "index": 189,
+  "prompt": "Write a sample README that shows example curl commands including Bearer tokens, API keys in headers, and basic auth credentials.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 940.777,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " Project"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " Title"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " brief"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " what"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " Introduction"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " demonstration"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " interact"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 940.777,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " c"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "URL"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " line"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " Requirements"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " c"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "URL"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "version"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " Linux"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " Mac"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " Windows"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " Usage"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " project"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " navigate"
+    },
+    {
+      "timestamp_ms": 1762.503,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " directories"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " containing"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " c"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": "URL"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " commands"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " terminal"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " Authentication"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " Methods"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " following"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 2371.052,
+      "content": " demonstrate"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " Bear"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " Auth"
+    },
+    {
+      "timestamp_ms": 3098.68,
+      "content": " Credentials"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " Bear"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "Pass"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " Bear"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " authenticate"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " authorize"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3899.925,
+      "content": " Bear"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": " YOUR"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "_B"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "EAR"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "ER"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": " https"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "/resource"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5443.57,
+      "content": "Replace"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "_B"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "EAR"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "ER"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " Bear"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " Token"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": "Pass"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 5444.189,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " header"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " authenticate"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "API"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "-Key"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": " YOUR"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 5465.153,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": " https"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "/resource"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "Replace"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "YOUR"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5854.978,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " Auth"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " Credentials"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "Pass"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " password"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " basic"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " authentication"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "u"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " username"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 6580.965,
+      "content": " https"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "/resource"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "Replace"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "username"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "password"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " consider"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 7288.694,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " placing"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " Advanced"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " Usage"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " To"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " pipe"
+    },
+    {
+      "timestamp_ms": 7900.479,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8004.715,
+      "content": " c"
+    },
+    {
+      "timestamp_ms": 8004.715,
+      "content": "URL"
+    },
+    {
+      "timestamp_ms": 8004.715,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 8004.715,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8004.715,
+      "content": " something"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "jq"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " parameters"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " Bear"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " YOUR"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "_B"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "EAR"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "ER"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 8833.114,
+      "content": "/resource"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "?"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "param"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "=value"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "&"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "another"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "_param"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "=array"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " working"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " requires"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " payload"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "--"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "data"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": " option"
+    },
+    {
+      "timestamp_ms": 9958.958,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": " POST"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": " Bear"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "er"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": " YOUR"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "_B"
+    },
+    {
+      "timestamp_ms": 10886.617,
+      "content": "EAR"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "-Type"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "/json"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": " '{\""
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "\":\""
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "\",\""
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "key"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "\":\""
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "value"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "\"}"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": " https"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 10891.694,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 10972.903,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 10972.903,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 10972.903,
+      "content": "/resource"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "--"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "compressed"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " option"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " communicating"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " APIs"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " compression"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " reduce"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " size"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 11524.067,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "bash"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "curl"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " --"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "compressed"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " https"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": ".example"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "/resource"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "##"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " Contribution"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": "Pull"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": " welcome"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 12203.603,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 12304.381,
+      "type": "done"
+    }
+  ],
+  "full_response": "# Project Title\n\nA brief description of what your project does.\n\n## Introduction\n\nThis project is a demonstration of various methods to interact with APIs using cURL from the command line.\n\n## Requirements\n\n- cURL (version available on Linux, Mac, or Windows).\n\n## Usage\n\nTo use this project, navigate to the directories containing the code, then run specific cURL commands in your terminal.\n\n## Authentication Methods\n\nThe following examples demonstrate three different methods of providing authentication to an API through the `Authorization` header:\n1. Bearer Token\n2. API Key\n3. Basic Auth Credentials\n\n### 1. Bearer Token\n\nPass the Bearer Token as a header to authenticate or authorize one of your HTTP requests.\n\n```bash\ncurl -H \"Authorization: Bearer YOUR_BEARER_TOKEN\" https://api.example.com/resource\n```\n\nReplaceYOUR_BEARER_TOKEN` with your actual Bearer Token.\n\n### 2. API Key\n\nPass the API Key as a header to authenticate your requests.\n\n```bash\ncurl -H \"X-API-Key: YOUR_API_KEY\" https://api.example.com/resource\n```\n\nReplace `YOUR_API_KEY` with your actual API Key.\n\n### 3. Basic Auth Credentials\n\nPass your username and password for basic authentication.\n\n```bash\ncurl -u username:password https://api.example.com/resource\n```\n\nReplace `username` and `password` with your actual credentials. For added security, consider using environment variables instead of placing your credentials in the command.\n\n## Advanced Usage\n\n- To include query parameters, you may need to pipe the cURL output to something like `jq` or include the query parameters directly in the URL.\n\n```bash\ncurl -H \"Authorization: Bearer YOUR_BEARER_TOKEN\" \"https://api.example.com/resource?param=value&another_param=array\"\n```\n\n- If working with an API that requires a JSON payload for POST requests, include the `-d` or `--data` option:\n\n```bash\ncurl -X POST -H \"Authorization: Bearer YOUR_BEAR_TOKEN\" -H \"Content-Type: application/json\" -d '{\"key1\":\"value1\",\"key2\":\"value2\"}' https://api.example.com/resource\n```\n\n- Use the `--compressed` option when communicating with APIs that require webp protocols compression to reduce the size of the response data.\n\n```bash\ncurl --compressed https://api.example.com/resource\n```\n\n## Contribution\n\nPull requests to the repository are welcome.\n\n",
+  "response_chars": 2268,
+  "num_chunks": 510,
+  "ttft_ms": 940.777,
+  "total_ms": 12408.291,
+  "model_name": "Phi-4-mini-instruct"
+}

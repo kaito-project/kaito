@@ -1,0 +1,1987 @@
+{
+  "index": 67,
+  "prompt": "What is the difference between supervised, unsupervised, and reinforcement learning?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 347.876,
+      "content": "Sup"
+    },
+    {
+      "timestamp_ms": 348.019,
+      "content": "ervised"
+    },
+    {
+      "timestamp_ms": 348.152,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 358.027,
+      "content": " uns"
+    },
+    {
+      "timestamp_ms": 358.027,
+      "content": "up"
+    },
+    {
+      "timestamp_ms": 372.583,
+      "content": "ervised"
+    },
+    {
+      "timestamp_ms": 454.567,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 454.7,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 454.768,
+      "content": " reinforcement"
+    },
+    {
+      "timestamp_ms": 457.235,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 467.746,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 551.557,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 551.689,
+      "content": " major"
+    },
+    {
+      "timestamp_ms": 551.768,
+      "content": " parad"
+    },
+    {
+      "timestamp_ms": 552.011,
+      "content": "ig"
+    },
+    {
+      "timestamp_ms": 563.111,
+      "content": "ms"
+    },
+    {
+      "timestamp_ms": 629.26,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 629.471,
+      "content": " machine"
+    },
+    {
+      "timestamp_ms": 629.542,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 639.455,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 659.062,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 756.782,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 756.96,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 761.954,
+      "content": " characteristics"
+    },
+    {
+      "timestamp_ms": 762.199,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 762.341,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 771.804,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 792.814,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 860.433,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 860.601,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 860.693,
+      "content": "Sup"
+    },
+    {
+      "timestamp_ms": 868.224,
+      "content": "ervised"
+    },
+    {
+      "timestamp_ms": 961.689,
+      "content": " Learning"
+    },
+    {
+      "timestamp_ms": 961.908,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 962.504,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 974.772,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1063.93,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1064.065,
+      "content": "Description"
+    },
+    {
+      "timestamp_ms": 1064.129,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1064.182,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 1064.23,
+      "content": " supervised"
+    },
+    {
+      "timestamp_ms": 1078.807,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 1118.682,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1118.898,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1167.309,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1167.464,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1171.61,
+      "content": " trained"
+    },
+    {
+      "timestamp_ms": 1268.596,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1268.727,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1268.855,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 1268.954,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 1269.055,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1371.308,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1371.473,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 1371.548,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1371.606,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 1371.658,
+      "content": " training"
+    },
+    {
+      "timestamp_ms": 1384.368,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 1473.418,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1473.564,
+      "content": " paired"
+    },
+    {
+      "timestamp_ms": 1473.63,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 1473.681,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1477.536,
+      "content": " output"
+    },
+    {
+      "timestamp_ms": 1575.931,
+      "content": " label"
+    },
+    {
+      "timestamp_ms": 1576.063,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1576.128,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1576.182,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 1576.231,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1592.191,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1678.405,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1685.271,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1685.412,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1685.489,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 1686.201,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1781.212,
+      "content": " mapping"
+    },
+    {
+      "timestamp_ms": 1781.425,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1781.506,
+      "content": " inputs"
+    },
+    {
+      "timestamp_ms": 1781.562,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1781.729,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 1890.655,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 1890.896,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1891.013,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1891.149,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1891.276,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 1902.863,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1917.744,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 1985.426,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 1985.663,
+      "content": " iter"
+    },
+    {
+      "timestamp_ms": 1985.731,
+      "content": "atively"
+    },
+    {
+      "timestamp_ms": 1991.855,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 2087.305,
+      "content": " predictions"
+    },
+    {
+      "timestamp_ms": 2087.45,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2087.528,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2087.595,
+      "content": " input"
+    },
+    {
+      "timestamp_ms": 2087.642,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2190.224,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2190.356,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2190.419,
+      "content": " corrected"
+    },
+    {
+      "timestamp_ms": 2190.471,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2190.618,
+      "content": " comparing"
+    },
+    {
+      "timestamp_ms": 2201.471,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2292.851,
+      "content": " predictions"
+    },
+    {
+      "timestamp_ms": 2292.983,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2293.047,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2293.102,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 2297.537,
+      "content": " labels"
+    },
+    {
+      "timestamp_ms": 2395.288,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2395.52,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2395.603,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2411.584,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 2411.723,
+      "content": " minimizing"
+    },
+    {
+      "timestamp_ms": 2418.146,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2430.432,
+      "content": " loss"
+    },
+    {
+      "timestamp_ms": 2497.194,
+      "content": " function"
+    },
+    {
+      "timestamp_ms": 2497.338,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2497.405,
+      "content": " improve"
+    },
+    {
+      "timestamp_ms": 2504.154,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2600.248,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 2600.586,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2600.748,
+      "content": " accuracy"
+    },
+    {
+      "timestamp_ms": 2600.846,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2604.521,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2620.422,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2702.215,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2702.416,
+      "content": "Applications"
+    },
+    {
+      "timestamp_ms": 2702.513,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2702.581,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 2714.679,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 2804.697,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 2804.881,
+      "content": " classification"
+    },
+    {
+      "timestamp_ms": 2804.975,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 2805.042,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2811.248,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 2907.283,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 2907.509,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 2907.597,
+      "content": " spam"
+    },
+    {
+      "timestamp_ms": 2907.665,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 2907.749,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2971.941,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 2972.113,
+      "content": " recognition"
+    },
+    {
+      "timestamp_ms": 2972.194,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2983.395,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3112.218,
+      "content": " regression"
+    },
+    {
+      "timestamp_ms": 3112.424,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 3112.554,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3112.686,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3112.767,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 3112.83,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 3117.289,
+      "content": " house"
+    },
+    {
+      "timestamp_ms": 3214.624,
+      "content": " price"
+    },
+    {
+      "timestamp_ms": 3214.789,
+      "content": " prediction"
+    },
+    {
+      "timestamp_ms": 3214.871,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3214.941,
+      "content": " stock"
+    },
+    {
+      "timestamp_ms": 3215.007,
+      "content": " forecasting"
+    },
+    {
+      "timestamp_ms": 3317.478,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 3317.667,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3317.741,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3317.798,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3317.864,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 3328.798,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3419.535,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 3427.139,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3427.395,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3427.54,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3446.205,
+      "content": " classify"
+    },
+    {
+      "timestamp_ms": 3458.989,
+      "content": " emails"
+    },
+    {
+      "timestamp_ms": 3459.25,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3521.767,
+      "content": " spam"
+    },
+    {
+      "timestamp_ms": 3521.907,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3624.056,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 3624.056,
+      "content": " spam"
+    },
+    {
+      "timestamp_ms": 3624.056,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3624.312,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3624.409,
+      "content": " dataset"
+    },
+    {
+      "timestamp_ms": 3624.489,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3634.687,
+      "content": " emails"
+    },
+    {
+      "timestamp_ms": 3648.659,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 3726.634,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3726.891,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 3726.969,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3727.023,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3828.787,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3828.938,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3829.033,
+      "content": "Un"
+    },
+    {
+      "timestamp_ms": 3829.094,
+      "content": "sup"
+    },
+    {
+      "timestamp_ms": 3829.143,
+      "content": "ervised"
+    },
+    {
+      "timestamp_ms": 3838.183,
+      "content": " Learning"
+    },
+    {
+      "timestamp_ms": 3931.274,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3931.44,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 3931.516,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3931.574,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3933.186,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3985.501,
+      "content": "Description"
+    },
+    {
+      "timestamp_ms": 3985.709,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4033.667,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 4038.003,
+      "content": " uns"
+    },
+    {
+      "timestamp_ms": 4038.003,
+      "content": "up"
+    },
+    {
+      "timestamp_ms": 4050.509,
+      "content": "ervised"
+    },
+    {
+      "timestamp_ms": 4135.951,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 4136.13,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4136.215,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4136.274,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4162.696,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4184.04,
+      "content": " trained"
+    },
+    {
+      "timestamp_ms": 4191.321,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4207.173,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4220.664,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 4244.211,
+      "content": " labeled"
+    },
+    {
+      "timestamp_ms": 4259.102,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 4340.193,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4340.34,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4340.411,
+      "content": " goal"
+    },
+    {
+      "timestamp_ms": 4340.467,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4357.586,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4373.566,
+      "content": " learn"
+    },
+    {
+      "timestamp_ms": 4546.161,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4546.313,
+      "content": " underlying"
+    },
+    {
+      "timestamp_ms": 4546.386,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 4546.445,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4546.503,
+      "content": " distribution"
+    },
+    {
+      "timestamp_ms": 4562.084,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4562.282,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4562.372,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4562.457,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4572.408,
+      "content": " extract"
+    },
+    {
+      "timestamp_ms": 4583.676,
+      "content": " useful"
+    },
+    {
+      "timestamp_ms": 4610.868,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4620.628,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4680.68,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4680.931,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4681.124,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4705.997,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 4719.597,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4749.655,
+      "content": " Techniques"
+    },
+    {
+      "timestamp_ms": 4754.618,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 4853.245,
+      "content": " involve"
+    },
+    {
+      "timestamp_ms": 4853.391,
+      "content": " clustering"
+    },
+    {
+      "timestamp_ms": 4853.46,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4853.517,
+      "content": "group"
+    },
+    {
+      "timestamp_ms": 4853.565,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 4868.057,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4924.706,
+      "content": " points"
+    },
+    {
+      "timestamp_ms": 4924.839,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 4926.084,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 4945.942,
+      "content": " similarity"
+    },
+    {
+      "timestamp_ms": 4963.254,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5057.143,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 5057.278,
+      "content": " dimension"
+    },
+    {
+      "timestamp_ms": 5057.343,
+      "content": "ality"
+    },
+    {
+      "timestamp_ms": 5057.397,
+      "content": " reduction"
+    },
+    {
+      "timestamp_ms": 5059.155,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5160.182,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 5160.342,
+      "content": "impl"
+    },
+    {
+      "timestamp_ms": 5160.432,
+      "content": "ifying"
+    },
+    {
+      "timestamp_ms": 5160.5,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5160.562,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 5172.654,
+      "content": " losing"
+    },
+    {
+      "timestamp_ms": 5262.65,
+      "content": " important"
+    },
+    {
+      "timestamp_ms": 5262.868,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 5262.985,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 5263.08,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5267.738,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5364.714,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5364.912,
+      "content": "Applications"
+    },
+    {
+      "timestamp_ms": 5365.014,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5365.086,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 5365.149,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5467.518,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 5467.66,
+      "content": " clustering"
+    },
+    {
+      "timestamp_ms": 5467.724,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5467.779,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 5467.832,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 5478.05,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5569.789,
+      "content": " customer"
+    },
+    {
+      "timestamp_ms": 5570.018,
+      "content": " segmentation"
+    },
+    {
+      "timestamp_ms": 5570.154,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5573.585,
+      "content": " image"
+    },
+    {
+      "timestamp_ms": 5573.585,
+      "content": " compression"
+    },
+    {
+      "timestamp_ms": 5672.559,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5672.733,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5672.806,
+      "content": " anomaly"
+    },
+    {
+      "timestamp_ms": 5672.86,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 5672.908,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5688.18,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 5775.548,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 5775.723,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 5775.788,
+      "content": " fraud"
+    },
+    {
+      "timestamp_ms": 5775.847,
+      "content": " detection"
+    },
+    {
+      "timestamp_ms": 5783.112,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 5876.772,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5876.996,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5877.093,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5877.299,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 5878.896,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5985.446,
+      "content": " Using"
+    },
+    {
+      "timestamp_ms": 5985.624,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5985.704,
+      "content": " clustering"
+    },
+    {
+      "timestamp_ms": 5985.817,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 5985.892,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5992.499,
+      "content": " group"
+    },
+    {
+      "timestamp_ms": 6081.819,
+      "content": " customers"
+    },
+    {
+      "timestamp_ms": 6087.687,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 6087.875,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 6087.975,
+      "content": " purchasing"
+    },
+    {
+      "timestamp_ms": 6088.053,
+      "content": " behavior"
+    },
+    {
+      "timestamp_ms": 6183.88,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6184.025,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6184.087,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6184.143,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6184.192,
+      "content": "Re"
+    },
+    {
+      "timestamp_ms": 6287.221,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 6287.482,
+      "content": "forcement"
+    },
+    {
+      "timestamp_ms": 6287.61,
+      "content": " Learning"
+    },
+    {
+      "timestamp_ms": 6287.712,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6287.786,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6298.215,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6390.206,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6393.481,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6393.679,
+      "content": "Description"
+    },
+    {
+      "timestamp_ms": 6393.815,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6393.901,
+      "content": " Rein"
+    },
+    {
+      "timestamp_ms": 6442.91,
+      "content": "forcement"
+    },
+    {
+      "timestamp_ms": 6443.395,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 6453.889,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 6496.737,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6496.978,
+      "content": " agent"
+    },
+    {
+      "timestamp_ms": 6507.099,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6532.214,
+      "content": " learns"
+    },
+    {
+      "timestamp_ms": 6563.238,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6569.833,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 6585.764,
+      "content": " decisions"
+    },
+    {
+      "timestamp_ms": 6603.433,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6622.723,
+      "content": " performing"
+    },
+    {
+      "timestamp_ms": 6696.091,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 6696.274,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6697.644,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6697.765,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6798.98,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6799.34,
+      "content": " maximize"
+    },
+    {
+      "timestamp_ms": 6799.43,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 6799.504,
+      "content": " notion"
+    },
+    {
+      "timestamp_ms": 6801.706,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6813.424,
+      "content": " cumulative"
+    },
+    {
+      "timestamp_ms": 6854.187,
+      "content": " reward"
+    },
+    {
+      "timestamp_ms": 6854.348,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6903.953,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6904.084,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 6908.499,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7002.701,
+      "content": " trial"
+    },
+    {
+      "timestamp_ms": 7002.875,
+      "content": "-and"
+    },
+    {
+      "timestamp_ms": 7002.967,
+      "content": "-error"
+    },
+    {
+      "timestamp_ms": 7003.035,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 7003.097,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 7105.917,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7106.085,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7106.166,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7106.243,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7106.355,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 7117.813,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7190.884,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7191.05,
+      "content": " agent"
+    },
+    {
+      "timestamp_ms": 7191.234,
+      "content": " explores"
+    },
+    {
+      "timestamp_ms": 7194.115,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7213.224,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 7309.971,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7310.218,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 7310.331,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 7310.441,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7312.589,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 7327.574,
+      "content": " rewards"
+    },
+    {
+      "timestamp_ms": 7412.373,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 7412.582,
+      "content": " penalties"
+    },
+    {
+      "timestamp_ms": 7412.71,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7412.857,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7422.365,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 7515.341,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7515.668,
+      "content": " policy"
+    },
+    {
+      "timestamp_ms": 7515.81,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7515.897,
+      "content": " maximize"
+    },
+    {
+      "timestamp_ms": 7528.155,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 7538.052,
+      "content": " rewards"
+    },
+    {
+      "timestamp_ms": 7617.859,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7618.038,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7618.115,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7618.174,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7632.159,
+      "content": "Applications"
+    },
+    {
+      "timestamp_ms": 7720.339,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 7720.523,
+      "content": " Common"
+    },
+    {
+      "timestamp_ms": 7720.614,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 7720.691,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 7729.112,
+      "content": " robotics"
+    },
+    {
+      "timestamp_ms": 7822.721,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7822.957,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 7823.021,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 7823.075,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 7823.226,
+      "content": " autonomous"
+    },
+    {
+      "timestamp_ms": 7927.105,
+      "content": " driving"
+    },
+    {
+      "timestamp_ms": 7927.345,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 7927.444,
+      "content": " gaming"
+    },
+    {
+      "timestamp_ms": 7927.526,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7927.609,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 7958.608,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 7958.826,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 7999.138,
+      "content": " mastering"
+    },
+    {
+      "timestamp_ms": 7999.326,
+      "content": " games"
+    },
+    {
+      "timestamp_ms": 8059.214,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 8066.726,
+      "content": " chess"
+    },
+    {
+      "timestamp_ms": 8066.913,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8079.896,
+      "content": " Go"
+    },
+    {
+      "timestamp_ms": 8103.464,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 8112.84,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8130.403,
+      "content": " navigation"
+    },
+    {
+      "timestamp_ms": 8147.838,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8233.507,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 8237.421,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 8237.531,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 8237.601,
+      "content": " drone"
+    },
+    {
+      "timestamp_ms": 8245.608,
+      "content": " flight"
+    },
+    {
+      "timestamp_ms": 8335.677,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 8335.997,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8336.155,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8336.301,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8337.465,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 8407.747,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8407.915,
+      "content": " Training"
+    },
+    {
+      "timestamp_ms": 8408.038,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8413.753,
+      "content": " robot"
+    },
+    {
+      "timestamp_ms": 8458.755,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8458.959,
+      "content": " navigate"
+    },
+    {
+      "timestamp_ms": 8472.346,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 8492.936,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8510.651,
+      "content": " maze"
+    },
+    {
+      "timestamp_ms": 8641.996,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 8642.146,
+      "content": " rewarding"
+    },
+    {
+      "timestamp_ms": 8642.221,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8642.284,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8642.668,
+      "content": " reaching"
+    },
+    {
+      "timestamp_ms": 8642.775,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8642.886,
+      "content": " exit"
+    },
+    {
+      "timestamp_ms": 8706.849,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8846.038,
+      "content": " penal"
+    },
+    {
+      "timestamp_ms": 8846.038,
+      "content": "izing"
+    },
+    {
+      "timestamp_ms": 8846.038,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8846.038,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8846.038,
+      "content": " hitting"
+    },
+    {
+      "timestamp_ms": 8846.038,
+      "content": " walls"
+    },
+    {
+      "timestamp_ms": 8846.392,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8846.501,
+      "content": "Each"
+    },
+    {
+      "timestamp_ms": 8846.581,
+      "content": " paradigm"
+    },
+    {
+      "timestamp_ms": 8860.987,
+      "content": " suits"
+    },
+    {
+      "timestamp_ms": 8872.936,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8949.238,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 8949.424,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8949.503,
+      "content": " problems"
+    },
+    {
+      "timestamp_ms": 8953.944,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8970.213,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9059.116,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9059.284,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9059.364,
+      "content": " supervised"
+    },
+    {
+      "timestamp_ms": 9059.481,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 9069.665,
+      "content": " being"
+    },
+    {
+      "timestamp_ms": 9083.217,
+      "content": " ideal"
+    },
+    {
+      "timestamp_ms": 9123.585,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9123.753,
+      "content": " predicting"
+    },
+    {
+      "timestamp_ms": 9156.201,
+      "content": " outputs"
+    },
+    {
+      "timestamp_ms": 9158.808,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 9183.081,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 9198.634,
+      "content": " past"
+    },
+    {
+      "timestamp_ms": 9255.908,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9256.049,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9256.118,
+      "content": " uns"
+    },
+    {
+      "timestamp_ms": 9315.225,
+      "content": "up"
+    },
+    {
+      "timestamp_ms": 9315.393,
+      "content": "ervised"
+    },
+    {
+      "timestamp_ms": 9315.475,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 9357.962,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9358.098,
+      "content": " discovering"
+    },
+    {
+      "timestamp_ms": 9368.525,
+      "content": " hidden"
+    },
+    {
+      "timestamp_ms": 9468.653,
+      "content": " patterns"
+    },
+    {
+      "timestamp_ms": 9468.886,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9468.997,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9469.094,
+      "content": " reinforcement"
+    },
+    {
+      "timestamp_ms": 9469.162,
+      "content": " learning"
+    },
+    {
+      "timestamp_ms": 9483.444,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9564.222,
+      "content": " decision"
+    },
+    {
+      "timestamp_ms": 9564.476,
+      "content": "-making"
+    },
+    {
+      "timestamp_ms": 9564.595,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 9564.708,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9578.188,
+      "content": " dynamic"
+    },
+    {
+      "timestamp_ms": 9665.977,
+      "content": " environments"
+    },
+    {
+      "timestamp_ms": 9666.304,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9666.492,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9666.571,
+      "type": "done"
+    }
+  ],
+  "full_response": "Supervised, unsupervised, and reinforcement learning are three major paradigms in machine learning, each with distinct characteristics and applications:\n\n1. **Supervised Learning:**\n   - **Description:** In supervised learning, the model is trained on a labeled dataset, which means that each training example is paired with an output label. The goal is for the model to learn a mapping from inputs to outputs.\n   - **Process:** The model iteratively makes predictions on the input data and is corrected by comparing its predictions to the actual labels. This process involves minimizing a loss function to improve the model's accuracy.\n   - **Applications:** Common applications include classification tasks (e.g., spam detection, image recognition) and regression tasks (e.g., house price prediction, stock forecasting).\n   - **Example:** Training a model to classify emails as spam or not spam using a dataset of emails labeled as such.\n\n2. **Unsupervised Learning:**\n   - **Description:** In unsupervised learning, the model is trained on data without labeled responses. The goal is to learn the underlying structure or distribution in the data to extract useful information.\n   - **Process:** Techniques often involve clustering (grouping data points based on similarity) or dimensionality reduction (simplifying data without losing important information).\n   - **Applications:** Common applications include clustering (e.g., customer segmentation, image compression) and anomaly detection (e.g., fraud detection).\n   - **Example:** Using a clustering algorithm to group customers based on purchasing behavior.\n\n3. **Reinforcement Learning:**\n   - **Description:** Reinforcement learning involves an agent that learns to make decisions by performing actions in an environment to maximize some notion of cumulative reward. It is a trial-and-error learning approach.\n   - **Process:** The agent explores the environment, takes actions, receives rewards or penalties, and updates its policy to maximize future rewards.\n   - **Applications:** Common applications include robotics (e.g., autonomous driving), gaming (e.g., mastering games like chess or Go), and navigation (e.g., drone flight).\n   - **Example:** Training a robot to navigate through a maze by rewarding it for reaching the exit and penalizing it for hitting walls.\n\nEach paradigm suits different types of problems and data, with supervised learning being ideal for predicting outputs based on past data, unsupervised learning for discovering hidden patterns, and reinforcement learning for decision-making tasks in dynamic environments.",
+  "response_chars": 2603,
+  "num_chunks": 491,
+  "ttft_ms": 347.876,
+  "total_ms": 9667.037,
+  "model_name": "model-medium"
+}

@@ -1,0 +1,2071 @@
+{
+  "index": 78,
+  "prompt": "Write a Kubernetes secret manifest in YAML that contains base64-encoded values for: db-password, api-key, tls-cert, and oauth-client-secret. Show both the encoded and decoded values.",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 298.78,
+      "content": "To"
+    },
+    {
+      "timestamp_ms": 351.483,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 351.701,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 356.786,
+      "content": " Kubernetes"
+    },
+    {
+      "timestamp_ms": 387.175,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 391.116,
+      "content": " manifest"
+    },
+    {
+      "timestamp_ms": 446.664,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 446.803,
+      "content": " YAML"
+    },
+    {
+      "timestamp_ms": 459.578,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 468.632,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 592.011,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 592.15,
+      "content": "-encoded"
+    },
+    {
+      "timestamp_ms": 592.22,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 592.274,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 592.325,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 592.372,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 600.171,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 625.14,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 694.918,
+      "content": " encode"
+    },
+    {
+      "timestamp_ms": 695.297,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 695.422,
+      "content": " secret"
+    },
+    {
+      "timestamp_ms": 697.339,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 785.635,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 785.88,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 786.092,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 786.283,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 795.828,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 899.799,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 899.947,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 900.025,
+      "content": " manifest"
+    },
+    {
+      "timestamp_ms": 900.092,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 900.259,
+      "content": " encoding"
+    },
+    {
+      "timestamp_ms": 910.047,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1001.768,
+      "content": " decoding"
+    },
+    {
+      "timestamp_ms": 1016.477,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1016.604,
+      "content": " mentioned"
+    },
+    {
+      "timestamp_ms": 1016.687,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1016.766,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1023.418,
+      "content": " Secret"
+    },
+    {
+      "timestamp_ms": 1073.627,
+      "content": " Values"
+    },
+    {
+      "timestamp_ms": 1073.759,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1076.497,
+      "content": " Encode"
+    },
+    {
+      "timestamp_ms": 1206.635,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1206.909,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1207.0,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1207.068,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1207.216,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 1207.306,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 1209.812,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 1309.695,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1309.847,
+      "content": "super"
+    },
+    {
+      "timestamp_ms": 1309.947,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 1310.016,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 1411.735,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 1411.887,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1411.953,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1412.007,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1412.056,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 1421.513,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 1421.609,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 1468.09,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1468.211,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1483.184,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1505.757,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 1515.655,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1539.04,
+      "content": "abcdef"
+    },
+    {
+      "timestamp_ms": 1552.884,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 1616.617,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1616.861,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1616.934,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 1629.858,
+      "content": "tls"
+    },
+    {
+      "timestamp_ms": 1718.912,
+      "content": "-cert"
+    },
+    {
+      "timestamp_ms": 1719.053,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 1719.119,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 1719.251,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1725.21,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 1820.982,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1821.143,
+      "content": " -----"
+    },
+    {
+      "timestamp_ms": 1821.275,
+      "content": "BEGIN"
+    },
+    {
+      "timestamp_ms": 1821.389,
+      "content": " CERT"
+    },
+    {
+      "timestamp_ms": 1827.017,
+      "content": "IFICATE"
+    },
+    {
+      "timestamp_ms": 1840.361,
+      "content": "-----\n"
+    },
+    {
+      "timestamp_ms": 1923.423,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1923.632,
+      "content": " MI"
+    },
+    {
+      "timestamp_ms": 1923.747,
+      "content": "IB"
+    },
+    {
+      "timestamp_ms": 1923.824,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 2033.186,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 2033.326,
+      "content": "AN"
+    },
+    {
+      "timestamp_ms": 2033.39,
+      "content": "Bg"
+    },
+    {
+      "timestamp_ms": 2033.441,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 2033.488,
+      "content": "qh"
+    },
+    {
+      "timestamp_ms": 2033.533,
+      "content": "ki"
+    },
+    {
+      "timestamp_ms": 2048.881,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 2128.194,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 2128.368,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 2128.456,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 2128.519,
+      "content": "BA"
+    },
+    {
+      "timestamp_ms": 2230.903,
+      "content": "QE"
+    },
+    {
+      "timestamp_ms": 2231.062,
+      "content": "FA"
+    },
+    {
+      "timestamp_ms": 2231.253,
+      "content": "AO"
+    },
+    {
+      "timestamp_ms": 2231.337,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 2231.41,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 2240.186,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 2295.238,
+      "content": "AMI"
+    },
+    {
+      "timestamp_ms": 2295.365,
+      "content": "IBC"
+    },
+    {
+      "timestamp_ms": 2311.542,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 2318.74,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 2335.814,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 2434.764,
+      "content": "QE"
+    },
+    {
+      "timestamp_ms": 2443.097,
+      "content": "Ap"
+    },
+    {
+      "timestamp_ms": 2443.405,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 2443.531,
+      "content": "ni"
+    },
+    {
+      "timestamp_ms": 2443.615,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 2448.226,
+      "content": "r"
+    },
+    {
+      "timestamp_ms": 2537.375,
+      "content": "UE"
+    },
+    {
+      "timestamp_ms": 2537.663,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 2537.753,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 2537.822,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 2544.857,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 2640.327,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 2640.532,
+      "content": "ys"
+    },
+    {
+      "timestamp_ms": 2640.833,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 2640.96,
+      "content": "kB"
+    },
+    {
+      "timestamp_ms": 2742.858,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2742.858,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2742.858,
+      "content": " ...\n"
+    },
+    {
+      "timestamp_ms": 2742.858,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2742.858,
+      "content": " -----"
+    },
+    {
+      "timestamp_ms": 2744.572,
+      "content": "END"
+    },
+    {
+      "timestamp_ms": 2756.526,
+      "content": " CERT"
+    },
+    {
+      "timestamp_ms": 2845.406,
+      "content": "IFICATE"
+    },
+    {
+      "timestamp_ms": 2845.548,
+      "content": "-----\n"
+    },
+    {
+      "timestamp_ms": 2845.64,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2845.694,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 2847.953,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 2947.472,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2947.472,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2947.472,
+      "content": "oauth"
+    },
+    {
+      "timestamp_ms": 2947.707,
+      "content": "-client"
+    },
+    {
+      "timestamp_ms": 2947.86,
+      "content": "-secret"
+    },
+    {
+      "timestamp_ms": 2966.797,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 2981.799,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3057.755,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 3057.939,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 3058.02,
+      "content": "467"
+    },
+    {
+      "timestamp_ms": 3058.079,
+      "content": "282"
+    },
+    {
+      "timestamp_ms": 3151.831,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3152.033,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 3152.159,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3152.304,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 3153.802,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 3254.637,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 3254.8,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 3254.885,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 3254.95,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3255.008,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 3272.69,
+      "content": "097"
+    },
+    {
+      "timestamp_ms": 3286.599,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 3357.235,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3357.505,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 3357.612,
+      "content": "465"
+    },
+    {
+      "timestamp_ms": 3363.022,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 3399.624,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 3409.764,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 3431.541,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3453.315,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 3459.636,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 3563.492,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 3563.687,
+      "content": " Encoding"
+    },
+    {
+      "timestamp_ms": 3563.782,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3563.846,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 3563.901,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 3571.459,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3628.649,
+      "content": "You"
+    },
+    {
+      "timestamp_ms": 3628.819,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3633.111,
+      "content": " encode"
+    },
+    {
+      "timestamp_ms": 3651.208,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 3668.306,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 3686.225,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3766.596,
+      "content": " command"
+    },
+    {
+      "timestamp_ms": 3766.756,
+      "content": "-line"
+    },
+    {
+      "timestamp_ms": 3766.844,
+      "content": " tool"
+    },
+    {
+      "timestamp_ms": 3766.908,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3782.212,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3802.035,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 3868.791,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 3868.925,
+      "content": "`."
+    },
+    {
+      "timestamp_ms": 3868.989,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 3887.601,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 3898.808,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 3940.505,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3953.125,
+      "content": " encode"
+    },
+    {
+      "timestamp_ms": 3953.292,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 4074.483,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 4074.681,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 4074.75,
+      "content": "sh"
+    },
+    {
+      "timestamp_ms": 4074.804,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4085.271,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 4085.445,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4102.086,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 4110.001,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 4176.423,
+      "content": "super"
+    },
+    {
+      "timestamp_ms": 4185.405,
+      "content": "Secret"
+    },
+    {
+      "timestamp_ms": 4185.627,
+      "content": "Password"
+    },
+    {
+      "timestamp_ms": 4185.758,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4269.091,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4269.284,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 4269.384,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4269.46,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4284.056,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 4379.018,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4379.276,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 4379.433,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 4381.327,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 4381.327,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 4394.199,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 4486.777,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 4487.009,
+      "content": "abcdef"
+    },
+    {
+      "timestamp_ms": 4487.151,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4487.267,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 4488.208,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 4586.14,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 4688.322,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4688.649,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 4688.881,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4689.089,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 4689.164,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 4689.226,
+      "content": "-----"
+    },
+    {
+      "timestamp_ms": 4689.282,
+      "content": "BEGIN"
+    },
+    {
+      "timestamp_ms": 4689.33,
+      "content": " CERT"
+    },
+    {
+      "timestamp_ms": 4689.376,
+      "content": "IFICATE"
+    },
+    {
+      "timestamp_ms": 4696.577,
+      "content": "-----\n"
+    },
+    {
+      "timestamp_ms": 4790.942,
+      "content": "MI"
+    },
+    {
+      "timestamp_ms": 4791.184,
+      "content": "IB"
+    },
+    {
+      "timestamp_ms": 4791.311,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 4791.989,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 4792.199,
+      "content": "AN"
+    },
+    {
+      "timestamp_ms": 4816.784,
+      "content": "Bg"
+    },
+    {
+      "timestamp_ms": 4831.197,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 4869.574,
+      "content": "qh"
+    },
+    {
+      "timestamp_ms": 4869.748,
+      "content": "ki"
+    },
+    {
+      "timestamp_ms": 4893.497,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 4907.539,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 4928.137,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 5001.819,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5002.07,
+      "content": "BA"
+    },
+    {
+      "timestamp_ms": 5002.253,
+      "content": "QE"
+    },
+    {
+      "timestamp_ms": 5002.402,
+      "content": "FA"
+    },
+    {
+      "timestamp_ms": 5097.879,
+      "content": "AO"
+    },
+    {
+      "timestamp_ms": 5098.174,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 5098.24,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 5098.296,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 5101.777,
+      "content": "AMI"
+    },
+    {
+      "timestamp_ms": 5117.302,
+      "content": "IBC"
+    },
+    {
+      "timestamp_ms": 5201.197,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 5201.376,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 5201.468,
+      "content": "CA"
+    },
+    {
+      "timestamp_ms": 5201.536,
+      "content": "QE"
+    },
+    {
+      "timestamp_ms": 5215.076,
+      "content": "Ap"
+    },
+    {
+      "timestamp_ms": 5235.453,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 5308.454,
+      "content": "ni"
+    },
+    {
+      "timestamp_ms": 5308.639,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 5308.717,
+      "content": "r"
+    },
+    {
+      "timestamp_ms": 5308.776,
+      "content": "UE"
+    },
+    {
+      "timestamp_ms": 5405.391,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5413.791,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 5414.017,
+      "content": "K"
+    },
+    {
+      "timestamp_ms": 5414.102,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 5414.165,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 5422.518,
+      "content": "ys"
+    },
+    {
+      "timestamp_ms": 5507.547,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 5507.679,
+      "content": "kB"
+    },
+    {
+      "timestamp_ms": 5507.869,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5507.943,
+      "content": "...\n"
+    },
+    {
+      "timestamp_ms": 5528.295,
+      "content": "-----"
+    },
+    {
+      "timestamp_ms": 5542.588,
+      "content": "END"
+    },
+    {
+      "timestamp_ms": 5596.547,
+      "content": " CERT"
+    },
+    {
+      "timestamp_ms": 5598.704,
+      "content": "IFICATE"
+    },
+    {
+      "timestamp_ms": 5598.704,
+      "content": "-----"
+    },
+    {
+      "timestamp_ms": 5712.702,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 5712.871,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 5712.968,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 5713.052,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 5715.072,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5715.206,
+      "content": "echo"
+    },
+    {
+      "timestamp_ms": 5726.616,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5815.967,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 5821.882,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5822.046,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5822.134,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 5822.256,
+      "content": "467"
+    },
+    {
+      "timestamp_ms": 5917.675,
+      "content": "282"
+    },
+    {
+      "timestamp_ms": 5917.863,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5917.953,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 5918.016,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 5918.068,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 6019.945,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 6020.084,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 6020.148,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6020.202,
+      "content": "b"
+    },
+    {
+      "timestamp_ms": 6020.251,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6031.568,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 6122.479,
+      "content": "097"
+    },
+    {
+      "timestamp_ms": 6122.639,
+      "content": "a"
+    },
+    {
+      "timestamp_ms": 6122.781,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6122.878,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 6126.934,
+      "content": "465"
+    },
+    {
+      "timestamp_ms": 6224.152,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 6224.35,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6224.453,
+      "content": "f"
+    },
+    {
+      "timestamp_ms": 6224.523,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6224.582,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 6278.956,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 6279.098,
+      "content": " |"
+    },
+    {
+      "timestamp_ms": 6279.802,
+      "content": " base"
+    },
+    {
+      "timestamp_ms": 6304.775,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 6324.928,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6339.619,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 6357.284,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 6381.874,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6533.609,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 6533.779,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 6533.851,
+      "content": "64"
+    },
+    {
+      "timestamp_ms": 6533.91,
+      "content": " Enc"
+    },
+    {
+      "timestamp_ms": 6533.966,
+      "content": "oded"
+    },
+    {
+      "timestamp_ms": 6534.014,
+      "content": " Values"
+    },
+    {
+      "timestamp_ms": 6534.062,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6535.19,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6548.178,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6634.366,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6634.539,
+      "content": "db"
+    },
+    {
+      "timestamp_ms": 6634.604,
+      "content": "-password"
+    },
+    {
+      "timestamp_ms": 6634.656,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 6642.711,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6736.709,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 6736.984,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6737.068,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 6737.128,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 6737.185,
+      "content": "ZX"
+    },
+    {
+      "timestamp_ms": 6809.853,
+      "content": "JT"
+    },
+    {
+      "timestamp_ms": 6810.028,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 6810.145,
+      "content": "WN"
+    },
+    {
+      "timestamp_ms": 6814.618,
+      "content": "y"
+    },
+    {
+      "timestamp_ms": 6870.112,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 6870.261,
+      "content": "XR"
+    },
+    {
+      "timestamp_ms": 6877.529,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 6920.37,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 6920.797,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 6937.116,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 6948.61,
+      "content": "zd"
+    },
+    {
+      "timestamp_ms": 7152.013,
+      "content": "29"
+    },
+    {
+      "timestamp_ms": 7152.013,
+      "content": "y"
+    },
+    {
+      "timestamp_ms": 7152.013,
+      "content": "ZA"
+    },
+    {
+      "timestamp_ms": 7152.013,
+      "content": "=="
+    },
+    {
+      "timestamp_ms": 7152.013,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 7152.225,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7152.365,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7152.461,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7152.553,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 7152.62,
+      "content": "-key"
+    },
+    {
+      "timestamp_ms": 7163.742,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 7176.616,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7198.577,
+      "content": "MT"
+    },
+    {
+      "timestamp_ms": 7248.634,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 7248.898,
+      "content": "z"
+    },
+    {
+      "timestamp_ms": 7261.768,
+      "content": "ND"
+    },
+    {
+      "timestamp_ms": 7271.976,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 7351.017,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7351.159,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 7351.223,
+      "content": "z"
+    },
+    {
+      "timestamp_ms": 7351.279,
+      "content": "g"
+    },
+    {
+      "timestamp_ms": 7458.626,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7458.852,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 7458.936,
+      "content": "GI"
+    },
+    {
+      "timestamp_ms": 7459.154,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7459.265,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 7461.784,
+      "content": "j"
+    },
+    {
+      "timestamp_ms": 7557.33,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 7557.47,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 7557.534,
+      "content": "OT"
+    },
+    {
+      "timestamp_ms": 7557.59,
+      "content": "Zh"
+    },
+    {
+      "timestamp_ms": 7557.64,
+      "content": "MD"
+    },
+    {
+      "timestamp_ms": 7658.307,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 7658.489,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7658.597,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 7668.749,
+      "content": "TN"
+    },
+    {
+      "timestamp_ms": 7668.867,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 7670.877,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 7760.536,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7760.872,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 7760.981,
+      "content": "w"
+    },
+    {
+      "timestamp_ms": 7761.059,
+      "content": "OT"
+    },
+    {
+      "timestamp_ms": 7766.797,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 7791.752,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 7862.521,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 7879.183,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7879.385,
+      "content": "M"
+    },
+    {
+      "timestamp_ms": 7879.524,
+      "content": "="
+    },
+    {
+      "timestamp_ms": 7886.343,
+      "content": "`\n"
+    },
+    {
+      "timestamp_ms": 7965.521,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7965.521,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7965.669,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 7965.733,
+      "content": "tls"
+    },
+    {
+      "timestamp_ms": 7978.837,
+      "content": "-cert"
+    },
+    {
+      "timestamp_ms": 7996.503,
+      "content": "`:"
+    },
+    {
+      "timestamp_ms": 8037.424,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 8037.567,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8170.337,
+      "content": " ```\n"
+    },
+    {
+      "timestamp_ms": 8170.631,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8170.79,
+      "content": " LS"
+    },
+    {
+      "timestamp_ms": 8170.919,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8170.996,
+      "content": "t"
+    },
+    {
+      "timestamp_ms": 8171.057,
+      "content": "LS"
+    },
+    {
+      "timestamp_ms": 8171.23,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 8187.483,
+      "content": "CR"
+    },
+    {
+      "timestamp_ms": 8223.356,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 8230.865,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 8244.542,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 8340.231,
+      "content": "Ti"
+    },
+    {
+      "timestamp_ms": 8340.369,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 8340.459,
+      "content": "DRV"
+    },
+    {
+      "timestamp_ms": 8340.514,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 8340.646,
+      "content": "US"
+    },
+    {
+      "timestamp_ms": 8359.368,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 8379.83,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 8477.379,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 8477.551,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 8477.65,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8477.751,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 8477.847,
+      "content": "UR"
+    },
+    {
+      "timestamp_ms": 8493.862,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 8513.511,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8583.375,
+      "content": "t"
+    },
+    {
+      "timestamp_ms": 8583.55,
+      "content": "LS"
+    },
+    {
+      "timestamp_ms": 8583.633,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 8638.244,
+      "content": "t"
+    },
+    {
+      "timestamp_ms": 8638.392,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 8638.464,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 9032.207,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9032.356,
+      "content": "JS"
+    },
+    {
+      "timestamp_ms": 9032.425,
+      "content": "UR"
+    },
+    {
+      "timestamp_ms": 9039.902,
+      "content": "zd"
+    },
+    {
+      "timestamp_ms": 9040.083,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 9040.172,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 9040.238,
+      "content": "C"
+    },
+    {
+      "timestamp_ms": 9040.298,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 9040.35,
+      "content": "UR"
+    },
+    {
+      "timestamp_ms": 9040.403,
+      "content": "BT"
+    },
+    {
+      "timestamp_ms": 9040.454,
+      "content": "kJ"
+    },
+    {
+      "timestamp_ms": 9040.508,
+      "content": "na"
+    },
+    {
+      "timestamp_ms": 9040.62,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9040.732,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 9040.795,
+      "content": "oa"
+    },
+    {
+      "timestamp_ms": 9040.849,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9040.902,
+      "content": "l"
+    },
+    {
+      "timestamp_ms": 9040.952,
+      "content": "HO"
+    },
+    {
+      "timestamp_ms": 9040.997,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 9041.043,
+      "content": "cw"
+    },
+    {
+      "timestamp_ms": 9041.086,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 9052.243,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 9070.912,
+      "content": "FR"
+    },
+    {
+      "timestamp_ms": 9087.368,
+      "content": "c"
+    },
+    {
+      "timestamp_ms": 9110.347,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 9122.608,
+      "content": "Z"
+    },
+    {
+      "timestamp_ms": 9162.965,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 9163.168,
+      "content": "REF"
+    },
+    {
+      "timestamp_ms": 9181.64,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 9198.835,
+      "content": "TV"
+    },
+    {
+      "timestamp_ms": 9216.341,
+      "content": "I"
+    },
+    {
+      "timestamp_ms": 9239.924,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9291.438,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 9291.645,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 9292.435,
+      "content": "x"
+    },
+    {
+      "timestamp_ms": 9312.033,
+      "content": "U"
+    },
+    {
+      "timestamp_ms": 9509.192,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 9509.705,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 9509.913,
+      "content": "VG"
+    },
+    {
+      "timestamp_ms": 9510.021,
+      "content": "dz"
+    },
+    {
+      "timestamp_ms": 9510.138,
+      "content": "BC"
+    },
+    {
+      "timestamp_ms": 9510.413,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 9510.625,
+      "content": "VF"
+    },
+    {
+      "timestamp_ms": 9510.758,
+      "content": "z"
+    },
+    {
+      "timestamp_ms": 9510.948,
+      "content": "R"
+    },
+    {
+      "timestamp_ms": 9511.066,
+      "content": "k"
+    },
+    {
+      "timestamp_ms": 9521.183,
+      "content": "FE"
+    },
+    {
+      "timestamp_ms": 9569.037,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 9569.292,
+      "content": "X"
+    },
+    {
+      "timestamp_ms": 9582.132,
+      "content": "p"
+    },
+    {
+      "timestamp_ms": 9598.216,
+      "content": "NU"
+    },
+    {
+      "timestamp_ms": 9617.753,
+      "content": "Th"
+    },
+    {
+      "timestamp_ms": 9919.055,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 9919.261,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 9919.333,
+      "content": "UR"
+    },
+    {
+      "timestamp_ms": 9919.385,
+      "content": "B"
+    },
+    {
+      "timestamp_ms": 9919.433,
+      "content": "d"
+    },
+    {
+      "timestamp_ms": 9919.478,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 9919.521,
+      "content": "N"
+    },
+    {
+      "timestamp_ms": 9919.565,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 9919.61,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 9919.653,
+      "content": "UR"
+    },
+    {
+      "timestamp_ms": 9919.695,
+      "content": "W"
+    },
+    {
+      "timestamp_ms": 9919.737,
+      "content": "UV"
+    },
+    {
+      "timestamp_ms": 9919.794,
+      "content": "FER"
+    },
+    {
+      "timestamp_ms": 9919.836,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 9919.877,
+      "content": "J"
+    },
+    {
+      "timestamp_ms": 9927.459,
+      "content": "Ve"
+    },
+    {
+      "timestamp_ms": 9942.666,
+      "content": "Ex"
+    },
+    {
+      "timestamp_ms": 10010.843,
+      "content": "Y"
+    },
+    {
+      "timestamp_ms": 10011.096,
+      "content": "Q"
+    },
+    {
+      "timestamp_ms": 10011.224,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 10022.036,
+      "content": "V"
+    },
+    {
+      "timestamp_ms": 10096.019,
+      "content": "ib"
+    },
+    {
+      "timestamp_ms": 10096.019,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10096.179,
+      "type": "done"
+    }
+  ],
+  "full_response": "To create a Kubernetes Secret manifest in YAML with base64-encoded values, you first need to encode your secret values. Below are the steps and the manifest for encoding and decoding you mentioned.\n\n### Secret Values to Encode\n\n1. `db-password`: `superSecretPassword`\n2. `api-key`: `1234567890abcdef`\n3. `tls-cert`: \n   ```\n   -----BEGIN CERTIFICATE-----\n   MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApBniYrUE1nKoeOysYkB\n   ...\n   -----END CERTIFICATE-----\n   ```\n4. `oauth-client-secret`: `5b4672823b6f9d6b3a097a3d465e1f2c`\n\n### Encoding in Base64\n\nYou can encode these using a command-line tool like `base64`. Here's how to encode them:\n\n```sh\necho -n 'superSecretPassword' | base64\necho -n '1234567890abcdef' | base64\necho -n '-----BEGIN CERTIFICATE-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApBniYrUE1nKoeOysYkB\n...\n-----END CERTIFICATE-----' | base64\necho -n '5b4672823b6f9d6b3a097a3d465e1f2c' | base64\n```\n\n### Example Base64 Encoded Values\n\n1. `db-password`: `c3VwZXJTZWNyZXRQYXNzd29yZA==`\n2. `api-key`: `MTIzNDU2Nzg5MGI2ZjRiOTZhMDk3YTNkM2EwOTZlM2M=`\n3. `tls-cert`: \n   ```\n   LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURzd0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVI4d0xUQWVGdzBCQVFzRkFEQXpNUTh3TURBd0NnWURWUVFEREJVeExYQnVib",
+  "response_chars": 1232,
+  "num_chunks": 512,
+  "ttft_ms": 298.78,
+  "total_ms": 10096.501,
+  "model_name": "model-medium"
+}

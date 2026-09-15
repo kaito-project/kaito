@@ -1,0 +1,1751 @@
+{
+  "index": 20,
+  "prompt": "Write a brief history of cloud computing from mainframes to serverless.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 925.496,
+      "content": "Cloud"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " remarkable"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " starting"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " hul"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": "king"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " platforms"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " past"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": "frame"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " Before"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " demand"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 925.496,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": "frames"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " expensive"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " inf"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": "lexible"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " Enter"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " min"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": "icom"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": "put"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": "ers"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " personal"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " computers"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " brought"
+    },
+    {
+      "timestamp_ms": 1587.995,
+      "content": " capable"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " individual"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " concept"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " began"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " commerce"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " transaction"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": "-based"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " batch"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " Networks"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 2108.009,
+      "content": " geographically"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " diverse"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " institutions"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " office"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " operations"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " centralized"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " dedicated"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " centers"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " however"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " centers"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " weren't"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " referred"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2651.459,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "cloud"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "Virtual"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " came"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " next"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " Nov"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "ell"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " Net"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "Ware"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " bringing"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " virtualization"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " masses"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " Xen"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " hyper"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "visor"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " laying"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " groundwork"
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3374.271,
+      "content": " Companies"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " realized"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " pooling"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": "as"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": "-a"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": "-service"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " pioneered"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " Amazon"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " Web"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 4193.802,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " launching"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " suite"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 4349.263,
+      "content": " signaling"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " transformation"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " allowed"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " smaller"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " businesses"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " startups"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " wealth"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 4607.509,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " virtually"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " fraction"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " cost"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " Over"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": "-demand"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": "-service"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " enabled"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " adapt"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " changing"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5283.997,
+      "content": " leading"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " virtually"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " drive"
+    },
+    {
+      "timestamp_ms": 5924.276,
+      "content": " towards"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": "-more"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " brought"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " rise"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5924.495,
+      "content": " container"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": "ization"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " micro"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": "services"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " Platforms"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " Docker"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " helped"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " achieve"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " efficiently"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 6332.516,
+      "content": " shaping"
+    },
+    {
+      "timestamp_ms": 6484.619,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 6484.619,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6484.619,
+      "content": " \n\n\n"
+    },
+    {
+      "timestamp_ms": 6484.619,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 6484.619,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 6484.619,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6484.619,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " burge"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": "oned"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " architectures"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " designed"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " around"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " idea"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " developers"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " focus"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " concerning"
+    },
+    {
+      "timestamp_ms": 7035.431,
+      "content": " themselves"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " underlying"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " Server"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " herald"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " Lambda"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " Functions"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " emerged"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " paradigm"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " companies"
+    },
+    {
+      "timestamp_ms": 7659.683,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " run"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " scalable"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " unused"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " triggers"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " events"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " uploads"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": "From"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " imm"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": "ensity"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " main"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": "frames"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8397.137,
+      "content": " imper"
+    },
+    {
+      "timestamp_ms": 8437.441,
+      "content": "at"
+    },
+    {
+      "timestamp_ms": 8437.441,
+      "content": "iveness"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " history"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " growth"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " innovation"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " relentless"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " pursuit"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " efficiency"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " accessibility"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " As"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " we"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " towards"
+    },
+    {
+      "timestamp_ms": 9036.626,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " future"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " remains"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " beacon"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " innovation"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " steering"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " us"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " continuously"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " digital"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": "izing"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " world"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " evolution"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " rose"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9612.469,
+      "content": " framework"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " sharing"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " amongst"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " many"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " led"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " desire"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": "fulness"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10227.386,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " finding"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " something"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " better"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " everyone"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10227.622,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 10276.423,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10276.423,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 10318.422,
+      "type": "done"
+    }
+  ],
+  "full_response": "Cloud computing has a remarkable history, starting on the hulking platforms of the past: the mainframe computers. Before the cloud, demand for computing power was high, but the infrastructure of mainframes was expensive and inflexible. Enter the minicomputers and then personal computers which brought capable hardware to individual users.\n\n\nThe concept of cloud computing began with commerce and transaction-based batch processing. Networks connected geographically diverse institutions for back office operations. Services were centralized in dedicated data centers; however, these centers weren't referred to as 'cloud' back then.\n\n\nVirtualization came next, with Novell’s NetWare bringing virtualization to the masses, and Xen hypervisor laying the groundwork. Companies realized the potential for sharing resources, pooling them together in an 'as-a-service' model. Amazon pioneered this with their Amazon Web Services, launching in 2006 a suite of cloud services.\n\n\nThis signaling transformation allowed smaller businesses and startups to access a wealth of computing resources virtually, for a fraction of the cost. Over time, features like on-demand self-service enabled cloud services to adapt to users' changing needs, leading to the power to scale resources as needed, virtually in real-time.\n\n\nThe drive towards-more efficient computing brought about the rise of containerization and microservices. Platforms like Docker helped achieve this efficiently and securely, further shaping efficiency. \n\n\nThe world of cloud computing has burgeoned to include serverless architectures, designed around the idea of allowing developers to focus on code without concerning themselves with the underlying infrastructure. Serverless computing, heralded by AWS Lambda and Azure Functions, emerged as a new paradigm, where companies could run code on scalable, but unused hardware that triggers on events, such as user requests or file uploads.\n\n\nFrom the immensity of mainframes to the imperativeness of serverless, this history is one of growth, innovation, and the relentless pursuit of efficiency and accessibility. As we look towards the future, cloud computing remains a beacon of innovation, steering us through a continuously digitalizing world. This evolution rose from the framework of sharing resources amongst many, led by a desire for resourcefulness, performance, and, finding something better for everyone in the cloud.",
+  "response_chars": 2431,
+  "num_chunks": 432,
+  "ttft_ms": 925.496,
+  "total_ms": 10415.483,
+  "model_name": "Phi-4-mini-instruct"
+}

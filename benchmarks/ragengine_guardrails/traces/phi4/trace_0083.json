@@ -1,0 +1,1955 @@
+{
+  "index": 83,
+  "prompt": "What is rate limiting and what algorithms are commonly used to implement it?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 375.435,
+      "content": "Rate"
+    },
+    {
+      "timestamp_ms": 375.582,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 375.641,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 375.685,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 375.721,
+      "content": " technique"
+    },
+    {
+      "timestamp_ms": 378.716,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 379.804,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 403.969,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 418.167,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 436.244,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 467.498,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 476.337,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 494.536,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 521.554,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 532.492,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 551.55,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 571.176,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 589.544,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 608.898,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 628.039,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 647.467,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 667.303,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 685.603,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 704.074,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 723.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 742.297,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 761.283,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 784.304,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 799.48,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 822.282,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 837.668,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 856.52,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 875.715,
+      "content": " prevent"
+    },
+    {
+      "timestamp_ms": 895.752,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 913.448,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 934.567,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 952.748,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 970.649,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 990.818,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 1008.786,
+      "content": " overwhelming"
+    },
+    {
+      "timestamp_ms": 1053.976,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1053.976,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1068.968,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1093.162,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1104.666,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1123.905,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 1142.184,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1161.139,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 1188.829,
+      "content": " fair"
+    },
+    {
+      "timestamp_ms": 1199.677,
+      "content": " usage"
+    },
+    {
+      "timestamp_ms": 1218.368,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1237.562,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 1256.271,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 1275.32,
+      "content": " availability"
+    },
+    {
+      "timestamp_ms": 1294.952,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1316.474,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1333.19,
+      "content": " protecting"
+    },
+    {
+      "timestamp_ms": 1351.564,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 1370.758,
+      "content": " abuse"
+    },
+    {
+      "timestamp_ms": 1389.441,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 1409.209,
+      "content": " denial"
+    },
+    {
+      "timestamp_ms": 1427.955,
+      "content": "-of"
+    },
+    {
+      "timestamp_ms": 1451.697,
+      "content": "-service"
+    },
+    {
+      "timestamp_ms": 1465.679,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 1485.919,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1503.816,
+      "content": "Common"
+    },
+    {
+      "timestamp_ms": 1523.087,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 1543.062,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1561.295,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 1580.545,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 1599.853,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1619.885,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 1638.359,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 1656.516,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 1675.428,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 1694.627,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1713.511,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1732.55,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1751.892,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1770.388,
+      "content": "Token"
+    },
+    {
+      "timestamp_ms": 1790.683,
+      "content": " Bucket"
+    },
+    {
+      "timestamp_ms": 1809.11,
+      "content": " Algorithm"
+    },
+    {
+      "timestamp_ms": 1829.46,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1846.834,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1866.398,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 1885.814,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 1904.162,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 1923.074,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1942.107,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1960.864,
+      "content": " processed"
+    },
+    {
+      "timestamp_ms": 1980.157,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 1999.586,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2018.336,
+      "content": " steady"
+    },
+    {
+      "timestamp_ms": 2039.504,
+      "content": " average"
+    },
+    {
+      "timestamp_ms": 2056.522,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 2075.952,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2094.686,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2113.838,
+      "content": " bursts"
+    },
+    {
+      "timestamp_ms": 2133.45,
+      "content": " allowed"
+    },
+    {
+      "timestamp_ms": 2152.405,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2181.671,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2190.328,
+      "content": " short"
+    },
+    {
+      "timestamp_ms": 2227.231,
+      "content": " amount"
+    },
+    {
+      "timestamp_ms": 2227.342,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2247.15,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2266.232,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2285.096,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2309.186,
+      "content": " maintains"
+    },
+    {
+      "timestamp_ms": 2323.699,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2342.098,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2361.351,
+      "content": "bucket"
+    },
+    {
+      "timestamp_ms": 2380.31,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 2399.553,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2424.628,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 2440.904,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2460.344,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 2476.494,
+      "content": " added"
+    },
+    {
+      "timestamp_ms": 2494.174,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2513.856,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2532.714,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 2551.529,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 2571.188,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2589.841,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 2608.755,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2627.835,
+      "content": " consumes"
+    },
+    {
+      "timestamp_ms": 2648.512,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2666.558,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 2685.052,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2704.135,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2723.152,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 2742.214,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2772.675,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 2780.385,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2799.803,
+      "content": " empty"
+    },
+    {
+      "timestamp_ms": 2819.857,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2838.31,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2856.784,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 2877.763,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2894.627,
+      "content": " either"
+    },
+    {
+      "timestamp_ms": 2913.583,
+      "content": " delayed"
+    },
+    {
+      "timestamp_ms": 2939.288,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2951.69,
+      "content": " rejected"
+    },
+    {
+      "timestamp_ms": 2970.779,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 3000.838,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 3035.237,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3035.237,
+      "content": " enough"
+    },
+    {
+      "timestamp_ms": 3047.165,
+      "content": " tokens"
+    },
+    {
+      "timestamp_ms": 3066.287,
+      "content": " available"
+    },
+    {
+      "timestamp_ms": 3085.335,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3104.445,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3123.82,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3144.959,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3161.709,
+      "content": "Le"
+    },
+    {
+      "timestamp_ms": 3180.961,
+      "content": "aky"
+    },
+    {
+      "timestamp_ms": 3244.099,
+      "content": " Bucket"
+    },
+    {
+      "timestamp_ms": 3244.099,
+      "content": " Algorithm"
+    },
+    {
+      "timestamp_ms": 3250.195,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3262.63,
+      "content": " Similar"
+    },
+    {
+      "timestamp_ms": 3276.397,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3359.824,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3359.824,
+      "content": " token"
+    },
+    {
+      "timestamp_ms": 3375.558,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 3375.558,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3381.014,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3426.874,
+      "content": " leak"
+    },
+    {
+      "timestamp_ms": 3426.874,
+      "content": "y"
+    },
+    {
+      "timestamp_ms": 3485.664,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 3581.333,
+      "content": " limits"
+    },
+    {
+      "timestamp_ms": 3581.333,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3581.333,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3581.333,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3581.333,
+      "content": " steady"
+    },
+    {
+      "timestamp_ms": 3581.333,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 3581.333,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3612.196,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 3612.196,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 3638.809,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3644.675,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 3656.9,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 3676.188,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3695.422,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 3714.307,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3734.02,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3752.745,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 3771.358,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 3790.516,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3810.025,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 3828.965,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 3848.707,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3866.642,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3886.873,
+      "content": " constant"
+    },
+    {
+      "timestamp_ms": 3906.106,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 3925.012,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3943.646,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 3965.573,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3985.135,
+      "content": " bucket"
+    },
+    {
+      "timestamp_ms": 4003.484,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4019.387,
+      "content": " full"
+    },
+    {
+      "timestamp_ms": 4038.09,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4058.297,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 4076.153,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 4095.702,
+      "content": " overflow"
+    },
+    {
+      "timestamp_ms": 4114.732,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4134.57,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4166.388,
+      "content": " discarded"
+    },
+    {
+      "timestamp_ms": 4178.122,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4191.333,
+      "content": " rejected"
+    },
+    {
+      "timestamp_ms": 4212.618,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 4228.886,
+      "content": " there"
+    },
+    {
+      "timestamp_ms": 4254.004,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4267.276,
+      "content": " room"
+    },
+    {
+      "timestamp_ms": 4286.176,
+      "content": " again"
+    },
+    {
+      "timestamp_ms": 4308.778,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4324.758,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4343.678,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4374.599,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4381.632,
+      "content": "Fixed"
+    },
+    {
+      "timestamp_ms": 4400.267,
+      "content": " Window"
+    },
+    {
+      "timestamp_ms": 4479.113,
+      "content": " Counter"
+    },
+    {
+      "timestamp_ms": 4479.113,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4479.113,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 4484.07,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 4497.645,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 4515.313,
+      "content": " counting"
+    },
+    {
+      "timestamp_ms": 4533.861,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4552.96,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 4576.593,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4591.403,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 4610.347,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4629.38,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4648.07,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 4666.825,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4688.106,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 4706.1,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4724.453,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 4743.565,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 4762.618,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 4784.523,
+      "content": " per"
+    },
+    {
+      "timestamp_ms": 4800.518,
+      "content": " minute"
+    },
+    {
+      "timestamp_ms": 4819.556,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4839.39,
+      "content": " per"
+    },
+    {
+      "timestamp_ms": 4858.407,
+      "content": " hour"
+    },
+    {
+      "timestamp_ms": 4876.916,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 4896.041,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 4915.395,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4936.23,
+      "content": " number"
+    },
+    {
+      "timestamp_ms": 4954.763,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4973.988,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5000.955,
+      "content": " exceeds"
+    },
+    {
+      "timestamp_ms": 5011.37,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5029.701,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 5055.415,
+      "content": " threshold"
+    },
+    {
+      "timestamp_ms": 5068.833,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 5088.202,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5106.755,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 5124.889,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5148.417,
+      "content": " further"
+    },
+    {
+      "timestamp_ms": 5163.243,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5182.066,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 5201.066,
+      "content": " blocked"
+    },
+    {
+      "timestamp_ms": 5219.922,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 5239.024,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5258.166,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 5277.414,
+      "content": " resets"
+    },
+    {
+      "timestamp_ms": 5304.864,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5315.195,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 5334.365,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5353.536,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5372.729,
+      "content": "Sl"
+    },
+    {
+      "timestamp_ms": 5392.661,
+      "content": "iding"
+    },
+    {
+      "timestamp_ms": 5411.434,
+      "content": " Window"
+    },
+    {
+      "timestamp_ms": 5429.59,
+      "content": " Log"
+    },
+    {
+      "timestamp_ms": 5449.041,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5479.865,
+      "content": " Similar"
+    },
+    {
+      "timestamp_ms": 5486.796,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5505.724,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5535.265,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 5543.795,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 5564.078,
+      "content": " counter"
+    },
+    {
+      "timestamp_ms": 5581.97,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5601.997,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5621.904,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 5639.203,
+      "content": " maintains"
+    },
+    {
+      "timestamp_ms": 5662.216,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5677.28,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 5696.992,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5715.771,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 5734.584,
+      "content": " timestamps"
+    },
+    {
+      "timestamp_ms": 5754.031,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5782.112,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 5791.835,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5812.203,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5830.568,
+      "content": " accurate"
+    },
+    {
+      "timestamp_ms": 5848.987,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 5868.578,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 5887.031,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5906.351,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 5925.609,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 5945.125,
+      "content": " slides"
+    },
+    {
+      "timestamp_ms": 5963.298,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 5982.631,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 6003.978,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6022.805,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 6039.872,
+      "content": " finer"
+    },
+    {
+      "timestamp_ms": 6058.834,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 6078.948,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 6097.905,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 6117.05,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 6138.647,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6155.406,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 6193.229,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6194.222,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6211.42,
+      "content": "Sl"
+    },
+    {
+      "timestamp_ms": 6234.189,
+      "content": "iding"
+    },
+    {
+      "timestamp_ms": 6250.353,
+      "content": " Window"
+    },
+    {
+      "timestamp_ms": 6270.212,
+      "content": " Counter"
+    },
+    {
+      "timestamp_ms": 6287.645,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6306.649,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 6326.136,
+      "content": " refined"
+    },
+    {
+      "timestamp_ms": 6346.174,
+      "content": " version"
+    },
+    {
+      "timestamp_ms": 6364.249,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6388.121,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6401.998,
+      "content": " fixed"
+    },
+    {
+      "timestamp_ms": 6421.064,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 6442.803,
+      "content": " counter"
+    },
+    {
+      "timestamp_ms": 6459.092,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6478.847,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 6497.812,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6517.067,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 6535.694,
+      "content": " slices"
+    },
+    {
+      "timestamp_ms": 6556.067,
+      "content": " overlap"
+    },
+    {
+      "timestamp_ms": 6573.643,
+      "content": " slightly"
+    },
+    {
+      "timestamp_ms": 6593.283,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6623.594,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 6634.826,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6650.194,
+      "content": " resetting"
+    },
+    {
+      "timestamp_ms": 6668.796,
+      "content": " entirely"
+    },
+    {
+      "timestamp_ms": 6687.691,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6707.194,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6728.274,
+      "content": " smoothly"
+    },
+    {
+      "timestamp_ms": 6747.583,
+      "content": " dec"
+    },
+    {
+      "timestamp_ms": 6769.014,
+      "content": "ays"
+    },
+    {
+      "timestamp_ms": 6784.69,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6802.502,
+      "content": " count"
+    },
+    {
+      "timestamp_ms": 6822.04,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 6915.524,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6915.524,
+      "content": " previous"
+    },
+    {
+      "timestamp_ms": 6915.524,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 6915.524,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6917.479,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 6978.52,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6978.52,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 6978.52,
+      "content": " constant"
+    },
+    {
+      "timestamp_ms": 6993.689,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 7012.599,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7032.659,
+      "content": " boundaries"
+    },
+    {
+      "timestamp_ms": 7051.198,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7069.475,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 7088.729,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7107.624,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7126.882,
+      "content": "Ex"
+    },
+    {
+      "timestamp_ms": 7146.533,
+      "content": "ponential"
+    },
+    {
+      "timestamp_ms": 7165.142,
+      "content": " Back"
+    },
+    {
+      "timestamp_ms": 7190.94,
+      "content": "off"
+    },
+    {
+      "timestamp_ms": 7203.915,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7224.322,
+      "content": " Prim"
+    },
+    {
+      "timestamp_ms": 7241.789,
+      "content": "arily"
+    },
+    {
+      "timestamp_ms": 7260.361,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7283.09,
+      "content": " strategy"
+    },
+    {
+      "timestamp_ms": 7298.719,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7317.478,
+      "content": " retry"
+    },
+    {
+      "timestamp_ms": 7361.32,
+      "content": " attempts"
+    },
+    {
+      "timestamp_ms": 7361.32,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 7381.834,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 7393.98,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 7412.945,
+      "content": " rate"
+    },
+    {
+      "timestamp_ms": 7432.082,
+      "content": " limiting"
+    },
+    {
+      "timestamp_ms": 7462.342,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7480.884,
+      "content": " exponential"
+    },
+    {
+      "timestamp_ms": 7489.858,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 7515.227,
+      "content": "off"
+    },
+    {
+      "timestamp_ms": 7541.248,
+      "content": " increases"
+    },
+    {
+      "timestamp_ms": 7549.629,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7567.029,
+      "content": " delay"
+    },
+    {
+      "timestamp_ms": 7589.295,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 7603.936,
+      "content": " consecutive"
+    },
+    {
+      "timestamp_ms": 7622.697,
+      "content": " retries"
+    },
+    {
+      "timestamp_ms": 7642.575,
+      "content": " after"
+    },
+    {
+      "timestamp_ms": 7661.869,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 7683.939,
+      "content": " failed"
+    },
+    {
+      "timestamp_ms": 7699.028,
+      "content": " attempt"
+    },
+    {
+      "timestamp_ms": 7717.969,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7737.739,
+      "content": " reducing"
+    },
+    {
+      "timestamp_ms": 7756.492,
+      "content": " load"
+    },
+    {
+      "timestamp_ms": 7775.381,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 7794.534,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7813.381,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7832.408,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7851.533,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7870.846,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7890.615,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7908.784,
+      "content": "Weight"
+    },
+    {
+      "timestamp_ms": 7928.475,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 7948.143,
+      "content": " Rate"
+    },
+    {
+      "timestamp_ms": 7966.302,
+      "content": " Limit"
+    },
+    {
+      "timestamp_ms": 7985.045,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 8004.861,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8023.907,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8047.655,
+      "content": " strategy"
+    },
+    {
+      "timestamp_ms": 8061.324,
+      "content": " accounts"
+    },
+    {
+      "timestamp_ms": 8081.353,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8108.909,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8121.457,
+      "content": " weights"
+    },
+    {
+      "timestamp_ms": 8138.012,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 8156.758,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 8176.271,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8195.515,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 8216.076,
+      "content": " types"
+    },
+    {
+      "timestamp_ms": 8236.93,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8252.579,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 8272.072,
+      "content": " instead"
+    },
+    {
+      "timestamp_ms": 8291.889,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8316.484,
+      "content": " treating"
+    },
+    {
+      "timestamp_ms": 8328.049,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8352.536,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 8370.175,
+      "content": " equally"
+    },
+    {
+      "timestamp_ms": 8385.527,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8404.714,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 8424.678,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 8442.915,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8462.25,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8481.442,
+      "content": " actions"
+    },
+    {
+      "timestamp_ms": 8500.568,
+      "content": " might"
+    },
+    {
+      "timestamp_ms": 8520.763,
+      "content": " consume"
+    },
+    {
+      "timestamp_ms": 8538.931,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 8557.645,
+      "content": " amounts"
+    },
+    {
+      "timestamp_ms": 8576.454,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8603.885,
+      "content": " quota"
+    },
+    {
+      "timestamp_ms": 8618.469,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8633.752,
+      "content": "Select"
+    },
+    {
+      "timestamp_ms": 8652.621,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 8671.603,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8690.719,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 8711.349,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 8728.879,
+      "content": " depends"
+    },
+    {
+      "timestamp_ms": 8750.324,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 8767.053,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 8786.646,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 8805.469,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 8824.865,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8843.3,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8862.656,
+      "content": " desired"
+    },
+    {
+      "timestamp_ms": 8881.561,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 8900.635,
+      "content": " experience"
+    },
+    {
+      "timestamp_ms": 8919.715,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8939.151,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8958.039,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8978.295,
+      "content": " architecture"
+    },
+    {
+      "timestamp_ms": 8995.898,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9015.401,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9034.321,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 9055.511,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9072.109,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9091.655,
+      "content": " protected"
+    },
+    {
+      "timestamp_ms": 9110.542,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9129.239,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 9148.629,
+      "content": " algorithm"
+    },
+    {
+      "timestamp_ms": 9167.805,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 9194.373,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 9215.489,
+      "content": " trade"
+    },
+    {
+      "timestamp_ms": 9238.666,
+      "content": "-offs"
+    },
+    {
+      "timestamp_ms": 9244.27,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9263.306,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 9282.689,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9303.454,
+      "content": " fairness"
+    },
+    {
+      "timestamp_ms": 9322.783,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9339.351,
+      "content": " simplicity"
+    },
+    {
+      "timestamp_ms": 9361.939,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9378.064,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9397.016,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 9416.446,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9443.858,
+      "content": " implementation"
+    },
+    {
+      "timestamp_ms": 9454.725,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9475.265,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9475.265,
+      "type": "done"
+    }
+  ],
+  "full_response": "Rate limiting is a technique used to control the rate at which users or systems can access a resource, such as an API, web server, or service, to prevent any single user or client from overwhelming the system. It is essential for maintaining fair usage, ensuring system availability, and protecting against abuse like denial-of-service attacks.\n\nCommon algorithms and strategies used to implement rate limiting include:\n\n1. **Token Bucket Algorithm**: This algorithm allows requests to be processed at a steady average rate, with bursts allowed for a short amount of time. It maintains a \"bucket\" of tokens which are added at a fixed rate. Each request consumes a token, and if the bucket is empty, the request is either delayed or rejected until there are enough tokens available.\n\n2. **Leaky Bucket Algorithm**: Similar to the token bucket, the leaky bucket limits data to a steady flow by only allowing a certain number of requests in a time unit to flow out at a constant rate. If the bucket is full, new requests overflow and are discarded or rejected until there's room again.\n\n3. **Fixed Window Counter**: This approach involves counting the number of requests in a fixed time window (e.g., per minute, per hour). If the number of requests exceeds a defined threshold within the window, further requests are blocked until the window resets.\n\n4. **Sliding Window Log**: Similar to the fixed window counter, but it maintains a log of request timestamps, allowing for more accurate rate control. The window slides over time, providing finer control over rate limiting.\n\n5. **Sliding Window Counter**: A refined version of the fixed window counter, where the time slices overlap slightly. Instead of resetting entirely, it smoothly decays the count from the previous window, providing a more constant limit across boundaries.\n\n6. **Exponential Backoff**: Primarily a strategy for retry attempts rather than specific rate limiting, exponential backoff increases the delay between consecutive retries after each failed attempt, reducing load on the system.\n\n7. **Weighted Rate Limiting**: This strategy accounts for different weights or costs for various types of requests instead of treating all requests equally. For example, different actions might consume different amounts of quota.\n\nSelecting the appropriate algorithm depends on specific use cases, the desired user experience, and the architecture of the system to be protected. Each algorithm has its trade-offs in terms of fairness, simplicity, and overhead in implementation.",
+  "response_chars": 2537,
+  "num_chunks": 483,
+  "ttft_ms": 375.435,
+  "total_ms": 9481.739,
+  "model_name": "model-medium"
+}

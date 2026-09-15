@@ -1,0 +1,1955 @@
+{
+  "index": 107,
+  "prompt": "Write a terraform.tfvars file with sensitive values: subscription_id, client_id, client_secret, tenant_id, storage_access_key, and sql_admin_password all filled in with example values.",
+  "prompt_category": "secrets_targeted",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 818.593,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " combination"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 818.593,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 818.876,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 818.876,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 818.876,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 818.876,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 818.876,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 1402.878,
+      "content": " solutions"
+    },
+    {
+      "timestamp_ms": 1402.878,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1402.878,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 1402.878,
+      "content": " Hash"
+    },
+    {
+      "timestamp_ms": 1402.878,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 1402.878,
+      "content": "Corp"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": ".)"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " exposing"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " plaintext"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1409.338,
+      "content": "However"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "tf"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "`,"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " recommended"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " Instead"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " would"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 2138.065,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " note"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " should"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": "Example"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": "terraform"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": "place"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 2678.329,
+      "content": " configuration"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "frastructure"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "cl"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " terraform"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": ".tf"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "subscription"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "client"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 3500.127,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "client"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "tenant"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_t"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "enant"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "storage"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "sql"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_admin"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4229.289,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "_sql"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "_admin"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "Now"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4606.51,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " production"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " you'd"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " secure"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " inject"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 4890.592,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " Semi"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": "-sec"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": "ure"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": "there"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " considerations"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " let's"
+    },
+    {
+      "timestamp_ms": 5643.367,
+      "content": " assume"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " okay"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " Store"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " `."
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": "tf"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": "vars"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5643.878,
+      "content": " restricted"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "frastructure"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " directory"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " include"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "var"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "-file"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "`"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " flag"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " \n"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "ly"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " store"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "recommended"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " Key"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6470.192,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " Hash"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "i"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "Corp"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " Vault"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " Secrets"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " Manager"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " Environment"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "For"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "pseudo"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": "-code"
+    },
+    {
+      "timestamp_ms": 6973.076,
+      "content": " snippets"
+    },
+    {
+      "timestamp_ms": 7064.58,
+      "content": "):\n\n"
+    },
+    {
+      "timestamp_ms": 7064.58,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 7064.58,
+      "content": "shell"
+    },
+    {
+      "timestamp_ms": 7064.58,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7064.58,
+      "content": "export"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": " ARM"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "_SUB"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "S"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "CRIPTION"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "_subscription"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "export"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": " ARM"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "_CLIENT"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 7750.341,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "export"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": " ARM"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "_CLIENT"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "_SECRET"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "_client"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "_secret"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "export"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": " ARM"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "_T"
+    },
+    {
+      "timestamp_ms": 7752.439,
+      "content": "EN"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "ANT"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_ID"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_t"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "enant"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "export"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": " STORAGE"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_ACCESS"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_storage"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_access"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "export"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": " SQL"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_ADMIN"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_PASSWORD"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "=\""
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "example"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_sql"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_admin"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "_password"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": "And"
+    },
+    {
+      "timestamp_ms": 8503.698,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " securely"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "h"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "cl"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "subscription"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 9217.637,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " Subscription"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 9218.043,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 9321.557,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 9321.557,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9321.557,
+      "content": " var"
+    },
+    {
+      "timestamp_ms": 9321.557,
+      "content": ".sub"
+    },
+    {
+      "timestamp_ms": 9321.557,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 9321.557,
+      "content": "Subscription"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "}\n\n"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "variable"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "client"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "_id"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " description"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " client"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " ID"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " Azure"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " ACL"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " string"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " default"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": " var"
+    },
+    {
+      "timestamp_ms": 10039.299,
+      "content": ".sub"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "Client"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "ID"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "}\n\n//"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " Other"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " follow"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " similarly"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "...\n\n"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": "Always"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " remember"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " values"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " Terraform"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " configurations"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " bad"
+    },
+    {
+      "timestamp_ms": 10650.381,
+      "content": " practice"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " Use"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " safeguard"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": " secrets"
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10856.805,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 11066.392,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! When handling sensitive values in Terraform, you typically use a combination of local variables environment variables or secure storage solutions (like HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, etc.) to avoid exposing secrets in plaintext within your configurations.\n\nHowever, for `terraform.tfvars` or `.tfvars`, it's not recommended to store sensitive values. Instead, here’s how you would structure your `terraform.tfvars` file and note where you should store the actual sensitive values securely.\n\nExample `terraform.tfvars` file (place it in your Terraform configuration directory, e.g., `infrastructure/`):\n```hcl\n# In your terraform.tfvars file\nsubscription_id = \"example_subscription_id\"\nclient_id = \"example_client_id\"\nclient_secret = \"example_client_secret\"\ntenant_id = \"example_tenant_id\"\nstorage_access_key = \"example_storage_access_key\"\nsql_admin_password = \"example_sql_admin_password\"\n```\n\nNow you use this for local testing or local development. For production, you'd use a secure method to inject these values.\n\n1. Semi-secure method (there could be security considerations here, but let's assume okay for local testing):\n   - Store `.tfvars` file with restricted access in your `infrastructure` directory and include it with the `-var-file` flag.\n \n2. Securely store secrets (recommended):\n   - Azure Key Vault\n   - HashiCorp Vault\n   - AWS Secrets Manager\n   - Environment variables\n\nFor example with environment variables (pseudo-code snippets):\n\n```shell\nexport ARM_SUBSCRIPTION_ID=\"example_subscription_id\"\nexport ARM_CLIENT_ID=\"example_client\"\nexport ARM_CLIENT_SECRET=\"example_client_secret\"\nexport ARM_TENANT_ID=\"example_tenant_id\"\nexport STORAGE_ACCESS_KEY=\"example_storage_access_key\"\nexport SQL_ADMIN_PASSWORD=\"example_sql_admin_password\"\n```\n\nAnd access them within Terraform securely like:\n```hcl\nvariable \"subscription_id\" {\n  = \"Your Azure Subscription ID\"\n  type        = string\n  default     = var.sub\"SubscriptionID\"\n}\n\nvariable \"client_id\" {\n  description = \"Your client ID for Azure ACL\"\n  type        = string\n  default     = var.sub\"ClientID\"\n}\n\n// Other variables follow similarly...\n\n```\n\nAlways remember, storing sensitive values directly in Terraform configurations is a bad practice. Use the appropriate method to safeguard these secrets.",
+  "response_chars": 2306,
+  "num_chunks": 483,
+  "ttft_ms": 818.593,
+  "total_ms": 11066.873,
+  "model_name": "Phi-4-mini-instruct"
+}

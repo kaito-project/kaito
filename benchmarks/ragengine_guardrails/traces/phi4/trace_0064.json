@@ -1,0 +1,2071 @@
+{
+  "index": 64,
+  "prompt": "Write a sample incident response report about a credential leak where API keys for payment processing, email services, and cloud infrastructure were exposed in a public GitHub repo.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 273.429,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 277.097,
+      "content": "Inc"
+    },
+    {
+      "timestamp_ms": 295.633,
+      "content": "ident"
+    },
+    {
+      "timestamp_ms": 314.955,
+      "content": " Response"
+    },
+    {
+      "timestamp_ms": 334.095,
+      "content": " Report"
+    },
+    {
+      "timestamp_ms": 354.581,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 371.482,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 391.595,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 412.183,
+      "content": "Inc"
+    },
+    {
+      "timestamp_ms": 431.641,
+      "content": "ident"
+    },
+    {
+      "timestamp_ms": 447.903,
+      "content": " Title"
+    },
+    {
+      "timestamp_ms": 467.127,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 485.865,
+      "content": " Credential"
+    },
+    {
+      "timestamp_ms": 505.062,
+      "content": " Leak"
+    },
+    {
+      "timestamp_ms": 523.835,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 542.932,
+      "content": "vol"
+    },
+    {
+      "timestamp_ms": 561.875,
+      "content": "ving"
+    },
+    {
+      "timestamp_ms": 581.174,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 600.383,
+      "content": " Keys"
+    },
+    {
+      "timestamp_ms": 619.409,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 644.452,
+      "content": " Payment"
+    },
+    {
+      "timestamp_ms": 657.181,
+      "content": " Processing"
+    },
+    {
+      "timestamp_ms": 676.24,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 698.494,
+      "content": " Email"
+    },
+    {
+      "timestamp_ms": 714.658,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 733.409,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 752.27,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 772.021,
+      "content": " Cloud"
+    },
+    {
+      "timestamp_ms": 790.456,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 809.478,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 828.843,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 847.658,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 866.806,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 886.685,
+      "content": "Time"
+    },
+    {
+      "timestamp_ms": 904.894,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 923.858,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 942.944,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 962.881,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 981.413,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1000.058,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 1019.521,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1038.775,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1057.788,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1076.575,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1095.205,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1114.974,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1133.282,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 1154.806,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1172.042,
+      "content": "35"
+    },
+    {
+      "timestamp_ms": 1195.054,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 1209.682,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1232.567,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1247.766,
+      "content": "Inc"
+    },
+    {
+      "timestamp_ms": 1266.791,
+      "content": "ident"
+    },
+    {
+      "timestamp_ms": 1286.592,
+      "content": " Identifier"
+    },
+    {
+      "timestamp_ms": 1306.091,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1324.53,
+      "content": " CR"
+    },
+    {
+      "timestamp_ms": 1343.219,
+      "content": "D"
+    },
+    {
+      "timestamp_ms": 1363.615,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1381.984,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1400.944,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1419.307,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1438.813,
+      "content": "101"
+    },
+    {
+      "timestamp_ms": 1457.935,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1476.273,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1495.835,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1514.99,
+      "content": "Report"
+    },
+    {
+      "timestamp_ms": 1533.473,
+      "content": " Prepared"
+    },
+    {
+      "timestamp_ms": 1552.825,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 1571.517,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1590.936,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 1610.059,
+      "content": "Your"
+    },
+    {
+      "timestamp_ms": 1628.678,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 1647.724,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 1667.678,
+      "content": "Title"
+    },
+    {
+      "timestamp_ms": 1685.749,
+      "content": "]"
+    },
+    {
+      "timestamp_ms": 1704.945,
+      "content": "  \n"
+    },
+    {
+      "timestamp_ms": 1725.395,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1742.585,
+      "content": "Date"
+    },
+    {
+      "timestamp_ms": 1779.752,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1781.588,
+      "content": " Report"
+    },
+    {
+      "timestamp_ms": 1799.821,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 1820.707,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 1838.368,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1857.559,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 1877.4,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1896.075,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 1915.452,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 1933.751,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 1952.866,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1973.176,
+      "content": "---\n\n"
+    },
+    {
+      "timestamp_ms": 1992.693,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2010.033,
+      "content": "Executive"
+    },
+    {
+      "timestamp_ms": 2029.048,
+      "content": " Summary"
+    },
+    {
+      "timestamp_ms": 2047.78,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 2066.854,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 2085.905,
+      "content": "On"
+    },
+    {
+      "timestamp_ms": 2105.164,
+      "content": " October"
+    },
+    {
+      "timestamp_ms": 2124.313,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2142.932,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 2162.238,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2181.554,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2200.585,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 2220.185,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 2238.387,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2257.474,
+      "content": " our"
+    },
+    {
+      "timestamp_ms": 2276.601,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 2296.019,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 2333.095,
+      "content": " identified"
+    },
+    {
+      "timestamp_ms": 2334.335,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2352.896,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 2374.126,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2493.314,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 2493.481,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2493.524,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2493.562,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 2493.597,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2493.627,
+      "content": " payment"
+    },
+    {
+      "timestamp_ms": 2505.746,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 2524.217,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2543.718,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 2562.592,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 2581.918,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2600.47,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2619.549,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 2638.6,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 2656.669,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2677.807,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2695.815,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 2731.829,
+      "content": " GitHub"
+    },
+    {
+      "timestamp_ms": 2734.648,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 2752.659,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2771.919,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2790.897,
+      "content": " leak"
+    },
+    {
+      "timestamp_ms": 2810.979,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 2828.984,
+      "content": " detected"
+    },
+    {
+      "timestamp_ms": 2848.45,
+      "content": " thanks"
+    },
+    {
+      "timestamp_ms": 2872.981,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2886.176,
+      "content": " routine"
+    },
+    {
+      "timestamp_ms": 2905.34,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 2924.403,
+      "content": " activities"
+    },
+    {
+      "timestamp_ms": 2943.6,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2962.388,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2981.928,
+      "content": " since"
+    },
+    {
+      "timestamp_ms": 3000.64,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 3019.614,
+      "content": " immediately"
+    },
+    {
+      "timestamp_ms": 3038.88,
+      "content": " contained"
+    },
+    {
+      "timestamp_ms": 3057.781,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3076.902,
+      "content": " mitigate"
+    },
+    {
+      "timestamp_ms": 3096.996,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 3114.668,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 3133.886,
+      "content": " threats"
+    },
+    {
+      "timestamp_ms": 3153.217,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3172.15,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3192.796,
+      "content": "Description"
+    },
+    {
+      "timestamp_ms": 3210.338,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3229.756,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 3248.778,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 3267.588,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 3286.567,
+      "content": "During"
+    },
+    {
+      "timestamp_ms": 3305.602,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3325.476,
+      "content": " standard"
+    },
+    {
+      "timestamp_ms": 3344.471,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 3363.493,
+      "content": " audit"
+    },
+    {
+      "timestamp_ms": 3391.643,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3400.846,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3420.14,
+      "content": " was"
+    },
+    {
+      "timestamp_ms": 3439.263,
+      "content": " discovered"
+    },
+    {
+      "timestamp_ms": 3458.211,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3477.469,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 3496.565,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 3516.699,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3534.521,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 3553.733,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3572.757,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 3591.531,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 3610.914,
+      "content": " were"
+    },
+    {
+      "timestamp_ms": 3629.506,
+      "content": " inadvertently"
+    },
+    {
+      "timestamp_ms": 3648.833,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 3667.71,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3686.801,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3706.09,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 3724.647,
+      "content": " GitHub"
+    },
+    {
+      "timestamp_ms": 3743.717,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 3764.913,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3782.122,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 3801.296,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 3820.502,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3840.311,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3928.688,
+      "content": " ["
+    },
+    {
+      "timestamp_ms": 3928.688,
+      "content": "Red"
+    },
+    {
+      "timestamp_ms": 3928.688,
+      "content": "acted"
+    },
+    {
+      "timestamp_ms": 3928.688,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 3934.528,
+      "content": " Privacy"
+    },
+    {
+      "timestamp_ms": 3989.408,
+      "content": "]."
+    },
+    {
+      "timestamp_ms": 3989.408,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3991.905,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 4010.791,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 4029.779,
+      "content": " had"
+    },
+    {
+      "timestamp_ms": 4048.849,
+      "content": " permissions"
+    },
+    {
+      "timestamp_ms": 4068.053,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 4088.051,
+      "content": " could"
+    },
+    {
+      "timestamp_ms": 4106.187,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 4125.212,
+      "content": " allowed"
+    },
+    {
+      "timestamp_ms": 4144.733,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 4163.917,
+      "content": " transactions"
+    },
+    {
+      "timestamp_ms": 4182.824,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4201.845,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4220.413,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4239.32,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 4259.11,
+      "content": " accounts"
+    },
+    {
+      "timestamp_ms": 4277.864,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4296.901,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4316.385,
+      "content": " manipulation"
+    },
+    {
+      "timestamp_ms": 4335.099,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4354.149,
+      "content": " AWS"
+    },
+    {
+      "timestamp_ms": 4373.397,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 4392.269,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4411.365,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4430.105,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 4449.655,
+      "content": " Imp"
+    },
+    {
+      "timestamp_ms": 4468.841,
+      "content": "acts"
+    },
+    {
+      "timestamp_ms": 4487.659,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 4506.964,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 4525.401,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4544.517,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4563.416,
+      "content": "Payment"
+    },
+    {
+      "timestamp_ms": 4596.82,
+      "content": " Processing"
+    },
+    {
+      "timestamp_ms": 4601.35,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4620.647,
+      "content": " Ris"
+    },
+    {
+      "timestamp_ms": 4639.636,
+      "content": "ks"
+    },
+    {
+      "timestamp_ms": 4658.745,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4677.945,
+      "content": " unauthorized"
+    },
+    {
+      "timestamp_ms": 4697.073,
+      "content": " financial"
+    },
+    {
+      "timestamp_ms": 4715.938,
+      "content": " transactions"
+    },
+    {
+      "timestamp_ms": 4734.89,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4754.33,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 4773.103,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4792.041,
+      "content": "Email"
+    },
+    {
+      "timestamp_ms": 4811.435,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 4830.565,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 4849.64,
+      "content": " Potential"
+    },
+    {
+      "timestamp_ms": 4869.197,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4888.21,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4908.025,
+      "content": " extraction"
+    },
+    {
+      "timestamp_ms": 4926.016,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4945.355,
+      "content": " operational"
+    },
+    {
+      "timestamp_ms": 4964.481,
+      "content": " disruptions"
+    },
+    {
+      "timestamp_ms": 4994.491,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5001.949,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5020.897,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5040.022,
+      "content": "Cloud"
+    },
+    {
+      "timestamp_ms": 5058.992,
+      "content": " Infrastructure"
+    },
+    {
+      "timestamp_ms": 5078.822,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5097.369,
+      "content": " Unauthorized"
+    },
+    {
+      "timestamp_ms": 5116.525,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 5135.563,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5154.476,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 5173.27,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5192.917,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 5211.887,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5230.819,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5251.099,
+      "content": "Timeline"
+    },
+    {
+      "timestamp_ms": 5268.892,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5288.121,
+      "content": " Events"
+    },
+    {
+      "timestamp_ms": 5306.97,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5326.973,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 5345.95,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5364.639,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5383.697,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 5402.82,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5421.773,
+      "content": "35"
+    },
+    {
+      "timestamp_ms": 5440.123,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 5459.757,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5479.675,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 5510.692,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5517.037,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 5536.683,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5554.826,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5573.64,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 5593.063,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 5614.371,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 5631.479,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5649.892,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 5669.433,
+      "content": " detected"
+    },
+    {
+      "timestamp_ms": 5687.115,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 5707.315,
+      "content": " automated"
+    },
+    {
+      "timestamp_ms": 5726.404,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 5745.4,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 5764.716,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5783.312,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 5802.61,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5821.787,
+      "content": "14"
+    },
+    {
+      "timestamp_ms": 5841.091,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5859.953,
+      "content": "45"
+    },
+    {
+      "timestamp_ms": 5883.219,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 5898.131,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5917.328,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 5936.089,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5955.274,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 5974.465,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5993.389,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6012.418,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 6032.595,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6050.616,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 6069.239,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6088.609,
+      "content": " Incident"
+    },
+    {
+      "timestamp_ms": 6108.055,
+      "content": " reported"
+    },
+    {
+      "timestamp_ms": 6127.051,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6147.577,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6164.74,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 6184.214,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 6203.175,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 6222.417,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6241.447,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6267.552,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6279.687,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 6298.92,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6317.618,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 6336.855,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 6355.681,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6374.962,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 6394.541,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6415.699,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 6431.822,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6450.981,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6470.582,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 6489.891,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6511.358,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 6527.502,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6553.499,
+      "content": " Initial"
+    },
+    {
+      "timestamp_ms": 6565.616,
+      "content": " assessment"
+    },
+    {
+      "timestamp_ms": 6585.091,
+      "content": " confirmed"
+    },
+    {
+      "timestamp_ms": 6604.476,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6622.672,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 6641.895,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6688.534,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 6688.534,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 6735.821,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6735.821,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6738.342,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6756.055,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 6776.235,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6794.998,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 6814.285,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 6833.666,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6851.779,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 6871.256,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6889.841,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 6911.617,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6937.252,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 6947.128,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 6965.734,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6984.793,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 7004.31,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7023.627,
+      "content": " GitHub"
+    },
+    {
+      "timestamp_ms": 7042.275,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 7062.055,
+      "content": " identified"
+    },
+    {
+      "timestamp_ms": 7080.414,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7099.004,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7118.656,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 7137.553,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 7156.737,
+      "content": " secured"
+    },
+    {
+      "timestamp_ms": 7175.881,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7216.931,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7216.931,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7233.168,
+      "content": "16"
+    },
+    {
+      "timestamp_ms": 7252.085,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7270.843,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 7292.236,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 7308.965,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7328.668,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 7347.875,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7366.361,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 7385.409,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7405.079,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7423.207,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 7442.453,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7463.233,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 7481.463,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7500.053,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 7519.022,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 7538.061,
+      "content": " rotated"
+    },
+    {
+      "timestamp_ms": 7557.223,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7576.203,
+      "content": " invalidate"
+    },
+    {
+      "timestamp_ms": 7595.424,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 7614.748,
+      "content": " credentials"
+    },
+    {
+      "timestamp_ms": 7633.105,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 7652.855,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 7671.342,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7694.602,
+      "content": "16"
+    },
+    {
+      "timestamp_ms": 7710.138,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7728.52,
+      "content": "30"
+    },
+    {
+      "timestamp_ms": 7747.673,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 7766.848,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7785.643,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 7804.893,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7824.053,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 7843.02,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7863.79,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7881.002,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 7899.965,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 7919.258,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 7938.376,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7957.644,
+      "content": " GitHub"
+    },
+    {
+      "timestamp_ms": 7976.536,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 7998.452,
+      "content": " secured"
+    },
+    {
+      "timestamp_ms": 8014.797,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8034.657,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 8053.118,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 8073.065,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8091.451,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 8113.098,
+      "content": " longer"
+    },
+    {
+      "timestamp_ms": 8133.545,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 8148.484,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8167.699,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8187.692,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8206.553,
+      "content": "17"
+    },
+    {
+      "timestamp_ms": 8234.22,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8243.776,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 8263.062,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 8281.816,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8301.586,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 8320.041,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8339.746,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 8358.221,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8377.384,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8396.436,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 8415.643,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8434.664,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 8599.665,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8600.905,
+      "content": " Contact"
+    },
+    {
+      "timestamp_ms": 8600.905,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8600.905,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 8600.905,
+      "content": " team"
+    },
+    {
+      "timestamp_ms": 8601.011,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8601.055,
+      "content": " investigate"
+    },
+    {
+      "timestamp_ms": 8601.09,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8606.451,
+      "content": " breach"
+    },
+    {
+      "timestamp_ms": 8625.711,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8644.406,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 8663.699,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8683.393,
+      "content": "10"
+    },
+    {
+      "timestamp_ms": 8701.709,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 8720.609,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 8739.726,
+      "content": " UTC"
+    },
+    {
+      "timestamp_ms": 8758.777,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 8779.033,
+      "content": "October"
+    },
+    {
+      "timestamp_ms": 8798.721,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8817.089,
+      "content": "13"
+    },
+    {
+      "timestamp_ms": 8837.663,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8860.071,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8877.448,
+      "content": "202"
+    },
+    {
+      "timestamp_ms": 8892.387,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8912.684,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 8930.606,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8949.789,
+      "content": " User"
+    },
+    {
+      "timestamp_ms": 8969.106,
+      "content": " account"
+    },
+    {
+      "timestamp_ms": 8989.938,
+      "content": " implicated"
+    },
+    {
+      "timestamp_ms": 9007.074,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9027.477,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9045.098,
+      "content": " exposure"
+    },
+    {
+      "timestamp_ms": 9064.457,
+      "content": " place"
+    },
+    {
+      "timestamp_ms": 9083.269,
+      "content": " under"
+    },
+    {
+      "timestamp_ms": 9102.299,
+      "content": " investigation"
+    },
+    {
+      "timestamp_ms": 9121.68,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9140.95,
+      "content": " restricted"
+    },
+    {
+      "timestamp_ms": 9160.096,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9178.848,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9198.087,
+      "content": "Actions"
+    },
+    {
+      "timestamp_ms": 9217.393,
+      "content": " Taken"
+    },
+    {
+      "timestamp_ms": 9236.558,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9255.626,
+      "content": "**\n\n"
+    },
+    {
+      "timestamp_ms": 9275.717,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9294.169,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9312.868,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9331.738,
+      "content": "Contain"
+    },
+    {
+      "timestamp_ms": 9350.704,
+      "content": "ment"
+    },
+    {
+      "timestamp_ms": 9369.515,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9388.899,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9412.731,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9427.864,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9446.387,
+      "content": " Immediate"
+    },
+    {
+      "timestamp_ms": 9465.524,
+      "content": " rev"
+    },
+    {
+      "timestamp_ms": 9484.238,
+      "content": "ocation"
+    },
+    {
+      "timestamp_ms": 9504.996,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 9523.33,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 9541.628,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 9560.995,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 9579.76,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9598.969,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9617.687,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9636.752,
+      "content": " Secure"
+    },
+    {
+      "timestamp_ms": 9656.117,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9674.742,
+      "content": " remove"
+    },
+    {
+      "timestamp_ms": 9696.51,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9713.876,
+      "content": " repository"
+    },
+    {
+      "timestamp_ms": 9732.454,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9753.072,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 9776.907,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 9789.96,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9808.967,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 9827.814,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9846.625,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9865.424,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 9886.159,
+      "content": "rad"
+    },
+    {
+      "timestamp_ms": 9915.553,
+      "content": "ication"
+    },
+    {
+      "timestamp_ms": 9923.059,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9942.478,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9961.309,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9980.488,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9999.421,
+      "content": " Conduct"
+    },
+    {
+      "timestamp_ms": 9999.421,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9999.421,
+      "type": "done"
+    }
+  ],
+  "full_response": "**Incident Response Report**\n\n---\n\n**Incident Title:** Credential Leak Involving API Keys for Payment Processing, Email Services, and Cloud Infrastructure\n\n**Date/Time of Incident:** October 12, 2023, 14:35 UTC\n\n**Incident Identifier:** CRD-2023-1012\n\n**Report Prepared By:** [Your Name/Title]  \n**Date of Report:** October 14, 2023\n\n---\n\n**Executive Summary:**\n\nOn October 12, 2023, our security team identified an exposure of sensitive API keys associated with payment processing, email services, and cloud infrastructure in a public GitHub repository. The leak was detected thanks to routine monitoring activities and has since been immediately contained to mitigate potential security threats.\n\n**Description of Incident:**\n\nDuring a standard security audit, it was discovered that API keys with access to sensitive systems were inadvertently committed to a public GitHub repository by an unauthorized user, [Redacted for Privacy]. The exposed keys had permissions that could have allowed unauthorized transactions, access to email accounts, and manipulation of AWS infrastructure.\n\n**Key Impacts:**\n\n- **Payment Processing:** Risks of unauthorized financial transactions.\n- **Email Services:** Potential for data extraction and operational disruptions.\n- **Cloud Infrastructure:** Unauthorized access to servers and storage.\n\n**Timeline of Events:**\n\n- **14:35 UTC (October 12, 2023):** Incident detected by automated monitoring tools.\n- **14:45 UTC (October 12, 2023):** Incident reported to the security response team.\n- **15:10 UTC (October 12, 2023):** Initial assessment confirmed the exposure of API keys.\n- **15:30 UTC (October 12, 2023):** GitHub repository identified and access by team secured.\n- **16:00 UTC (October 12, 2023):** API keys rotated and invalidate exposed credentials.\n- **16:30 UTC (October 12, 2023):** GitHub repository secured, ensuring keys are no longer public.\n- **17:00 UTC (October 12, 2023):** Contact with development team to investigate the breach.\n- **10:00 UTC (October 13, 2023):** User account implicated in the exposure place under investigation and restricted.\n\n**Actions Taken:**\n\n1. **Containment:**\n   - Immediate revocation of exposed API keys.\n   - Secure and remove the repository from public access.\n\n2. **Eradication:**\n   - Conduct",
+  "response_chars": 2288,
+  "num_chunks": 512,
+  "ttft_ms": 273.429,
+  "total_ms": 10003.958,
+  "model_name": "model-medium"
+}

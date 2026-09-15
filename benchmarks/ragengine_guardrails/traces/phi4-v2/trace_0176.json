@@ -1,0 +1,2071 @@
+{
+  "index": 176,
+  "prompt": "Describe the differences between TCP and UDP protocols.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 351.112,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 351.112,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 351.394,
+      "content": "Transmission"
+    },
+    {
+      "timestamp_ms": 362.94,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 409.675,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 409.805,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 420.169,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 499.846,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 500.045,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 500.218,
+      "content": "User"
+    },
+    {
+      "timestamp_ms": 500.324,
+      "content": " Datagram"
+    },
+    {
+      "timestamp_ms": 514.699,
+      "content": " Protocol"
+    },
+    {
+      "timestamp_ms": 548.516,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 578.768,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 586.869,
+      "content": " both"
+    },
+    {
+      "timestamp_ms": 595.548,
+      "content": " transport"
+    },
+    {
+      "timestamp_ms": 615.848,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 712.778,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 725.526,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 725.73,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 725.822,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 725.887,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 725.94,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 771.772,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 771.969,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 787.252,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 801.485,
+      "content": " but"
+    },
+    {
+      "timestamp_ms": 820.598,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 923.357,
+      "content": " differ"
+    },
+    {
+      "timestamp_ms": 923.512,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 923.671,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 923.784,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 923.867,
+      "content": " ways"
+    },
+    {
+      "timestamp_ms": 934.69,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1019.377,
+      "content": " accommodating"
+    },
+    {
+      "timestamp_ms": 1019.523,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 1019.587,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1019.639,
+      "content": " cases"
+    },
+    {
+      "timestamp_ms": 1036.08,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 1054.417,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 1083.575,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1091.468,
+      "content": " characteristics"
+    },
+    {
+      "timestamp_ms": 1106.333,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1129.702,
+      "content": " Here"
+    },
+    {
+      "timestamp_ms": 1224.528,
+      "content": "’s"
+    },
+    {
+      "timestamp_ms": 1224.707,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 1224.777,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 1224.876,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1224.945,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1257.759,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 1257.897,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1305.647,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1305.782,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1315.876,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1334.232,
+      "content": "Connection"
+    },
+    {
+      "timestamp_ms": 1429.9,
+      "content": "-O"
+    },
+    {
+      "timestamp_ms": 1430.075,
+      "content": "rient"
+    },
+    {
+      "timestamp_ms": 1430.212,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 1430.308,
+      "content": " vs"
+    },
+    {
+      "timestamp_ms": 1430.376,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1534.863,
+      "content": " Connection"
+    },
+    {
+      "timestamp_ms": 1534.997,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 1535.062,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1535.17,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1535.25,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1543.243,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1633.971,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1634.195,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 1639.386,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 1639.536,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 1639.623,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1736.051,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1736.207,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 1736.283,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1736.347,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1746.017,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 1755.585,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1838.465,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1838.623,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1838.703,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1838.766,
+      "content": " established"
+    },
+    {
+      "timestamp_ms": 1849.905,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1940.84,
+      "content": " maintained"
+    },
+    {
+      "timestamp_ms": 1940.969,
+      "content": " until"
+    },
+    {
+      "timestamp_ms": 1941.032,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1941.095,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 1943.386,
+      "content": " programs"
+    },
+    {
+      "timestamp_ms": 2021.08,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 2021.343,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 2021.496,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 2021.569,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 2067.992,
+      "content": " finished"
+    },
+    {
+      "timestamp_ms": 2068.198,
+      "content": " exchanging"
+    },
+    {
+      "timestamp_ms": 2079.369,
+      "content": " messages"
+    },
+    {
+      "timestamp_ms": 2104.755,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2116.938,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 2249.598,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 2249.823,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2249.904,
+      "content": " three"
+    },
+    {
+      "timestamp_ms": 2249.964,
+      "content": "-way"
+    },
+    {
+      "timestamp_ms": 2250.024,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 2250.075,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2250.122,
+      "content": " initiate"
+    },
+    {
+      "timestamp_ms": 2445.964,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2446.398,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2446.581,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 2446.672,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2446.737,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2446.789,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2446.838,
+      "content": "UDP"
+    },
+    {
+      "timestamp_ms": 2453.56,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2453.759,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2453.882,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2459.594,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2495.485,
+      "content": "less"
+    },
+    {
+      "timestamp_ms": 2495.623,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2558.389,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 2558.788,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 2558.928,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 2623.049,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 2627.341,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2627.514,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 2631.269,
+      "content": " before"
+    },
+    {
+      "timestamp_ms": 2760.669,
+      "content": " sending"
+    },
+    {
+      "timestamp_ms": 2760.878,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2760.965,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2761.04,
+      "content": " nor"
+    },
+    {
+      "timestamp_ms": 2761.224,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 2761.36,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2763.291,
+      "content": " assure"
+    },
+    {
+      "timestamp_ms": 2833.592,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2833.796,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 2833.934,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2838.572,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2965.922,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2966.076,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2966.143,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2966.198,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 2966.254,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2966.303,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 2973.015,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 3031.438,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3031.734,
+      "content": " skips"
+    },
+    {
+      "timestamp_ms": 3037.545,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 3049.622,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3171.396,
+      "content": " handshake"
+    },
+    {
+      "timestamp_ms": 3171.553,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3171.743,
+      "content": " acknowledgment"
+    },
+    {
+      "timestamp_ms": 3171.846,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 3171.914,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3171.97,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3185.357,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3231.342,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3231.481,
+      "content": "Rel"
+    },
+    {
+      "timestamp_ms": 3240.392,
+      "content": "iability"
+    },
+    {
+      "timestamp_ms": 3259.911,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3375.327,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3375.497,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3375.576,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3375.634,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3477.487,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 3477.487,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 3477.487,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3477.487,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 3477.487,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 3477.487,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3477.67,
+      "content": " transfer"
+    },
+    {
+      "timestamp_ms": 3488.302,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3541.751,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 3587.761,
+      "content": " ensures"
+    },
+    {
+      "timestamp_ms": 3587.761,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 3588.102,
+      "content": " packets"
+    },
+    {
+      "timestamp_ms": 3589.764,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3603.951,
+      "content": " delivered"
+    },
+    {
+      "timestamp_ms": 3681.691,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3681.915,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3682.017,
+      "content": " correct"
+    },
+    {
+      "timestamp_ms": 3684.523,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 3701.617,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3717.098,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3784.554,
+      "content": " re"
+    },
+    {
+      "timestamp_ms": 3784.755,
+      "content": "-s"
+    },
+    {
+      "timestamp_ms": 3784.84,
+      "content": "ent"
+    },
+    {
+      "timestamp_ms": 3791.105,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 3887.287,
+      "content": " lost"
+    },
+    {
+      "timestamp_ms": 3887.518,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3887.654,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3887.739,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 3895.797,
+      "content": " acknowled"
+    },
+    {
+      "timestamp_ms": 3911.001,
+      "content": "gments"
+    },
+    {
+      "timestamp_ms": 3927.49,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3989.388,
+      "content": " sequences"
+    },
+    {
+      "timestamp_ms": 3989.6,
+      "content": " numbers"
+    },
+    {
+      "timestamp_ms": 3989.733,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4092.084,
+      "content": " achieve"
+    },
+    {
+      "timestamp_ms": 4092.369,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4092.529,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 4092.652,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4092.758,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4104.488,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4117.264,
+      "content": "UDP"
+    },
+    {
+      "timestamp_ms": 4139.319,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 4155.993,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 4174.235,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 4307.648,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4307.855,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 4307.934,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 4307.996,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4322.382,
+      "content": " There"
+    },
+    {
+      "timestamp_ms": 4322.528,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4322.591,
+      "content": " no"
+    },
+    {
+      "timestamp_ms": 4327.746,
+      "content": " mechanism"
+    },
+    {
+      "timestamp_ms": 4356.314,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4368.597,
+      "content": " re"
+    },
+    {
+      "timestamp_ms": 4386.394,
+      "content": "trans"
+    },
+    {
+      "timestamp_ms": 4405.035,
+      "content": "mission"
+    },
+    {
+      "timestamp_ms": 4501.609,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4514.242,
+      "content": " packets"
+    },
+    {
+      "timestamp_ms": 4514.458,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4514.603,
+      "content": " Pack"
+    },
+    {
+      "timestamp_ms": 4514.672,
+      "content": "ets"
+    },
+    {
+      "timestamp_ms": 4516.468,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4603.996,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4604.267,
+      "content": " delivered"
+    },
+    {
+      "timestamp_ms": 4604.407,
+      "content": " out"
+    },
+    {
+      "timestamp_ms": 4604.505,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4614.106,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 4705.931,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4706.126,
+      "content": " duplicated"
+    },
+    {
+      "timestamp_ms": 4706.261,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4706.356,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 4710.227,
+      "content": " lost"
+    },
+    {
+      "timestamp_ms": 4740.828,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 4746.512,
+      "content": " any"
+    },
+    {
+      "timestamp_ms": 4766.696,
+      "content": " notification"
+    },
+    {
+      "timestamp_ms": 4784.27,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4911.148,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 4911.346,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4911.462,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4911.551,
+      "content": "Flow"
+    },
+    {
+      "timestamp_ms": 4911.617,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 4911.669,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4915.905,
+      "content": " Cong"
+    },
+    {
+      "timestamp_ms": 5013.506,
+      "content": "estion"
+    },
+    {
+      "timestamp_ms": 5013.67,
+      "content": " Control"
+    },
+    {
+      "timestamp_ms": 5013.807,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5013.921,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5017.541,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5032.026,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5076.169,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5078.223,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 5089.581,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5116.456,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5126.799,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 5189.042,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 5189.176,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 5189.241,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5201.692,
+      "content": " congestion"
+    },
+    {
+      "timestamp_ms": 5222.144,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 5321.167,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 5321.321,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5321.408,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 5321.478,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 5321.537,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 5339.892,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 5355.695,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5400.009,
+      "content": " sliding"
+    },
+    {
+      "timestamp_ms": 5400.26,
+      "content": " window"
+    },
+    {
+      "timestamp_ms": 5413.397,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 5526.732,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5526.981,
+      "content": " slow"
+    },
+    {
+      "timestamp_ms": 5527.197,
+      "content": " start"
+    },
+    {
+      "timestamp_ms": 5527.355,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5527.505,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5527.787,
+      "content": " congestion"
+    },
+    {
+      "timestamp_ms": 5545.589,
+      "content": " avoidance"
+    },
+    {
+      "timestamp_ms": 5573.092,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5591.381,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 5607.848,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5638.635,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 5646.431,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5660.422,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5729.697,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 5729.901,
+      "content": " avoid"
+    },
+    {
+      "timestamp_ms": 5729.994,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 5739.722,
+      "content": " congestion"
+    },
+    {
+      "timestamp_ms": 5756.713,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5839.664,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5839.813,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5839.89,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5848.305,
+      "content": "UDP"
+    },
+    {
+      "timestamp_ms": 5855.0,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 5869.933,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 5906.552,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 5908.226,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 6038.023,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 6038.191,
+      "content": " flow"
+    },
+    {
+      "timestamp_ms": 6038.262,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 6038.322,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 6038.374,
+      "content": " congestion"
+    },
+    {
+      "timestamp_ms": 6038.422,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 6044.524,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 6059.744,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6242.455,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6242.596,
+      "content": " leaves"
+    },
+    {
+      "timestamp_ms": 6242.658,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 6242.714,
+      "content": " responsibilities"
+    },
+    {
+      "timestamp_ms": 6242.772,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6242.821,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6242.874,
+      "content": " application"
+    },
+    {
+      "timestamp_ms": 6242.918,
+      "content": " layer"
+    },
+    {
+      "timestamp_ms": 6242.961,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 6251.076,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 6344.794,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6345.043,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 6345.203,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6345.402,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6346.209,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 6395.976,
+      "content": " Checking"
+    },
+    {
+      "timestamp_ms": 6396.108,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6406.711,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6424.762,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6459.318,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6467.478,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6485.274,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 6507.011,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 6522.635,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6539.424,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 6555.303,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 6574.545,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 6603.063,
+      "content": "-check"
+    },
+    {
+      "timestamp_ms": 6624.376,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 6634.634,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 6754.365,
+      "content": " checksum"
+    },
+    {
+      "timestamp_ms": 6757.69,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 6757.981,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 6758.296,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6758.486,
+      "content": " segment"
+    },
+    {
+      "timestamp_ms": 6760.546,
+      "content": " level"
+    },
+    {
+      "timestamp_ms": 6771.061,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6786.736,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 6858.778,
+      "content": " errors"
+    },
+    {
+      "timestamp_ms": 6858.942,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6858.942,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6959.387,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6959.387,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 6959.648,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6959.648,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6973.83,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6979.734,
+      "content": "UDP"
+    },
+    {
+      "timestamp_ms": 7061.586,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7061.874,
+      "content": " While"
+    },
+    {
+      "timestamp_ms": 7062.076,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 7062.191,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 7062.271,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7070.808,
+      "content": " checksum"
+    },
+    {
+      "timestamp_ms": 7164.207,
+      "content": " option"
+    },
+    {
+      "timestamp_ms": 7164.417,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7164.51,
+      "content": "which"
+    },
+    {
+      "timestamp_ms": 7164.581,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7171.018,
+      "content": " optional"
+    },
+    {
+      "timestamp_ms": 7189.816,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 7204.022,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7224.126,
+      "content": " mandatory"
+    },
+    {
+      "timestamp_ms": 7255.508,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 7286.918,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 7287.1,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 7368.78,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 7379.159,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7379.388,
+      "content": " commonly"
+    },
+    {
+      "timestamp_ms": 7379.504,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 7379.572,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 7474.818,
+      "content": " protocols"
+    },
+    {
+      "timestamp_ms": 7474.987,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 7475.052,
+      "content": " prioritize"
+    },
+    {
+      "timestamp_ms": 7475.112,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 7491.457,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 7498.439,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 7511.871,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7575.157,
+      "content": "e"
+    },
+    {
+      "timestamp_ms": 7575.791,
+      "content": ".g"
+    },
+    {
+      "timestamp_ms": 7575.925,
+      "content": ".,"
+    },
+    {
+      "timestamp_ms": 7589.069,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 7676.363,
+      "content": ").\n\n"
+    },
+    {
+      "timestamp_ms": 7676.528,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 7676.597,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7676.666,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7684.024,
+      "content": "Over"
+    },
+    {
+      "timestamp_ms": 7783.212,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 7879.72,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7879.72,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7879.72,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7879.72,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7879.72,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7879.72,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 7879.72,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 7879.904,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 7983.359,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 7983.518,
+      "content": " higher"
+    },
+    {
+      "timestamp_ms": 7983.518,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 7983.598,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 7983.656,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7983.706,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7989.497,
+      "content": " extensive"
+    },
+    {
+      "timestamp_ms": 8011.519,
+      "content": " error"
+    },
+    {
+      "timestamp_ms": 8030.527,
+      "content": "-check"
+    },
+    {
+      "timestamp_ms": 8085.467,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 8085.639,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8085.728,
+      "content": " acknowled"
+    },
+    {
+      "timestamp_ms": 8188.042,
+      "content": "gments"
+    },
+    {
+      "timestamp_ms": 8188.24,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8188.423,
+      "content": " sequence"
+    },
+    {
+      "timestamp_ms": 8188.494,
+      "content": " numbering"
+    },
+    {
+      "timestamp_ms": 8188.55,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8203.054,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8290.352,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8290.534,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 8290.632,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 8290.711,
+      "content": " needed"
+    },
+    {
+      "timestamp_ms": 8291.268,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8392.922,
+      "content": " reliable"
+    },
+    {
+      "timestamp_ms": 8393.114,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8393.185,
+      "content": " transfer"
+    },
+    {
+      "timestamp_ms": 8393.239,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 8394.758,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8407.676,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8495.415,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8497.422,
+      "content": "UDP"
+    },
+    {
+      "timestamp_ms": 8497.571,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 8497.656,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 8502.426,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 8597.556,
+      "content": " lower"
+    },
+    {
+      "timestamp_ms": 8597.754,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 8597.823,
+      "content": ";"
+    },
+    {
+      "timestamp_ms": 8597.892,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 8597.947,
+      "content": " makes"
+    },
+    {
+      "timestamp_ms": 8662.042,
+      "content": " UDP"
+    },
+    {
+      "timestamp_ms": 8662.289,
+      "content": " faster"
+    },
+    {
+      "timestamp_ms": 8670.624,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8673.221,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8695.596,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 8741.655,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8741.933,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 8749.65,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 8803.622,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 8803.908,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8805.178,
+      "content": " quick"
+    },
+    {
+      "timestamp_ms": 8905.225,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 8905.434,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8905.53,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8905.611,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8905.684,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 9007.27,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 9007.433,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 9007.664,
+      "content": " perfect"
+    },
+    {
+      "timestamp_ms": 9007.803,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 9007.906,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9022.456,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 9109.836,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9110.027,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9110.115,
+      "content": "Use"
+    },
+    {
+      "timestamp_ms": 9115.857,
+      "content": " Cases"
+    },
+    {
+      "timestamp_ms": 9212.482,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9224.542,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9224.685,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9224.75,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9224.804,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9224.85,
+      "content": "TCP"
+    },
+    {
+      "timestamp_ms": 9224.895,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9314.335,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 9314.483,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9314.57,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9314.632,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 9321.089,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 9416.824,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9417.044,
+      "content": " ordered"
+    },
+    {
+      "timestamp_ms": 9417.207,
+      "content": " delivery"
+    },
+    {
+      "timestamp_ms": 9417.318,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9420.527,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 9519.011,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9519.155,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 9519.225,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 9519.283,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 9532.17,
+      "content": " HTTP"
+    },
+    {
+      "timestamp_ms": 9538.173,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9558.166,
+      "content": " FTP"
+    },
+    {
+      "timestamp_ms": 9572.179,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9594.29,
+      "content": " SMTP"
+    },
+    {
+      "timestamp_ms": 9608.127,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9632.846,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9724.028,
+      "content": " database"
+    },
+    {
+      "timestamp_ms": 9724.167,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 9724.23,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9724.283,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9724.968,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9826.405,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9826.594,
+      "content": "UDP"
+    },
+    {
+      "timestamp_ms": 9826.731,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 9826.838,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 9826.91,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9841.903,
+      "content": " suited"
+    },
+    {
+      "timestamp_ms": 9888.828,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 9892.849,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 9901.354,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 10017.565,
+      "content": " speed"
+    },
+    {
+      "timestamp_ms": 10017.821,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10017.934,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 10017.988,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 10018.036,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 10018.085,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 10033.877,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10052.051,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 10052.051,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10052.051,
+      "type": "done"
+    }
+  ],
+  "full_response": "TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) are both transport layer protocols used for sending data over a network, but they differ in several key ways, accommodating different use cases based on their characteristics. Here’s an overview of the differences:\n\n1. **Connection-Oriented vs. Connectionless**:\n   - **TCP**: It is connection-oriented. This means that a connection is established and maintained until the application programs at each end have finished exchanging messages. TCP uses a three-way handshake to initiate a connection.\n   - **UDP**: It is connectionless. UDP does not establish a connection before sending data, nor does it assure the delivery of that data. This makes it faster because it skips steps like handshake and acknowledgment processes.\n\n2. **Reliability**:\n   - **TCP**: It provides reliable data transfer. TCP ensures that packets are delivered in the correct order and are re-sent if lost. It uses acknowledgments and sequences numbers to achieve this.\n   - **UDP**: It does not provide reliability. There is no mechanism for retransmission of packets. Packets can be delivered out of order, duplicated, or lost without any notification.\n\n3. **Flow Control and Congestion Control**:\n   - **TCP**: It provides flow control and congestion control mechanisms. TCP uses algorithms such as sliding window protocol, slow start, and congestion avoidance to manage the flow of data and avoid network congestion.\n   - **UDP**: It does not provide flow control or congestion control mechanisms. It leaves these responsibilities to the application layer if needed.\n\n4. **Error Checking**:\n   - **TCP**: It provides robust error-checking using checksums at the segment level to detect errors in the data.\n   - **UDP**: While UDP includes a checksum option (which is optional compared to mandatory in TCP), it is commonly used for protocols that prioritize speed over reliability (e.g., DNS).\n\n5. **Overhead**:\n   - **TCP**: It has higher overhead due to its extensive error-checking, acknowledgments, sequence numbering, and other control information needed for reliable data transfer.\n   - **UDP**: It has lower overhead; this makes UDP faster and more efficient for certain services where the quick delivery of data is more critical than perfect delivery.\n\n6. **Use Cases**:\n   - **TCP**: It is used where reliability and ordered delivery are crucial, such as in HTTP, FTP, SMTP, and database access.\n   - **UDP**: It is suited for applications where speed is more critical than reliability, such",
+  "response_chars": 2547,
+  "num_chunks": 512,
+  "ttft_ms": 351.112,
+  "total_ms": 10052.519,
+  "model_name": "model-medium"
+}

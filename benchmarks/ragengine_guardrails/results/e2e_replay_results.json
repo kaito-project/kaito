@@ -1,0 +1,144 @@
+{
+  "metadata": {
+    "traces_dir": "benchmarks/ragengine_guardrails/traces/mistral-large",
+    "num_traces": 95
+  },
+  "no_guardrails": {
+    "policy": "none",
+    "latency_ms": {
+      "p50": 0.045,
+      "p95": 0.05,
+      "p99": 0.058,
+      "mean": 0.044
+    },
+    "ttft_ms": {
+      "p50": 0.002,
+      "p95": 0.005,
+      "p99": 0.013,
+      "mean": 0.003
+    },
+    "blocked_count": 0,
+    "total_traces": 95,
+    "per_category": {
+      "clean": {
+        "latency_ms": {
+          "p50": 0.045,
+          "p95": 0.05,
+          "p99": 0.056,
+          "mean": 0.045
+        },
+        "count": 50
+      },
+      "pii": {
+        "latency_ms": {
+          "p50": 0.045,
+          "p95": 0.058,
+          "p99": 0.058,
+          "mean": 0.043
+        },
+        "count": 20
+      },
+      "secrets": {
+        "latency_ms": {
+          "p50": 0.043,
+          "p95": 0.05,
+          "p99": 0.055,
+          "mean": 0.044
+        },
+        "count": 25
+      }
+    }
+  },
+  "block_only": {
+    "policy": "block_only.yaml",
+    "latency_ms": {
+      "p50": 5.546,
+      "p95": 6.529,
+      "p99": 7.585,
+      "mean": 5.472
+    },
+    "ttft_ms": {
+      "p50": 0.308,
+      "p95": 0.39,
+      "p99": 0.488,
+      "mean": 0.312
+    },
+    "blocked_count": 0,
+    "total_traces": 95,
+    "per_category": {
+      "clean": {
+        "latency_ms": {
+          "p50": 5.574,
+          "p95": 6.38,
+          "p99": 7.585,
+          "mean": 5.59
+        },
+        "count": 50
+      },
+      "pii": {
+        "latency_ms": {
+          "p50": 5.441,
+          "p95": 6.711,
+          "p99": 6.711,
+          "mean": 5.268
+        },
+        "count": 20
+      },
+      "secrets": {
+        "latency_ms": {
+          "p50": 5.543,
+          "p95": 6.163,
+          "p99": 6.72,
+          "mean": 5.402
+        },
+        "count": 25
+      }
+    }
+  },
+  "redact_block": {
+    "policy": "redact_block.yaml",
+    "latency_ms": {
+      "p50": 25.8,
+      "p95": 32.125,
+      "p99": 38.641,
+      "mean": 25.814
+    },
+    "ttft_ms": {
+      "p50": 0.512,
+      "p95": 0.737,
+      "p99": 0.87,
+      "mean": 0.537
+    },
+    "blocked_count": 0,
+    "total_traces": 95,
+    "per_category": {
+      "clean": {
+        "latency_ms": {
+          "p50": 26.242,
+          "p95": 31.714,
+          "p99": 33.134,
+          "mean": 26.47
+        },
+        "count": 50
+      },
+      "pii": {
+        "latency_ms": {
+          "p50": 25.819,
+          "p95": 32.444,
+          "p99": 32.444,
+          "mean": 24.665
+        },
+        "count": 20
+      },
+      "secrets": {
+        "latency_ms": {
+          "p50": 24.848,
+          "p95": 35.629,
+          "p99": 38.641,
+          "mean": 25.42
+        },
+        "count": 25
+      }
+    }
+  }
+}

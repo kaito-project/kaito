@@ -1,0 +1,2071 @@
+{
+  "index": 145,
+  "prompt": "Describe the benefits and challenges of edge computing.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 335.183,
+      "content": "Edge"
+    },
+    {
+      "timestamp_ms": 335.312,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 335.373,
+      "content": " refers"
+    },
+    {
+      "timestamp_ms": 344.641,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 404.835,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 405.087,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 418.016,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 418.398,
+      "content": " occurs"
+    },
+    {
+      "timestamp_ms": 447.288,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 599.881,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 600.149,
+      "content": " near"
+    },
+    {
+      "timestamp_ms": 600.263,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 600.343,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 600.408,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 600.465,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 600.519,
+      "content": " generation"
+    },
+    {
+      "timestamp_ms": 600.57,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 679.034,
+      "content": " rather"
+    },
+    {
+      "timestamp_ms": 679.199,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 679.264,
+      "content": " relying"
+    },
+    {
+      "timestamp_ms": 679.323,
+      "content": " exclusively"
+    },
+    {
+      "timestamp_ms": 688.308,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 744.925,
+      "content": " centralized"
+    },
+    {
+      "timestamp_ms": 745.09,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 745.155,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1018.901,
+      "content": " centers"
+    },
+    {
+      "timestamp_ms": 1019.065,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1019.176,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 1019.257,
+      "content": " approach"
+    },
+    {
+      "timestamp_ms": 1019.318,
+      "content": " offers"
+    },
+    {
+      "timestamp_ms": 1019.368,
+      "content": " several"
+    },
+    {
+      "timestamp_ms": 1027.319,
+      "content": " benefits"
+    },
+    {
+      "timestamp_ms": 1027.433,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1027.51,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 1027.583,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1027.652,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 1027.724,
+      "content": " Benefits"
+    },
+    {
+      "timestamp_ms": 1027.79,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1027.839,
+      "content": " Edge"
+    },
+    {
+      "timestamp_ms": 1082.249,
+      "content": " Computing"
+    },
+    {
+      "timestamp_ms": 1082.249,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 1082.415,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1358.641,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1358.964,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1359.135,
+      "content": "Reduc"
+    },
+    {
+      "timestamp_ms": 1359.267,
+      "content": "ed"
+    },
+    {
+      "timestamp_ms": 1359.382,
+      "content": " Lat"
+    },
+    {
+      "timestamp_ms": 1359.446,
+      "content": "ency"
+    },
+    {
+      "timestamp_ms": 1359.492,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1359.537,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1365.684,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1365.801,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1365.863,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 1365.919,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 1365.967,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1366.012,
+      "content": " closer"
+    },
+    {
+      "timestamp_ms": 1366.054,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1378.798,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 1389.611,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1723.215,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1723.402,
+      "content": " generated"
+    },
+    {
+      "timestamp_ms": 1723.482,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1723.542,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 1723.595,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 1723.644,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 1723.693,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 1729.848,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1730.097,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 1730.261,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 1730.323,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 1730.37,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1730.414,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1730.456,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1730.499,
+      "content": " travel"
+    },
+    {
+      "timestamp_ms": 1730.544,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 1730.587,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1731.959,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 1767.908,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1774.814,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 2064.005,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2064.183,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 2064.263,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 2064.371,
+      "content": " real"
+    },
+    {
+      "timestamp_ms": 2064.465,
+      "content": "-time"
+    },
+    {
+      "timestamp_ms": 2064.544,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 2064.61,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 2071.151,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2071.268,
+      "content": " autonomous"
+    },
+    {
+      "timestamp_ms": 2071.268,
+      "content": " vehicles"
+    },
+    {
+      "timestamp_ms": 2071.268,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2071.268,
+      "content": " industrial"
+    },
+    {
+      "timestamp_ms": 2071.268,
+      "content": " IoT"
+    },
+    {
+      "timestamp_ms": 2071.268,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2071.268,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2439.987,
+      "content": " AR"
+    },
+    {
+      "timestamp_ms": 2440.156,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 2440.455,
+      "content": "VR"
+    },
+    {
+      "timestamp_ms": 2440.604,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2440.753,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 2440.91,
+      "content": " quick"
+    },
+    {
+      "timestamp_ms": 2441.054,
+      "content": " decision"
+    },
+    {
+      "timestamp_ms": 2441.177,
+      "content": "-making"
+    },
+    {
+      "timestamp_ms": 2441.268,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2441.401,
+      "content": " essential"
+    },
+    {
+      "timestamp_ms": 2441.491,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 2441.567,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2441.633,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2441.694,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2441.752,
+      "content": "Band"
+    },
+    {
+      "timestamp_ms": 2441.812,
+      "content": "width"
+    },
+    {
+      "timestamp_ms": 2441.869,
+      "content": " Efficiency"
+    },
+    {
+      "timestamp_ms": 2441.928,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 2441.989,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2442.044,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 2459.293,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 2479.723,
+      "content": " Edge"
+    },
+    {
+      "timestamp_ms": 2499.296,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 2521.086,
+      "content": " decreases"
+    },
+    {
+      "timestamp_ms": 2534.922,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2553.758,
+      "content": " amount"
+    },
+    {
+      "timestamp_ms": 2588.144,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2590.064,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2609.994,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2628.894,
+      "content": " needs"
+    },
+    {
+      "timestamp_ms": 2653.36,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2668.011,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 2690.189,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 2705.223,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2782.701,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2782.924,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 2782.998,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2783.052,
+      "content": " filtering"
+    },
+    {
+      "timestamp_ms": 2843.822,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2844.012,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 2844.087,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2859.602,
+      "content": " locally"
+    },
+    {
+      "timestamp_ms": 2881.008,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3034.362,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3034.566,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 3034.714,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3034.875,
+      "content": " burden"
+    },
+    {
+      "timestamp_ms": 3035.001,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3035.427,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3054.11,
+      "content": " bandwidth"
+    },
+    {
+      "timestamp_ms": 3054.379,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3065.261,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3069.836,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3091.673,
+      "content": " save"
+    },
+    {
+      "timestamp_ms": 3107.876,
+      "content": " costs"
+    },
+    {
+      "timestamp_ms": 3379.073,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3379.259,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 3379.327,
+      "content": " performance"
+    },
+    {
+      "timestamp_ms": 3379.382,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3379.444,
+      "content": " especially"
+    },
+    {
+      "timestamp_ms": 3379.494,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3379.538,
+      "content": " areas"
+    },
+    {
+      "timestamp_ms": 3379.585,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3379.63,
+      "content": " limited"
+    },
+    {
+      "timestamp_ms": 3379.673,
+      "content": " connectivity"
+    },
+    {
+      "timestamp_ms": 3379.717,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3379.761,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3379.931,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3379.989,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3389.781,
+      "content": "Enh"
+    },
+    {
+      "timestamp_ms": 3418.415,
+      "content": "anced"
+    },
+    {
+      "timestamp_ms": 3429.074,
+      "content": " Privacy"
+    },
+    {
+      "timestamp_ms": 3606.89,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3607.069,
+      "content": " Security"
+    },
+    {
+      "timestamp_ms": 3607.162,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 3607.23,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3607.291,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3615.654,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3615.81,
+      "content": " Data"
+    },
+    {
+      "timestamp_ms": 3615.881,
+      "content": " processed"
+    },
+    {
+      "timestamp_ms": 3615.934,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 3620.65,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3976.326,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 3980.484,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3980.629,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 3980.709,
+      "content": " exposed"
+    },
+    {
+      "timestamp_ms": 3980.778,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3980.837,
+      "content": " risks"
+    },
+    {
+      "timestamp_ms": 3980.895,
+      "content": " associated"
+    },
+    {
+      "timestamp_ms": 3980.95,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3981.006,
+      "content": " transmitting"
+    },
+    {
+      "timestamp_ms": 3981.189,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3981.264,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 3981.326,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3981.383,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3981.437,
+      "content": " centralized"
+    },
+    {
+      "timestamp_ms": 3981.493,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 3981.562,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3981.617,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3981.672,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 3981.726,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 4136.46,
+      "content": " helps"
+    },
+    {
+      "timestamp_ms": 4136.594,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4136.658,
+      "content": " ensure"
+    },
+    {
+      "timestamp_ms": 4136.71,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4136.757,
+      "content": " privacy"
+    },
+    {
+      "timestamp_ms": 4136.801,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4136.847,
+      "content": " reduces"
+    },
+    {
+      "timestamp_ms": 4141.404,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4153.586,
+      "content": " risk"
+    },
+    {
+      "timestamp_ms": 4282.771,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4282.914,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 4282.979,
+      "content": " breaches"
+    },
+    {
+      "timestamp_ms": 4283.031,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4283.08,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 4294.087,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 4294.087,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 4305.051,
+      "content": " does"
+    },
+    {
+      "timestamp_ms": 4342.901,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4592.422,
+      "content": " need"
+    },
+    {
+      "timestamp_ms": 4592.422,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4592.621,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 4592.862,
+      "content": " sent"
+    },
+    {
+      "timestamp_ms": 4592.928,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 4592.979,
+      "content": " potentially"
+    },
+    {
+      "timestamp_ms": 4593.027,
+      "content": " insecure"
+    },
+    {
+      "timestamp_ms": 4593.07,
+      "content": " networks"
+    },
+    {
+      "timestamp_ms": 4593.112,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 4593.153,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4593.196,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4593.239,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 4593.281,
+      "content": "Improved"
+    },
+    {
+      "timestamp_ms": 4593.323,
+      "content": " Rel"
+    },
+    {
+      "timestamp_ms": 4637.55,
+      "content": "iability"
+    },
+    {
+      "timestamp_ms": 4637.717,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 4652.532,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 4667.522,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4697.43,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 4709.524,
+      "content": " Edge"
+    },
+    {
+      "timestamp_ms": 4830.827,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 4831.021,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 4831.114,
+      "content": " offer"
+    },
+    {
+      "timestamp_ms": 4831.184,
+      "content": " higher"
+    },
+    {
+      "timestamp_ms": 4831.259,
+      "content": " resilience"
+    },
+    {
+      "timestamp_ms": 4831.331,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4845.636,
+      "content": " reliability"
+    },
+    {
+      "timestamp_ms": 4858.556,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4894.432,
+      "content": " With"
+    },
+    {
+      "timestamp_ms": 4904.606,
+      "content": " localized"
+    },
+    {
+      "timestamp_ms": 5205.952,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 5206.243,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 5206.391,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5206.512,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 5206.617,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5206.715,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5206.813,
+      "content": " continue"
+    },
+    {
+      "timestamp_ms": 5221.681,
+      "content": " functioning"
+    },
+    {
+      "timestamp_ms": 5221.909,
+      "content": " even"
+    },
+    {
+      "timestamp_ms": 5222.039,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5222.203,
+      "content": " connectivity"
+    },
+    {
+      "timestamp_ms": 5222.495,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5222.591,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5222.663,
+      "content": " central"
+    },
+    {
+      "timestamp_ms": 5222.735,
+      "content": " cloud"
+    },
+    {
+      "timestamp_ms": 5222.802,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5275.325,
+      "content": " lost"
+    },
+    {
+      "timestamp_ms": 5277.446,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5277.589,
+      "content": " making"
+    },
+    {
+      "timestamp_ms": 5289.945,
+      "content": " them"
+    },
+    {
+      "timestamp_ms": 5324.272,
+      "content": " suitable"
+    },
+    {
+      "timestamp_ms": 5324.272,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5333.741,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 5357.699,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 5538.831,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5538.985,
+      "content": " cannot"
+    },
+    {
+      "timestamp_ms": 5539.065,
+      "content": " tolerate"
+    },
+    {
+      "timestamp_ms": 5539.188,
+      "content": " downtime"
+    },
+    {
+      "timestamp_ms": 5539.282,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5539.359,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5539.517,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5539.634,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5539.735,
+      "content": "Sc"
+    },
+    {
+      "timestamp_ms": 5547.88,
+      "content": "al"
+    },
+    {
+      "timestamp_ms": 5611.334,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 5611.492,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5611.598,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5660.257,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5660.596,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5662.423,
+      "content": " By"
+    },
+    {
+      "timestamp_ms": 5679.78,
+      "content": " distributing"
+    },
+    {
+      "timestamp_ms": 5699.407,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 5762.617,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 5762.761,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 5762.817,
+      "content": " numerous"
+    },
+    {
+      "timestamp_ms": 5773.734,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 5907.706,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 5907.859,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5907.908,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5907.953,
+      "content": " infrastructure"
+    },
+    {
+      "timestamp_ms": 5907.992,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5908.031,
+      "content": " scale"
+    },
+    {
+      "timestamp_ms": 5911.38,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 5933.114,
+      "content": " seamlessly"
+    },
+    {
+      "timestamp_ms": 5948.019,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5963.235,
+      "content": " New"
+    },
+    {
+      "timestamp_ms": 6264.627,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 6264.802,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6264.884,
+      "content": " join"
+    },
+    {
+      "timestamp_ms": 6264.949,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6265.007,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 6265.062,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6265.115,
+      "content": " overwhelming"
+    },
+    {
+      "timestamp_ms": 6265.169,
+      "content": " central"
+    },
+    {
+      "timestamp_ms": 6265.222,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 6265.272,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6265.559,
+      "content": " allowing"
+    },
+    {
+      "timestamp_ms": 6265.657,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6265.72,
+      "content": " expansion"
+    },
+    {
+      "timestamp_ms": 6265.773,
+      "content": " without"
+    },
+    {
+      "timestamp_ms": 6265.887,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6278.494,
+      "content": " proportional"
+    },
+    {
+      "timestamp_ms": 6302.874,
+      "content": " increase"
+    },
+    {
+      "timestamp_ms": 6308.196,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6382.681,
+      "content": " central"
+    },
+    {
+      "timestamp_ms": 6382.829,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 6382.971,
+      "content": " demands"
+    },
+    {
+      "timestamp_ms": 6387.677,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6409.264,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 6574.487,
+      "content": " Challenges"
+    },
+    {
+      "timestamp_ms": 6574.487,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6574.679,
+      "content": " Edge"
+    },
+    {
+      "timestamp_ms": 6574.763,
+      "content": " Computing"
+    },
+    {
+      "timestamp_ms": 6581.219,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 6581.513,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 6581.78,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": "Complex"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " decentralized"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6906.671,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 6906.968,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 6907.065,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6907.136,
+      "content": " comp"
+    },
+    {
+      "timestamp_ms": 6907.201,
+      "content": "licate"
+    },
+    {
+      "timestamp_ms": 6912.614,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 6920.096,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6942.654,
+      "content": " monitoring"
+    },
+    {
+      "timestamp_ms": 6957.162,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7034.467,
+      "content": " Deploy"
+    },
+    {
+      "timestamp_ms": 7034.636,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 7034.716,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7040.297,
+      "content": " maintaining"
+    },
+    {
+      "timestamp_ms": 7067.659,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7083.704,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7115.779,
+      "content": " updating"
+    },
+    {
+      "timestamp_ms": 7115.936,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 7174.101,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 7174.101,
+      "content": " across"
+    },
+    {
+      "timestamp_ms": 7174.32,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 7189.136,
+      "content": " locations"
+    },
+    {
+      "timestamp_ms": 7377.525,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 7377.525,
+      "content": " sophisticated"
+    },
+    {
+      "timestamp_ms": 7377.812,
+      "content": " tools"
+    },
+    {
+      "timestamp_ms": 7377.812,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7377.964,
+      "content": " strategies"
+    },
+    {
+      "timestamp_ms": 7378.138,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 7378.292,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 7378.376,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7378.441,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7535.759,
+      "content": "Limited"
+    },
+    {
+      "timestamp_ms": 7535.759,
+      "content": " Resources"
+    },
+    {
+      "timestamp_ms": 7535.992,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 7536.348,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7536.49,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7536.605,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 7536.682,
+      "content": " Edge"
+    },
+    {
+      "timestamp_ms": 7536.828,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 7536.961,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 7549.606,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 7585.274,
+      "content": " constrained"
+    },
+    {
+      "timestamp_ms": 7589.117,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 7608.152,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 7622.554,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7700.809,
+      "content": " centralized"
+    },
+    {
+      "timestamp_ms": 7700.951,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 7701.017,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7701.073,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 7822.38,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7822.553,
+      "content": " limit"
+    },
+    {
+      "timestamp_ms": 7822.633,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 7822.695,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 7822.746,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 7822.794,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7836.929,
+      "content": " storage"
+    },
+    {
+      "timestamp_ms": 7861.281,
+      "content": " capacity"
+    },
+    {
+      "timestamp_ms": 7873.228,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7900.935,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7933.597,
+      "content": " computational"
+    },
+    {
+      "timestamp_ms": 7933.872,
+      "content": " capabilities"
+    },
+    {
+      "timestamp_ms": 8004.747,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8005.011,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 8005.196,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 8017.145,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 8077.827,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 8077.999,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 8078.079,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 8089.089,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8220.237,
+      "content": " suitable"
+    },
+    {
+      "timestamp_ms": 8220.439,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8220.601,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 8220.768,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 8220.875,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 8220.99,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 8221.214,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8235.037,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8255.96,
+      "content": "Security"
+    },
+    {
+      "timestamp_ms": 8467.732,
+      "content": " Concern"
+    },
+    {
+      "timestamp_ms": 8467.937,
+      "content": "s"
+    },
+    {
+      "timestamp_ms": 8468.081,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 8468.165,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8473.946,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8474.094,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8474.165,
+      "content": " Although"
+    },
+    {
+      "timestamp_ms": 8474.223,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 8474.28,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 8474.33,
+      "content": " closer"
+    },
+    {
+      "timestamp_ms": 8474.382,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8482.92,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 8500.421,
+      "content": " source"
+    },
+    {
+      "timestamp_ms": 8529.588,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 8538.699,
+      "content": " enhance"
+    },
+    {
+      "timestamp_ms": 8557.737,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8578.989,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8630.13,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8630.348,
+      "content": " distributed"
+    },
+    {
+      "timestamp_ms": 8634.193,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 8693.03,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8693.301,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 8693.467,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 8709.78,
+      "content": " introduces"
+    },
+    {
+      "timestamp_ms": 8962.404,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 8972.702,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 8972.978,
+      "content": " challenges"
+    },
+    {
+      "timestamp_ms": 8973.063,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8973.291,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 8973.372,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 8973.431,
+      "content": " device"
+    },
+    {
+      "timestamp_ms": 8973.485,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 8973.537,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8973.584,
+      "content": " potential"
+    },
+    {
+      "timestamp_ms": 8973.628,
+      "content": " target"
+    },
+    {
+      "timestamp_ms": 8979.047,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8979.16,
+      "content": " attacks"
+    },
+    {
+      "timestamp_ms": 8979.237,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8997.586,
+      "content": " necess"
+    },
+    {
+      "timestamp_ms": 9014.497,
+      "content": "itating"
+    },
+    {
+      "timestamp_ms": 9035.674,
+      "content": " robust"
+    },
+    {
+      "timestamp_ms": 9133.138,
+      "content": " security"
+    },
+    {
+      "timestamp_ms": 9133.321,
+      "content": " measures"
+    },
+    {
+      "timestamp_ms": 9133.408,
+      "content": " including"
+    },
+    {
+      "timestamp_ms": 9133.473,
+      "content": " encryption"
+    },
+    {
+      "timestamp_ms": 9141.635,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9157.032,
+      "content": " regular"
+    },
+    {
+      "timestamp_ms": 9175.271,
+      "content": " updates"
+    },
+    {
+      "timestamp_ms": 9192.575,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9346.724,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9346.853,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9346.916,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9346.97,
+      "content": "Integration"
+    },
+    {
+      "timestamp_ms": 9347.028,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9347.077,
+      "content": " Compatibility"
+    },
+    {
+      "timestamp_ms": 9348.45,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 9348.45,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 9359.104,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9386.53,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9399.367,
+      "content": " Integr"
+    },
+    {
+      "timestamp_ms": 9449.14,
+      "content": "ating"
+    },
+    {
+      "timestamp_ms": 9449.382,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 9453.777,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 9477.617,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 9493.618,
+      "content": " existing"
+    },
+    {
+      "timestamp_ms": 9717.621,
+      "content": " IT"
+    },
+    {
+      "timestamp_ms": 9717.789,
+      "content": " infra"
+    },
+    {
+      "timestamp_ms": 9717.876,
+      "content": "structures"
+    },
+    {
+      "timestamp_ms": 9717.952,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9718.021,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 9718.087,
+      "content": " compatibility"
+    },
+    {
+      "timestamp_ms": 9718.156,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 9722.772,
+      "content": " edge"
+    },
+    {
+      "timestamp_ms": 9722.981,
+      "content": " devices"
+    },
+    {
+      "timestamp_ms": 9723.105,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9723.158,
+      "content": " legacy"
+    },
+    {
+      "timestamp_ms": 9723.208,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 9778.623,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9784.395,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 9784.395,
+      "content": " challenging"
+    },
+    {
+      "timestamp_ms": 9800.128,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9859.926,
+      "content": " Compatibility"
+    },
+    {
+      "timestamp_ms": 9860.158,
+      "content": " issues"
+    },
+    {
+      "timestamp_ms": 9860.247,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 9873.484,
+      "content": " arise"
+    },
+    {
+      "timestamp_ms": 10096.812,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 10097.069,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10097.284,
+      "content": " differing"
+    },
+    {
+      "timestamp_ms": 10097.443,
+      "content": " hardware"
+    },
+    {
+      "timestamp_ms": 10097.575,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10097.716,
+      "content": " software"
+    },
+    {
+      "timestamp_ms": 10098.157,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10098.308,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10098.308,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10098.308,
+      "type": "done"
+    }
+  ],
+  "full_response": "Edge computing refers to data processing that occurs at or near the source of data generation, rather than relying exclusively on centralized cloud data centers. This approach offers several benefits and challenges:\n\n### Benefits of Edge Computing\n\n1. **Reduced Latency**:\n   - By processing data closer to where it is generated, edge computing significantly reduces the time it takes for data to travel across the network. This is crucial for real-time applications such as autonomous vehicles, industrial IoT, and AR/VR, where quick decision-making is essential.\n\n2. **Bandwidth Efficiency**:\n   - Edge computing decreases the amount of data that needs to be sent to the cloud by filtering and processing it locally. This reduces the burden on network bandwidth, which can save costs and enhance performance, especially in areas with limited connectivity.\n\n3. **Enhanced Privacy and Security**:\n   - Data processed at the edge is less exposed to risks associated with transmitting and storing it on centralized servers. This local processing helps to ensure data privacy and reduces the risk of data breaches, as sensitive information does not need to be sent over potentially insecure networks.\n\n4. **Improved Reliability**:\n   - Edge computing can offer higher resilience and reliability. With localized data processing, edge systems can continue functioning even if connectivity to the central cloud is lost, making them suitable for critical applications that cannot tolerate downtime.\n\n5. **Scalability**:\n   - By distributing computing tasks across numerous edge devices, the infrastructure can scale more seamlessly. New devices can join the network without overwhelming central resources, allowing for expansion without a proportional increase in central processing demands.\n\n### Challenges of Edge Computing\n\n1. **Complexity in Management**:\n   - The decentralized nature of edge computing can complicate management and monitoring. Deploying, maintaining, and updating edge devices across various locations require sophisticated tools and strategies.\n\n2. **Limited Resources**:\n   - Edge devices typically have constrained resources compared to centralized servers, which can limit their processing power, storage capacity, and computational capabilities. This means that not all tasks are suitable for edge computing.\n\n3. **Security Concerns**:\n   - Although processing data closer to its source can enhance security, the distributed nature of edge computing introduces new security challenges. Each edge device becomes a potential target for attacks, necessitating robust security measures including encryption and regular updates.\n\n4. **Integration and Compatibility**:\n   - Integrating edge computing with existing IT infrastructures and ensuring compatibility between edge devices and legacy systems can be challenging. Compatibility issues can arise due to differing hardware, software, and",
+  "response_chars": 2907,
+  "num_chunks": 512,
+  "ttft_ms": 335.183,
+  "total_ms": 10098.763,
+  "model_name": "model-medium"
+}

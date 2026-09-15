@@ -1,0 +1,847 @@
+{
+  "index": 69,
+  "prompt": "What are microservices and what are the trade-offs compared to monolithic architecture?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 708.764,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " **Mic"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": "roservices Architecture"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": "**\nMicroservices"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " is an"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " architectural style"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " structures"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " application as a collection"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": " of **lo"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": "osely coupled"
+    },
+    {
+      "timestamp_ms": 708.764,
+      "content": ", independently"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " deployable services**."
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " Each service:\n"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": "- Has"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " **single responsibility"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": "** (e.g"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": "., user"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " authentication, payment"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " processing,"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " inventory"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " management).\n- Runs"
+    },
+    {
+      "timestamp_ms": 1083.059,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " its own"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " **process** and"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " communicates via"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " **well"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": "-defined APIs** ("
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": "REST"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": ", g"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": "RPC, message"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " queues).\n- Can"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " be **developed"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " deployed, and scaled"
+    },
+    {
+      "timestamp_ms": 1427.844,
+      "content": " independently"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": "**.\n"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": "- May"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " use **different"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " technologies** (lang"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": "uages, databases)"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " based on needs"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": ".\n\n####"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " **Key Characteristics"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": "✔"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " **Dec"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": "entralized** –"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " Teams"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 1850.734,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "-to-end.\n"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "✔ **Res"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "ilient**"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " – Failure"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " one service doesn’t"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " crash"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " the whole system.\n"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "✔ **"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "Scalable** –"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " Services"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": " be scaled independently.\n"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "✔ **"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "E"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "vol"
+    },
+    {
+      "timestamp_ms": 2673.077,
+      "content": "vable** – E"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": "asier to update"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": " replace individual"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": " services.\n"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": "✔ **Te"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": "chnology Diversity"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": "** – Different"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": " services can use different"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": " stacks"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": ".\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 2701.901,
+      "content": "Monolithic Architecture**\n"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": "A mon"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": "olith"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": " is a **single"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": ", unified"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": "** where"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": " all"
+    },
+    {
+      "timestamp_ms": 3041.752,
+      "content": " components ("
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": "UI"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": ", business"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": " logic"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": ", database"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": ") are tightly"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": " coupled and"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": " deployed"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": " together"
+    },
+    {
+      "timestamp_ms": 3233.889,
+      "content": ".\n\n#### **Key"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " Characteristics**\n"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": "✔ **Simple"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " develop"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " deploy** (init"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": "ially).\n"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": "✔ **E"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": "asier debugging"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " &"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " testing** (single"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " codebase"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": ").\n✔"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " **Performance"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": "** – In"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": "-process"
+    },
+    {
+      "timestamp_ms": 3851.432,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " faster than network"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " calls.\n"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": "✔ **Cons"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": "istent tech"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " stack** – No"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " need to"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " manage multiple languages"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": "/framework"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": "s.\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " **Trade"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": "-offs:"
+    },
+    {
+      "timestamp_ms": 3921.799,
+      "content": " Microservices vs"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": ". Monolith"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": "**\n\n| **Factor"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": "**               | **"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": "Microservices**"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": " | **Mon"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": "olith"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": "** |\n"
+    },
+    {
+      "timestamp_ms": 4127.345,
+      "content": "|------------------------"
+    },
+    {
+      "timestamp_ms": 4189.37,
+      "content": "--|------------------"
+    },
+    {
+      "timestamp_ms": 4189.37,
+      "content": "|------------"
+    },
+    {
+      "timestamp_ms": 4189.37,
+      "content": "-|\n| **"
+    },
+    {
+      "timestamp_ms": 4189.37,
+      "content": "Development Speed"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": "**   "
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": " | Sl"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": "ower (dist"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": "ributed complexity"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": ") | F"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": "aster (sim"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": "pler setup"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": ") |\n| **"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": "Scalability**         "
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": " | High (scale"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": " what’s"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": " needed) | Limited"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": " (scale"
+    },
+    {
+      "timestamp_ms": 4613.076,
+      "content": " entire app) |\n"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": "| **Deployment"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": "**           | Independent"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": " (CI/CD per"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": " service) | Single"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": " (sl"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": "ower releases"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": ") |\n| **"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": "Fault Isolation"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": "**     "
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": " | High (fail"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": "ures are"
+    },
+    {
+      "timestamp_ms": 5064.526,
+      "content": " contained"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": ") | Low"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " (one"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " bug"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " crash everything"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": ") |\n| **"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": "Te"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": "chnology Flex"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": "ibility** | High"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " (poly"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": "glot"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " persistence"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": ") | Low"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " (single"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " stack) |\n|"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": " **Performance"
+    },
+    {
+      "timestamp_ms": 5460.692,
+      "content": "**         "
+    },
+    {
+      "timestamp_ms": 5477.759,
+      "content": " | Lower"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": " (network latency,"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": " serialization"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": ") | Higher ("
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "in-memory"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": " calls"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": ") |\n| **"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "Testing"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "             "
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": " | Complex (dist"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "ributed testing"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": ") | Sim"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "pler (unit"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5821.677,
+      "content": "integration tests) |\n"
+    },
+    {
+      "timestamp_ms": 5884.925,
+      "content": "| **Oper"
+    },
+    {
+      "timestamp_ms": 5884.925,
+      "content": "ational Over"
+    },
+    {
+      "timestamp_ms": 5884.925,
+      "content": "head"
+    },
+    {
+      "timestamp_ms": 5884.925,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 5936.459,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **Microservices Architecture**\nMicroservices is an architectural style that structures an application as a collection of **loosely coupled, independently deployable services**. Each service:\n- Has a **single responsibility** (e.g., user authentication, payment processing, inventory management).\n- Runs in its own **process** and communicates via **well-defined APIs** (REST, gRPC, message queues).\n- Can be **developed, deployed, and scaled independently**.\n- May use **different technologies** (languages, databases) based on needs.\n\n#### **Key Characteristics**\n✔ **Decentralized** – Teams own services end-to-end.\n✔ **Resilient** – Failure in one service doesn’t crash the whole system.\n✔ **Scalable** – Services can be scaled independently.\n✔ **Evolvable** – Easier to update or replace individual services.\n✔ **Technology Diversity** – Different services can use different stacks.\n\n---\n\n### **Monolithic Architecture**\nA monolith is a **single, unified codebase** where all components (UI, business logic, database) are tightly coupled and deployed together.\n\n#### **Key Characteristics**\n✔ **Simple to develop & deploy** (initially).\n✔ **Easier debugging & testing** (single codebase).\n✔ **Performance** – In-process communication is faster than network calls.\n✔ **Consistent tech stack** – No need to manage multiple languages/frameworks.\n\n---\n\n### **Trade-offs: Microservices vs. Monolith**\n\n| **Factor**               | **Microservices** | **Monolith** |\n|--------------------------|------------------|-------------|\n| **Development Speed**    | Slower (distributed complexity) | Faster (simpler setup) |\n| **Scalability**          | High (scale only what’s needed) | Limited (scale entire app) |\n| **Deployment**           | Independent (CI/CD per service) | Single unit (slower releases) |\n| **Fault Isolation**      | High (failures are contained) | Low (one bug can crash everything) |\n| **Technology Flexibility** | High (polyglot persistence) | Low (single stack) |\n| **Performance**          | Lower (network latency, serialization) | Higher (in-memory calls) |\n| **Testing**              | Complex (distributed testing) | Simpler (unit/integration tests) |\n| **Operational Overhead",
+  "response_chars": 2203,
+  "num_chunks": 206,
+  "ttft_ms": 708.764,
+  "total_ms": 6009.062,
+  "model_name": "Mistral-Large-3"
+}

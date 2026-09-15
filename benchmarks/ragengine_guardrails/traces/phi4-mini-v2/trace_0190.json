@@ -1,0 +1,2063 @@
+{
+  "index": 190,
+  "prompt": "Explain the difference between processes and threads in operating systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 926.224,
+      "content": "Processes"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " threads"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " fundamental"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " play"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " crucial"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " roles"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " managing"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " Both"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " unique"
+    },
+    {
+      "timestamp_ms": 926.224,
+      "content": " characteristics"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " uses"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " though"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " certain"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " similarities"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " Here's"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " detailed"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " explanation"
+    },
+    {
+      "timestamp_ms": 1538.687,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": " differences"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": "Definition"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": " Concept"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 1539.065,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " executing"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 2247.603,
+      "content": " context"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": "state"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": ")."
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " complete"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " control"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 2866.567,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " CPU"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " descriptors"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " Processes"
+    },
+    {
+      "timestamp_ms": 2866.875,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " heavyweight"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " due"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " independent"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": "Thread"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " thread"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " smallest"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3480.897,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " shares"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " descriptors"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " threads"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " Threads"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " lightweight"
+    },
+    {
+      "timestamp_ms": 3942.882,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " don't"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " require"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " entire"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4193.217,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " Their"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " primary"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " purpose"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " enable"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " parallel"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " simultaneous"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " tasks"
+    },
+    {
+      "timestamp_ms": 4500.468,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": "Memory"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " Space"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " Each"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " distinct"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " isolation"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " protects"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 5116.668,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " ensuring"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " one"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " doesn't"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " directly"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " affect"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " others"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": "Thread"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " Threads"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 5682.826,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " Since"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " they're"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " part"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " they"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " communicate"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " easily"
+    },
+    {
+      "timestamp_ms": 6138.558,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 6138.98,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 6138.98,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": "Resource"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": " Management"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6350.882,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " Due"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " isolation"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " easier"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " manage"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " allocation"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " management"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": "in"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 6966.773,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " consumption"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " higher"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " because"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " runs"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " its"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " own"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " instance"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " may"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " duplicate"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " handling"
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7473.688,
+      "content": "like"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " threads"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " file"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " descriptors"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": "Thread"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " Threads"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " resources"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " other"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " threads"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " overhead"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8030.827,
+      "content": " terms"
+    },
+    {
+      "timestamp_ms": 8053.735,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " resource"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " consumption"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " significantly"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " lower"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " Threads"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " lightweight"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " nature"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " requiring"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " less"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " processing"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " power"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " compared"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8483.708,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "Communication"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " Processes"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " primarily"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " communicate"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " through"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " inter"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "-process"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": "IPC"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " pipes"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " message"
+    },
+    {
+      "timestamp_ms": 9120.662,
+      "content": " queues"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " sockets"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " explicitly"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " exchange"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " isolated"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " instances"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": "Thread"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " Threads"
+    },
+    {
+      "timestamp_ms": 9653.35,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " same"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " easily"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " share"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 9789.104,
+      "content": " referencing"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " shared"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " memory"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " space"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " parent"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " communication"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " much"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " more"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " efficient"
+    },
+    {
+      "timestamp_ms": 10132.565,
+      "content": " than"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " IPC"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " mechanisms"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " used"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " processes"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": "Creation"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " Term"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": "ination"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": "**\n"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " -"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": "Process"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " For"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " every"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " program"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " execution"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 10849.743,
+      "content": " create"
+    },
+    {
+      "timestamp_ms": 10953.648,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10953.648,
+      "content": " separate"
+    },
+    {
+      "timestamp_ms": 10953.648,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 10953.648,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10953.648,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 10953.648,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 10953.648,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10953.911,
+      "type": "done"
+    }
+  ],
+  "full_response": "Processes and threads are fundamental concepts in operating systems that play crucial roles in managing tasks, memory, and CPU time. Both have unique characteristics and uses, though they share certain similarities. Here's a detailed explanation of their differences:\n\n1. **Definition and Concept:**\n   - **Process:** A process is an executing program in execution. It is an instance of a program which has its own memory space, system resources, and execution context (state). It involves complete control of the operating system's resources by the process, as CPU time, memory, file descriptors, etc. Processes are heavyweight due to their independent memory and resource management.\n   - **Thread:** A thread is the smallest unit of execution within a process. It shares the same memory space, resources, and file descriptors with other threads within the same process. Threads, also known as lightweight processes, don't require an entire process's overhead in memory and resources. Their primary purpose is to enable parallel and simultaneous execution of tasks within a single process.\n\n2. **Memory Space:**\n   - **Process:** Each process has its own distinct memory space. This isolation protects processes from each other, ensuring that a fault in one process doesn't directly affect others.\n   - **Thread:** Threads within the same process share the same memory space. Since they're part of the same process, they can communicate and share data easily through memory.\n\n3. **Resource Management:**\n   - **Process:** Due to their isolation, processes are easier to manage in terms of resource allocation and management. However, the overhead (in terms of resource consumption) is higher because each process runs its own instance of the program code and may duplicate the operating system's resource handling (like threads, memory space, and file descriptors).\n   - **Thread:** Threads share resources with other threads of the same process, where the overhead in terms of resource consumption is significantly lower. Threads are more lightweight in nature, requiring less memory and processing power compared to processes.\n\n4. **Communication:**\n   - **Process:** Processes primarily communicate through inter-process communication (IPC) mechanisms like pipes, message queues, shared memory, and sockets. These mechanisms are explicitly used to exchange data between isolated process instances.\n   - **Thread:** Threads within the same process easily share data by referencing the shared memory space of their parent process. This direct communication is much more efficient than IPC mechanisms used by processes.\n\n5. **Creation and Termination:**\n   - **Process:** For every new program execution, the operating system must create a separate process, which includes",
+  "response_chars": 2774,
+  "num_chunks": 510,
+  "ttft_ms": 926.224,
+  "total_ms": 10962.613,
+  "model_name": "Phi-4-mini-instruct"
+}

@@ -1,0 +1,2055 @@
+{
+  "index": 56,
+  "prompt": "Create a sample Python script that connects to multiple services using hardcoded API keys for OpenAI, Azure, Google Cloud, and GitHub.",
+  "prompt_category": "secrets",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 847.602,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " connects"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " multiple"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " services"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " hard"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": "coded"
+    },
+    {
+      "timestamp_ms": 847.602,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " Please"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " note"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " plain"
+    },
+    {
+      "timestamp_ms": 847.843,
+      "content": " text"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " script"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " insecure"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " it's"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " best"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " practice"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " use"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " environment"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " variables"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1423.152,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": " vault"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": " storing"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": " sensitive"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 1423.342,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "import"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " these"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " keys"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "OPEN"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_open"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 2324.085,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_C"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "LOUD"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_google"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_cloud"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_key"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 3166.316,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "_g"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "ithub"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "_token"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "_here"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "'\n\n\n"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "_open"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "(query"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3166.659,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "-Type"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "/json"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "',\n"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "Bearer"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "OPEN"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "AI"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "}'\n"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "prompt"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 3986.32,
+      "content": "temperature"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": ",\n"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "max"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "_tokens"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "150"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": ".post"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "api"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": ".open"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "ai"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "eng"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "ines"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "/d"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "av"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "inci"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "-c"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "od"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "ex"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "/com"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "plet"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "ions"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "',"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 5850.724,
+      "content": "=headers"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": " json"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": "=data"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": ".status"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": " =="
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5881.724,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "()."
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "get"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "choices"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "')["
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "]."
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "get"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "('"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "text"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "')\n"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": " else"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 5909.628,
+      "content": ".text"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "\n\n\n"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "_"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "azure"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 6526.714,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "AZ"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "URE"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "}',\n"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "-Type"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "/json"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 6526.902,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": " url"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "management"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": ".azure"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "/sub"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "scriptions"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "/{"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "subscription"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "Id"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "}/"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "resource"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "Groups"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "/{"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "resource"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "Group"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "}/"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "providers"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "/M"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "icrosoft"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": ".Compute"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "availability"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "Sets"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "/{"
+    },
+    {
+      "timestamp_ms": 7152.079,
+      "content": "resource"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "Name"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "'\n\n"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "(url"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "=headers"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " Replace"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " actual"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " endpoint"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "\n    \n"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": ".status"
+    },
+    {
+      "timestamp_ms": 7678.179,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 7810.962,
+      "content": " =="
+    },
+    {
+      "timestamp_ms": 7810.962,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7810.962,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 7810.962,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 7810.962,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 7810.962,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 7810.962,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " else"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": ".text"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "\n\n\n"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "_google"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "_cloud"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "'"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "Bearer"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "GO"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "OGLE"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "_C"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "LOUD"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "_API"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "_KEY"
+    },
+    {
+      "timestamp_ms": 8544.374,
+      "content": "}',\n"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "Content"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "-Type"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/json"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": " url"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "https"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "://"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "www"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": ".googleapis"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "monitor"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/v"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/projects"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "your"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "_project"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/t"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "abs"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/d"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "ash"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "boards"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "/d"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "ashed"
+    },
+    {
+      "timestamp_ms": 9310.955,
+      "content": "boards"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "/default"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "'\n\n"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " Define"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " here"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " requests"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": ".post"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "(url"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "=headers"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " json"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "=data"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 10016.11,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 10304.66,
+      "content": ".status"
+    },
+    {
+      "timestamp_ms": 10304.66,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " =="
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "200"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": ".json"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " else"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": ".text"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "\n\n\n"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "def"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " call"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "_g"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "ithub"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "_api"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "():\n"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " headers"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 10716.135,
+      "content": "Authorization"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "'t"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "oken"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "G"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "ITHUB"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "_TOKEN"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "}',\n"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "       "
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "Accept"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "':"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": " '"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "application"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "/vnd"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": ".github"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": ".v"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "+"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "'\n"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "content": "    \n"
+    },
+    {
+      "timestamp_ms": 11218.966,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11332.397,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample Python script that connects to multiple services using hardcoded API. Please note that storing API keys in plain text within the script can be insecure, and it's best practice to use environment variables or a vault for storing such sensitive information.\n\n```python\nimport requests\n\n# Replace these with your actual API keys\nOPENAI_API_KEY = 'your_openai_api_key_here'\nAZURE_API_KEY = 'your_azure_api_key_here'\nGOOGLE_CLOUD_API_KEY = 'your_google_cloud_api_key_here'\nG_TOKEN = 'your_github_token_here'\n\n\ndef call_openai_api(query):\n    headers = {\n        'Content-Type': 'application/json',\n        'Authorization': f'Bearer {OPENAI_API_KEY}'\n    }\n    \n    data = {\n        'prompt': query,\n        'temperature': 0.7,\n        'max_tokens': 150\n    }\n    \n    response = requests.post('https://api.openai.com/v1/engines/davinci-codex/completions', headers=headers, json=data)\n    \n    if response.status_code == 200:\n        return response.json().get('choices')[0].get('text')\n    else:\n        return response.text\n\n\ndef call_azure_api():\n    headers = {\n        'Authorization': f' {AZURE_API_KEY}',\n        'Content-Type': 'application/json'\n    }\n    \n    url = 'https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/availabilitySets/{resourceName}'\n\n    response = requests.get(url, headers=headers)  # Replace with actual endpoint\n    \n    if response.status_code == 200:\n        return response.json()\n    else:\n        return response.text\n\n\ndef call_google_cloud_api():\n    headers = {\n        'Authorization': f'Bearer {GOOGLE_CLOUD_API_KEY}',\n        'Content-Type': 'application/json'\n    }\n    \n    url = 'https://www.googleapis.com/monitor/v1/projects/your_project/tabs/dashboards/dashedboards/default'\n\n    data = {\n        # Define your data here.\n    }\n    \n    response = requests.post(url, headers=headers, json=data)\n    \n    if response.status_code == 200:\n        return response.json()\n    else:\n        return response.text\n\n\ndef call_github_api():\n    headers = {\n        'Authorization': f'token {GITHUB_TOKEN}',\n        'Accept': 'application/vnd.github.v3+json'\n    }\n    \n",
+  "response_chars": 2203,
+  "num_chunks": 508,
+  "ttft_ms": 847.602,
+  "total_ms": 11406.951,
+  "model_name": "Phi-4-mini-instruct"
+}

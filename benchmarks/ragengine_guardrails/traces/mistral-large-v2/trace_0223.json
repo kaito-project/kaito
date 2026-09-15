@@ -1,0 +1,791 @@
+{
+  "index": 223,
+  "prompt": "How do convolutional neural networks process image data?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1004.643,
+      "content": "Con"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": "volutional Neural Networks"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": " (CNNs"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": ") are a specialized"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": " type of neural"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": " network designed to process"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": " with a"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": " grid-like topology"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": ", such as images"
+    },
+    {
+      "timestamp_ms": 1004.643,
+      "content": ". Here"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": "’s a"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": " step-by-step breakdown"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": " of how CN"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": "Ns process image data"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": ":\n\n---\n\n### **"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": "1. Input Layer"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": "**\n- The"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": " CNN"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": " takes an image as"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": " input, typically represented"
+    },
+    {
+      "timestamp_ms": 1427.153,
+      "content": " as a 3"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": "D tensor"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " (height"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " × width × channels"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": ").\n  - For"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " example"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": ", an"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " RGB image of"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " size 2"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": "4×"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": "224 pixels"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " has dimensions"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": "224 ×"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " 224"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " × 3"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": "`.\n  - Gra"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": "yscale images have"
+    },
+    {
+      "timestamp_ms": 2155.43,
+      "content": " a single channel (`"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": "height"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": " × width × "
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": "1`).\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": " **2. Con"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": "volutional Layers"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": " (Feature"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": " Extraction)**\nThe"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": " core operation"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": " of CN"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": "Ns is the **"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": "convolution**,"
+    },
+    {
+      "timestamp_ms": 2744.023,
+      "content": " which applies filters"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": "kernels) to"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " extract"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " edges"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": ", textures"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": ", or"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " patterns.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": "Key"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " Steps:**\n-"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " **Filters"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": "/K"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": "ernels**: Small"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " matrices"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " 3×"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": "3 or"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": " 5"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": "×5"
+    },
+    {
+      "timestamp_ms": 3594.801,
+      "content": ") that slide"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " over the input image"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " detect"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": ".\n  - Each"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " filter produces"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " a **feature"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " map** (activation"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " map) by"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " computing"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " dot"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " products between"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " the filter"
+    },
+    {
+      "timestamp_ms": 4198.728,
+      "content": " and local"
+    },
+    {
+      "timestamp_ms": 4591.057,
+      "content": " regions"
+    },
+    {
+      "timestamp_ms": 4591.057,
+      "content": " of the input.\n"
+    },
+    {
+      "timestamp_ms": 4591.057,
+      "content": "  - Example"
+    },
+    {
+      "timestamp_ms": 4591.057,
+      "content": ": A 3"
+    },
+    {
+      "timestamp_ms": 4591.057,
+      "content": "×3 filter sliding"
+    },
+    {
+      "timestamp_ms": 4591.057,
+      "content": " over a 5"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": "×5"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": " image with"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": " stride "
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": "1 produces a "
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": "3×3 feature"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": " map.\n- **"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": "Stride**:"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": " size of"
+    },
+    {
+      "timestamp_ms": 4997.399,
+      "content": " the filter (e"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": ".g., stride"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": "=1 moves"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " filter"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " 1 pixel at"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " a time).\n-"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " **Padding"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": "**: Adding"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " zeros around"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " the input to control"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " the spatial"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " size of the output"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 5627.96,
+      "content": " \"same"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": " padding preserves dimensions"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": ").\n- **Non"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": "Linearity ("
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": "ReLU)**: After"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": " convolution"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": ", a non"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": "-linear"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": " activation function"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": " ReLU:"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": " `max(0"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": ", x"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": ")`) is applied"
+    },
+    {
+      "timestamp_ms": 6429.564,
+      "content": " to introduce"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": " non"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": "-linearity.\n\n####"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": " **Why"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": " Con"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": "volution?**\n-"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": "Local Connect"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": "ivity**: Each"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": " neuron connects"
+    },
+    {
+      "timestamp_ms": 6839.066,
+      "content": " only"
+    },
+    {
+      "timestamp_ms": 7019.649,
+      "content": " to a small region"
+    },
+    {
+      "timestamp_ms": 7019.649,
+      "content": " of the input ("
+    },
+    {
+      "timestamp_ms": 7019.649,
+      "content": "unlike fully"
+    },
+    {
+      "timestamp_ms": 7019.649,
+      "content": " connected layers),"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " reducing parameters"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": ".\n- **Parameter"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " Sharing"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": "**: The"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " same filter is"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " applied"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " across the"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " entire image, detecting"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " regardless of location"
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7561.311,
+      "content": "translation"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": " invariance).\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": "### **3."
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": " Pooling L"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": "ayers (Down"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": "sampling)**\nPool"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": "ing reduces the"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": " spatial dimensions of feature"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": " maps while"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": " retaining"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8173.24,
+      "content": " most important information"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": ".\n\n####"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": " **Common Pool"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": "ing Methods:**\n-"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": " **Max"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": " Pooling**: Takes"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": " the maximum value in"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": " a window (e"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": ".g., 2"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": "×2 max"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": " pooling with"
+    },
+    {
+      "timestamp_ms": 8500.754,
+      "content": " stride "
+    },
+    {
+      "timestamp_ms": 8501.125,
+      "content": "2 reduces dimensions"
+    },
+    {
+      "timestamp_ms": 8501.125,
+      "content": " by half"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "content": ").\n- **Average"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "content": " Pooling"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "content": "**: Takes"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "content": " the average value"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "content": " in a"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "content": " window.\n- **"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "content": "Purpose"
+    },
+    {
+      "timestamp_ms": 8997.092,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 9038.563,
+      "type": "done"
+    }
+  ],
+  "full_response": "Convolutional Neural Networks (CNNs) are a specialized type of neural network designed to process data with a grid-like topology, such as images. Here’s a step-by-step breakdown of how CNNs process image data:\n\n---\n\n### **1. Input Layer**\n- The CNN takes an image as input, typically represented as a 3D tensor (height × width × channels).\n  - For example, an RGB image of size 224×224 pixels has dimensions `224 × 224 × 3`.\n  - Grayscale images have a single channel (`height × width × 1`).\n\n---\n\n### **2. Convolutional Layers (Feature Extraction)**\nThe core operation of CNNs is the **convolution**, which applies filters (kernels) to extract features like edges, textures, or patterns.\n\n#### **Key Steps:**\n- **Filters/Kernels**: Small matrices (e.g., 3×3 or 5×5) that slide over the input image to detect features.\n  - Each filter produces a **feature map** (activation map) by computing dot products between the filter and local regions of the input.\n  - Example: A 3×3 filter sliding over a 5×5 image with stride 1 produces a 3×3 feature map.\n- **Stride**: The step size of the filter (e.g., stride=1 moves the filter 1 pixel at a time).\n- **Padding**: Adding zeros around the input to control the spatial size of the output (e.g., \"same\" padding preserves dimensions).\n- **Non-Linearity (ReLU)**: After convolution, a non-linear activation function (e.g., ReLU: `max(0, x)`) is applied to introduce non-linearity.\n\n#### **Why Convolution?**\n- **Local Connectivity**: Each neuron connects only to a small region of the input (unlike fully connected layers), reducing parameters.\n- **Parameter Sharing**: The same filter is applied across the entire image, detecting features regardless of location (translation invariance).\n\n---\n\n### **3. Pooling Layers (Downsampling)**\nPooling reduces the spatial dimensions of feature maps while retaining the most important information.\n\n#### **Common Pooling Methods:**\n- **Max Pooling**: Takes the maximum value in a window (e.g., 2×2 max pooling with stride 2 reduces dimensions by half).\n- **Average Pooling**: Takes the average value in a window.\n- **Purpose",
+  "response_chars": 2106,
+  "num_chunks": 192,
+  "ttft_ms": 1004.643,
+  "total_ms": 9038.926,
+  "model_name": "Mistral-Large-3"
+}

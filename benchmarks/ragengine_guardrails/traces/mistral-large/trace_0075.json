@@ -1,0 +1,883 @@
+{
+  "index": 75,
+  "prompt": "Explain how vector databases work and their role in semantic search.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 747.936,
+      "content": "###"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": " **How"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": " Vector Databases Work"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": "**\nVector databases are"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": " specialized databases"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": " designed to store"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": " index"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": ", and query **"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": "high-dimensional vector"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": " embed"
+    },
+    {
+      "timestamp_ms": 747.936,
+      "content": "dings**—"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "n"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "umerical representations of"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "e.g., text"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": ", images, audio"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": ") generated"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": " by machine"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": " learning models like"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": " **transform"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "ers, CN"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "Ns, or word"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "vec"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": "**. Unlike"
+    },
+    {
+      "timestamp_ms": 1177.295,
+      "content": " traditional databases"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " rely"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " on exact"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " matches ("
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": "e.g., SQL"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": "), vector"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " databases enable"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " **sem"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": "antic similarity search"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " by comparing"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 1586.961,
+      "content": " based on their mathematical"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " proximity in"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " a multi"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": "-dimensional space.\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": "### **Key Components"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " of Vector Dat"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": "abases**\n1."
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " **Vector"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " Embeddings**\n  "
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " - Data"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": "e.g., text"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": ", images) is"
+    },
+    {
+      "timestamp_ms": 1954.669,
+      "content": " converted into dense"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": " vectors using"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": " models"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": " like:\n"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "     - **Text"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "**:"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": " Sent"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "ence-B"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "ERT, Open"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "AI’s"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": " `"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "text-"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "embedding-"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "ada-"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "00"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "2`\n"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "     - **Images"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "**: Res"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "Net, CL"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "IP\n     -"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": " **Audio"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "**: VGG"
+    },
+    {
+      "timestamp_ms": 2648.054,
+      "content": "ish"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": ", Wav2"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": "Vec\n   -"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " Example: The"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " sentence *\"The cat"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " sits"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " on the mat"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": "\"* might"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " be encoded as a"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " 38"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": "4-dimensional vector.\n\n"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": "2. **Index"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": "ing for"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " Fast"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " Search**\n   -"
+    },
+    {
+      "timestamp_ms": 3062.972,
+      "content": " V"
+    },
+    {
+      "timestamp_ms": 3174.631,
+      "content": "ectors are stored"
+    },
+    {
+      "timestamp_ms": 3174.631,
+      "content": " in optimized"
+    },
+    {
+      "timestamp_ms": 3174.631,
+      "content": " indexes"
+    },
+    {
+      "timestamp_ms": 3174.631,
+      "content": " to enable"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": " sub"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": "-linear"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": " time."
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": " Common indexing"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": ":\n     - **"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": "Approximate Near"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": "est Neighbor (AN"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": "N)"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": " Al"
+    },
+    {
+      "timestamp_ms": 3526.835,
+      "content": "gorithms**:\n       -"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " **HNS"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "W ("
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "Hierarchical Nav"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "igable Small"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " World"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": ")**: Graph"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "-based, balances"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " speed/"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "accuracy.\n       -"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " **IV"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "F"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " (In"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "verted File"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " Index)**: Clusters"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " vectors"
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": " into \""
+    },
+    {
+      "timestamp_ms": 3918.42,
+      "content": "buck"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "ets\" for faster"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": " scanning"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": ".\n       - **"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "P"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "Q ("
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "Product Quantization)**:"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": " Compresses vectors"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": " reduce memory usage"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": ".\n      "
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": " - **LS"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "H"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": " (Local"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "-Sensitive Hash"
+    },
+    {
+      "timestamp_ms": 4487.85,
+      "content": "ing)**: Hash"
+    },
+    {
+      "timestamp_ms": 4504.149,
+      "content": "es similar"
+    },
+    {
+      "timestamp_ms": 4504.149,
+      "content": " vectors to the"
+    },
+    {
+      "timestamp_ms": 4504.149,
+      "content": " same \""
+    },
+    {
+      "timestamp_ms": 4504.149,
+      "content": "buckets.\"\n\n"
+    },
+    {
+      "timestamp_ms": 4504.149,
+      "content": "3. **Similar"
+    },
+    {
+      "timestamp_ms": 4504.149,
+      "content": "ity Metrics**\n"
+    },
+    {
+      "timestamp_ms": 4504.149,
+      "content": "   - V"
+    },
+    {
+      "timestamp_ms": 4575.08,
+      "content": "ectors are compared"
+    },
+    {
+      "timestamp_ms": 4575.08,
+      "content": " using distance"
+    },
+    {
+      "timestamp_ms": 4575.08,
+      "content": " metrics:\n"
+    },
+    {
+      "timestamp_ms": 4575.08,
+      "content": "     - **Cos"
+    },
+    {
+      "timestamp_ms": 4575.08,
+      "content": "ine Similar"
+    },
+    {
+      "timestamp_ms": 4575.08,
+      "content": "ity**: Measures the"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " angle between vectors ("
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": "common"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " text).\n     -"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " **Eu"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": "clidean Distance ("
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": "L2"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": ")**: Straight"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": "-line distance ("
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": "common"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " images).\n     -"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " **Dot"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": " Product**: Sc"
+    },
+    {
+      "timestamp_ms": 5112.819,
+      "content": "ales with"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " vector"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " magnitude ("
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": "used"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " in recommendation"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " systems"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": ").\n\n4"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": ". **Query Execution"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": "**\n   - A"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": "e.g., *\""
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " f"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": "eline resting"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " on a rug"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": "\""
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": "*) is converted into"
+    },
+    {
+      "timestamp_ms": 5607.45,
+      "content": " a vector.\n  "
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": " - The database"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": " retr"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": "ieves the"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": " **top"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": "-*"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": "k* most"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": " similar vectors** from"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": " the index"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": " using ANN"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": " search"
+    },
+    {
+      "timestamp_ms": 5951.108,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6053.89,
+      "content": "---\n\n### **Role"
+    },
+    {
+      "timestamp_ms": 6053.89,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6053.89,
+      "content": " Sem"
+    },
+    {
+      "timestamp_ms": 6053.89,
+      "content": "antic Search**\nSem"
+    },
+    {
+      "timestamp_ms": 6053.89,
+      "content": "antic search aims"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " to understand"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " **meaning"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " behind queries, not"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " just keyword"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " matches. Vector"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " databases enable"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": " this by:\n\n"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": "1. **C"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": "apturing Context"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "content": "ual"
+    },
+    {
+      "timestamp_ms": 6391.486,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 6503.872,
+      "type": "done"
+    }
+  ],
+  "full_response": "### **How Vector Databases Work**\nVector databases are specialized databases designed to store, index, and query **high-dimensional vector embeddings**—numerical representations of data (e.g., text, images, audio) generated by machine learning models like **transformers, CNNs, or word2vec**. Unlike traditional databases that rely on exact matches (e.g., SQL queries), vector databases enable **semantic similarity search** by comparing vectors based on their mathematical proximity in a multi-dimensional space.\n\n---\n\n### **Key Components of Vector Databases**\n1. **Vector Embeddings**\n   - Data (e.g., text, images) is converted into dense vectors using models like:\n     - **Text**: Sentence-BERT, OpenAI’s `text-embedding-ada-002`\n     - **Images**: ResNet, CLIP\n     - **Audio**: VGGish, Wav2Vec\n   - Example: The sentence *\"The cat sits on the mat\"* might be encoded as a 384-dimensional vector.\n\n2. **Indexing for Fast Search**\n   - Vectors are stored in optimized indexes to enable sub-linear search time. Common indexing methods:\n     - **Approximate Nearest Neighbor (ANN) Algorithms**:\n       - **HNSW (Hierarchical Navigable Small World)**: Graph-based, balances speed/accuracy.\n       - **IVF (Inverted File Index)**: Clusters vectors into \"buckets\" for faster scanning.\n       - **PQ (Product Quantization)**: Compresses vectors to reduce memory usage.\n       - **LSH (Locality-Sensitive Hashing)**: Hashes similar vectors to the same \"buckets.\"\n\n3. **Similarity Metrics**\n   - Vectors are compared using distance metrics:\n     - **Cosine Similarity**: Measures the angle between vectors (common for text).\n     - **Euclidean Distance (L2)**: Straight-line distance (common for images).\n     - **Dot Product**: Scales with vector magnitude (used in recommendation systems).\n\n4. **Query Execution**\n   - A query (e.g., *\"A feline resting on a rug\"*) is converted into a vector.\n   - The database retrieves the **top-*k* most similar vectors** from the index using ANN search.\n\n---\n\n### **Role in Semantic Search**\nSemantic search aims to understand the **meaning** behind queries, not just keyword matches. Vector databases enable this by:\n\n1. **Capturing Contextual",
+  "response_chars": 2180,
+  "num_chunks": 215,
+  "ttft_ms": 747.936,
+  "total_ms": 6578.629,
+  "model_name": "Mistral-Large-3"
+}

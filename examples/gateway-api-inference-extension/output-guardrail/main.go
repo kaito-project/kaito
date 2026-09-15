@@ -19,20 +19,29 @@ type processorServer struct {
 func (s *processorServer) Process(
 	stream v3.ExternalProcessor_ProcessServer,
 ) error {
+	log.Println("=== Process() called ===")
+	count := 0
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
+			log.Printf("Stream closed after %d messages", count)
 			return nil
 		}
 		if err != nil {
 			return fmt.Errorf("receive error: %w", err)
 		}
 
+		count++
+		log.Printf("[%d] Received request", count)
+
 		// Only process response_body messages (headers/trailers are SKIPped in EnvoyFilter config)
 		respBody := req.GetResponseBody()
 		if respBody == nil {
+			log.Printf("[%d] No response_body, skipping", count)
 			continue
 		}
+
+		log.Printf("[%d] Response body received, size=%d", count, len(respBody.GetBody()))
 
 		// Mutate: append " [GATEWAY_TEST]" to response body
 		body := respBody.GetBody()
@@ -52,6 +61,8 @@ func (s *processorServer) Process(
 				},
 			},
 		}
+
+		log.Printf("[%d] Sending response with modified body, new size=%d", count, len(modified))
 
 		// Send response back to Envoy
 		if err := stream.Send(resp); err != nil {

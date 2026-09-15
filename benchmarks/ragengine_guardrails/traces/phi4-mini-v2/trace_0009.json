@@ -1,0 +1,1623 @@
+{
+  "index": 9,
+  "prompt": "Describe how DNS resolution works when you type a URL in a browser.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1130.191,
+      "content": "DNS"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " critical"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " aspect"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " how"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " works"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " Here's"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": "-by"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": "-step"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " explanation"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " takes"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " place"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " when"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " type"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 1130.191,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": ":\n\n\n"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " When"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " enter"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " first"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " step"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " check"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " device"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " Internet"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 1759.622,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " Wi"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": "-Fi"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " Ethernet"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " communicate"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " built"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": "-in"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " resolver"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " contacts"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " operating"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " system"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " stack"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2569.847,
+      "content": " perform"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " query"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " configured"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 3146.793,
+      "content": " network"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " If"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " doesn't"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " find"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " within"
+    },
+    {
+      "timestamp_ms": 3159.972,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " local"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": "also"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " known"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": "DNS"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": "\"),"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " queries"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " typically"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " assigned"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " Internet"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " Service"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " Provider"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": "ISP"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " managed"
+    },
+    {
+      "timestamp_ms": 3765.228,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " organization"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": "4"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " router"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " connected"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " forwards"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " Root"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " Servers"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": "NS"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " not"
+    },
+    {
+      "timestamp_ms": 4512.189,
+      "content": " found"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " locally"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " authoritative"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " domains"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 4819.349,
+      "content": " responses"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " Information"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " about"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " Top"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": "-Level"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " Domain"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": "T"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": "LD"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " Servers"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 5121.311,
+      "content": "com"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": "net"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " ."
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": "org"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " etc"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": "5"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " passed"
+    },
+    {
+      "timestamp_ms": 5944.93,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " appropriate"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " T"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": "LD"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " These"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " servers"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " turn"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " authoritative"
+    },
+    {
+      "timestamp_ms": 5945.299,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " Servers"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " exact"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " question"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": "6"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " authoritative"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " Name"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " Servers"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " then"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " up"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " domain"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": "'s"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " mapping"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " specific"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " URL"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 6557.088,
+      "content": " trying"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " respond"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": "7"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " Your"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " now"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " has"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " IP"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " address"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " establish"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " TCP"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": "/IP"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " connection"
+    },
+    {
+      "timestamp_ms": 7167.206,
+      "content": " with"
+    },
+    {
+      "timestamp_ms": 7167.573,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7167.573,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7167.573,
+      "content": " where"
+    },
+    {
+      "timestamp_ms": 7167.573,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7167.573,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " requested"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " stored"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": "8"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " server"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": "es"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " request"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " requested"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " webpage"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " back"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " computer"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " over"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " Internet"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": "9"
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 7890.231,
+      "content": " Finally"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " your"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " web"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " browser"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " receives"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " HTML"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " content"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " renders"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " for"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " you"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": " view"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": ".\n\n\n"
+    },
+    {
+      "timestamp_ms": 8498.222,
+      "content": "A"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " technical"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " process"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " introduces"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " concepts"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " like"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 8506.353,
+      "content": " cache"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " poisoning"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": "fetch"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": "ing"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " look"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": "ups"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " at"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " various"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " protocol"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " levels"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " However"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " overview"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " captures"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " high"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": "-level"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " steps"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " occur"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " during"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " DNS"
+    },
+    {
+      "timestamp_ms": 9120.219,
+      "content": " resolution"
+    },
+    {
+      "timestamp_ms": 9120.709,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 9120.709,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 9226.896,
+      "type": "done"
+    }
+  ],
+  "full_response": "DNS resolution is a critical aspect of how the web works. Here's a step-by-step explanation of the process that takes place when you type a URL into your browser:\n\n\n1. When you enter the URL in the browser, the first step is to check if your device is connected to your local Internet connection, such as Wi-Fi or Ethernet, to communicate with the DNS.\n\n\n2. The browser has a built-in resolver, or it contacts your operating system's network stack, to perform the DNS query. This sends a request to a configured DNS server on your local network3. If the request doesn't find the DNS information within the local cache (also known as \"DNS cache\"), it queries your DNS server, which is typically assigned by your Internet Service Provider (ISP) or managed by your organization.\n\n\n4. The router you are connected to then receives this request and forwards it to the Root Name Servers (NS) if the DNS is not found locally. These servers are authoritative for the domains and provide responses with Information about the Top-Level Domain (TLD) Servers, such as .com, .net, .org, etc.\n\n\n5. Your request is then passed to appropriate TLD servers. These servers, in turn, direct the request to the authoritative Name Servers for the exact domain in question.\n\n\n6. The authoritative Name Servers then look up the domain's DNS mapping for the specific URL you are trying to access and respond with the IP address.\n\n\n7. Your computer now has the IP address and can establish a TCP/IP connection with the server where the content you requested is stored.\n\n\n8. The web server processes your request and sends the requested webpage back to your computer over the Internet.\n\n\n9. Finally, your web browser receives the HTML content and renders it for you to view.\n\n\nA technical look at this process introduces concepts like DNS cache poisoning, DNS prefetching, and DNS lookups at various protocol levels. However, this overview captures the high-level steps that occur during DNS resolution.",
+  "response_chars": 1976,
+  "num_chunks": 400,
+  "ttft_ms": 1130.191,
+  "total_ms": 9244.658,
+  "model_name": "Phi-4-mini-instruct"
+}

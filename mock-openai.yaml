@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mock-openai-server
+data:
+  server.py: |
+    from fastapi import FastAPI, Request
+    from fastapi.responses import JSONResponse, StreamingResponse
+    import json
+    import asyncio
+    import time
+
+    app = FastAPI()
+
+    def extract_reply(prompt: str) -> str:
+        markers = [
+            "Reply exactly with this single word:",
+            "Reply exactly with:"
+        ]
+        for marker in markers:
+            if marker in prompt:
+                return prompt.split(marker, 1)[1].strip()
+        if "blocked" in prompt:
+            return "This contains blocked_phrase and should be blocked."
+        return "This is a safe response."
+
+    @app.post("/v1/embeddings")
+    async def embeddings(req: Request):
+        body = await req.json()
+        return JSONResponse({
+            "object": "list",
+            "data": [{"object": "embedding", "index": 0, "embedding": [0.01, 0.02, 0.03, 0.04]}],
+            "model": body.get("model", "mock-embedding"),
+            "usage": {"prompt_tokens": 1, "total_tokens": 1}
+        })
+
+    @app.post("/v1/chat/completions")
+    async def chat(req: Request):
+        body = await req.json()
+        stream = body.get("stream", False)
+        model = body.get("model", "demo")
+        messages = body.get("messages", [])
+        prompt = " ".join([m.get("content", "") for m in messages])
+        content = extract_reply(prompt)
+
+        if stream:
+            async def gen():
+                # Keep split behavior for streaming boundary test.
+                if content == "SECRET_PROJECT" or content == "INTERNAL_ONLY":
+                    chunks = [content]
+                elif "blocked_phrase" in content:
+                    chunks = ["This contains blo", "cked_phrase", " and should be blocked."]
+                else:
+                    chunks = [content]
+
+                for ch in chunks:
+                    data = {
+                        "id": "chatcmpl-demo",
+                        "object": "chat.completion.chunk",
+                        "created": int(time.time()),
+                        "model": model,
+                        "choices": [{"delta": {"content": ch}, "index": 0, "finish_reason": None}]
+                    }
+                    yield "data: " + json.dumps(data) + "\n\n"
+                    await asyncio.sleep(0.1)
+
+                yield "data: [DONE]\n\n"
+
+            return StreamingResponse(gen(), media_type="text/event-stream")
+
+        return JSONResponse({
+            "id": "chatcmpl-demo",
+            "object": "chat.completion",
+            "created": int(time.time()),
+            "model": model,
+            "choices": [{
+                "index": 0,
+                "message": {"role": "assistant", "content": content},
+                "finish_reason": "stop"
+            }],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
+        })
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-openai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-openai
+  template:
+    metadata:
+      labels:
+        app: mock-openai
+    spec:
+      containers:
+        - name: mock-openai
+          image: python:3.11-slim
+          command: ["/bin/sh", "-c"]
+          args:
+            - pip install fastapi uvicorn && uvicorn server:app --host 0.0.0.0 --port 8000
+          workingDir: /app
+          volumeMounts:
+            - name: server
+              mountPath: /app
+      volumes:
+        - name: server
+          configMap:
+            name: mock-openai-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-openai
+spec:
+  selector:
+    app: mock-openai
+  ports:
+    - port: 8000
+      targetPort: 8000

@@ -1,0 +1,911 @@
+{
+  "index": 148,
+  "prompt": "Explain how consensus algorithms like Raft work in distributed systems.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1320.655,
+      "content": "Cons"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": "ensus algorithms are fundamental"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " distributed systems,"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " ensuring that multiple"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " nodes ("
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": "serv"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": "ers) agree"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " on a single"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " value"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " state, even in"
+    },
+    {
+      "timestamp_ms": 1320.655,
+      "content": " the presence of failures"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": "Raft** is"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " consensus"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " algorithm designed to"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " be easy"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " to understand while"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " providing"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " the same safety"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " fault"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": "-t"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": "olerance guarantees"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " as older"
+    },
+    {
+      "timestamp_ms": 2037.138,
+      "content": " algorithms"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " like **"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": "Paxos"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": "**."
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " Below is a breakdown"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " of how Raft"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " works:\n\n---\n\n###"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " **1. Core"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " Goals of Raft"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": "**\nRaft ensures"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " **S"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": "afety**: No"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " two"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " nodes"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " will"
+    },
+    {
+      "timestamp_ms": 2657.113,
+      "content": " ever disagree"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " on the state"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": "e.g., committed"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " logs).\n- **"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": "Availability"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": "**: The"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " system remains"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " operational as long as"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " a majority of nodes"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " are alive.\n"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": "- **Fault"
+    },
+    {
+      "timestamp_ms": 3085.702,
+      "content": " Tolerance**: The"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " system can tolerate"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " up to `"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": "f`"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " failures in"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " cluster"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " of `2f"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " + 1`"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " nodes (e.g"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": "., "
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": "3 nodes"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " can tolerate "
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": "1 failure).\n-"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": " **Consistency"
+    },
+    {
+      "timestamp_ms": 3645.108,
+      "content": "**: All nodes eventually"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " agree on the same"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " sequence of operations.\n\n"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": "---\n\n### **2"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": ". Key Concept"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": "s in"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " Raft**\n####"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " **A. Leader"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": "-Based"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " Cons"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": "ensus**\nRaft"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " divides"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " time"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": " into **"
+    },
+    {
+      "timestamp_ms": 4189.121,
+      "content": "terms** (log"
+    },
+    {
+      "timestamp_ms": 4510.283,
+      "content": "ical time"
+    },
+    {
+      "timestamp_ms": 4510.283,
+      "content": " periods) and elect"
+    },
+    {
+      "timestamp_ms": 4510.283,
+      "content": "s a"
+    },
+    {
+      "timestamp_ms": 4510.283,
+      "content": " **leader** for"
+    },
+    {
+      "timestamp_ms": 4510.283,
+      "content": " each term"
+    },
+    {
+      "timestamp_ms": 4510.283,
+      "content": ". The"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": " leader handles"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": " all client"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": " requests and replicates"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": " to followers"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": ". If"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 5007.151,
+      "content": " leader fails, a"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " new election"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " is held"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": ".\n\n#### **B"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": ". Roles"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " Nodes**\n-"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " **Leader"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": "**: Handles"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " all client"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " requests, replicates"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " logs"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " to followers"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": ", and commits"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 5621.704,
+      "content": "- **Follow"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": "er**: Pass"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": "ively receives"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " entries"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " from the leader"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " and responds"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " to requests"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": ".\n- **Candidate"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": "**: A"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " follower"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " starts"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " election to become a"
+    },
+    {
+      "timestamp_ms": 6338.949,
+      "content": " leader.\n\n"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": "#### **C."
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": " Log Re"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": "plication**\n- The"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": " leader app"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": "ends client"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": " commands to its"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": " log"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": " and replicates"
+    },
+    {
+      "timestamp_ms": 6619.514,
+      "content": " them to followers"
+    },
+    {
+      "timestamp_ms": 6924.266,
+      "content": ".\n- Once"
+    },
+    {
+      "timestamp_ms": 6924.266,
+      "content": " a majority"
+    },
+    {
+      "timestamp_ms": 6924.266,
+      "content": " of nodes"
+    },
+    {
+      "timestamp_ms": 6924.266,
+      "content": " acknowledge"
+    },
+    {
+      "timestamp_ms": 6924.266,
+      "content": " the entry"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": ", the leader"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": "commits** it"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": "ap"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": "plies it to the"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " state machine"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": "- Follow"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": "ers apply"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " committed"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " entries to"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " their state"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " machines in"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " order"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": ".\n\n#### **D"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": ". Terms"
+    },
+    {
+      "timestamp_ms": 7876.493,
+      "content": " and Elections"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "**\n- **Terms"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "**: Mon"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "oton"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "ically increasing numbers"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": " (like"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": " epochs"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": " that help detect"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": " stale"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": " leaders"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": ".\n- **E"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "lections"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "**:\n  "
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "1. A follower"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": " becomes"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": " a **candidate"
+    },
+    {
+      "timestamp_ms": 8396.931,
+      "content": "** if"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " it doesn"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": "’t hear"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " from"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " the leader within"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " a **random"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": "ized"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " election"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " timeout"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": "**.\n"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": "2. The"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " candidate requests"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " votes from"
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " other nodes.\n "
+    },
+    {
+      "timestamp_ms": 9001.283,
+      "content": " 3. If"
+    },
+    {
+      "timestamp_ms": 9039.506,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 9039.506,
+      "content": " receives votes"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " from a"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " majority, it"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " becomes the leader"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": ".\n  "
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": "4. The"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " leader sends"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": "heartbe"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": "ats** ("
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": "empty"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " Append"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": "Entries"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " RPC"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": "s) to maintain"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " authority"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": ".\n\n#### **E"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": ". Log"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": " Match"
+    },
+    {
+      "timestamp_ms": 9923.387,
+      "content": "ing Property"
+    },
+    {
+      "timestamp_ms": 10242.31,
+      "content": "**\nR"
+    },
+    {
+      "timestamp_ms": 10242.31,
+      "content": "aft ensures logs"
+    },
+    {
+      "timestamp_ms": 10242.31,
+      "content": " are **consistent"
+    },
+    {
+      "timestamp_ms": 10242.31,
+      "content": "** across"
+    },
+    {
+      "timestamp_ms": 10242.31,
+      "content": " nodes:\n"
+    },
+    {
+      "timestamp_ms": 10242.31,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 10434.632,
+      "type": "done"
+    }
+  ],
+  "full_response": "Consensus algorithms are fundamental in distributed systems, ensuring that multiple nodes (servers) agree on a single value or state, even in the presence of failures. **Raft** is a consensus algorithm designed to be easy to understand while providing the same safety and fault-tolerance guarantees as older algorithms like **Paxos**. Below is a breakdown of how Raft works:\n\n---\n\n### **1. Core Goals of Raft**\nRaft ensures:\n- **Safety**: No two nodes will ever disagree on the state (e.g., committed logs).\n- **Availability**: The system remains operational as long as a majority of nodes are alive.\n- **Fault Tolerance**: The system can tolerate up to `f` failures in a cluster of `2f + 1` nodes (e.g., 3 nodes can tolerate 1 failure).\n- **Consistency**: All nodes eventually agree on the same sequence of operations.\n\n---\n\n### **2. Key Concepts in Raft**\n#### **A. Leader-Based Consensus**\nRaft divides time into **terms** (logical time periods) and elects a **leader** for each term. The leader handles all client requests and replicates logs to followers. If the leader fails, a new election is held.\n\n#### **B. Roles of Nodes**\n- **Leader**: Handles all client requests, replicates logs to followers, and commits entries.\n- **Follower**: Passively receives log entries from the leader and responds to requests.\n- **Candidate**: A follower that starts an election to become a leader.\n\n#### **C. Log Replication**\n- The leader appends client commands to its log and replicates them to followers.\n- Once a majority of nodes acknowledge the entry, the leader **commits** it (applies it to the state machine).\n- Followers apply committed entries to their state machines in order.\n\n#### **D. Terms and Elections**\n- **Terms**: Monotonically increasing numbers (like epochs) that help detect stale leaders.\n- **Elections**:\n  1. A follower becomes a **candidate** if it doesn’t hear from the leader within a **randomized election timeout**.\n  2. The candidate requests votes from other nodes.\n  3. If it receives votes from a majority, it becomes the leader.\n  4. The leader sends **heartbeats** (empty AppendEntries RPCs) to maintain authority.\n\n#### **E. Log Matching Property**\nRaft ensures logs are **consistent** across nodes:\n",
+  "response_chars": 2231,
+  "num_chunks": 222,
+  "ttft_ms": 1320.655,
+  "total_ms": 10435.402,
+  "model_name": "Mistral-Large-3"
+}

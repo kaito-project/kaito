@@ -1,0 +1,655 @@
+{
+  "index": 8,
+  "prompt": "Write a sample API response that returns user profile data including name, email, phone, date_of_birth, and billing_address in JSON format.",
+  "prompt_category": "pii",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 328.969,
+      "content": "Certainly"
+    },
+    {
+      "timestamp_ms": 330.679,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 350.119,
+      "content": " Below"
+    },
+    {
+      "timestamp_ms": 368.832,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 388.84,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 407.267,
+      "content": " sample"
+    },
+    {
+      "timestamp_ms": 425.959,
+      "content": " JSON"
+    },
+    {
+      "timestamp_ms": 444.919,
+      "content": " API"
+    },
+    {
+      "timestamp_ms": 463.951,
+      "content": " response"
+    },
+    {
+      "timestamp_ms": 482.829,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 502.1,
+      "content": " includes"
+    },
+    {
+      "timestamp_ms": 521.283,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 540.43,
+      "content": " profile"
+    },
+    {
+      "timestamp_ms": 559.132,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 578.701,
+      "content": " such"
+    },
+    {
+      "timestamp_ms": 597.847,
+      "content": " as"
+    },
+    {
+      "timestamp_ms": 617.053,
+      "content": " name"
+    },
+    {
+      "timestamp_ms": 636.129,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 656.229,
+      "content": " email"
+    },
+    {
+      "timestamp_ms": 678.394,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 693.679,
+      "content": " phone"
+    },
+    {
+      "timestamp_ms": 711.769,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 731.17,
+      "content": " date"
+    },
+    {
+      "timestamp_ms": 749.932,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 768.956,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 788.147,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 807.212,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 826.275,
+      "content": " billing"
+    },
+    {
+      "timestamp_ms": 845.999,
+      "content": "_address"
+    },
+    {
+      "timestamp_ms": 868.092,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 884.863,
+      "content": "```"
+    },
+    {
+      "timestamp_ms": 903.458,
+      "content": "json"
+    },
+    {
+      "timestamp_ms": 921.918,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 949.727,
+      "content": "{\n"
+    },
+    {
+      "timestamp_ms": 962.024,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 978.802,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 998.86,
+      "content": "user"
+    },
+    {
+      "timestamp_ms": 1018.077,
+      "content": "Profile"
+    },
+    {
+      "timestamp_ms": 1035.713,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1054.908,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 1074.459,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1093.696,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1111.883,
+      "content": "name"
+    },
+    {
+      "timestamp_ms": 1131.53,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1157.458,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1180.036,
+      "content": "John"
+    },
+    {
+      "timestamp_ms": 1188.181,
+      "content": " Doe"
+    },
+    {
+      "timestamp_ms": 1211.553,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1226.053,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1245.346,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1265.019,
+      "content": "email"
+    },
+    {
+      "timestamp_ms": 1284.431,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1302.462,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1322.161,
+      "content": "john"
+    },
+    {
+      "timestamp_ms": 1342.626,
+      "content": ".d"
+    },
+    {
+      "timestamp_ms": 1360.412,
+      "content": "oe"
+    },
+    {
+      "timestamp_ms": 1378.877,
+      "content": "@example"
+    },
+    {
+      "timestamp_ms": 1507.471,
+      "content": ".com"
+    },
+    {
+      "timestamp_ms": 1507.66,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1507.742,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1507.805,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1507.899,
+      "content": "phone"
+    },
+    {
+      "timestamp_ms": 1507.996,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1512.083,
+      "content": " \"+"
+    },
+    {
+      "timestamp_ms": 1530.791,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 1550.384,
+      "content": "456"
+    },
+    {
+      "timestamp_ms": 1570.742,
+      "content": "789"
+    },
+    {
+      "timestamp_ms": 1587.757,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1606.936,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1626.733,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1645.676,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1665.775,
+      "content": "date"
+    },
+    {
+      "timestamp_ms": 1692.655,
+      "content": "_of"
+    },
+    {
+      "timestamp_ms": 1702.382,
+      "content": "_birth"
+    },
+    {
+      "timestamp_ms": 1721.239,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1740.264,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1759.602,
+      "content": "199"
+    },
+    {
+      "timestamp_ms": 1778.291,
+      "content": "0"
+    },
+    {
+      "timestamp_ms": 1797.661,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1836.499,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 1836.636,
+      "content": "-"
+    },
+    {
+      "timestamp_ms": 1862.586,
+      "content": "15"
+    },
+    {
+      "timestamp_ms": 1874.282,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 1892.676,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 1914.59,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 1931.053,
+      "content": "billing"
+    },
+    {
+      "timestamp_ms": 1953.91,
+      "content": "_address"
+    },
+    {
+      "timestamp_ms": 1980.507,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 1988.036,
+      "content": " {\n"
+    },
+    {
+      "timestamp_ms": 2007.452,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2027.192,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2045.269,
+      "content": "street"
+    },
+    {
+      "timestamp_ms": 2067.027,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2083.357,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2103.388,
+      "content": "123"
+    },
+    {
+      "timestamp_ms": 2121.537,
+      "content": " Elm"
+    },
+    {
+      "timestamp_ms": 2143.381,
+      "content": " St"
+    },
+    {
+      "timestamp_ms": 2160.745,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2178.799,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2210.277,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2216.555,
+      "content": "city"
+    },
+    {
+      "timestamp_ms": 2245.391,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2254.708,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2273.657,
+      "content": "Spring"
+    },
+    {
+      "timestamp_ms": 2292.703,
+      "content": "field"
+    },
+    {
+      "timestamp_ms": 2312.035,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2330.995,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2350.209,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2368.985,
+      "content": "state"
+    },
+    {
+      "timestamp_ms": 2387.946,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2407.096,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2440.284,
+      "content": "IL"
+    },
+    {
+      "timestamp_ms": 2449.186,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2464.556,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2498.561,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2502.505,
+      "content": "zip"
+    },
+    {
+      "timestamp_ms": 2529.604,
+      "content": "_code"
+    },
+    {
+      "timestamp_ms": 2542.879,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2559.953,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2578.398,
+      "content": "627"
+    },
+    {
+      "timestamp_ms": 2597.588,
+      "content": "01"
+    },
+    {
+      "timestamp_ms": 2636.263,
+      "content": "\",\n"
+    },
+    {
+      "timestamp_ms": 2636.406,
+      "content": "     "
+    },
+    {
+      "timestamp_ms": 2656.179,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2674.681,
+      "content": "country"
+    },
+    {
+      "timestamp_ms": 2693.539,
+      "content": "\":"
+    },
+    {
+      "timestamp_ms": 2712.566,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 2732.158,
+      "content": "USA"
+    },
+    {
+      "timestamp_ms": 2750.357,
+      "content": "\"\n"
+    },
+    {
+      "timestamp_ms": 2775.362,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 2797.445,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 2820.059,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2916.979,
+      "content": " }\n"
+    },
+    {
+      "timestamp_ms": 2916.979,
+      "content": "}\n"
+    },
+    {
+      "timestamp_ms": 2916.979,
+      "content": "``"
+    },
+    {
+      "timestamp_ms": 2916.979,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 2916.979,
+      "content": "This"
+    },
+    {
+      "timestamp_ms": 2966.905,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 3019.281,
+      "content": " provides"
+    },
+    {
+      "timestamp_ms": 3019.281,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3019.281,
+      "content": " clear"
+    },
+    {
+      "timestamp_ms": 3048.43,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3048.43,
+      "content": " organized"
+    },
+    {
+      "timestamp_ms": 3069.775,
+      "content": " representation"
+    },
+    {
+      "timestamp_ms": 3069.775,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3089.904,
+      "content": " user"
+    },
+    {
+      "timestamp_ms": 3096.016,
+      "content": " information"
+    },
+    {
+      "timestamp_ms": 3112.193,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3131.418,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 3152.712,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 3170.764,
+      "content": " be"
+    },
+    {
+      "timestamp_ms": 3188.193,
+      "content": " easily"
+    },
+    {
+      "timestamp_ms": 3291.972,
+      "content": " parsed"
+    },
+    {
+      "timestamp_ms": 3291.972,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3291.972,
+      "content": " utilized"
+    },
+    {
+      "timestamp_ms": 3291.972,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3291.972,
+      "content": " applications"
+    },
+    {
+      "timestamp_ms": 3302.721,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 3322.474,
+      "type": "finish",
+      "finish_reason": "stop"
+    },
+    {
+      "timestamp_ms": 3322.474,
+      "type": "done"
+    }
+  ],
+  "full_response": "Certainly! Below is a sample JSON API response that includes user profile data such as name, email, phone, date_of_birth, and billing_address:\n\n```json\n{\n  \"userProfile\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+1234567890\",\n    \"date_of_birth\": \"1990-01-15\",\n    \"billing_address\": {\n      \"street\": \"123 Elm St\",\n      \"city\": \"Springfield\",\n      \"state\": \"IL\",\n      \"zip_code\": \"62701\",\n      \"country\": \"USA\"\n    }\n  }\n}\n```\n\nThis structure provides a clear, organized representation of user information, which can be easily parsed and utilized by applications.",
+  "response_chars": 604,
+  "num_chunks": 158,
+  "ttft_ms": 328.969,
+  "total_ms": 3326.638,
+  "model_name": "model-medium"
+}

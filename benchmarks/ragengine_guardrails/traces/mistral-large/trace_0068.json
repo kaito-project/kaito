@@ -1,0 +1,867 @@
+{
+  "index": 68,
+  "prompt": "What are the main types of software testing and when should each be used?",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 1231.105,
+      "content": "Software"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " testing is a critical"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " phase"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " the software"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " development lifecycle"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": "SDLC"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": ") that ensures the"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " quality,"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " functionality"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": ", and reliability of"
+    },
+    {
+      "timestamp_ms": 1231.105,
+      "content": " a product. Here"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": " are the main"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": " types of software"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": " testing, along with"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": " their"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": " purposes"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": " and when"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": " to use them:\n\n"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": "---\n\n### **1"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": ". Functional Testing**\n"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": "Purpose:** Valid"
+    },
+    {
+      "timestamp_ms": 1606.157,
+      "content": "ates that the software"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " functions"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " as intended"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " according"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " to requirements"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": ".\n**"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": "When"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " to use"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": ":**"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " Throughout"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " development"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": ", especially after"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " implementing"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " features or fixing"
+    },
+    {
+      "timestamp_ms": 2154.439,
+      "content": " bugs.\n\n#### **"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": "Subtypes:**\n-"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": " **Unit"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": " Testing**\n  -"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": " **Purpose:**"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": " Tests individual components"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": "e.g., functions"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": ", methods"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": ") in isolation"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": ".\n  - **"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": "When to use:**"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": " During"
+    },
+    {
+      "timestamp_ms": 2623.304,
+      "content": " development (often"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " developers using"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " frameworks"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " like J"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": "Unit, pytest"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": ").\n"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": "  - **Example"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": ":** Testing"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " a single API"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " endpoint"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " or"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " a login"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " function.\n\n- **"
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": "Integration Testing**\n "
+    },
+    {
+      "timestamp_ms": 3149.962,
+      "content": " - **Purpose"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": ":** Tests"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " interactions"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " between integrated"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " modules/components"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": ".\n  - **"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": "When to use:**"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " After unit"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " testing,"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " before system"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " (e.g.,"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " testing how"
+    },
+    {
+      "timestamp_ms": 3621.75,
+      "content": " a payment"
+    },
+    {
+      "timestamp_ms": 3708.677,
+      "content": " module interacts"
+    },
+    {
+      "timestamp_ms": 3708.677,
+      "content": " with a database"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": "Example:** Ver"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": "ifying that"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": " a frontend"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": " correctly"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": " sends"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": " data to a backend"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": " service"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": ".\n\n- **System"
+    },
+    {
+      "timestamp_ms": 4086.385,
+      "content": " Testing**\n  -"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " **Purpose:**"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " Tests the complete"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " system against"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " specified"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " requirements.\n  -"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " **When to use"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": ":** After"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " integration"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " testing"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": ", before user"
+    },
+    {
+      "timestamp_ms": 4477.949,
+      "content": " acceptance testing"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": " (U"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": "AT).\n  -"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": " **Example:** Testing"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": " e"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": "-commerce website"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": " end"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": "-to-end ("
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": "from login"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": " to checkout"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": ").\n\n- **Accept"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": "ance Testing**\n "
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": " - **Purpose"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": ":** Valid"
+    },
+    {
+      "timestamp_ms": 5035.032,
+      "content": "ates the system"
+    },
+    {
+      "timestamp_ms": 5270.625,
+      "content": " against"
+    },
+    {
+      "timestamp_ms": 5270.625,
+      "content": " business"
+    },
+    {
+      "timestamp_ms": 5270.625,
+      "content": " requirements ("
+    },
+    {
+      "timestamp_ms": 5270.625,
+      "content": "often with"
+    },
+    {
+      "timestamp_ms": 5270.625,
+      "content": " stakeholders"
+    },
+    {
+      "timestamp_ms": 5270.625,
+      "content": ").\n  - **"
+    },
+    {
+      "timestamp_ms": 5270.625,
+      "content": "When to use:**"
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": " Before"
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": " release"
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": " often"
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": " performed by clients"
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": " or end-users.\n"
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": "  - **Sub"
+    },
+    {
+      "timestamp_ms": 5558.128,
+      "content": "types:**\n    -"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " **User Accept"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": "ance Testing"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " (UAT):**"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " End"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": "-users test"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " the system in"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " real-world scenario.\n"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": "    - **Alpha"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": "/B"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": "eta"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " Testing:** Alpha"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": "internal testing"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": "),"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " Beta"
+    },
+    {
+      "timestamp_ms": 6175.429,
+      "content": " (external"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " users"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " pre"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": "-release versions"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": ").\n\n-"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " **Regression"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " Testing**\n  -"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " **Purpose:**"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " Ensures new"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " changes"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " don’t break existing"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " functionality.\n  -"
+    },
+    {
+      "timestamp_ms": 6648.89,
+      "content": " **When to use"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": ":** After bug"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": " fixes, updates"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": ", or new"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": " features"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": " added.\n  -"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": " **Example:** Re"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": "-running all"
+    },
+    {
+      "timestamp_ms": 7007.97,
+      "content": " test cases after a"
+    },
+    {
+      "timestamp_ms": 7108.795,
+      "content": " code update to"
+    },
+    {
+      "timestamp_ms": 7108.795,
+      "content": " confirm"
+    },
+    {
+      "timestamp_ms": 7108.795,
+      "content": " no side"
+    },
+    {
+      "timestamp_ms": 7108.795,
+      "content": " effects.\n\n- **"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": "San"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": "ity"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " Testing**\n  -"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " **Purpose:**"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " Quick check"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " to verify basic"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " functionality after minor"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " changes.\n  -"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " **When to use"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": ":** After small"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " fixes"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " or builds"
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 7598.513,
+      "content": "subset"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " of regression"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " testing).\n  -"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " **Example:** Testing"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " if"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " a login"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " button works after a"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " UI"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " twe"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": "ak.\n\n- **"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": "Smoke"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " Testing**\n  -"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " **Purpose:**"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " Basic"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " test"
+    },
+    {
+      "timestamp_ms": 8087.363,
+      "content": " to ensure"
+    },
+    {
+      "timestamp_ms": 8226.292,
+      "content": " the system is"
+    },
+    {
+      "timestamp_ms": 8226.292,
+      "content": " stable enough"
+    },
+    {
+      "timestamp_ms": 8226.292,
+      "content": " for further"
+    },
+    {
+      "timestamp_ms": 8226.292,
+      "content": " testing.\n  -"
+    },
+    {
+      "timestamp_ms": 8226.292,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 8281.072,
+      "type": "done"
+    }
+  ],
+  "full_response": "Software testing is a critical phase in the software development lifecycle (SDLC) that ensures the quality, functionality, and reliability of a product. Here are the main types of software testing, along with their purposes and when to use them:\n\n---\n\n### **1. Functional Testing**\n**Purpose:** Validates that the software functions as intended according to requirements.\n**When to use:** Throughout development, especially after implementing new features or fixing bugs.\n\n#### **Subtypes:**\n- **Unit Testing**\n  - **Purpose:** Tests individual components (e.g., functions, methods) in isolation.\n  - **When to use:** During development (often by developers using frameworks like JUnit, pytest).\n  - **Example:** Testing a single API endpoint or a login function.\n\n- **Integration Testing**\n  - **Purpose:** Tests interactions between integrated modules/components.\n  - **When to use:** After unit testing, before system testing (e.g., testing how a payment module interacts with a database).\n  - **Example:** Verifying that a frontend form correctly sends data to a backend service.\n\n- **System Testing**\n  - **Purpose:** Tests the complete system against specified requirements.\n  - **When to use:** After integration testing, before user acceptance testing (UAT).\n  - **Example:** Testing an e-commerce website end-to-end (from login to checkout).\n\n- **Acceptance Testing**\n  - **Purpose:** Validates the system against business requirements (often with stakeholders).\n  - **When to use:** Before release, often performed by clients or end-users.\n  - **Subtypes:**\n    - **User Acceptance Testing (UAT):** End-users test the system in a real-world scenario.\n    - **Alpha/Beta Testing:** Alpha (internal testing), Beta (external users test pre-release versions).\n\n- **Regression Testing**\n  - **Purpose:** Ensures new changes don’t break existing functionality.\n  - **When to use:** After bug fixes, updates, or new features are added.\n  - **Example:** Re-running all test cases after a code update to confirm no side effects.\n\n- **Sanity Testing**\n  - **Purpose:** Quick check to verify basic functionality after minor changes.\n  - **When to use:** After small fixes or builds (subset of regression testing).\n  - **Example:** Testing if a login button works after a UI tweak.\n\n- **Smoke Testing**\n  - **Purpose:** Basic test to ensure the system is stable enough for further testing.\n  -",
+  "response_chars": 2391,
+  "num_chunks": 211,
+  "ttft_ms": 1231.105,
+  "total_ms": 8282.421,
+  "model_name": "Mistral-Large-3"
+}

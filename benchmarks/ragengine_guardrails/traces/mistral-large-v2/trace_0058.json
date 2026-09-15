@@ -1,0 +1,859 @@
+{
+  "index": 58,
+  "prompt": "Write a comprehensive 3000-word guide covering the complete history of artificial intelligence from the 1950s to present day, including all major milestones, breakthroughs, researchers, and their contributions.",
+  "prompt_category": "reading_time",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 583.82,
+      "content": "#"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " **The Complete"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " History of Artificial"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " Intelligence: From"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " 195"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": "0s to Present"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " Day**\n\n##"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " **Table of Contents"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": "**\n1"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": ". **Introduction to"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " Artificial"
+    },
+    {
+      "timestamp_ms": 583.82,
+      "content": " Intelligence**\n2."
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " **The Birth"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " of AI"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": "1950"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": "s – Early Found"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": "ations)**\n  "
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " - The Dart"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": "mouth"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " Conference (19"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": "56"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": ")\n   - Early"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " Programs"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " Logic"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": "orist"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " General"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " Problem"
+    },
+    {
+      "timestamp_ms": 917.949,
+      "content": " Solver\n  "
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " - Key"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " Figures"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": ": Alan"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " Turing, John Mc"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": "Carthy, Marvin"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " M"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": "insky, Allen"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " Newell"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " Herbert Simon"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": "\n3. **"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": "The Golden Age of"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " AI (19"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": "60s –"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": " Early Optim"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": "ism"
+    },
+    {
+      "timestamp_ms": 1131.099,
+      "content": ")**\n   - Symbol"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": "ic AI"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " and Early"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " Expert"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " Systems\n   -"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " EL"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": "IZ"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": "A:"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " The First Chat"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": "bot\n   -"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " The Rise"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " of Machine"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " Learning Concept"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": "s\n   -"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " Challenges"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " and the"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " First AI"
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " Winter\n4."
+    },
+    {
+      "timestamp_ms": 1382.295,
+      "content": " **The AI"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " Winter"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " (197"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": "0s – Early"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " 198"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": "0s)**\n  "
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " - Funding"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " C"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": "uts and Ske"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": "pticism"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": "\n   - Expert"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " and the Return"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " of AI"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": "\n   - Japan"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": "’s Fifth"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " Generation"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " Computer"
+    },
+    {
+      "timestamp_ms": 1635.57,
+      "content": " Project\n5"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": ". **The Revival"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " of AI (1"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "980s"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " – 19"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "90s)**\n"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "   - The Rise"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " of Machine Learning\n"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "   - Back"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "propagation and"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " Neural"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " Networks\n   -"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " IBM"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "’s Deep"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " Blue"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " Def"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "eats"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": " Gar"
+    },
+    {
+      "timestamp_ms": 2146.987,
+      "content": "ry Kaspar"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": "ov ("
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": "199"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": "7)\n6"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": ". **The Modern"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": " Era of"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": " AI (20"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": "00s –"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": "2010"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": "s)**\n   -"
+    },
+    {
+      "timestamp_ms": 2351.929,
+      "content": " Big"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " Data and the"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " Rise of Deep"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " Learning\n   -"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " Geoffrey"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " H"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": "inton and"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " the Deep"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " Learning"
+    },
+    {
+      "timestamp_ms": 2659.128,
+      "content": " Revolution\n   -"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " IBM"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " Watson"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " Wins"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " Je"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "opardy"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "!"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " (201"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "1)\n   -"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " The"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " Emer"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "gence of AI in"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " Every"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "day Life"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "\n7. **"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "The Deep"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " Learning Boom"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " (201"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " – Present"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": ")**\n   - Alex"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "Net and"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": " the Image"
+    },
+    {
+      "timestamp_ms": 3069.162,
+      "content": "Net"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " Revolution (20"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": "12"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": ")\n   - Gener"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": "ative Advers"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": "arial Networks"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " (G"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": "ANs)\n  "
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " - Rein"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": "forcement Learning"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " and Alpha"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": "Go"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " (201"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": "6)\n   -"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " Transformers and the"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " Rise"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " of Large"
+    },
+    {
+      "timestamp_ms": 3607.816,
+      "content": " Language Models (LL"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": "Ms)\n8"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": ". **AI"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": " in the"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": " 202"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": "0s: Break"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": "throughs"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": " and Ethical"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": " Conc"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": "erns**\n   -"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": " G"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": "PT-"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": "3 and the"
+    },
+    {
+      "timestamp_ms": 3929.0,
+      "content": " Rise"
+    },
+    {
+      "timestamp_ms": 4178.197,
+      "content": " of Foundation"
+    },
+    {
+      "timestamp_ms": 4178.197,
+      "content": " Models"
+    },
+    {
+      "timestamp_ms": 4178.197,
+      "content": "\n   - AI"
+    },
+    {
+      "timestamp_ms": 4178.197,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 4178.197,
+      "content": " Healthcare"
+    },
+    {
+      "timestamp_ms": 4178.197,
+      "content": ", Finance"
+    },
+    {
+      "timestamp_ms": 4178.197,
+      "content": ", and Autonomous"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " Systems"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": "\n   - Ethical"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " AI"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " Regulation"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": "   - The Future"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " of AI:"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " AG"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": "I and"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " Beyond\n9."
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " **Conclusion:"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " The Evolution"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " of AI and"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " What"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " Lies"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": " A"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": "head**\n\n---\n\n"
+    },
+    {
+      "timestamp_ms": 4706.867,
+      "content": "## **1."
+    },
+    {
+      "timestamp_ms": 4816.029,
+      "content": " Introduction to Artificial Intelligence"
+    },
+    {
+      "timestamp_ms": 4816.029,
+      "content": "**\n\nArt"
+    },
+    {
+      "timestamp_ms": 4816.029,
+      "content": "ificial Intelligence (AI"
+    },
+    {
+      "timestamp_ms": 4816.029,
+      "content": ") is the"
+    },
+    {
+      "timestamp_ms": 4816.029,
+      "content": " field of computer"
+    },
+    {
+      "timestamp_ms": 4816.029,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 4913.438,
+      "type": "done"
+    }
+  ],
+  "full_response": "# **The Complete History of Artificial Intelligence: From the 1950s to Present Day**\n\n## **Table of Contents**\n1. **Introduction to Artificial Intelligence**\n2. **The Birth of AI (1950s – Early Foundations)**\n   - The Dartmouth Conference (1956)\n   - Early AI Programs: Logic Theorist and General Problem Solver\n   - Key Figures: Alan Turing, John McCarthy, Marvin Minsky, Allen Newell, Herbert Simon\n3. **The Golden Age of AI (1960s – Early Optimism)**\n   - Symbolic AI and Early Expert Systems\n   - ELIZA: The First Chatbot\n   - The Rise of Machine Learning Concepts\n   - Challenges and the First AI Winter\n4. **The AI Winter (1970s – Early 1980s)**\n   - Funding Cuts and Skepticism\n   - Expert Systems and the Return of AI\n   - Japan’s Fifth Generation Computer Project\n5. **The Revival of AI (1980s – 1990s)**\n   - The Rise of Machine Learning\n   - Backpropagation and Neural Networks\n   - IBM’s Deep Blue Defeats Garry Kasparov (1997)\n6. **The Modern Era of AI (2000s – 2010s)**\n   - Big Data and the Rise of Deep Learning\n   - Geoffrey Hinton and the Deep Learning Revolution\n   - IBM Watson Wins Jeopardy! (2011)\n   - The Emergence of AI in Everyday Life\n7. **The Deep Learning Boom (2012 – Present)**\n   - AlexNet and the ImageNet Revolution (2012)\n   - Generative Adversarial Networks (GANs)\n   - Reinforcement Learning and AlphaGo (2016)\n   - Transformers and the Rise of Large Language Models (LLMs)\n8. **AI in the 2020s: Breakthroughs and Ethical Concerns**\n   - GPT-3 and the Rise of Foundation Models\n   - AI in Healthcare, Finance, and Autonomous Systems\n   - Ethical AI and Regulation\n   - The Future of AI: AGI and Beyond\n9. **Conclusion: The Evolution of AI and What Lies Ahead**\n\n---\n\n## **1. Introduction to Artificial Intelligence**\n\nArtificial Intelligence (AI) is the field of computer",
+  "response_chars": 1808,
+  "num_chunks": 209,
+  "ttft_ms": 583.82,
+  "total_ms": 4914.596,
+  "model_name": "Mistral-Large-3"
+}

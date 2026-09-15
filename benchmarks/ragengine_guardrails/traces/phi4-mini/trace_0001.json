@@ -1,0 +1,2051 @@
+{
+  "index": 1,
+  "prompt": "What are the key principles of object-oriented programming? Give examples in Python.",
+  "prompt_category": "clean",
+  "source": "custom",
+  "events": [
+    {
+      "timestamp_ms": 905.877,
+      "content": "The"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " key"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " principles"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": "-oriented"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " programming"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": "O"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " are"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " encaps"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": "ulation"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " inheritance"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " polym"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": "orphism"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " abstraction"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " Let's"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " break"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " down"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " each"
+    },
+    {
+      "timestamp_ms": 905.877,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " provide"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " examples"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": ":\n\n"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "1"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "Enc"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "apsulation"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " Enc"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "apsulation"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " principle"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " bund"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "ling"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "attributes"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 1683.389,
+      "content": "functions"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " operate"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " into"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " single"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " unit"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " called"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " an"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " also"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " involves"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " restricting"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " direct"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " some"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " object's"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " components"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " which"
+    },
+    {
+      "timestamp_ms": 2279.785,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " preventing"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " accidental"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " interference"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " misuse"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " of"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " data"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 3000.299,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3000.491,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": ".__"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " make"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 3696.61,
+      "content": ".__"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": "_make"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 3696.791,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": ".__"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "make"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "    "
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " get"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "_model"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " return"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": ".__"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "model"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": "   "
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " public"
+    },
+    {
+      "timestamp_ms": 4351.14,
+      "content": " method"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " access"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " private"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " attribute"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "Toyota"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "Cor"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "olla"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "(my"
+    },
+    {
+      "timestamp_ms": 4810.76,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "_make"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "())"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": " Output"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": " Toyota"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "(my"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": ".get"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "_model"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": "())"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 5200.582,
+      "content": " Output"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": " Corolla"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "2"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "Inheritance"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": "heritance"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 5999.92,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " form"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " new"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " using"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " have"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " already"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " been"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " defined"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " It"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": " re"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": "us"
+    },
+    {
+      "timestamp_ms": 6000.253,
+      "content": "ability"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " cleaner"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " code"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " structure"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " by"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " creating"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " hierarchical"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " relationship"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " between"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " parent"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": "base"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " and"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " child"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " ("
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": "derived"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": ")"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " classes"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 6640.853,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " Vehicle"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": ":"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " Base"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " brand"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": ".brand"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " brand"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": " display"
+    },
+    {
+      "timestamp_ms": 7304.983,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 7408.38,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 7408.38,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 7408.38,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 7408.38,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 7408.38,
+      "content": "\"This"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": ".brand"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": ".\")\n\n"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "(V"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "ehicle"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "):"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " "
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " Derived"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " __"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " brand"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " super"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "().__"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "init"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "__("
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "brand"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": ")\n"
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 8256.598,
+      "content": " self"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": ".model"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " model"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "\n\n"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "      "
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " display"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "_details"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " print"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "(f"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "\"This"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": ".brand"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " {"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "self"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": ".model"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "}"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": ".\")\n\n"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " ="
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " Car"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "Toyota"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "\","
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " \""
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "Cor"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "olla"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "\")\n"
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 9140.842,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": ".display"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": " my"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "_car"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": ".display"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "_details"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "()\n"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": " Output"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 10125.263,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " Toyota"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " #"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " This"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " Toyota"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " Corolla"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": ".\n"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " ``"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "`\n\n"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "3"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " **"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "Pol"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "ym"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "orphism"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "**"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": " Pol"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "ym"
+    },
+    {
+      "timestamp_ms": 10125.649,
+      "content": "orphism"
+    },
+    {
+      "timestamp_ms": 10180.218,
+      "content": " allows"
+    },
+    {
+      "timestamp_ms": 10180.218,
+      "content": " methods"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " do"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " different"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " things"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " based"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " on"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " the"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " it"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " is"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " acting"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " upon"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": "."
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " In"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " O"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": "OP"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": ","
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " polym"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": "orphism"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " usually"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " means"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " that"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " parent"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " reference"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " can"
+    },
+    {
+      "timestamp_ms": 10804.42,
+      "content": " point"
+    },
+    {
+      "timestamp_ms": 11554.874,
+      "content": " to"
+    },
+    {
+      "timestamp_ms": 11554.874,
+      "content": " a"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " child"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " object"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": ".\n\n"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " Example"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " in"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " Python"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " ```"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": "python"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": "\n"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": " Shape"
+    },
+    {
+      "timestamp_ms": 11555.108,
+      "content": ":\n"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": " def"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": " draw"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "(self"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "):\n"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "          "
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": " raise"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": " Not"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "Implemented"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "Error"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "(\""
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "Sub"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": "classes"
+    },
+    {
+      "timestamp_ms": 11555.339,
+      "content": " must"
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": " implement"
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": " this"
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": "!\")\n\n"
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": "  "
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": " class"
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": " Circle"
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": "("
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "content": "Shape"
+    },
+    {
+      "timestamp_ms": 11740.163,
+      "type": "finish",
+      "finish_reason": "length"
+    },
+    {
+      "timestamp_ms": 11782.584,
+      "type": "done"
+    }
+  ],
+  "full_response": "The key principles of object-oriented programming (OOP) are encapsulation, inheritance, polymorphism, and abstraction. Let's break down each principle and provide examples in Python:\n\n1. **Encapsulation**:\n   Encapsulation is the principle of bundling the data (attributes) and the methods (functions) that operate on the data into a single unit called an object. It also involves restricting direct access to some of the object's components, which is a means of preventing accidental interference and misuse of the data.\n\n   Example in Python:\n ```python\n   class Car:\n       def __init__(self, make, model):\n           self.__make = make       # private attribute\n           self.__ = model     # private attribute\n\n       def get_make(self):\n           return self.__make     # public method to access private attribute\n\n       def get_model(self):\n           return self.__model    # public method to access private attribute\n\n   my_car = Car(\"Toyota\", \"Corolla\")\n   print(my_car.get_make())  # Output: Toyota\n   print(my_car.get_model()) # Output: Corolla\n   ```\n\n2. **Inheritance**:\n   Inheritance is a to form new classes using classes that have already been defined. It allows code reusability and cleaner code structure by creating a hierarchical relationship between the parent (base) and child (derived) classes.\n\n   Example in Python:\n   ```python\n   class Vehicle:  # Base class\n       def __init__(self, brand):\n           self.brand = brand\n\n       def display(self):\n           print(f\"This is a {self.brand}.\")\n\n   class Car(Vehicle):  # Derived class\n       def __init__(self, brand, model):\n           super().__init__(brand)\n           self.model = model\n\n       def display_details(self):\n           print(f\"This is a {self.brand} {self.model}.\")\n\n   my_car = Car(\"Toyota\", \"Corolla\")\n   my_car.display()\n   my_car.display_details()\n   # Output:\n   # This is Toyota.\n   # This is a Toyota Corolla.\n   ```\n\n3. **Polymorphism**:\n   Polymorphism allows methods to do different things based on the object it is acting upon. In OOP, polymorphism usually means that a parent class reference can point to a child class object.\n\n   Example in Python:\n   ```python\n   class Shape:\n def draw(self):\n           raise NotImplementedError(\"Subclasses must implement this!\")\n\n   class Circle(Shape",
+  "response_chars": 2304,
+  "num_chunks": 507,
+  "ttft_ms": 905.877,
+  "total_ms": 11927.971,
+  "model_name": "Phi-4-mini-instruct"
+}

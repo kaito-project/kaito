@@ -125,6 +125,13 @@
       ]
     },
     {
+      "name": "Qwen/Qwen3.8-27B-FP8",
+      "targets": [
+        { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
+      ]
+    },
+    {
       "name": "Qwen/Qwen3.6-35B-A3B-FP8",
       "targets": [
         { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },

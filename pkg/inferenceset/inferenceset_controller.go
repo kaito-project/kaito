@@ -50,7 +50,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
-	mmconsts "github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/consts"
+	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )

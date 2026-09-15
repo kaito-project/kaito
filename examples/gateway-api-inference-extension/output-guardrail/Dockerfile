@@ -31,8 +31,6 @@ RUN git clone --depth 1 https://github.com/envoyproxy/envoy.git && \
     # Ensure all __init__.py exist
     find /build/envoy -type d -exec touch "{}/__init__.py" \;
 
----
-
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -56,7 +54,7 @@ assert hasattr(p, 'ProcessingResponse'), "Missing ProcessingResponse"
 assert hasattr(p, 'BodyResponse'), "Missing BodyResponse"
 assert hasattr(p, 'CommonResponse'), "Missing CommonResponse"
 assert hasattr(p, 'BodyMutation'), "Missing BodyMutation"
-assert hasattr(p, 'ResponseBody'), "Missing ResponseBody"
+assert hasattr(p, 'HttpBody'), "Missing HttpBody"
 assert hasattr(g, 'ExternalProcessorServicer'), "Missing ExternalProcessorServicer"
 
 print("✓ All required proto types verified")

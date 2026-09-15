@@ -563,33 +563,29 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 }
 
 func TestReconcileWorkspaceAnnotations(t *testing.T) {
-	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{
-		"keep":                             "existing",
-		"kaito.sh/foo":                     "old",
-		v1beta1.AnnotationCapacityType:      consts.KarpenterCapacityTypeSpot,
-		mmconsts.AnnotationModelStreaming:   "disabled",
-	}}}
+	initialAnnotations := map[string]string{}
+	initialAnnotations["keep"] = "existing"
+	initialAnnotations["kaito.sh/foo"] = "old"
+	initialAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
+	initialAnnotations[mmconsts.AnnotationModelStreaming] = "disabled"
+	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: initialAnnotations}}
 
-	assert.True(t, reconcileWorkspaceAnnotations(ws, map[string]string{
-		"kaito.sh/foo":                   "new",
-		"kaito.sh/bar":                   "added",
-		v1beta1.AnnotationCapacityType:    consts.KarpenterCapacityTypeOnDemand,
-		mmconsts.AnnotationModelStreaming: "enabled",
-	}))
-	assert.Equal(t, map[string]string{
-		"keep":                           "existing",
-		"kaito.sh/foo":                   "new",
-		"kaito.sh/bar":                   "added",
-		v1beta1.AnnotationCapacityType:    consts.KarpenterCapacityTypeSpot,
-		mmconsts.AnnotationModelStreaming: "disabled",
-	}, ws.Annotations)
+	desiredAnnotations := map[string]string{}
+	desiredAnnotations["kaito.sh/foo"] = "new"
+	desiredAnnotations["kaito.sh/bar"] = "added"
+	desiredAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeOnDemand
+	desiredAnnotations[mmconsts.AnnotationModelStreaming] = "enabled"
+	assert.True(t, reconcileWorkspaceAnnotations(ws, desiredAnnotations))
 
-	assert.False(t, reconcileWorkspaceAnnotations(ws, map[string]string{
-		"kaito.sh/foo":                   "new",
-		"kaito.sh/bar":                   "added",
-		v1beta1.AnnotationCapacityType:    consts.KarpenterCapacityTypeOnDemand,
-		mmconsts.AnnotationModelStreaming: "enabled",
-	}))
+	expectedAnnotations := map[string]string{}
+	expectedAnnotations["keep"] = "existing"
+	expectedAnnotations["kaito.sh/foo"] = "new"
+	expectedAnnotations["kaito.sh/bar"] = "added"
+	expectedAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
+	expectedAnnotations[mmconsts.AnnotationModelStreaming] = "disabled"
+	assert.Equal(t, expectedAnnotations, ws.Annotations)
+
+	assert.False(t, reconcileWorkspaceAnnotations(ws, desiredAnnotations))
 
 	empty := &v1beta1.Workspace{}
 	assert.True(t, reconcileWorkspaceAnnotations(empty, map[string]string{"kaito.sh/baz": "value"}))

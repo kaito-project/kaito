@@ -6,7 +6,7 @@ metadata:
 spec:
   workloadSelector:
     labels:
-      gateway.networking.k8s.io/gateway-name: inference-gateway
+      app: istio-ingressgateway
   configPatches:
   # Add cluster for ext_proc service
   - applyTo: CLUSTER
@@ -28,6 +28,14 @@ spec:
 
   # Insert ext_proc filter into HTTP filter chain (before router)
   - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
     patch:
       operation: INSERT_BEFORE
       value:

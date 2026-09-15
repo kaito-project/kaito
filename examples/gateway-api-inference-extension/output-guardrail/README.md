@@ -156,34 +156,59 @@ The `[GATEWAY_TEST]` string is appended to the entire JSON body (yes, it breaks 
 
 ## Current Status
 
-⚠️ **PoC Blocked: EnvoyFilter Not Applied to Gateway**
+❌ **PoC Blocked: Gateway API Gateway Incompatible with EnvoyFilter**
 
-- ✅ Mock backend deployment and routing working
-- ✅ HTTPRoute correctly forwarding requests through Gateway  
-- ❌ **EnvoyFilter injection failed**: 
-  - Istio gateway-controller manages Gateway Envoy directly
-  - EnvoyFilter (designed for sidecar mesh) doesn't apply to Gateway API gateways
-  - **Root cause**: Gateway API gateways use a different Envoy lifecycle management
+### Diagnostic Results
 
-### Implications
+- ✅ ext_proc gRPC service: Running and listening on :9000
+- ✅ Network connectivity: Gateway pod can reach ext_proc service
+- ✅ Mock backend: Routing works correctly  
+- ❌ **EnvoyFilter application**: Cluster `llm_guard_processor` never appears in Envoy config
 
-The current approach (EnvoyFilter) doesn't work for Istio Gateway API gateways. Alternatives to explore:
+**Root cause**: Istio gateway-controller (which manages Gateway API gateways) does NOT respect EnvoyFilter resources. EnvoyFilter is designed for service mesh sidecar injection, not for Gateway-managed Envoy.
 
-1. **Use IngressGateway (VirtualService/DestinationRule)** instead of Gateway API
-   - Traditional Istio pattern, EnvoyFilter will work
-   - Drawback: Gateway API is the modern approach
+**Verification**:
+```bash
+# This query returns nothing, proving ext_proc cluster was never added
+kubectl exec <gateway-pod> -c istio-proxy -- curl localhost:15000/clusters | grep llm_guard
+```
 
-2. **Extend Gateway spec directly** (if Istio supports ext_proc configuration in Gateway CRD)
-   - Check Istio docs for Gateway-level filter configuration
+### Why This Matters
 
-3. **Use WebAssembly (WASM) filter** instead of gRPC ext_proc
-   - WASM plugins may have different injection mechanism for Gateway API
+This is an **architectural constraint**, not a bug:
+- Gateway API gateways use separate Envoy lifecycle (managed by gateway-controller)
+- Service mesh EnvoyFilters target sidecars (different controllers)
+- The two Envoy instances are configured independently
 
-4. **Proxy ext_proc via sidecar** (unconventional)
-   - Add sidecars to backend pods and put ext_proc logic there
-   - Doesn't solve output guard at Gateway layer
+### Possible Solutions
 
-**Next action**: Need to determine Istio's intended mechanism for extending Gateway API gateways with custom filters.
+1. **Use Traditional Istio (VirtualService + Gateway.networking.istio.io/v1beta1)**
+   - Envoy is co-managed with mesh, EnvoyFilter will apply
+   - Drawback: Requires abandoning Gateway API
+
+2. **Istio 1.28+ Gateway CRD Extensions** (needs research)
+   - Check if Istio 1.28 supports native filter configuration in Gateway spec
+   - Would be more maintainable than EnvoyFilter workaround
+
+3. **Proxy Architecture Change**
+   - Run ext_proc in backend pods (sidecar level) instead of gateway level
+   - Gives up the goal of gateway-level output guard
+
+4. **Use Istio ServiceEntry + IngressGateway** (hybrid approach)
+   - Deploy separate IngressGateway pod
+   - Apply EnvoyFilter to IngressGateway pods
+   - More complex but proven to work
+
+### Technical Deep Dive
+
+Gateway API is an abstraction layer. The pod labeled with `gateway.networking.k8s.io/gateway-name=inference-gateway` runs Envoy configured by:
+- `istiod` → reading Gateway/HTTPRoute CRDs
+- Generating bootstrap config directly
+- NOT consulting EnvoyFilter resources
+
+This is different from regular Istio sidecars, which:
+- Get injected by `sidecar-injector` webhook
+- Receive config from `istiod` that INCLUDES EnvoyFilter patches
 
 ## Known Limitations
 

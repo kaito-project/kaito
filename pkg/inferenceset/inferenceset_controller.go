@@ -666,7 +666,11 @@ func setTrackedWorkspaceAnnotationKeys(ws *kaitov1beta1.Workspace, trackedKeys [
 
 func shouldPropagateWorkspaceAnnotation(annotationKey string) bool {
 	switch annotationKey {
-	case kaitov1beta1.AnnotationCapacityType, mmconsts.AnnotationModelStreaming:
+	case propagatedWorkspaceAnnotationsAnnotation,
+		controllers.WorkspaceHashAnnotation,
+		kaitov1beta1.WorkspaceRevisionAnnotation,
+		kaitov1beta1.AnnotationCapacityType,
+		mmconsts.AnnotationModelStreaming:
 		return false
 	default:
 		return true

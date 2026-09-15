@@ -568,6 +568,8 @@ func TestReconcileWorkspaceAnnotations(t *testing.T) {
 	initialAnnotations["kaito.sh/foo"] = "old"
 	initialAnnotations["kaito.sh/remove-me"] = "stale"
 	initialAnnotations[propagatedWorkspaceAnnotationsAnnotation] = `["kaito.sh/foo","kaito.sh/remove-me"]`
+	initialAnnotations[controllers.WorkspaceHashAnnotation] = "existing-hash"
+	initialAnnotations[v1beta1.WorkspaceRevisionAnnotation] = "7"
 	initialAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
 	initialAnnotations[mmconsts.AnnotationModelStreaming] = "disabled"
 	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: initialAnnotations}}
@@ -575,6 +577,9 @@ func TestReconcileWorkspaceAnnotations(t *testing.T) {
 	desiredAnnotations := map[string]string{}
 	desiredAnnotations["kaito.sh/foo"] = "new"
 	desiredAnnotations["kaito.sh/bar"] = "added"
+	desiredAnnotations[propagatedWorkspaceAnnotationsAnnotation] = "user-value"
+	desiredAnnotations[controllers.WorkspaceHashAnnotation] = "desired-hash"
+	desiredAnnotations[v1beta1.WorkspaceRevisionAnnotation] = "99"
 	desiredAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeOnDemand
 	desiredAnnotations[mmconsts.AnnotationModelStreaming] = "enabled"
 	assert.True(t, reconcileWorkspaceAnnotations(ws, desiredAnnotations))
@@ -584,6 +589,8 @@ func TestReconcileWorkspaceAnnotations(t *testing.T) {
 	expectedAnnotations["kaito.sh/foo"] = "new"
 	expectedAnnotations["kaito.sh/bar"] = "added"
 	expectedAnnotations[propagatedWorkspaceAnnotationsAnnotation] = `["kaito.sh/bar","kaito.sh/foo"]`
+	expectedAnnotations[controllers.WorkspaceHashAnnotation] = "existing-hash"
+	expectedAnnotations[v1beta1.WorkspaceRevisionAnnotation] = "7"
 	expectedAnnotations[v1beta1.AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
 	expectedAnnotations[mmconsts.AnnotationModelStreaming] = "disabled"
 	assert.Equal(t, expectedAnnotations, ws.Annotations)

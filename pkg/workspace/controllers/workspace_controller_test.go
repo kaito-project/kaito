@@ -626,6 +626,7 @@ func TestSyncControllerRevision(t *testing.T) {
 
 		"No new revision needed": {
 			callMocks: func(c *test.MockClient) {
+				expectedHash := ComputeHash(&test.MockWorkspaceWithComputeHash)
 				c.On("List", mock.IsType(context.Background()), mock.IsType(&appsv1.ControllerRevisionList{}), mock.Anything, mock.Anything).Return(nil)
 				c.On("Get", mock.IsType(context.Background()), mock.Anything, mock.IsType(&appsv1.ControllerRevision{}), mock.Anything).
 					Run(func(args mock.Arguments) {
@@ -633,7 +634,7 @@ func TestSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									WorkspaceHashAnnotation: "79676e4782172441933f628c7f541c81accd0fe88af9588101e2344589f6dbae",
+									WorkspaceHashAnnotation: expectedHash,
 								},
 							},
 							Revision: 1,

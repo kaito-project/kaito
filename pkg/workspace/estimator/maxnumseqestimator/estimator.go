@@ -14,6 +14,8 @@
 package maxnumseqestimator
 
 import (
+	"strings"
+
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
 
@@ -31,14 +33,32 @@ const (
 	// hard-fails at CUDA graph capture after the weights are already loaded.
 	safetyFactor = 0.9
 
-	// vLLMDefaultMaxNumSeqs is vLLM V1's usage-context default for max_num_seqs.
-	// The estimator only ever caps below it, never raises it.
-	vLLMDefaultMaxNumSeqs = 1024
+	// largeGPUMemThresholdGiB, largeGPUDefaultMaxNumSeqs and defaultMaxNumSeqs
+	// mirror vLLM's own default_max_num_seqs selection (see vLLMDefaultMaxNumSeqs).
+	largeGPUMemThresholdGiB   = 70
+	largeGPUDefaultMaxNumSeqs = 1024
+	defaultMaxNumSeqs         = 256
 
 	// paddingHeuristicRatio mirrors the 1.5 constant vLLM uses when choosing a KV
 	// cache group size (see resolveGroupSize).
 	paddingHeuristicRatio = 1.5
 )
+
+// vLLMDefaultMaxNumSeqs returns the max_num_seqs vLLM picks for the OpenAI API
+// server when the caller does not pass one, mirroring
+// _set_default_max_num_seqs_and_batched_tokens_args in vllm/engine/arg_utils.py:
+// https://github.com/vllm-project/vllm/blob/releases/v0.25.1/vllm/engine/arg_utils.py#L2423-L2445
+// A100 is name-excluded from the large-GPU branch upstream because large batches
+// regress its throughput (vLLM PR #17885), so it keeps the smaller default even
+// though it clears the memory threshold.
+func vLLMDefaultMaxNumSeqs(gpuConfig *sku.GPUConfig) int {
+	memPerGPU := gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount)
+	isA100 := strings.Contains(strings.ToLower(gpuConfig.GPUModel), "a100")
+	if memPerGPU >= int64(largeGPUMemThresholdGiB*consts.GiBToBytes) && !isA100 {
+		return largeGPUDefaultMaxNumSeqs
+	}
+	return defaultMaxNumSeqs
+}
 
 // resolveGroupSize returns the number of layers vLLM places in each KV cache group,
 // mirroring _get_kv_cache_groups_uniform_page_size in vllm/v1/core/kv_cache_utils.py:
@@ -137,14 +157,15 @@ func (c *MaxNumSeqsEstimator) Estimate(req MaxNumSeqsEstimateRequest) (int, bool
 	if maxNumSeqs < 1 {
 		maxNumSeqs = 1
 	}
-	// Only cap when it actually reduces below vLLM's default; otherwise the
-	// default already fits within the available blocks.
-	if maxNumSeqs >= vLLMDefaultMaxNumSeqs {
+	// Only cap when it actually reduces below the default vLLM would have picked;
+	// otherwise that default already fits within the available blocks.
+	defaultSeqs := vLLMDefaultMaxNumSeqs(gpuConfig)
+	if maxNumSeqs >= defaultSeqs {
 		return 0, false
 	}
 
-	klog.Infof("[MaxNumSeqsEstimator] availPool(%.0f), groupSize(%d), pageBytes(%.0f), estimatedBlocks(%.0f) => maxNumSeqs(%d) for workspace %s",
-		availPool, groupSize, pageBytes, numBlocks, maxNumSeqs, req.WorkspaceName)
+	klog.Infof("[MaxNumSeqsEstimator] availPool(%.0f), groupSize(%d), pageBytes(%.0f), estimatedBlocks(%.0f), vLLMDefault(%d) => maxNumSeqs(%d) for workspace %s",
+		availPool, groupSize, pageBytes, numBlocks, defaultSeqs, maxNumSeqs, req.WorkspaceName)
 
 	return maxNumSeqs, true
 }

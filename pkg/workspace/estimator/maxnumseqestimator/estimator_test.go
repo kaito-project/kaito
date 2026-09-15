@@ -30,6 +30,12 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 		GPUMem:   resource.MustParse("94Gi"),
 		GPUModel: "NVIDIA H100",
 	}
+	a100 := &sku.GPUConfig{
+		SKU:      "Standard_NC24ads_A100_v4",
+		GPUCount: 1,
+		GPUMem:   resource.MustParse("80Gi"),
+		GPUModel: "NVIDIA A100",
+	}
 
 	cases := []struct {
 		name          string
@@ -93,6 +99,20 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 			wantBelowBlocks: 747,
 		},
 		{
+			// Measured on Standard_NC24ads_A100_v4: 391 available blocks. vLLM
+			// name-excludes A100 from its large-GPU branch, so its own default is
+			// already 256 and no cap is needed.
+			name:          "qwen3.8-27b on single a100 keeps vllm default",
+			modelName:     "qwen3.8-27b",
+			perLayerBytes: 3207168,
+			numFull:       16,
+			numLinear:     48,
+			weights:       "51.75Gi",
+			gpu:           a100,
+			numNodes:      1,
+			wantOK:        false,
+		},
+		{
 			// Tiny hybrid model leaves room for far more than the vLLM default, so
 			// the estimator must not lower it.
 			name:          "small hybrid keeps vllm default",
@@ -154,7 +174,7 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 			}
 			assert.GreaterOrEqual(t, got, tc.wantMin)
 			assert.LessOrEqual(t, got, tc.wantMax)
-			assert.Less(t, got, vLLMDefaultMaxNumSeqs, "cap must be below the vLLM default")
+			assert.Less(t, got, vLLMDefaultMaxNumSeqs(tc.gpu), "cap must be below the vLLM default")
 			if tc.wantBelowBlocks > 0 {
 				assert.Less(t, got, tc.wantBelowBlocks, "cap must be below the real available Mamba blocks")
 			}
@@ -204,6 +224,32 @@ func TestResolveGroupSize(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.want, resolveGroupSize(tc.numLinear, tc.numFull))
+		})
+	}
+}
+
+func TestVLLMDefaultMaxNumSeqs(t *testing.T) {
+	cases := []struct {
+		name     string
+		gpuCount int
+		gpuMem   string
+		gpuModel string
+		want     int
+	}{
+		{"h100 94Gi", 1, "94Gi", "NVIDIA H100", 1024},
+		{"h100 per-gpu memory is what counts", 2, "188Gi", "NVIDIA H100", 1024},
+		{"a100 80Gi is name-excluded upstream", 1, "80Gi", "NVIDIA A100", 256},
+		{"a10 24Gi is below the threshold", 1, "24Gi", "NVIDIA A10", 256},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := vLLMDefaultMaxNumSeqs(&sku.GPUConfig{
+				GPUCount: tc.gpuCount,
+				GPUMem:   resource.MustParse(tc.gpuMem),
+				GPUModel: tc.gpuModel,
+			})
+			assert.Equal(t, tc.want, got)
 		})
 	}
 }

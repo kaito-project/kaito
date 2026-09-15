@@ -661,7 +661,8 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A100(t *testing.T) {
 	runRealCatalogModelCases(t, []realCatalogModelCase{
 		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 1},     // 60.77Gi
 		{"Qwen3.8-27B/1xA100", "Qwen/Qwen3.8-27B", a100_1GPU, 1},         // 51.75Gi
-		{"Qwen3.6-35B-A3B/1xH100", "Qwen/Qwen3.6-35B-A3B", a100_1GPU, 1}, // 66.97Gi
+		{"Qwen3.6-35B-A3B/1xA100", "Qwen/Qwen3.6-35B-A3B", a100_1GPU, 2}, // 66.97Gi, too tight on one 80Gi A100
+		{"Qwen/Qwen3.6-27B/1xA100", "Qwen/Qwen3.6-27B", a100_1GPU, 1},    // 51.75Gi
 		{"gemma-4-31B-it/1xA100", "google/gemma-4-31B-it", a100_1GPU, 1}, // 58.25Gi
 	})
 }

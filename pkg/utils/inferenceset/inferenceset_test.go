@@ -1029,9 +1029,10 @@ func TestNewWorkspaceForInferenceSetPropagatesCapacityType(t *testing.T) {
 }
 
 func TestNewWorkspaceForInferenceSetPropagatesAnnotationsIndependently(t *testing.T) {
+	const propagatedAnnotationKey = "example.com/propagated"
 	templateAnnotations := map[string]string{
-		kaitov1beta1.AnnotationEnableSpeculativeDecoding: "true",
-		"example.com/custom":                           "value",
+		propagatedAnnotationKey: "true",
+		"example.com/custom":   "value",
 	}
 	is := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1049,7 +1050,7 @@ func TestNewWorkspaceForInferenceSetPropagatesAnnotationsIndependently(t *testin
 	}
 
 	ws := NewWorkspaceForInferenceSet(is)
-	assert.Equal(t, "true", ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding])
+	assert.Equal(t, "true", ws.Annotations[propagatedAnnotationKey])
 	assert.Equal(t, "value", ws.Annotations["example.com/custom"])
 	assert.Equal(t, "true", ws.Annotations[kaitov1beta1.AnnotationDisableBenchmark])
 

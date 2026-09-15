@@ -67,6 +67,7 @@ const (
 	FeatureFlagModelMirror                        = "ModelMirror"
 	FeatureFlagModelStreaming                     = "ModelStreaming"
 	FeatureFlagEnableBaseImageAutoUpgrade         = "enableBaseImageAutoUpgrade"
+	FeatureFlagEnableEPPFlowControl               = "enableEPPFlowControl"
 
 	// Node provisioner types
 	NodeProvisionerAzureGPU  = "azure-gpu-provisioner"

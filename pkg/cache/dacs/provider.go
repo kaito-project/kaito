@@ -455,9 +455,10 @@ func (p *Provider) modelWarmerSidecar(workload *appsv1.StatefulSet, dacsEnv []co
 	}
 
 	partitionCount := int32(1)
-	if workload.Spec.Replicas != nil {
-		partitionCount = *workload.Spec.Replicas
-	}
+	// TBD for larger model pre-warming
+	// if workload.Spec.Replicas != nil {
+	// partitionCount = *workload.Spec.Replicas
+	// }
 
 	env := make([]corev1.EnvVar, 0, len(dacsEnv)+4)
 	for _, item := range mainContainer.Env {

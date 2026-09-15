@@ -63,39 +63,24 @@ Client receives mutated response
 
 ## How to Build and Deploy
 
-### Step 1: Prepare Envoy Proto Files
-
-PR1 requires pre-generated Envoy ext_proc proto files. For local development:
-
-```bash
-# This is a manual step for now (future: integrate into build)
-# Download from: https://github.com/envoyproxy/envoy/tree/main/envoy/service/ext_proc/v3
-
-# Copy external_processor_pb2.py and external_processor_pb2_grpc.py to:
-mkdir -p envoy/service/ext_proc/v3
-cp <path-to-generated-protos>/*.py envoy/service/ext_proc/v3/
-touch envoy/__init__.py envoy/service/__init__.py envoy/service/ext_proc/__init__.py envoy/service/ext_proc/v3/__init__.py
-```
-
-**Note**: For this PoC, we assume proto files are manually prepared. Production implementation should use a stable Envoy proto package or build-time generation.
-
-### Step 2: Build Docker Image
+### Step 1: Build Docker Image
 
 ```bash
 cd examples/gateway-api-inference-extension/output-guardrail/
 
+# Note: First build may take ~2 min (clones Envoy repo, compiles protos)
 docker build -t your-registry/llm-guard-ext-proc:v1 .
 docker push your-registry/llm-guard-ext-proc:v1
 ```
 
-### Step 3: Update Image in deployment.yaml
+### Step 2: Update Image in deployment.yaml
 
 Edit `deployment.yaml` and change:
 ```yaml
 image: your-registry/llm-guard-ext-proc:v1
 ```
 
-### Step 4: Deploy to Kubernetes
+### Step 3: Deploy to Kubernetes
 
 ```bash
 # Deploy the ext_proc service
@@ -109,7 +94,7 @@ kubectl logs -f deployment/llm-guard-ext-proc
 kubectl apply -f envoyfilter.yaml
 ```
 
-### Step 5: Verify EnvoyFilter is Loaded
+### Step 4: Verify EnvoyFilter is Loaded
 
 ```bash
 # Check if filter is in the listener config

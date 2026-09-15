@@ -57,10 +57,10 @@ import (
 )
 
 const (
-	InferenceSetHashAnnotation                 = "inferenceset.kaito.io/hash"
-	InferenceSetNameLabel                      = "inferenceset.kaito.io/name"
-	propagatedWorkspaceAnnotationsAnnotation   = "inferenceset.kaito.io/propagated-workspace-annotations"
-	revisionHashSuffix                         = 5
+	InferenceSetHashAnnotation               = "inferenceset.kaito.io/hash"
+	InferenceSetNameLabel                    = "inferenceset.kaito.io/name"
+	propagatedWorkspaceAnnotationsAnnotation = "inferenceset.kaito.io/propagated-workspace-annotations"
+	revisionHashSuffix                       = 5
 )
 
 type InferenceSetReconciler struct {

@@ -46,7 +46,7 @@ spec:
           grpc_service:
             envoy_grpc:
               cluster_name: llm_guard_processor
-            timeout: 30s
+            timeout: 5s
           # Processing mode: only intercept response_body
           # Skip headers (Envoy auto-handles Content-Length for mutations)
           processing_mode:

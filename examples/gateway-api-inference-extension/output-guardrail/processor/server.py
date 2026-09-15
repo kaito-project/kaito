@@ -10,9 +10,9 @@ import logging
 from typing import AsyncIterator
 
 import grpc
-from google.protobuf import empty_pb2
 
 # Envoy ext_proc protobuf definitions
+# Note: Envoy proto files are compiled and included in the container image
 from envoy.service.ext_proc.v3 import external_processor_pb2 as processor_pb2
 from envoy.service.ext_proc.v3 import external_processor_pb2_grpc as processor_grpc
 

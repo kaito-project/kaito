@@ -1,3 +1,1 @@
 grpcio==1.60.0
-grpcio-tools==1.60.0
-envoy-data-plane-api==0.5.0

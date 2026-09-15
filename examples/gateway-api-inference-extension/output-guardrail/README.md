@@ -28,24 +28,28 @@ Those come in PR2, PR3, etc.
 ## Architecture
 
 ```
-Client Request
+Client sends request
     ↓
-Istio Gateway
+Istio Gateway → KAITO backend
     ↓
-[Your new ext_proc filter] ← This PR
+Model response
+    ↓
+Istio Envoy (response path only)
+    ↓
+[ext_proc filter intercepts response_body]
     │
-    └─→ response body: "hello"
+    └─→ gRPC to llm-guard-ext-proc service
         ↓
-    gRPC call to llm-guard-ext-proc service
+    Append [GATEWAY_TEST] to body
         ↓
-    response body mutation: "hello [GATEWAY_TEST]"
-        ↓
-    return to Envoy
+    Return modified body to Envoy
     ↓
 Envoy replaces response body
     ↓
-Client receives modified response
+Client receives mutated response
 ```
+
+**Note**: Request path is NOT intercepted (request_body_mode: NONE).
 
 ## Files
 

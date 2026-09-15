@@ -24,8 +24,7 @@ class GatewayOutputProcessor(processor_grpc.ExternalProcessorServicer):
     """
     Minimal Envoy ext_proc service for output guardrails PoC.
 
-    Implements the ExternalProcessor service which Envoy calls via bidirectional gRPC stream.
-    For each ProcessingRequest, returns a ProcessingResponse with optional mutations.
+    Intercepts response_body and appends test marker to prove mutation works.
     """
 
     async def Process(
@@ -36,60 +35,34 @@ class GatewayOutputProcessor(processor_grpc.ExternalProcessorServicer):
         """
         Handle bidirectional stream of ProcessingRequest/ProcessingResponse.
 
+        For each ProcessingRequest with response_body, mutate and return.
+        Only response_body is expected (headers/trailers are SKIPped in config).
+
         Args:
             request_iterator: Stream of ProcessingRequest from Envoy
             context: gRPC context
 
         Yields:
-            ProcessingResponse to return to Envoy
+            ProcessingResponse with BodyResponse containing mutation
         """
-        try:
-            async for request in request_iterator:
-                # Only process response_body messages
-                if request.HasField("response_body"):
-                    response = self._process_response_body(request.response_body)
-                else:
-                    # For other message types (headers, trailers, etc), just pass through
-                    response = processor_pb2.ProcessingResponse()
+        async for request in request_iterator:
+            if not request.HasField("response_body"):
+                continue
 
-                yield response
-
-        except Exception as e:
-            logger.error(f"Error in Process: {e}", exc_info=True)
-            # Return empty response on error (Envoy will use original response)
-            yield processor_pb2.ProcessingResponse()
-
-    def _process_response_body(
-        self, response_body: processor_pb2.ResponseBody
-    ) -> processor_pb2.ProcessingResponse:
-        """
-        Process response body by appending test string.
-
-        This is the minimal proof-of-concept:
-        - Take the raw response body bytes
-        - Append " [GATEWAY_TEST]"
-        - Return BodyMutation to Envoy
-
-        Args:
-            response_body: The response body from upstream
-
-        Returns:
-            ProcessingResponse with optional body mutation
-        """
-        try:
-            body_bytes = response_body.body
-            # Simple transformation: append marker
+            body_bytes = request.response_body.body
             modified_bytes = body_bytes + b" [GATEWAY_TEST]"
 
-            # Return mutation response
-            return processor_pb2.ProcessingResponse(
-                body_mutation=processor_pb2.BodyMutation(body=modified_bytes)
+            # Envoy ext_proc protocol requires:
+            # ProcessingResponse.response_body.response.body_mutation
+            yield processor_pb2.ProcessingResponse(
+                response_body=processor_pb2.BodyResponse(
+                    response=processor_pb2.CommonResponse(
+                        body_mutation=processor_pb2.BodyMutation(
+                            body=modified_bytes
+                        )
+                    )
+                )
             )
-
-        except Exception as e:
-            logger.error(f"Error processing response body: {e}", exc_info=True)
-            # Return empty response (fail-open)
-            return processor_pb2.ProcessingResponse()
 
 
 async def serve():

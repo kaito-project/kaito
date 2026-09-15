@@ -47,11 +47,12 @@ spec:
             envoy_grpc:
               cluster_name: llm_guard_processor
             timeout: 30s
-          # Processing mode: only care about response_body
+          # Processing mode: only intercept response_body
+          # Skip headers (Envoy auto-handles Content-Length for mutations)
           processing_mode:
             request_header_mode: SKIP
-            request_body_mode: SKIP
-            response_header_mode: SEND
+            request_body_mode: NONE
+            response_header_mode: SKIP
             response_body_mode: BUFFERED
             response_trailer_mode: SKIP
           # Fail-closed: if ext_proc is unavailable, Envoy returns error

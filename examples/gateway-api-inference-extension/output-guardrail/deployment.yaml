@@ -48,16 +48,6 @@ spec:
           limits:
             cpu: 500m
             memory: 256Mi
-        livenessProbe:
-          grpc:
-            port: 9000
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        readinessProbe:
-          grpc:
-            port: 9000
-          initialDelaySeconds: 3
-          periodSeconds: 5
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true

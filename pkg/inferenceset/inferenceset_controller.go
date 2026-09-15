@@ -50,6 +50,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
+	mmconsts "github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
@@ -561,10 +562,10 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 //
 // Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
 
-// reconcileWorkspaceAnnotations additively propagates template annotations from
-// the parent InferenceSet onto an existing child Workspace. It updates changed
-// values and adds new keys while preserving unrelated annotations that may be
-// managed elsewhere on the Workspace object.
+// reconcileWorkspaceAnnotations additively propagates mutable template
+// annotations from the parent InferenceSet onto an existing child Workspace.
+// It updates changed values and adds new keys while preserving unrelated
+// annotations that may be managed elsewhere on the Workspace object.
 func reconcileWorkspaceAnnotations(ws *kaitov1beta1.Workspace, desiredAnnotations map[string]string) bool {
 	if len(desiredAnnotations) == 0 {
 		return false
@@ -575,12 +576,24 @@ func reconcileWorkspaceAnnotations(ws *kaitov1beta1.Workspace, desiredAnnotation
 
 	updated := false
 	for k, v := range desiredAnnotations {
+		if !shouldPropagateWorkspaceAnnotation(k) {
+			continue
+		}
 		if current, ok := ws.Annotations[k]; !ok || current != v {
 			ws.Annotations[k] = v
 			updated = true
 		}
 	}
 	return updated
+}
+
+func shouldPropagateWorkspaceAnnotation(annotationKey string) bool {
+	switch annotationKey {
+	case kaitov1beta1.AnnotationCapacityType, mmconsts.AnnotationModelStreaming:
+		return false
+	default:
+		return true
+	}
 }
 
 func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {

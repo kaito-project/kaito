@@ -41,6 +41,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
+	mmconsts "github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
 )
 
@@ -562,21 +563,32 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 }
 
 func TestReconcileWorkspaceAnnotations(t *testing.T) {
-	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{"keep": "existing", "kaito.sh/foo": "old"}}}
+	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{
+		"keep":                             "existing",
+		"kaito.sh/foo":                     "old",
+		v1beta1.AnnotationCapacityType:      consts.KarpenterCapacityTypeSpot,
+		mmconsts.AnnotationModelStreaming:   "disabled",
+	}}}
 
 	assert.True(t, reconcileWorkspaceAnnotations(ws, map[string]string{
-		"kaito.sh/foo": "new",
-		"kaito.sh/bar": "added",
+		"kaito.sh/foo":                   "new",
+		"kaito.sh/bar":                   "added",
+		v1beta1.AnnotationCapacityType:    consts.KarpenterCapacityTypeOnDemand,
+		mmconsts.AnnotationModelStreaming: "enabled",
 	}))
 	assert.Equal(t, map[string]string{
-		"keep":         "existing",
-		"kaito.sh/foo": "new",
-		"kaito.sh/bar": "added",
+		"keep":                           "existing",
+		"kaito.sh/foo":                   "new",
+		"kaito.sh/bar":                   "added",
+		v1beta1.AnnotationCapacityType:    consts.KarpenterCapacityTypeSpot,
+		mmconsts.AnnotationModelStreaming: "disabled",
 	}, ws.Annotations)
 
 	assert.False(t, reconcileWorkspaceAnnotations(ws, map[string]string{
-		"kaito.sh/foo": "new",
-		"kaito.sh/bar": "added",
+		"kaito.sh/foo":                   "new",
+		"kaito.sh/bar":                   "added",
+		v1beta1.AnnotationCapacityType:    consts.KarpenterCapacityTypeOnDemand,
+		mmconsts.AnnotationModelStreaming: "enabled",
 	}))
 
 	empty := &v1beta1.Workspace{}

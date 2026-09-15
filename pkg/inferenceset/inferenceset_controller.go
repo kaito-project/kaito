@@ -405,11 +405,12 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	// Reconcile labels on existing workspaces by additively propagating InferenceSet metadata labels.
-	// Note: this only adds/updates desired labels; it does not remove stale labels to avoid
-	// conflicting with labels managed by other controllers.
-	// This ensures label changes (e.g., adding kaito.sh/inference-role) propagate
-	// to workspaces that were created before the label was set.
+	// Reconcile metadata propagated from the InferenceSet template onto existing
+	// workspaces so annotation-only/template-label changes on the parent roll out
+	// to already-created replicas too.
+	//
+	// Labels remain additive-only because other controllers may attach their own
+	// labels to the child Workspace after creation.
 	desiredLabels := make(map[string]string)
 	for k, v := range iObj.Spec.Template.Labels {
 		desiredLabels[k] = v
@@ -421,6 +422,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
 		desiredLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
 	}
+	desiredAnnotations := iObj.Spec.Template.Annotations
 	desiredCapacityType := iObj.Spec.Template.Annotations[kaitov1beta1.AnnotationCapacityType]
 	for i := range wsList.Items {
 		ws := &wsList.Items[i]
@@ -434,8 +436,10 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				needsUpdate = true
 			}
 		}
-		if consts.IsKarpenterProvisioner() &&
-			repairInvalidWorkspaceCapacityType(ws, desiredCapacityType) {
+		if consts.IsKarpenterProvisioner() && repairInvalidWorkspaceCapacityType(ws, desiredCapacityType) {
+			needsUpdate = true
+		}
+		if reconcileWorkspaceAnnotations(ws, desiredAnnotations) {
 			needsUpdate = true
 		}
 		if needsUpdate {
@@ -556,6 +560,29 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 // 5) Aggregates and returns any errors.
 //
 // Idempotent and safe to call on every reconcile; no-op if preconditions are not met.
+
+// reconcileWorkspaceAnnotations additively propagates template annotations from
+// the parent InferenceSet onto an existing child Workspace. It updates changed
+// values and adds new keys while preserving unrelated annotations that may be
+// managed elsewhere on the Workspace object.
+func reconcileWorkspaceAnnotations(ws *kaitov1beta1.Workspace, desiredAnnotations map[string]string) bool {
+	if len(desiredAnnotations) == 0 {
+		return false
+	}
+	if ws.Annotations == nil {
+		ws.Annotations = make(map[string]string)
+	}
+
+	updated := false
+	for k, v := range desiredAnnotations {
+		if current, ok := ws.Annotations[k]; !ok || current != v {
+			ws.Annotations[k] = v
+			updated = true
+		}
+	}
+	return updated
+}
+
 func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.Context, iObj *kaitov1beta1.InferenceSet) error {
 	if iObj == nil {
 		return fmt.Errorf("InferenceSet object is nil")

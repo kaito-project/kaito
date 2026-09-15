@@ -561,6 +561,31 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 	}
 }
 
+func TestReconcileWorkspaceAnnotations(t *testing.T) {
+	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Annotations: map[string]string{"keep": "existing", "kaito.sh/foo": "old"}}}
+
+	assert.True(t, reconcileWorkspaceAnnotations(ws, map[string]string{
+		"kaito.sh/foo": "new",
+		"kaito.sh/bar": "added",
+	}))
+	assert.Equal(t, map[string]string{
+		"keep":         "existing",
+		"kaito.sh/foo": "new",
+		"kaito.sh/bar": "added",
+	}, ws.Annotations)
+
+	assert.False(t, reconcileWorkspaceAnnotations(ws, map[string]string{
+		"kaito.sh/foo": "new",
+		"kaito.sh/bar": "added",
+	}))
+
+	empty := &v1beta1.Workspace{}
+	assert.True(t, reconcileWorkspaceAnnotations(empty, map[string]string{"kaito.sh/baz": "value"}))
+	assert.Equal(t, map[string]string{"kaito.sh/baz": "value"}, empty.Annotations)
+
+	assert.False(t, reconcileWorkspaceAnnotations(&v1beta1.Workspace{}, nil))
+}
+
 func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"

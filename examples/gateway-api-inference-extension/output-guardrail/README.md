@@ -156,24 +156,34 @@ The `[GATEWAY_TEST]` string is appended to the entire JSON body (yes, it breaks 
 
 ## Current Status
 
-⚠️ **PoC In Progress**
+⚠️ **PoC Blocked: EnvoyFilter Not Applied to Gateway**
 
 - ✅ Mock backend deployment and routing working
-- ✅ HTTPRoute correctly forwarding requests through Gateway
-- ⏳ **ext_proc filter activation**: EnvoyFilter applied but ext_proc not receiving requests yet
-  - Issue: EnvoyFilter may not be correctly patching the HTTP filter chain
-  - Next: Diagnose Envoy config generation and filter insertion point
+- ✅ HTTPRoute correctly forwarding requests through Gateway  
+- ❌ **EnvoyFilter injection failed**: 
+  - Istio gateway-controller manages Gateway Envoy directly
+  - EnvoyFilter (designed for sidecar mesh) doesn't apply to Gateway API gateways
+  - **Root cause**: Gateway API gateways use a different Envoy lifecycle management
 
-## Success Criteria for This PR
+### Implications
 
-To validate before merge, must demonstrate all of:
+The current approach (EnvoyFilter) doesn't work for Istio Gateway API gateways. Alternatives to explore:
 
-- [x] ext_proc service starts without errors
-- [x] EnvoyFilter is successfully applied to Gateway
-- [ ] Response body is received by processor (check logs) ← **PENDING: ext_proc not activated**
-- [ ] Response is modified and returned ← **PENDING**
-- [ ] Client receives modified response with `[GATEWAY_TEST]` appended when calling via Gateway → HTTPRoute → mock-llm ← **PENDING**
-- [ ] EPP routing and other Gateway filters are not affected (deferred to full integration testing)
+1. **Use IngressGateway (VirtualService/DestinationRule)** instead of Gateway API
+   - Traditional Istio pattern, EnvoyFilter will work
+   - Drawback: Gateway API is the modern approach
+
+2. **Extend Gateway spec directly** (if Istio supports ext_proc configuration in Gateway CRD)
+   - Check Istio docs for Gateway-level filter configuration
+
+3. **Use WebAssembly (WASM) filter** instead of gRPC ext_proc
+   - WASM plugins may have different injection mechanism for Gateway API
+
+4. **Proxy ext_proc via sidecar** (unconventional)
+   - Add sidecars to backend pods and put ext_proc logic there
+   - Doesn't solve output guard at Gateway layer
+
+**Next action**: Need to determine Istio's intended mechanism for extending Gateway API gateways with custom filters.
 
 ## Known Limitations
 

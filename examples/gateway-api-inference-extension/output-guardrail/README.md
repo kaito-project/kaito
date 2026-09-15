@@ -68,10 +68,16 @@ Client receives mutated response
 ```bash
 cd examples/gateway-api-inference-extension/output-guardrail/
 
-# Note: First build may take ~2 min (clones Envoy repo, compiles protos)
+# Note: First build takes ~2-3 min (clones Envoy repo, compiles full proto dependency tree)
+#       Includes smoke test to verify all required proto types
 docker build -t your-registry/llm-guard-ext-proc:v1 .
 docker push your-registry/llm-guard-ext-proc:v1
 ```
+
+**Build details**:
+- Builder stage compiles external_processor.proto + all dependencies
+- Runtime stage gets only the compiled Python modules (no build tools)
+- Smoke test verifies ProcessingResponse, BodyResponse, CommonResponse, BodyMutation are available
 
 ### Step 2: Update Image in deployment.yaml
 

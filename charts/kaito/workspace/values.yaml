@@ -227,10 +227,14 @@ cache:
       # imagePullSecrets; empty disables the sidecar.
       modelWarmerImage: ""
 dacs:
+  manager:
+    namespace: kube-system
   cacheServer:
     nodeSelectorLabelKey: nexus.azure.com/processing-unit
     nodeSelectorLabelValues: [ "cpu" ]
   cache:
+    enabled: true
+    namespace: kube-system
     name: cache-sample
     dynamic:
       percentageOfNodesToUse: 75

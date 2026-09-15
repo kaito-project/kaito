@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: ext-proc
-        image: your-registry/llm-guard-ext-proc:latest
+        image: yiqi685/llm-guard-ext-proc:v1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9000

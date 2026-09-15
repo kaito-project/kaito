@@ -68,17 +68,17 @@ Client receives mutated response
 cd /home/yiqi/kaito
 
 # Build from repo root (needs go.mod/go.sum for dependencies)
-docker build -t your-registry/llm-guard-ext-proc:v1 \
+docker build -t yiqi685/llm-guard-ext-proc:v1 \
   -f examples/gateway-api-inference-extension/output-guardrail/Dockerfile .
 
-docker push your-registry/llm-guard-ext-proc:v1
+docker push yiqi685/llm-guard-ext-proc:v1
 ```
 
 ### Step 2: Update Image in deployment.yaml
 
-Edit `deployment.yaml` and change:
+Edit `deployment.yaml` and verify image is set to:
 ```yaml
-image: your-registry/llm-guard-ext-proc:v1
+image: yiqi685/llm-guard-ext-proc:v1
 ```
 
 ### Step 3: Deploy to Kubernetes

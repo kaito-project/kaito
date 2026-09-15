@@ -1028,6 +1028,36 @@ func TestNewWorkspaceForInferenceSetPropagatesCapacityType(t *testing.T) {
 	assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[kaitov1beta1.AnnotationCapacityType])
 }
 
+func TestNewWorkspaceForInferenceSetPropagatesAnnotationsIndependently(t *testing.T) {
+	templateAnnotations := map[string]string{
+		kaitov1beta1.AnnotationEnableSpeculativeDecoding: "true",
+		"example.com/custom":                           "value",
+	}
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-is",
+			Namespace: "default",
+			Annotations: map[string]string{
+				kaitov1beta1.AnnotationDisableBenchmark: "true",
+			},
+		},
+		Spec: kaitov1beta1.InferenceSetSpec{
+			Template: kaitov1beta1.InferenceSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{Annotations: templateAnnotations},
+			},
+		},
+	}
+
+	ws := NewWorkspaceForInferenceSet(is)
+	assert.Equal(t, "true", ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding])
+	assert.Equal(t, "value", ws.Annotations["example.com/custom"])
+	assert.Equal(t, "true", ws.Annotations[kaitov1beta1.AnnotationDisableBenchmark])
+
+	ws.Annotations["mutation-check"] = "mutated"
+	_, mutatedSource := is.Spec.Template.Annotations["mutation-check"]
+	assert.False(t, mutatedSource, "returned annotations map should be independent from the template source map")
+}
+
 func TestValidateWorkspaceForInferenceSet(t *testing.T) {
 	// BYO mode so an empty instanceType is valid and node-listing is skipped.
 	orig := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]

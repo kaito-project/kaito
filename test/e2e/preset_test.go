@@ -49,7 +49,7 @@ const (
 	PresetGemma4_E2BInstructModel   = "google/gemma-4-E2B-it"
 	PresetGemma4E4BInstructModel    = "google/gemma-4-E4B-it"
 	PresetGemma4_12BInstructModel   = "google/gemma-4-12B-it"
-	PresetQwen3_6_27BModel          = "Qwen/Qwen3.6-27B"
+	PresetQwen3_6_35BA3BFP8Model    = "Qwen/Qwen3.6-35B-A3B-FP8"
 	PresetQwen3_8_27BModel          = "Qwen/Qwen3.8-27B"
 	PresetGPT_OSS_20BModel          = "gpt-oss-20b"
 	PresetGPT_OSS_120BModel         = "gpt-oss-120b"

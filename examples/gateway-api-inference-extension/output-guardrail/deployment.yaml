@@ -7,11 +7,11 @@ metadata:
 data:
   policy.yaml: |
     action: redact
-    blockMessage: "Response blocked by output guardrails"
+    blockMessage: "Response blocked by guardrails"
     scanners:
       - type: ban_substrings
         action: block
-        substrings: ["INTERNAL_ONLY", "SECRET_KEY"]
+        substrings: ["PROHIBITED_CONTENT"]
         match_type: word
         case_sensitive: false
 
@@ -20,7 +20,7 @@ data:
 
       - type: sensitive
         action: redact
-        detectors: [email, phone, credit_card]
+        detectors: [email, phone_number, credit_card]
 
 ---
 apiVersion: v1
@@ -44,7 +44,7 @@ metadata:
   name: llm-guard-ext-proc
   namespace: default
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: llm-guard-ext-proc

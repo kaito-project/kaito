@@ -13,7 +13,7 @@ This PR implements:
 ## What This PR Does
 
 - ✅ Reuses existing `OutputGuardrails.guard_response()`
-- ✅ Applies all response-only scanners from scanner_schemas:
+- ✅ Applies all response-only scanners to all choices (handles multiple choices automatically)
   - `ban_substrings` (with match_type, case_sensitive options)
   - `secrets` (AWS keys, tokens, etc.)
   - `sensitive` (email, phone, credit card, IP address)
@@ -134,27 +134,60 @@ kubectl apply -f deployment.yaml
 
 ## Test
 
+### E2E Tests (Full Flow)
+
 ```bash
-# Deploy mock backend
-kubectl apply -f mock-backend.yaml
+# Make the test script executable
+chmod +x test-e2e.sh
 
-# Send clean response (should pass through)
-curl -X POST "http://$GATEWAY_IP/v1/chat/completions" \
-  -H "content-type: application/json" \
-  -d '{"model":"phi","stream":false,"messages":[{"role":"user","content":"hello"}]}'
-
-# Expected: {"choices": [{"message": {"content": "hello from mock model"}}]}
-
-# If policy blocks "hello from mock":
-# Expected: {"choices": [{"message": {"content": "Response blocked by guardrails"}}]}
+# Run E2E tests (requires deployed gateway and ext_proc service)
+./test-e2e.sh
 ```
+
+**Test cases:**
+- ✅ Clean response passes through unchanged (JSON valid)
+- ✅ Ban substring blocks response (unsafe content replaced with blockMessage)
+- ✅ Sensitive data redacted (email/PII masked)
+- ✅ HTTP framing valid (status, content-type, content-length, JSON parseable)
+- ✅ Fail-closed: ext_proc unavailable blocks request (doesn't leak unguarded response)
+- ✅ Large response (100KB+) handled correctly with proper framing
+
+### Performance Benchmarking
+
+```bash
+chmod +x benchmark-latency.sh
+./benchmark-latency.sh
+```
+
+Automatically measures baseline vs with-guardrails overhead. See [Performance Benchmarking](#performance-benchmarking) section.
+
+### Regression Testing
+
+```bash
+chmod +x test-regression-epp.sh
+./test-regression-epp.sh
+```
+
+Verifies EPP/GWIE routing unaffected. See [Regression Testing](#regression-testing) section.
+
+### Unit Tests (Component-Level)
+
+```bash
+# Run unit tests for ext_proc server
+python -m pytest test_ext_proc.py -v
+```
+
+Tests:
+- Guard response disabled path
+- Guard response allowed path (mock guardrails)
+- Fail-closed behavior (all choices blocked on scanner error)
 
 ## Verification
 
-✅ **PR3: OutputGuardrails Integration Complete**
+✅ **PR3: OutputGuardrails Integration Complete for the Current PoC Scope**
 
 - ✅ Uses existing OutputGuardrails.guard_response()
-- ✅ Applies scanner_schemas (ban_substrings, secrets, sensitive)
+- ✅ Applies scanner_schemas (ban_substrings, secrets, sensitive) to all choices
 - ✅ Respects policy actions (allow/redact/block)
 - ✅ No custom scanner implementation (reuses existing)
 - ✅ Response-only mode (no prompt context)
@@ -207,39 +240,61 @@ chmod +x test-e2e.sh
 
 ## Performance Benchmarking
 
-Measure latency impact of guardrails scanning:
+Measure latency baseline and ext_proc overhead automatically:
 
 ```bash
-# Benchmark latency with guardrails enabled
+# Make the benchmark script executable
+chmod +x benchmark-latency.sh
+
+# Run benchmark (automatically disables/enables ext_proc to compare)
 ./benchmark-latency.sh
 
 # Customize:
-# GATEWAY_URL=http://gateway.example.com NUM_REQUESTS=1000 CONCURRENCY=10 ./benchmark-latency.sh
+# GATEWAY_URL=http://gateway.example.com NUM_REQUESTS=500 CONCURRENCY=10 ./benchmark-latency.sh
 ```
 
-**Baseline vs. Guardrails:**
-- Baseline (no scanning): ~50-80ms per request (depending on mock backend)
-- With guardrails: +10-30ms overhead (varies by scanner type and content size)
-- Secrets scanning adds most overhead; ban_substrings is fastest
+**What this measures:**
+- **Baseline**: Full request path with ext_proc filter disabled (no guardrails scanning)
+- **With guardrails**: Same path with ext_proc scanning enabled
+- **Overhead calculation**: (with-guardrails latency) - (baseline latency)
+
+**Report includes:**
+- Min/Avg/Max latency for each phase
+- Request success/failure rates
+- Guidance on interpreting results for your environment
 
 **Notes:**
-- To measure ext_proc overhead specifically: disable filter in EnvoyFilter, benchmark, then re-enable
-- Latency includes full request path: gateway routing + LLM "inference" (mock) + ext_proc scanning
-- For production, run warm-up requests before measuring (JVM/Python startup)
+- Results depend on: response size, scanner types (ban_substrings vs secrets), concurrency, backend latency
+- Run warm-up requests before benchmarking (Python startup overhead)
+- For accurate measurement, ensure gateway is not under other load during test
 
 ## Regression Testing
 
-Verify that adding the ext_proc filter doesn't break existing EPP routing:
+Verify that the ext_proc filter doesn't break existing GWIE/EPP routing:
 
 ```bash
-# Check that requests still distribute across endpoints
-kubectl exec -it <gateway-pod> -c istio-proxy -- \
-  curl -s localhost:15000/stats | grep endpoint_picker
+# Make the regression test script executable
+chmod +x test-regression-epp.sh
 
-# Send multiple requests and verify load distribution
-for i in {1..10}; do
-  curl -s http://$GATEWAY_URL/v1/chat/completions ... | jq .id
-done
+# Run regression tests (requires deployed gateway and backends)
+./test-regression-epp.sh
 ```
 
-**Expected:** Requests route to mix of backend pods, not just one.
+**What this verifies:**
+- ✅ Requests still route to backend pods (no routing breakage)
+- ✅ Load distribution: requests go to multiple pods (when replicas > 1)
+- ✅ No persistent connection errors
+- ✅ Endpoint picker still active (Envoy load balancing working)
+- ✅ Original GWIE/EPP semantics unaffected by ext_proc filter
+
+**Manual verification (if script unavailable):**
+```bash
+# Check Envoy config includes original EPP filters
+istioctl proxy-config listener <gateway-pod> | grep -E "endpoint_picker|ext_proc"
+
+# Send requests and verify distribution
+for i in {1..20}; do
+  curl -s "$GATEWAY_URL/v1/chat/completions" ... | jq .id
+done
+# Should see successful responses, no errors
+```

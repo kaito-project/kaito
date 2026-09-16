@@ -240,13 +240,12 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Gemma 4 12B InferenceSet with assistant-backed MTP speculative decoding enabled", utils.GinkgoLabelFastCheck, func() {
-		// Gemma 4 12B is in speculativeDecodingByPreset with an assistant-backed
+	It("should create a Qwen3.6 27B InferenceSet with MTP speculative decoding enabled", utils.GinkgoLabelFastCheck, func() {
+		// Qwen3.6 27B is in speculativeDecodingByPreset with a self-contained
 		// MTP config, so this exercises the tuned MTP path where KAITO injects
-		// method=mtp plus speculative_config.model=<assistant-checkpoint> on the
-		// child Workspace pods created by the InferenceSet controller.
+		// method=mtp for a built-in catalog model without assistant-model wiring.
 		numOfReplicas := 1
-		inferenceSetObj := createGemma4_12BInstructInferenceSetWithSpeculativeDecodingAndVLLM(numOfReplicas)
+		inferenceSetObj := createQwen3_6_27BInferenceSetWithSpeculativeDecodingAndVLLM(numOfReplicas)
 		DeferCleanup(func() {
 			cleanupResourcesForInferenceSet(inferenceSetObj)
 		})
@@ -254,7 +253,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
 		validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj)
-		validateInferenceSetSpeculativeDecodingAssistantModelInjected(inferenceSetObj, "google/gemma-4-12B-it-assistant")
 
 		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
 		validateWorkspaceReadiness(childWS)
@@ -286,8 +284,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		// XiaomiMiMo/MiMo-7B-Base is in speculativeDecodingByPreset, so the
 		// InferenceSet -> child Workspace propagation path should inject the
 		// preset-tuned MTP configuration instead of the universal ngram
-		// fallback. This complements the Gemma assistant-backed MTP test and
-		// the phi-4 ngram-fallback test above by proving another supported
+		// fallback. This complements the Qwen tuned-MTP test and the phi-4
+		// ngram-fallback test above by proving another supported
 		// preset survives admission, replica creation, and a real
 		// inference round-trip with speculative decoding enabled.
 		numOfReplicas := 1
@@ -1256,23 +1254,22 @@ func createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int)
 	return workspaceObj
 }
 
-// createGemma4_12BInstructInferenceSetWithSpeculativeDecodingAndVLLM builds
-// an InferenceSet using the gemma-4-12B preset with the
+// createQwen3_6_27BInferenceSetWithSpeculativeDecodingAndVLLM builds an
+// InferenceSet using the Qwen3.6 27B preset with the
 // kaito.sh/enable-speculative-decoding annotation set on Spec.Template.
-// Because gemma-4-12B is in presets/workspace/generator/generator.go
-// speculativeDecodingByPreset with an assistant-backed MTP config, this
+// Because Qwen3.6 27B is in presets/workspace/generator/generator.go
+// speculativeDecodingByPreset with a self-contained MTP config, this
 // exercises tuned MTP injection plus the InferenceSet -> child Workspace
 // annotation-propagation path.
-func createGemma4_12BInstructInferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
-	modelSecret := createAndValidateModelSecret()
+func createQwen3_6_27BInferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
 	inferenceSetObj := &kaitov1beta1.InferenceSet{}
 
-	By("Creating an InferenceSet CR with Gemma 4 12B preset public mode, vLLM, and speculative-decoding annotation", func() {
-		uniqueID := fmt.Sprint("preset-gemma-4-12b-spec-is-", rand.Intn(1000))
-		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
+	By("Creating an InferenceSet CR with Qwen3.6 27B preset public mode, vLLM, and speculative-decoding annotation", func() {
+		uniqueID := fmt.Sprint("preset-qwen3-6-27b-spec-is-", rand.Intn(1000))
+		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-4-12b-vllm-specdec"},
-			}, PresetGemma4_12BInstructModel, nil, nil, modelSecret.Name)
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-qwen3-6-27b-vllm-specdec"},
+			}, PresetQwen3_6_27BModel, nil, nil, "")
 
 		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
 		if inferenceSetObj.Spec.Template.Annotations == nil {
@@ -1404,33 +1401,6 @@ func validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj *kaitov1
 			}
 			return nil
 		}, 20*time.Minute, utils.PollInterval).Should(Succeed(), "preset-tuned mtp --speculative-config should be injected on the InferenceSet's child Workspace pods")
-	})
-}
-
-func validateInferenceSetSpeculativeDecodingAssistantModelInjected(inferenceSetObj *kaitov1beta1.InferenceSet, assistantModel string) {
-	By(fmt.Sprintf("Verifying a child Workspace pod was launched with speculative_config.model=%s", assistantModel), func() {
-		Eventually(func() error {
-			pods := &corev1.PodList{}
-			if err := utils.TestingCluster.KubeClient.List(ctx, pods,
-				client.InNamespace(inferenceSetObj.Namespace),
-				client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name},
-			); err != nil {
-				return fmt.Errorf("list pods: %w", err)
-			}
-			if len(pods.Items) == 0 {
-				return fmt.Errorf("no child-workspace pods found for InferenceSet %s/%s", inferenceSetObj.Namespace, inferenceSetObj.Name)
-			}
-			for _, pod := range pods.Items {
-				if len(pod.Spec.Containers) == 0 {
-					return fmt.Errorf("pod %s has no containers", pod.Name)
-				}
-				cmdline := strings.Join(pod.Spec.Containers[0].Command, " ") + " " + strings.Join(pod.Spec.Containers[0].Args, " ")
-				if !strings.Contains(cmdline, `"model":"`+assistantModel+`"`) {
-					return fmt.Errorf("pod %s missing assistant model %q in speculative-config: %s", pod.Name, assistantModel, cmdline)
-				}
-			}
-			return nil
-		}, 20*time.Minute, utils.PollInterval).Should(Succeed(), "assistant-backed mtp speculative-config should include the assistant checkpoint")
 	})
 }
 

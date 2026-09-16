@@ -11,4 +11,4 @@ resource:
       apps: llm-inference
 inference:
   preset:
-    name: qwen2.5-coder-7b-instruct
+    name: Qwen/Qwen2.5-Coder-7B-Instruct

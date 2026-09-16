@@ -9,4 +9,4 @@ resource:
       apps: phi-3
 inference:
   preset:
-    name: phi-3-medium-128k-instruct
+    name: microsoft/Phi-3-medium-128k-instruct

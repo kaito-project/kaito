@@ -59,7 +59,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for P/D traffic validation")
 
 		// Uses the same MRI creation as existing test but adds P/D validation
-		mriObj := createGemma3MultiRoleInference()
+		mriObj := createGemma4MultiRoleInference()
 		defer cleanupResourcesForMultiRoleInference(mriObj)
 
 		validateMultiRoleInferenceChildInferenceSets(mriObj)
@@ -244,7 +244,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
 
 		numOfReplicas := 1
-		inferenceSetObj := createGemma3InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+		inferenceSetObj := createGemma4InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
 		DeferCleanup(func() {
 			cleanupResourcesForInferenceSet(inferenceSetObj)
 		})
@@ -307,28 +307,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateBBRRouting(inferenceSetObj, modelName, inferencePoolName, findWorkspacePod)
 	})
 
-	It("should create a ministral-3-3b-instruct-2512 workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
 })
 
 // validateBBRRouting installs BBR, creates an HTTPRoute with model-name header matching,
@@ -782,26 +760,26 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 	})
 }
 
-func createGemma3InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
+func createGemma4InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
 	modelSecret := createAndValidateModelSecret()
 	inferenceSetObj := &kaitov1beta1.InferenceSet{}
-	By("Creating an InferenceSet CR with Gemma 3 preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-gemma3-is-", rand.Intn(1000))
+	By("Creating an InferenceSet CR with Gemma 4 preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-gemma4-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-gemma-vllm"},
-			}, PresetGemma3_4BInstructModel, nil, nil, modelSecret.Name)
+			}, PresetGemma4E4BInstructModel, nil, nil, modelSecret.Name)
 		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
 		createAndValidateInferenceSet(inferenceSetObj)
 	})
 	return inferenceSetObj
 }
 
-func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
+func createGemma4MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
 	modelSecret := createAndValidateModelSecret()
 	mriObj := &kaitov1alpha1.MultiRoleInference{}
-	By("Creating a MultiRoleInference CR with Gemma 3 prefill and decode roles", func() {
-		uniqueID := fmt.Sprint("mri-gemma3-pd-", rand.Intn(1000))
+	By("Creating a MultiRoleInference CR with Gemma 4 E2B prefill and decode roles", func() {
+		uniqueID := fmt.Sprint("mri-gemma4-pd-", rand.Intn(1000))
 		replicas := int32(1)
 		mriObj = &kaitov1alpha1.MultiRoleInference{
 			ObjectMeta: metav1.ObjectMeta{
@@ -813,7 +791,7 @@ func createGemma3MultiRoleInference() *kaitov1alpha1.MultiRoleInference {
 					MatchLabels: map[string]string{"kaito-mri": uniqueID},
 				},
 				Model: kaitov1alpha1.MultiRoleInferenceModelSpec{
-					Name:              string(PresetGemma3_4BInstructModel),
+					Name:              string(PresetGemma4E2BInstructModel),
 					ModelAccessSecret: modelSecret.Name,
 				},
 				Roles: []kaitov1alpha1.MultiRoleInferenceRoleSpec{
@@ -1252,21 +1230,6 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b-vllm"},
 			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "", "")
-
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
-func createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with Ministral 3 3B Instruct preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-ministral-3-3b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-ministral-3-3b-instruct-vllm"},
-			}, nil, PresetMinistral33BInstructModel, nil, nil, nil, "", "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)

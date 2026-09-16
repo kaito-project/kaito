@@ -760,50 +760,26 @@ func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
 	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
-// TestGetModelByName_GLM52FP8 verifies GLM-5.2-FP8 resolves offline from the
-// embedded catalog, wires the glm45 reasoning parser and glm47 tool-call parser,
-// uses an fp8 kv-cache per its recipe, and is flagged as requiring DeepGEMM.
-func TestGetModelByName_GLM52FP8(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.2-FP8", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	runParams := params.RuntimeParam.VLLM.ModelRunParams
-	assert.Equal(t, "glm45", runParams["reasoning-parser"])
-	assert.Equal(t, "glm47", runParams["tool-call-parser"])
-	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
-	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
-	assert.True(t, params.RequiresDeepGEMM())
-}
-
-func TestGetModelByName_BuiltinModels(t *testing.T) {
+func TestGetModelByName_CatalogModels(t *testing.T) {
 	tests := []struct {
-		name          string
-		modelName     string
-		expectedShort string
+		name      string
+		modelName string
 	}{
 		{
-			name:          "builtin deepseek-r1-distill-llama-8b",
-			modelName:     "deepseek-ai/deepseek-r1-distill-llama-8b",
-			expectedShort: "deepseek-r1-distill-llama-8b",
+			name:      "catalog phi-4",
+			modelName: "microsoft/phi-4",
 		},
 		{
-			name:          "builtin phi-4",
-			modelName:     "microsoft/phi-4",
-			expectedShort: "phi-4",
+			name:      "catalog gpt-oss-20b",
+			modelName: "openai/gpt-oss-20b",
 		},
 		{
-			name:          "builtin model with uppercase input",
-			modelName:     "MICROSOFT/PHI-4",
-			expectedShort: "phi-4",
+			name:      "catalog model with uppercase input",
+			modelName: "MICROSOFT/PHI-4",
 		},
 		{
-			name:          "builtin model mixed case",
-			modelName:     "Meta-Llama/Llama-3.1-8b-Instruct",
-			expectedShort: "llama-3.1-8b-instruct",
+			name:      "catalog model with mixed case input",
+			modelName: "OpenAI/GPT-OSS-20B",
 		},
 	}
 
@@ -827,6 +803,11 @@ func TestGetModelByName_ErrorCases(t *testing.T) {
 			name:          "unregistered model without slash",
 			modelName:     "nonexistent-model",
 			expectedError: "model is not registered: nonexistent-model",
+		},
+		{
+			name:          "legacy short model name",
+			modelName:     "phi-4",
+			expectedError: "model is not registered: phi-4",
 		},
 		{
 			name:          "empty model name",
@@ -992,63 +973,6 @@ func TestGetModelByName_ContextCancellation(t *testing.T) {
 	// Should still work for registered models since context is only used for k8s client
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-}
-
-func TestGenerateHuggingFaceModel_CatalogOnlyModelsUseCatalogPath(t *testing.T) {
-	// All legacy short-name models go through GeneratePreset and
-	// register a new vLLMCompatibleModel.
-	for _, modelName := range plugin.LegacyBuiltinToCatalog {
-		t.Run(modelName, func(t *testing.T) {
-			result, err := generateHuggingFaceModel(modelName, "")
-			// Should succeed via model catalog
-			assert.NoError(t, err)
-			assert.NotNil(t, result)
-
-			// Verify it's a vLLMCompatibleModel from the catalog path.
-			_, isVLLM := result.(*vLLMCompatibleModel)
-			assert.True(t, isVLLM,
-				"model %q should be a vLLMCompatibleModel", modelName)
-
-			// The catalog path registers the model under the full HF name.
-			registered := plugin.KaitoModelRegister.MustGet(modelName)
-			assert.NotNil(t, registered,
-				"model %q should be registered under full HF name after catalog generation", modelName)
-		})
-	}
-}
-
-func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
-	// When a short name (e.g. "phi-4") is in catalogOnlyPresets, GetModelByName
-	// should redirect to the full HF name and generate via model catalog
-	// instead of returning the pre-registered phi4Model.
-	for shortName, hfName := range plugin.LegacyBuiltinToCatalog {
-		t.Run(shortName, func(t *testing.T) {
-			result, err := GetModelByName(context.Background(), shortName, "", "", nil)
-			assert.NoError(t, err)
-			assert.NotNil(t, result)
-
-			// The result should be a vLLMCompatibleModel, not the pre-registered model type.
-			_, isVLLM := result.(*vLLMCompatibleModel)
-			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel, not pre-registered type", shortName)
-
-			// Should be registered under the full HF name
-			registered := plugin.KaitoModelRegister.MustGet(hfName)
-			assert.NotNil(t, registered)
-		})
-	}
-}
-
-func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
-	for shortName := range plugin.LegacyBuiltinToCatalog {
-		t.Run(shortName, func(t *testing.T) {
-			result, err := GetModelByNameWithToken(context.Background(), shortName, "")
-			assert.NoError(t, err)
-			assert.NotNil(t, result)
-
-			_, isVLLM := result.(*vLLMCompatibleModel)
-			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel", shortName)
-		})
-	}
 }
 
 // TestCatalogModelsHaveMTBenchScores ensures every model in model_catalog.yaml

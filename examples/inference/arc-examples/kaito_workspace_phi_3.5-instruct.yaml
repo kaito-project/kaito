@@ -11,4 +11,4 @@ resource:
       apps: llm-inference
 inference:
   preset:
-    name: phi-3.5-mini-instruct
+    name: microsoft/Phi-3.5-mini-instruct

@@ -24,118 +24,6 @@ models:
   numHiddenLayers: 32
   numAttentionHeads: 24
   numKeyValueHeads: 8
-- name: deepseek-ai/DeepSeek-R1-Distill-Llama-8B
-  description: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 14.96Gi
-  architectures:
-  - LlamaForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 4096
-  numHiddenLayers: 32
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-- name: deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
-  description: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 27.51Gi
-  architectures:
-  - Qwen2ForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 5120
-  numHiddenLayers: 48
-  numAttentionHeads: 40
-  numKeyValueHeads: 8
-- name: microsoft/Phi-3-mini-4k-instruct
-  description: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 7.12Gi
-  architectures:
-  - Phi3ForCausalLM
-  modelTokenLimit: 4096
-  hiddenSize: 3072
-  numHiddenLayers: 32
-  numAttentionHeads: 32
-  numKeyValueHeads: 32
-- name: microsoft/Phi-3-mini-128k-instruct
-  description: https://huggingface.co/microsoft/Phi-3-mini-128k-instruct
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 7.12Gi
-  architectures:
-  - Phi3ForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 3072
-  numHiddenLayers: 32
-  numAttentionHeads: 32
-  numKeyValueHeads: 32
-- name: microsoft/Phi-3-medium-4k-instruct
-  description: https://huggingface.co/microsoft/Phi-3-medium-4k-instruct
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 26.00Gi
-  architectures:
-  - Phi3ForCausalLM
-  modelTokenLimit: 4096
-  hiddenSize: 5120
-  numHiddenLayers: 40
-  numAttentionHeads: 40
-  numKeyValueHeads: 10
-- name: microsoft/Phi-3-medium-128k-instruct
-  description: https://huggingface.co/microsoft/Phi-3-medium-128k-instruct
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 26.00Gi
-  architectures:
-  - Phi3ForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 5120
-  numHiddenLayers: 40
-  numAttentionHeads: 40
-  numKeyValueHeads: 10
-- name: microsoft/Phi-3.5-mini-instruct
-  description: https://huggingface.co/microsoft/Phi-3.5-mini-instruct
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 7.12Gi
-  architectures:
-  - Phi3ForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 3072
-  numHiddenLayers: 32
-  numAttentionHeads: 32
-  numKeyValueHeads: 32
-- name: Qwen/Qwen2.5-Coder-7B-Instruct
-  description: https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct
-  license: apache-2.0
-  pipelineTag: text-generation
-  baseModel:
-  - Qwen/Qwen2.5-Coder-7B
-  modelFileSize: 14.19Gi
-  architectures:
-  - Qwen2ForCausalLM
-  modelTokenLimit: 32768
-  hiddenSize: 3584
-  numHiddenLayers: 28
-  numAttentionHeads: 28
-  numKeyValueHeads: 4
-- name: Qwen/Qwen2.5-Coder-32B-Instruct
-  description: https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct
-  license: apache-2.0
-  pipelineTag: text-generation
-  baseModel:
-  - Qwen/Qwen2.5-Coder-32B
-  modelFileSize: 61.03Gi
-  architectures:
-  - Qwen2ForCausalLM
-  modelTokenLimit: 32768
-  hiddenSize: 5120
-  numHiddenLayers: 64
-  numAttentionHeads: 40
-  numKeyValueHeads: 8
 - name: openai/gpt-oss-20b
   description: https://huggingface.co/openai/gpt-oss-20b
   license: apache-2.0
@@ -164,99 +52,6 @@ models:
   numKeyValueHeads: 8
   headDim: 64
   quantMethod: mxfp4
-- name: meta-llama/Llama-3.1-8B-Instruct
-  description: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
-  license: llama3.1
-  pipelineTag: text-generation
-  baseModel:
-  - meta-llama/Meta-Llama-3.1-8B
-  modelFileSize: 14.96Gi
-  architectures:
-  - LlamaForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 4096
-  numHiddenLayers: 32
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-- name: meta-llama/Llama-3.3-70B-Instruct
-  description: https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct
-  license: llama3.3
-  pipelineTag: text-generation
-  baseModel:
-  - meta-llama/Llama-3.1-70B
-  modelFileSize: 131.42Gi
-  architectures:
-  - LlamaForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 8192
-  numHiddenLayers: 80
-  numAttentionHeads: 64
-  numKeyValueHeads: 8
-- name: mistralai/Mistral-7B-v0.3
-  description: https://huggingface.co/mistralai/Mistral-7B-v0.3
-  license: apache-2.0
-  modelFileSize: 13.50Gi
-  architectures:
-  - MistralForCausalLM
-  modelTokenLimit: 32768
-  hiddenSize: 4096
-  numHiddenLayers: 32
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-- name: mistralai/Mistral-7B-Instruct-v0.3
-  description: https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3
-  license: apache-2.0
-  baseModel:
-  - mistralai/Mistral-7B-v0.3
-  modelFileSize: 13.50Gi
-  architectures:
-  - MistralForCausalLM
-  modelTokenLimit: 32768
-  hiddenSize: 4096
-  numHiddenLayers: 32
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-- name: mistralai/Ministral-3-3B-Instruct-2512
-  description: https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512
-  license: apache-2.0
-  baseModel:
-  - mistralai/Ministral-3-3B-Base-2512
-  modelFileSize: 4.35Gi
-  architectures:
-  - Mistral3ForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 3072
-  numHiddenLayers: 26
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-  headDim: 128
-  quantMethod: fp8
-- name: mistralai/Ministral-3-8B-Instruct-2512
-  description: https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512
-  license: apache-2.0
-  baseModel:
-  - mistralai/Ministral-3-8B-Base-2512
-  modelFileSize: 9.70Gi
-  architectures:
-  - Mistral3ForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 4096
-  numHiddenLayers: 34
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-  quantMethod: fp8
 - name: mistralai/Ministral-3-14B-Instruct-2512
   description: https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512
   license: apache-2.0
@@ -275,87 +70,6 @@ models:
   tokenizerMode: mistral
   headDim: 128
   quantMethod: fp8
-- name: google/gemma-3-4b-it
-  description: https://huggingface.co/google/gemma-3-4b-it
-  license: gemma
-  pipelineTag: image-text-to-text
-  baseModel:
-  - google/gemma-3-4b-pt
-  modelFileSize: 8.01Gi
-  architectures:
-  - Gemma3ForConditionalGeneration
-  modelTokenLimit: 131072
-  hiddenSize: 2560
-  numHiddenLayers: 34
-  numAttentionHeads: 8
-  numKeyValueHeads: 4
-  headDim: 256
-- name: google/gemma-3-27b-it
-  description: https://huggingface.co/google/gemma-3-27b-it
-  license: gemma
-  pipelineTag: image-text-to-text
-  baseModel:
-  - google/gemma-3-27b-pt
-  modelFileSize: 51.10Gi
-  architectures:
-  - Gemma3ForConditionalGeneration
-  modelTokenLimit: 131072
-  hiddenSize: 5376
-  numHiddenLayers: 62
-  numAttentionHeads: 32
-  numKeyValueHeads: 16
-  headDim: 128
-- name: deepseek-ai/DeepSeek-R1-0528
-  description: https://huggingface.co/deepseek-ai/DeepSeek-R1-0528
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 641.30Gi
-  architectures:
-  - DeepseekV3ForCausalLM
-  modelTokenLimit: 163840
-  hiddenSize: 7168
-  numHiddenLayers: 61
-  numAttentionHeads: 128
-  numKeyValueHeads: 128
-  kvLoraRank: 512
-  qkRopeHeadDim: 64
-  quantMethod: fp8
-- name: deepseek-ai/DeepSeek-V3-0324
-  description: https://huggingface.co/deepseek-ai/DeepSeek-V3-0324
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 641.30Gi
-  architectures:
-  - DeepseekV3ForCausalLM
-  modelTokenLimit: 163840
-  hiddenSize: 7168
-  numHiddenLayers: 61
-  numAttentionHeads: 128
-  numKeyValueHeads: 128
-  kvLoraRank: 512
-  qkRopeHeadDim: 64
-  quantMethod: fp8
-- name: mistralai/Mistral-Large-3-675B-Instruct-2512
-  description: https://huggingface.co/mistralai/Mistral-Large-3-675B-Instruct-2512
-  license: apache-2.0
-  pipelineTag: text-generation
-  baseModel:
-  - mistralai/Mistral-Large-3-675B-Base-2512
-  modelFileSize: 634.70Gi
-  architectures:
-  - MistralLarge3ForCausalLM
-  modelTokenLimit: 294912
-  hiddenSize: 7168
-  numHiddenLayers: 61
-  numAttentionHeads: 128
-  numKeyValueHeads: 128
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-  headDim: 192
-  kvLoraRank: 512
-  qkRopeHeadDim: 64
-  quantMethod: float-quantized
 - name: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
   license: nvidia-nemotron-open-model-license
@@ -372,23 +86,6 @@ models:
   mambaStateBytesPerLayer: 4255744
   numFullAttnLayers: 8
   numLinearLayers: 40
-- name: nvidia/Nemotron-Cascade-2-30B-A3B
-  description: https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B
-  license: nvidia-open-model-license
-  pipelineTag: text-generation
-  modelFileSize: 58.82Gi
-  architectures:
-  - NemotronHForCausalLM
-  modelTokenLimit: 262144
-  hiddenSize: 2688
-  numHiddenLayers: 52
-  numAttentionHeads: 32
-  numKeyValueHeads: 2
-  headDim: 128
-  mambaStateBytesPerSeq: 49082368
-  mambaStateBytesPerLayer: 2134016
-  numFullAttnLayers: 6
-  numLinearLayers: 23
 - name: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
   license: nvidia-nemotron-open-model-license
@@ -406,22 +103,6 @@ models:
   mambaStateBytesPerLayer: 2134016
   numFullAttnLayers: 6
   numLinearLayers: 23
-- name: nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
-  description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16
-  license: nvidia-open-model-license
-  pipelineTag: image-text-to-text
-  modelFileSize: 24.55Gi
-  architectures:
-  - NemotronH_Nano_VL_V2
-  modelTokenLimit: 131072
-  hiddenSize: 5120
-  numHiddenLayers: 62
-  numAttentionHeads: 40
-  numKeyValueHeads: 8
-  mambaStateBytesPerSeq: 148865024
-  mambaStateBytesPerLayer: 5316608
-  numFullAttnLayers: 6
-  numLinearLayers: 28
 - name: nvidia/NVIDIA-Nemotron-Nano-9B-v2
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2
   license: nvidia-open-model-license
@@ -461,22 +142,6 @@ models:
   mambaStateBytesPerLayer: 3990528
   numFullAttnLayers: 4
   numLinearLayers: 21
-- name: Qwen/Qwen3-8B-AWQ
-  description: https://huggingface.co/Qwen/Qwen3-8B-AWQ
-  license: apache-2.0
-  pipelineTag: text-generation
-  baseModel:
-  - Qwen/Qwen3-8B
-  modelFileSize: 5.68Gi
-  architectures:
-  - Qwen3ForCausalLM
-  modelTokenLimit: 40960
-  hiddenSize: 4096
-  numHiddenLayers: 36
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-  quantMethod: awq
-  quantBits: 4
 - name: google/gemma-4-31B-it
   description: https://huggingface.co/google/gemma-4-31B-it
   license: apache-2.0
@@ -554,43 +219,6 @@ models:
   kvLoraRank: 256
   qkRopeHeadDim: 64
   quantMethod: fp8
-- name: mistralai/Mistral-Small-4-119B-2603-NVFP4
-  description: https://huggingface.co/mistralai/Mistral-Small-4-119B-2603-NVFP4
-  license: apache-2.0
-  baseModel:
-  - mistralai/Mistral-Small-4-119B-2603
-  modelFileSize: 65.95Gi
-  architectures:
-  - Mistral3ForConditionalGeneration
-  modelTokenLimit: 1048576
-  hiddenSize: 4096
-  numHiddenLayers: 36
-  numAttentionHeads: 32
-  numKeyValueHeads: 32
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-  kvLoraRank: 256
-  qkRopeHeadDim: 64
-  quantMethod: nvfp4-pack-quantized
-- name: Qwen/Qwen3.5-2B
-  description: https://huggingface.co/Qwen/Qwen3.5-2B
-  license: apache-2.0
-  pipelineTag: image-text-to-text
-  baseModel:
-  - Qwen/Qwen3.5-2B-Base
-  modelFileSize: 4.24Gi
-  architectures:
-  - Qwen3_5ForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 2048
-  numHiddenLayers: 24
-  numAttentionHeads: 8
-  numKeyValueHeads: 2
-  mambaStateBytesPerSeq: 19537920
-  mambaStateBytesPerLayer: 1085440
-  numFullAttnLayers: 6
-  numLinearLayers: 18
 - name: Qwen/Qwen3.5-4B
   description: https://huggingface.co/Qwen/Qwen3.5-4B
   license: apache-2.0
@@ -628,42 +256,6 @@ models:
   mambaStateBytesPerLayer: 2146304
   numFullAttnLayers: 8
   numLinearLayers: 24
-- name: Qwen/Qwen3.5-122B-A10B-GPTQ-Int4
-  description: https://huggingface.co/Qwen/Qwen3.5-122B-A10B-GPTQ-Int4
-  license: apache-2.0
-  pipelineTag: image-text-to-text
-  modelFileSize: 73.47Gi
-  architectures:
-  - Qwen3_5MoeForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 3072
-  numHiddenLayers: 48
-  numAttentionHeads: 32
-  numKeyValueHeads: 2
-  headDim: 256
-  quantMethod: gptq
-  quantBits: 4
-  mambaStateBytesPerSeq: 153649152
-  mambaStateBytesPerLayer: 4268032
-  numFullAttnLayers: 12
-  numLinearLayers: 36
-- name: Qwen/Qwen3.5-122B-A10B
-  description: https://huggingface.co/Qwen/Qwen3.5-122B-A10B
-  license: apache-2.0
-  pipelineTag: image-text-to-text
-  modelFileSize: 232.99Gi
-  architectures:
-  - Qwen3_5MoeForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 3072
-  numHiddenLayers: 48
-  numAttentionHeads: 32
-  numKeyValueHeads: 2
-  headDim: 256
-  mambaStateBytesPerSeq: 153649152
-  mambaStateBytesPerLayer: 4268032
-  numFullAttnLayers: 12
-  numLinearLayers: 36
 - name: Qwen/Qwen3.6-35B-A3B-FP8
   description: https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8
   license: apache-2.0
@@ -718,42 +310,6 @@ models:
   mambaStateBytesPerLayer: 3207168
   numFullAttnLayers: 16
   numLinearLayers: 48
-- name: Qwen/Qwen3.5-397B-A17B-GPTQ-Int4
-  description: https://huggingface.co/Qwen/Qwen3.5-397B-A17B-GPTQ-Int4
-  license: apache-2.0
-  pipelineTag: image-text-to-text
-  baseModel:
-  - Qwen/Qwen3.5-397B-A17B
-  modelFileSize: 219.56Gi
-  architectures:
-  - Qwen3_5MoeForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 4096
-  numHiddenLayers: 60
-  numAttentionHeads: 32
-  numKeyValueHeads: 2
-  headDim: 256
-  quantMethod: gptq
-  quantBits: 4
-  mambaStateBytesPerSeq: 192061440
-  mambaStateBytesPerLayer: 4268032
-  numFullAttnLayers: 15
-  numLinearLayers: 45
-- name: moonshotai/Kimi-K2.5
-  description: https://huggingface.co/moonshotai/Kimi-K2.5
-  license: modified-mit
-  pipelineTag: image-text-to-text
-  modelFileSize: 554.32Gi
-  architectures:
-  - KimiK25ForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 7168
-  numHiddenLayers: 61
-  numAttentionHeads: 64
-  numKeyValueHeads: 64
-  kvLoraRank: 512
-  qkRopeHeadDim: 64
-  quantMethod: pack-quantized
 - name: moonshotai/Kimi-K2.6
   description: https://huggingface.co/moonshotai/Kimi-K2.6
   license: modified-mit
@@ -843,22 +399,6 @@ models:
   numAttentionHeads: 16
   numKeyValueHeads: 8
   headDim: 256
-- name: zai-org/GLM-5.2-FP8
-  description: https://huggingface.co/zai-org/GLM-5.2-FP8
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 703.75Gi
-  architectures:
-  - GlmMoeDsaForCausalLM
-  modelTokenLimit: 1048576
-  hiddenSize: 6144
-  numHiddenLayers: 78
-  numAttentionHeads: 64
-  numKeyValueHeads: 64
-  headDim: 192
-  kvLoraRank: 512
-  qkRopeHeadDim: 64
-  quantMethod: fp8
 - name: moonshotai/Kimi-K2.7-Code
   description: https://huggingface.co/moonshotai/Kimi-K2.7-Code
   license: modified-mit

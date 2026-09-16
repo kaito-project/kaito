@@ -9,6 +9,6 @@ resource:
       apps: llama-3-1-8b-instruct
 inference:
   preset:
-    name: llama-3.1-8b-instruct
+    name: meta-llama/Llama-3.1-8B-Instruct
     presetOptions:
       modelAccessSecret: hf-token

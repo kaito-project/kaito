@@ -541,51 +541,34 @@ func TestLoadFromCatalog(t *testing.T) {
 			},
 		},
 		{
-			modelRepo:   "google/gemma-3-4b-it",
+			modelRepo:   "google/gemma-4-E4B-it",
 			expectFound: true,
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
-					Name:                   "gemma-3-4b-it",
-					Architectures:          []string{"Gemma3ForConditionalGeneration"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-3-4b-it"),
-					ModelFileSize:          "8.01Gi",
-					BytesPerToken:          139264,
+					Name:                   "gemma-4-e4b-it",
+					Architectures:          []string{"Gemma4ForConditionalGeneration"},
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-4-E4B-it"),
+					ModelFileSize:          "14.89Gi",
+					BytesPerToken:          86016,
 					ModelTokenLimit:        131072,
-					DiskStorageRequirement: "88Gi",
-					ToolCallParser:         "functiongemma",
+					DiskStorageRequirement: "94Gi",
+					ToolCallParser:         "gemma4",
 					AttnType:               "GQA",
 				},
 			},
 		},
 		{
-			modelRepo:   "mistralai/Mistral-7B-v0.3",
+			modelRepo:   "mistralai/Ministral-3-14B-Instruct-2512",
 			expectFound: true,
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
-					Name:                   "mistral-7b-v0.3",
-					Architectures:          []string{"MistralForCausalLM"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
-					ModelFileSize:          "13.50Gi",
-					BytesPerToken:          131072,
-					ModelTokenLimit:        32768,
-					DiskStorageRequirement: "93Gi",
-					ToolCallParser:         "mistral",
-					AttnType:               "GQA",
-				},
-			},
-		},
-		{
-			modelRepo:   "mistralai/Ministral-3-8B-Instruct-2512",
-			expectFound: true,
-			expectedParam: model.PresetParam{
-				Metadata: model.Metadata{
-					Name:                   "ministral-3-8b-instruct-2512",
+					Name:                   "ministral-3-14b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
-					ModelFileSize:          "9.70Gi",
-					BytesPerToken:          139264,
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-14B-Instruct-2512"),
+					ModelFileSize:          "14.65Gi",
+					BytesPerToken:          163840,
 					ModelTokenLimit:        262144,
-					DiskStorageRequirement: "89Gi",
+					DiskStorageRequirement: "94Gi",
 					AttnType:               "GQA",
 				},
 			},
@@ -634,11 +617,9 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	// Mistral catalog entries should set load_format, config_format, tokenizer_mode
 	// to "mistral" in VLLM.ModelRunParams after FinalizeParams.
 	mistralRepos := []string{
-		"mistralai/Mistral-7B-v0.3",
-		"mistralai/Mistral-7B-Instruct-v0.3",
-		"mistralai/Ministral-3-3B-Instruct-2512",
-		"mistralai/Ministral-3-8B-Instruct-2512",
 		"mistralai/Ministral-3-14B-Instruct-2512",
+		"mistralai/Mistral-Medium-3.5-128B",
+		"mistralai/Mistral-Small-4-119B-2603",
 	}
 
 	for _, repo := range mistralRepos {
@@ -659,8 +640,8 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 
 	// Non-Mistral catalog entries should have "auto" for all format fields.
 	nonMistralRepos := []string{
-		"google/gemma-3-4b-it",
-		"google/gemma-3-27b-it",
+		"google/gemma-4-E4B-it",
+		"google/gemma-4-31B-it",
 		"microsoft/Phi-4-mini-instruct",
 	}
 

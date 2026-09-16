@@ -31,7 +31,7 @@ resource:
       apps: llama-3-3-70b-instruct
 inference:
   preset:
-    name: llama-3.3-70b-instruct
+    name: meta-llama/Llama-3.3-70B-Instruct
     presetOptions:
       modelAccessSecret: hf-token
   config: "llama-inference-params"

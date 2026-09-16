@@ -187,7 +187,7 @@ resource:
       apps: phi-4-mini
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 Apply your configuration to your cluster:
@@ -228,7 +228,7 @@ resource:
       apps: no-streaming
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 ## Verify

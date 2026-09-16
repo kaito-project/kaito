@@ -988,7 +988,7 @@ func TestEnsureModelMirror_StaticWithPartialSASFails(t *testing.T) {
 			},
 		},
 		Inference: &v1beta1.InferenceSpec{
-			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
 		},
 	}
 
@@ -1009,7 +1009,7 @@ func TestEnsureModelMirror_StaticWithoutSASFails(t *testing.T) {
 			},
 		},
 		Inference: &v1beta1.InferenceSpec{
-			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
 		},
 	}
 
@@ -1066,7 +1066,7 @@ func TestEnsureModelMirror_ManagedStampsServiceAccount(t *testing.T) {
 	ws := &v1beta1.Workspace{
 		ObjectMeta: v1.ObjectMeta{Name: "ws-managed-sa", Namespace: "default"},
 		Inference: &v1beta1.InferenceSpec{
-			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
 		},
 	}
 
@@ -1123,7 +1123,7 @@ func TestEnsureModelMirror_StaticCreatedInWorkspaceNamespace(t *testing.T) {
 			},
 		},
 		Inference: &v1beta1.InferenceSpec{
-			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "phi-4"}},
+			Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "microsoft/phi-4"}},
 		},
 	}
 

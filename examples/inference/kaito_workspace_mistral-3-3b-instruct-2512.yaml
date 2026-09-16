@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-mistral-3-3b-instruct-2512
+resource:
+  instanceType: "Standard_NC80adis_H100_v5"
+  labelSelector:
+    matchLabels:
+      apps: mistral-3-3b-instruct-2512
+inference:
+  preset:
+    name: "mistralai/Ministral-3-3B-Instruct-2512"
+    # presetOptions:
+    #   modelAccessSecret: hf-secret

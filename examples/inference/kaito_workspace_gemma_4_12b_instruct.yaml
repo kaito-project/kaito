@@ -1,0 +1,14 @@
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-gemma-4-12b-instruct
+resource:
+  instanceType: "Standard_NC80adis_H100_v5"
+  labelSelector:
+    matchLabels:
+      apps: gemma-4-12b-instruct
+inference:
+  preset:
+    name: "google/gemma-4-12B-it"
+    presetOptions:
+      modelAccessSecret: hf-secret

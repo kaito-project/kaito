@@ -107,11 +107,6 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
-	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
-	// model ID (e.g. "microsoft/phi-4").
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
-		modelName = hfName
-	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -128,11 +123,6 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
 func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
-	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
-	// model ID (e.g. "microsoft/phi-4").
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
-		modelName = hfName
-	}
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}

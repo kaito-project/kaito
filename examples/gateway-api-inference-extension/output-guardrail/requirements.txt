@@ -1,0 +1,12 @@
+# RAGEngine guardrails dependencies
+-r ../../../presets/ragengine/requirements.txt
+
+# gRPC and Envoy ext_proc dependencies
+grpcio>=1.60.0
+grpcio-tools>=1.60.0
+protobuf>=4.25.0
+
+# Envoy control-plane Python proto stubs (for ext_proc service definitions)
+# Note: requires proto file generation from go-control-plane
+# For now, included via prebuilt envoy-stubs if available
+# TODO: Generate from https://github.com/envoyproxy/go-control-plane

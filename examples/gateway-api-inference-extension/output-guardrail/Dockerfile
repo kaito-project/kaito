@@ -2,10 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy KAITO requirements and presets
-COPY requirements.txt .
+# Copy requirements (includes RAGEngine dependencies + gRPC)
+COPY examples/gateway-api-inference-extension/output-guardrail/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy presets (guardrails library)
 COPY presets/ ./presets/
 
 # Copy ext_proc server

@@ -2,39 +2,42 @@
 # Copyright (c) KAITO authors.
 # Licensed under the Apache License, Version 2.0 (the "License");
 
-"""Integration tests for ext_proc guardrails logic."""
+"""Integration tests for ext_proc guardrails adapter with real code execution."""
 
 import asyncio
 import json
+import sys
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-# Mock the gRPC imports before importing ext_proc_server
-import sys
+# Mock gRPC imports before ext_proc_server import
+class MockProcessingResponse:
+    def __init__(self, **kwargs):
+        self.response = kwargs.get("response")
+        self.body_mutation = kwargs.get("body_mutation")
 
+class MockBodyMutation:
+    def __init__(self, body):
+        self.body = body
 
-class MockExternalProcessorPb2:
-    class ProcessingResponse:
-        def __init__(self, **kwargs):
-            self.response = kwargs.get("response", None)
-            self.body_mutation = kwargs.get("body_mutation", None)
-
-    class BodyMutation:
-        def __init__(self, body):
-            self.body = body
-
+class MockExternalProcessor:
+    ProcessingResponse = MockProcessingResponse
+    BodyMutation = MockBodyMutation
 
 sys.modules["envoy"] = MagicMock()
 sys.modules["envoy.service"] = MagicMock()
 sys.modules["envoy.service.ext_proc"] = MagicMock()
 sys.modules["envoy.service.ext_proc.v3"] = MagicMock()
-sys.modules["envoy.service.ext_proc.v3"].external_processor_pb2 = MockExternalProcessorPb2()
+sys.modules["envoy.service.ext_proc.v3"].external_processor_pb2 = MockExternalProcessor()
+sys.modules["envoy.service.ext_proc.v3"].external_processor_pb2_grpc = MagicMock()
 
+# Now import the actual ext_proc_server
+from ext_proc_server import ExtProcService
 from ragengine.models import ChatCompletionResponse
 
 
-class TestExtProcAdapterIntegration(unittest.TestCase):
-    """Test ext_proc adapter with real OutputGuardrails behavior simulation."""
+class TestExtProcRealExecution(unittest.TestCase):
+    """Test ext_proc adapter by calling real production code."""
 
     def _create_response_obj(self, content="hello"):
         """Create a sample OpenAI response object."""
@@ -49,54 +52,62 @@ class TestExtProcAdapterIntegration(unittest.TestCase):
             ],
         }
 
-    def test_apply_guardrails_disabled(self):
-        """Guardrails disabled returns response unchanged."""
+    @patch('ext_proc_server.GuardrailsReloader')
+    def test_apply_guardrails_disabled_real_call(self, mock_reloader_class):
+        """Test real _apply_guardrails() call with disabled guardrails."""
+        mock_reloader = MagicMock()
+        mock_reloader_class.return_value = mock_reloader
+
+        mock_gr = MagicMock()
+        mock_gr.enabled = False
+        mock_reloader.get_current.return_value = mock_gr
+
+        service = ExtProcService('/fake/policy.yaml')
         response_obj = self._create_response_obj("test")
 
-        # Simulate _apply_guardrails() with disabled guardrails
-        mock_guardrails = MagicMock()
-        mock_guardrails.enabled = False
-
-        if not mock_guardrails.enabled:
-            result = response_obj
-        else:
-            result = None
+        # Call real production method
+        result = asyncio.run(service._apply_guardrails(response_obj))
 
         self.assertEqual(result, response_obj)
+        mock_gr.guard_response.assert_not_called()
 
-    def test_apply_guardrails_allow(self):
-        """Guardrails allow returns response unchanged."""
-        response_obj = self._create_response_obj("clean content")
+    @patch('ext_proc_server.GuardrailsReloader')
+    def test_apply_guardrails_allow_real_call(self, mock_reloader_class):
+        """Test real _apply_guardrails() call with allow action."""
+        mock_reloader = MagicMock()
+        mock_reloader_class.return_value = mock_reloader
 
-        # Simulate guard_response() returning same response
-        guarded_obj = response_obj.copy()
+        mock_gr = MagicMock()
+        mock_gr.enabled = True
 
-        result = guarded_obj
+        response_obj = self._create_response_obj("clean")
+        mock_gr.guard_response.return_value = response_obj
+
+        mock_reloader.get_current.return_value = mock_gr
+
+        service = ExtProcService('/fake/policy.yaml')
+
+        # Call real production method
+        result = asyncio.run(service._apply_guardrails(response_obj))
+
         self.assertEqual(result, response_obj)
+        mock_gr.guard_response.assert_called_once()
 
-    def test_apply_guardrails_block(self):
-        """Guardrails block mutates content."""
-        response_obj = self._create_response_obj("bad content")
+    @patch('ext_proc_server.GuardrailsReloader')
+    def test_process_response_body_fail_closed_real_call(self, mock_reloader_class):
+        """Test real _process_response_body() fail-closed (all choices blocked)."""
+        mock_reloader = MagicMock()
+        mock_reloader_class.return_value = mock_reloader
 
-        # Simulate guard_response() mutating content
-        blocked_obj = self._create_response_obj("BLOCKED")
+        mock_gr = MagicMock()
+        mock_gr.enabled = True
+        mock_gr.block_message = "Response blocked"
+        mock_gr.guard_response.side_effect = RuntimeError("Scanner failed")
 
-        result = blocked_obj
-        self.assertEqual(result["choices"][0]["message"]["content"], "BLOCKED")
-        self.assertEqual(result["id"], "test-123")  # metadata preserved
+        mock_reloader.get_current.return_value = mock_gr
 
-    def test_apply_guardrails_redact(self):
-        """Guardrails redact masks content."""
-        response_obj = self._create_response_obj("email: test@example.com")
+        service = ExtProcService('/fake/policy.yaml')
 
-        # Simulate guard_response() redacting content
-        redacted_obj = self._create_response_obj("email: [REDACTED]")
-
-        result = redacted_obj
-        self.assertEqual(result["choices"][0]["message"]["content"], "email: [REDACTED]")
-
-    def test_apply_guardrails_multiple_choices(self):
-        """Guardrails handles multiple choices."""
         response_obj = {
             "id": "test",
             "choices": [
@@ -105,68 +116,26 @@ class TestExtProcAdapterIntegration(unittest.TestCase):
             ],
         }
 
-        # Simulate guard_response() with multiple choices
-        guarded_obj = {
-            "id": "test",
-            "choices": [
-                {"message": {"content": "[REDACTED]"}, "index": 0},
-                {"message": {"content": "[REDACTED]"}, "index": 1},
-            ],
-        }
+        response_body = MagicMock()
+        response_body.body = json.dumps(response_obj).encode("utf-8")
 
-        result = guarded_obj
-        self.assertEqual(len(result["choices"]), 2)
-        self.assertEqual(result["choices"][0]["message"]["content"], "[REDACTED]")
-        self.assertEqual(result["choices"][1]["message"]["content"], "[REDACTED]")
+        # Call real production method (_process_response_body)
+        result = asyncio.run(service._process_response_body(response_body))
 
-    def test_failclosed_blocks_all_choices(self):
-        """Fail-closed error blocks all choices, not just first."""
-        response_obj = {
-            "id": "test",
-            "choices": [
-                {"message": {"content": "response 1"}, "index": 0},
-                {"message": {"content": "response 2"}, "index": 1},
-                {"message": {"content": "response 3"}, "index": 2},
-            ],
-        }
+        # Should return a mutation (fail-closed: block all choices)
+        self.assertIsNotNone(result.body_mutation)
 
-        # Simulate fail-closed: scanner error blocks all choices
-        block_message = "Response blocked"
-        for choice in response_obj.get("choices", []):
-            if isinstance(choice, dict) and "message" in choice:
-                if isinstance(choice["message"], dict):
-                    choice["message"]["content"] = block_message
+        # Verify blocked response has all choices blocked
+        mutated_obj = json.loads(result.body_mutation.body.decode("utf-8"))
+        for choice in mutated_obj["choices"]:
+            self.assertEqual(
+                choice["message"]["content"],
+                "Response blocked",
+                "All choices should be blocked in fail-closed mode"
+            )
 
-        result = response_obj
-        # All three choices should be blocked
-        for choice in result["choices"]:
-            self.assertEqual(choice["message"]["content"], "Response blocked")
         # Metadata preserved
-        self.assertEqual(result["id"], "test")
-
-    def test_json_parsing_unsupported_format(self):
-        """Malformed JSON parsing is fail-open."""
-        try:
-            json.loads("{invalid json}")
-            parsed_ok = True
-        except json.JSONDecodeError:
-            parsed_ok = False
-
-        # Fail-open: unsupported format, return empty response (no mutation)
-        self.assertFalse(parsed_ok)  # Parser fails as expected
-
-    def test_chatcompletionresponse_roundtrip(self):
-        """ChatCompletionResponse preserves structure through JSON roundtrip."""
-        data = self._create_response_obj("test")
-
-        # Simulate JSON roundtrip (how ext_proc handles it)
-        json_str = json.dumps(data)
-        restored = json.loads(json_str)
-
-        # Key fields preserved
-        self.assertEqual(restored["id"], "test-123")
-        self.assertEqual(restored["model"], "gpt-4")
-        self.assertEqual(restored["choices"][0]["message"]["content"], "test")
+        self.assertEqual(mutated_obj["id"], "test")
 
 
 if __name__ == "__main__":

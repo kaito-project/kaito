@@ -1,9 +1,7 @@
-# gRPC server and Envoy ext_proc dependencies
+# gRPC server dependencies
 grpcio>=1.60.0
-grpcio-tools>=1.60.0
 protobuf>=4.25.0
 
-# Envoy control-plane Python proto stubs for ext_proc service definitions
-# Generated from: https://github.com/envoyproxy/go-control-plane
-# Install prebuilt stubs or generate during Dockerfile build
-envoy-data-plane-api>=0.2.0
+# Envoy data-plane-api Python proto stubs for ext_proc service definitions
+# xds-protos provides: from envoy.service.ext_proc.v3 import external_processor_pb2, external_processor_pb2_grpc
+xds-protos==1.81.1

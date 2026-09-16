@@ -202,11 +202,13 @@ type SpeculativeDecodingConfig struct {
 	// future: add method-specific sub-configs as real support lands.
 }
 
-// MTPConfig covers the self-contained-head case only (the current DeepSeek
-// MTP family), where the MTP head is bundled in the served checkpoint.
-// Assistant-checkpoint MTP (Gemma 4 IT family) is future work.
+// MTPConfig covers vLLM's mtp method, including both the self-contained-head
+// case (DeepSeek / Qwen / MiMo style, where the served checkpoint carries the
+// predictor) and the assistant-checkpoint case (Gemma 4 IT family), where the
+// draft/assistant checkpoint is passed via the model field.
 type MTPConfig struct {
-	NumSpeculativeTokens int `yaml:"numSpeculativeTokens"`
+	NumSpeculativeTokens int    `yaml:"numSpeculativeTokens"`
+	Model                string `yaml:"model,omitempty"`
 }
 
 // NGramConfig covers the n-gram lookup speculative decoding method.

@@ -48,11 +48,18 @@ type specDecoEntry struct {
 }
 
 func mtpSpecDecoEntry(userFacing string) specDecoEntry {
+	return mtpSpecDecoEntryWithModel(userFacing, "")
+}
+
+func mtpSpecDecoEntryWithModel(userFacing, draftModel string) specDecoEntry {
 	return specDecoEntry{
 		UserFacing: userFacing,
 		Config: &model.SpeculativeDecodingConfig{
 			Method: SpeculativeDecodingMethodMTP,
-			MTP:    &model.MTPConfig{NumSpeculativeTokens: mtpSpeculativeDecodingTokenCount},
+			MTP: &model.MTPConfig{
+				NumSpeculativeTokens: mtpSpeculativeDecodingTokenCount,
+				Model:                draftModel,
+			},
 		},
 	}
 }
@@ -327,12 +334,26 @@ var (
 	// fallback; this map is only the source of truth for per-preset tuning.
 	// Keys follow the same convention as catalogOverrides.
 	speculativeDecodingByPreset = map[string]specDecoEntry{
-		"deepseek-ai/deepseek-r1-0528":   mtpSpecDecoEntry("deepseek-r1-0528"),
-		"deepseek-ai/deepseek-v3-0324":   mtpSpecDecoEntry("deepseek-v3-0324"),
-		"deepseek-ai/deepseek-v3.2":      mtpSpecDecoEntry("deepseek-ai/DeepSeek-V3.2"),
-		"zai-org/glm-5.2-fp8":            mtpSpecDecoEntry("zai-org/GLM-5.2-FP8"),
-		"nvidia/deepseek-v4-flash-nvfp4": mtpSpecDecoEntry("nvidia/DeepSeek-V4-Flash-NVFP4"),
-		"xiaomimimo/mimo-7b-base":        mtpSpecDecoEntry("XiaomiMiMo/MiMo-7B-Base"),
+		"deepseek-ai/deepseek-r1-0528":     mtpSpecDecoEntry("deepseek-r1-0528"),
+		"deepseek-ai/deepseek-v3-0324":     mtpSpecDecoEntry("deepseek-v3-0324"),
+		"deepseek-ai/deepseek-v3.2":        mtpSpecDecoEntry("deepseek-ai/DeepSeek-V3.2"),
+		"zai-org/glm-5.2-fp8":              mtpSpecDecoEntry("zai-org/GLM-5.2-FP8"),
+		"nvidia/deepseek-v4-flash-nvfp4":   mtpSpecDecoEntry("nvidia/DeepSeek-V4-Flash-NVFP4"),
+		"xiaomimimo/mimo-7b-base":          mtpSpecDecoEntry("XiaomiMiMo/MiMo-7B-Base"),
+		"qwen/qwen3.5-2b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-2B"),
+		"qwen/qwen3.5-4b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-4B"),
+		"qwen/qwen3.5-9b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-9B"),
+		"qwen/qwen3.5-122b-a10b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B-GPTQ-Int4"),
+		"qwen/qwen3.5-122b-a10b":           mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B"),
+		"qwen/qwen3.6-35b-a3b-fp8":         mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B-FP8"),
+		"qwen/qwen3.6-35b-a3b":             mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B"),
+		"qwen/qwen3.6-27b":                 mtpSpecDecoEntry("Qwen/Qwen3.6-27B"),
+		"qwen/qwen3.5-397b-a17b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-397B-A17B-GPTQ-Int4"),
+		"google/gemma-4-e2b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-E2B-it", "google/gemma-4-E2B-it-assistant"),
+		"google/gemma-4-e4b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-E4B-it", "google/gemma-4-E4B-it-assistant"),
+		"google/gemma-4-12b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-12B-it", "google/gemma-4-12B-it-assistant"),
+		"google/gemma-4-26b-a4b-it":        mtpSpecDecoEntryWithModel("google/gemma-4-26B-A4B-it", "google/gemma-4-26B-A4B-it-assistant"),
+		"google/gemma-4-31b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-31B-it", "google/gemma-4-31B-it-assistant"),
 	}
 )
 

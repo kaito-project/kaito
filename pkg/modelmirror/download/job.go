@@ -27,7 +27,7 @@ import (
 )
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
-// resources sets the CPU/memory request==limit on the downloader container.
+// resources sets the CPU/memory requests and limits on the downloader container.
 // podLabels are applied to the Job pod template when a ServiceAccount is set (e.g. the
 // cloud workload-identity label); pass nil to add none.
 func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.DownloadJobResources, podLabels map[string]string) *batchv1.Job {

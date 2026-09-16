@@ -55,7 +55,7 @@ Client receives mutated response
 
 | File | Purpose |
 |------|---------|
-| `main.go` | gRPC server (~60 LOC) |
+| `main.go` | Minimal Go gRPC server |
 | `envoyfilter.yaml` | Istio EnvoyFilter configuration |
 | `deployment.yaml` | Kubernetes Deployment + Service |
 | `Dockerfile` | Multi-stage Go build |

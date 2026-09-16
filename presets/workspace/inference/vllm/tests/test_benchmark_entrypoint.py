@@ -154,6 +154,9 @@ _CACHE_CONFIG_METRICS_BODY = b"""\
 # HELP vllm:cache_config_info Information of the LLMEngine CacheConfig
 # TYPE vllm:cache_config_info gauge
 vllm:cache_config_info{block_size="16",cache_dtype="auto",engine="0",gpu_memory_utilization="0.7",num_gpu_blocks="8059"} 1.0
+# HELP kaito_max_concurrent_requests Resolved vLLM maximum number of concurrent sequences
+# TYPE kaito_max_concurrent_requests gauge
+kaito_max_concurrent_requests 128.0
 """
 
 
@@ -163,6 +166,25 @@ def test_compute_max_concurrency_success():
     resp = _make_urlopen_response(200, _CACHE_CONFIG_METRICS_BODY)
     with patch("urllib.request.urlopen", return_value=resp):
         assert bm._compute_max_concurrency() == 55
+
+
+def test_compute_max_concurrency_clamped_to_max_num_seqs():
+    """Caps KV-derived concurrency at vLLM's resolved max_num_seqs."""
+    body = _CACHE_CONFIG_METRICS_BODY.replace(b"8059", b"80590")
+    resp = _make_urlopen_response(200, body)
+    with patch("urllib.request.urlopen", return_value=resp):
+        assert bm._compute_max_concurrency() == 128
+
+
+def test_compute_max_concurrency_max_num_seqs_absent():
+    """Raises RuntimeError when the inference server did not publish the cap."""
+    body = b'vllm:cache_config_info{num_gpu_blocks="8059",block_size="16"} 1.0\n'
+    resp = _make_urlopen_response(200, body)
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(RuntimeError, match="kaito_max_concurrent_requests metric"),
+    ):
+        bm._compute_max_concurrency()
 
 
 def test_compute_max_concurrency_metric_absent():
@@ -205,7 +227,10 @@ def test_compute_max_concurrency_fetch_fails():
 def test_compute_max_concurrency_zero_result():
     """Raises RuntimeError when computed concurrency is 0 (block capacity < seq_len)."""
     # num_gpu_blocks=1, block_size=1 → 1 // 2304 = 0
-    body = b'vllm:cache_config_info{num_gpu_blocks="1",block_size="1"} 1.0\n'
+    body = b"""\
+vllm:cache_config_info{num_gpu_blocks="1",block_size="1"} 1.0
+kaito_max_concurrent_requests 128.0
+"""
     resp = _make_urlopen_response(200, body)
     with (
         patch("urllib.request.urlopen", return_value=resp),

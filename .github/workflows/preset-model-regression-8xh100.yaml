@@ -1,0 +1,489 @@
+name: Preset Model Regression Test (8xH100)
+
+# Regression-tests the preset models that need 8xH100 nodes.
+#
+# These models cannot be covered by the auto-provisioning workflow, so this one runs
+# against the shared, pre-provisioned `h100` cluster in BYO mode
+# (https://kaito-project.github.io/kaito/docs/quick-start/#option-2-bring-your-own-gpu-nodes):
+# it reserves two idle GPU nodes with a run-scoped label, points every Workspace at
+# that label, and releases the nodes when it finishes.
+#
+# The test matrix lives in .github/preset-regression-models-8xh100.json. Nothing is
+# fail-fast: every model is torn down and the run continues, then the job prints its
+# summary plus per-failure diagnostics and exits non-zero if any model failed.
+#
+# Triggered on demand, and on pull requests that touch this workflow, its matrix or the
+# shared run script, so changes to it can be validated before merging. The job targets
+# the protected `e2e-test` environment, so every run - PR or manual - waits in `waiting`
+# until a maintainer approves it, and the concurrency group below keeps approved runs
+# serialized: the cluster is shared and has a fixed number of GPU nodes, so overlapping
+# runs would starve each other.
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/preset-model-regression-8xh100.yaml"
+      - ".github/preset-regression-models-8xh100.json"
+      - ".github/scripts/preset-regression-run.sh"
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: "Pre-provisioned AKS cluster holding the 8xH100 nodes"
+        required: false
+        default: "h100"
+        type: string
+      resource_group:
+        description: "Resource group of that cluster (empty = discover it)"
+        required: false
+        default: ""
+        type: string
+      subscription:
+        description: "Azure subscription name or id the cluster lives in"
+        required: false
+        default: "AKS Upstream E2E"
+        type: string
+      models:
+        description: "Comma-separated substrings; only matching models run (empty = all)"
+        required: false
+        default: ""
+        type: string
+      max_hours:
+        description: "Wall-clock budget; remaining models are reported as skipped"
+        required: false
+        default: "20"
+        type: string
+      build_base_image:
+        description: "Build the kaito-base image (auto = only when the tag is missing from MCR)"
+        required: false
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - "true"
+          - "false"
+      keep_reservation:
+        description: "Keep the GPU nodes reserved after the run (for debugging)"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+# Never cancel a run midway: that would leak the node reservation and the installed
+# controller. Queue instead, so only one run holds the GPU nodes at a time. Queued runs
+# that have not been approved yet hold nothing and are safe to cancel by hand.
+concurrency:
+  group: preset-model-regression-8xh100
+  cancel-in-progress: false
+
+env:
+  GO_VERSION: "1.26.6"
+  CONFIG_FILE: ".github/preset-regression-models-8xh100.json"
+  # Models are placed by this label, so it is both the reservation lock and the
+  # BYO node selector. The value is the run id, which makes the owner traceable.
+  RESERVATION_LABEL_KEY: "kaito-regression-reserved-by"
+  GPUS_PER_NODE: "8"
+  NODES_REQUIRED: "2"
+
+jobs:
+  regression:
+    name: 8xH100 regression
+    runs-on: ["self-hosted", "hostname:kaito-e2e-github-runner"]
+    # Protected environment: a maintainer must approve before the shared cluster is touched.
+    environment: e2e-test
+    permissions:
+      contents: read
+      id-token: write
+      actions: read # the stale-reservation sweep asks whether a run is still active
+    timeout-minutes: 2880
+    env:
+      GPU: h100
+      SUBSCRIPTION: ${{ inputs.subscription || 'AKS Upstream E2E' }}
+      CLUSTER_NAME: ${{ inputs.cluster_name || 'h100' }}
+      MODEL_FILTER: ${{ inputs.models || '' }}
+      KAITO_NAMESPACE: "kaito-workspace"
+      RESOURCE_PREFIX: "kaitoregression8xh100"
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Remove existing Go modules directory
+        run: sudo rm -rf ~/go/pkg/mod
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5.2.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.19.4"
+
+      - name: Install tooling
+        run: |
+          set -euo pipefail
+          if ! command -v az > /dev/null; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          fi
+          if ! command -v yq > /dev/null || ! yq --version | grep -q 'v4'; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+          yq --version
+          jq --version
+
+      - name: Azure CLI login and cluster credentials
+        run: |
+          set -euo pipefail
+          az login --identity
+          az account set --subscription "$SUBSCRIPTION"
+          SUB_ID=$(az account show --query id -o tsv)
+          echo "AZURE_SUBSCRIPTION_ID=${SUB_ID}" >> "$GITHUB_ENV"
+
+          RG="${{ inputs.resource_group }}"
+          if [ -z "$RG" ]; then
+            RG=$(az aks list --query "[?name=='${CLUSTER_NAME}'].resourceGroup | [0]" -o tsv)
+          fi
+          if [ -z "$RG" ] || [ "$RG" = "null" ]; then
+            echo "::error::Could not find AKS cluster '${CLUSTER_NAME}' in subscription '${SUBSCRIPTION}'"
+            exit 1
+          fi
+          echo "Using cluster ${CLUSTER_NAME} in resource group ${RG}"
+          echo "AZURE_RESOURCE_GROUP=${RG}" >> "$GITHUB_ENV"
+
+          az aks get-credentials --name "$CLUSTER_NAME" --resource-group "$RG" --overwrite-existing
+
+      - name: Release reservations left behind by finished runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # A cancelled run or a dead runner never reaches its release step, which would
+          # take GPU nodes out of circulation permanently.
+          run_is_active() {
+            local run_id="$1" resp code status
+            [ -n "$run_id" ] || return 1
+            [ "$run_id" != "${GITHUB_RUN_ID}" ] || return 0
+            resp="$(curl -sS -w '\n%{http_code}' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}" 2>/dev/null || true)"
+            code="$(printf '%s' "$resp" | tail -n1)"
+            case "$code" in
+              200) status="$(printf '%s' "$resp" | sed '$d' | jq -r '.status // ""')" ;;
+              404) return 1 ;;              # run no longer exists, safe to reclaim
+              *)   return 0 ;;              # inconclusive, keep the reservation
+            esac
+            case "$status" in
+              queued | in_progress | waiting | pending | requested) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          # jq, not jsonpath: kubectl's jsonpath field parser is unreliable for label
+          # keys containing dashes, dots or slashes.
+          kubectl get nodes -l "$RESERVATION_LABEL_KEY" -o json |
+            jq -r --arg key "$RESERVATION_LABEL_KEY" \
+              '.items[] | "\(.metadata.name) \(.metadata.labels[$key] // "")"' |
+            while read -r node run_id; do
+              [ -n "${node:-}" ] || continue
+              if run_is_active "${run_id:-}"; then
+                echo "Keeping ${node} (reserved by run ${run_id:-<unknown>}, still active)"
+                continue
+              fi
+              echo "Releasing ${node} (reserved by finished run ${run_id:-<unknown>})"
+              kubectl label node "$node" "${RESERVATION_LABEL_KEY}-" --overwrite || true
+            done
+
+      - name: Check GPU node availability
+        run: |
+          set -euo pipefail
+          # Free GPUs, not allocatable: this cluster is shared, so another tenant's pod
+          # holding even one GPU leaves too few for a whole-node 8-GPU Workspace. The three
+          # GFD labels are required too: the Workspace webhook reads the GPU config from
+          # them and rejects every Workspace if they are missing.
+          # Via files, not --argjson: a whole-cluster pod list overflows ARG_MAX.
+          kubectl get nodes -o json > "${RUNNER_TEMP}/nodes.json"
+          kubectl get pods -A -o json > "${RUNNER_TEMP}/pods.json"
+
+          REPORT=$(jq -rn \
+            --slurpfile nodes "${RUNNER_TEMP}/nodes.json" --slurpfile pods "${RUNNER_TEMP}/pods.json" \
+            --argjson want "${GPUS_PER_NODE}" --arg key "$RESERVATION_LABEL_KEY" '
+            ($pods[0].items
+              | map(select(.status.phase == "Running" or .status.phase == "Pending"))
+              | map({ node: (.spec.nodeName // ""),
+                      gpu: ([ .spec.containers[].resources.requests["nvidia.com/gpu"] // "0"
+                              | tonumber ] | add) })
+              | map(select(.gpu > 0 and .node != ""))
+              | group_by(.node)
+              | map({ key: .[0].node, value: (map(.gpu) | add) })
+              | from_entries) as $used
+            | [ $nodes[0].items[]
+                | select(((.status.allocatable["nvidia.com/gpu"] // "0") | tonumber) > 0)
+                | { name: .metadata.name,
+                    alloc: ((.status.allocatable["nvidia.com/gpu"] // "0") | tonumber),
+                    used: ($used[.metadata.name] // 0),
+                    reservedBy: (.metadata.labels[$key] // ""),
+                    labelled: (.metadata.labels["nvidia.com/gpu.product"] != null
+                               and .metadata.labels["nvidia.com/gpu.count"] != null
+                               and .metadata.labels["nvidia.com/gpu.memory"] != null),
+                    ready: (any(.status.conditions[]; .type == "Ready" and .status == "True")
+                            and (.spec.unschedulable != true)) }
+                | .free = (.alloc - .used)
+                | .eligible = (.ready and .labelled and .reservedBy == "" and .free >= $want)
+                | "\(.name) free=\(.free)/\(.alloc) ready=\(.ready) gfdLabels=\(.labelled) reservedBy=\(.reservedBy // "-") eligible=\(.eligible)" ]
+            | .[]')
+          echo "$REPORT"
+
+          AVAILABLE=$(printf '%s\n' "$REPORT" | awk '/eligible=true/ {print $1}')
+          COUNT=$(printf '%s\n' "$AVAILABLE" | grep -c . || true)
+          echo "Eligible ${GPUS_PER_NODE}-GPU nodes: ${COUNT}"
+
+          if [ "$COUNT" -lt "$NODES_REQUIRED" ]; then
+            echo "::error::Need ${NODES_REQUIRED} node(s) with ${GPUS_PER_NODE} free GPUs and GPU feature discovery labels, but only ${COUNT} are eligible in cluster ${CLUSTER_NAME}. See the per-node report above."
+            echo "--- GPU-consuming pods ---"
+            jq -rn --slurpfile pods "${RUNNER_TEMP}/pods.json" '
+              $pods[0].items[]
+              | select(.status.phase == "Running" or .status.phase == "Pending")
+              | . as $p
+              | ([ .spec.containers[].resources.requests["nvidia.com/gpu"] // "0" | tonumber ] | add) as $gpu
+              | select($gpu > 0)
+              | "\($p.spec.nodeName // "<unscheduled>")  \($p.metadata.namespace)/\($p.metadata.name)  gpu=\($gpu)"' | sort
+            exit 1
+          fi
+
+          PICKED=$(printf '%s\n' "$AVAILABLE" | head -n "$NODES_REQUIRED" | tr '\n' ' ')
+          echo "RESERVED_NODES=${PICKED% }" >> "$GITHUB_ENV"
+
+      - name: Reserve the GPU nodes
+        run: |
+          set -euo pipefail
+          # Labelling is the reservation: a later run skips labelled nodes, and every
+          # Workspace in this run selects exactly this label.
+          for node in $RESERVED_NODES; do
+            kubectl label node "$node" "${RESERVATION_LABEL_KEY}=${GITHUB_RUN_ID}" --overwrite
+          done
+          kubectl get nodes -l "${RESERVATION_LABEL_KEY}=${GITHUB_RUN_ID}" -o wide
+          echo "BYO_NODE_LABEL=${RESERVATION_LABEL_KEY}=${GITHUB_RUN_ID}" >> "$GITHUB_ENV"
+
+      - name: Set resource names
+        run: |
+          set -euo pipefail
+          NAME="${RESOURCE_PREFIX}${{ github.run_id }}$(printf '%04x' $((RANDOM % 65536)))"
+          {
+            echo "VERSION=${NAME}"
+            echo "ACR_RESOURCE_GROUP=${NAME}"
+            echo "REGISTRY_NAME=${NAME}"
+            echo "REGISTRY=${NAME}.azurecr.io"
+            echo "TEST_NAMESPACE=kaito-regression-${{ github.run_id }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Create the run-scoped ACR
+        run: |
+          set -euo pipefail
+          # A throwaway registry in its own group: deleting the group at cleanup also
+          # removes the AcrPull assignment, so the shared cluster keeps no residue.
+          LOCATION=$(az aks show --name "$CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query location -o tsv)
+          az group create --name "$ACR_RESOURCE_GROUP" --location "$LOCATION" \
+            --tags purpose=kaito-preset-regression "runId=${{ github.run_id }}" -o none
+          az acr create --name "$REGISTRY_NAME" --resource-group "$ACR_RESOURCE_GROUP" \
+            --location "$LOCATION" --sku Standard --admin-enabled -o none
+          az acr login --name "$REGISTRY_NAME"
+
+          # Grant the kubelet identity AcrPull directly rather than `az aks update
+          # --attach-acr`, which would run a control-plane update on a shared cluster.
+          KUBELET_ID=$(az aks show --name "$CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --query identityProfile.kubeletidentity.objectId -o tsv)
+          ACR_ID=$(az acr show --name "$REGISTRY_NAME" --resource-group "$ACR_RESOURCE_GROUP" --query id -o tsv)
+          for i in $(seq 1 8); do
+            if az role assignment create --assignee-object-id "$KUBELET_ID" \
+                --assignee-principal-type ServicePrincipal \
+                --role AcrPull --scope "$ACR_ID" -o none; then
+              break
+            fi
+            echo "::warning::AcrPull assignment attempt ${i}/8 failed; retrying in 15s"
+            sleep 15
+            if [ "$i" -eq 8 ]; then
+              echo "::error::Could not grant AcrPull on ${REGISTRY_NAME}"
+              exit 1
+            fi
+          done
+
+      - name: Decide whether to build the kaito-base image
+        env:
+          BUILD_BASE_INPUT: ${{ inputs.build_base_image || 'auto' }}
+        run: |
+          set -euo pipefail
+          if [ "$BUILD_BASE_INPUT" = "auto" ]; then
+            BUILD=$(python3 .github/determine_missing_base_images.py | jq -r '[.[] | select(.name == "base")] | length > 0')
+          else
+            BUILD="$BUILD_BASE_INPUT"
+          fi
+          echo "BUILD_KAITO_BASE_IMAGE=${BUILD}" >> "$GITHUB_ENV"
+          echo "Build kaito-base image: ${BUILD}"
+
+      - name: Build kaito-base image
+        if: ${{ env.BUILD_KAITO_BASE_IMAGE == 'true' }}
+        run: |
+          docker buildx build \
+            --builder img-builder \
+            --build-arg VERSION="$VERSION" \
+            --build-arg MODEL_TYPE=text-generation \
+            --output "type=image,name=${REGISTRY}/kaito-base:${VERSION},push=true,compression=zstd" \
+            -f ./docker/presets/models/tfs/Dockerfile .
+
+      - name: Point the controller at the test base image
+        if: ${{ env.BUILD_KAITO_BASE_IMAGE == 'true' }}
+        run: |
+          set -euo pipefail
+          # The base tag is go:embed'ed into the controller binary, so this must
+          # happen before the controller image is built.
+          yq -i '(.images[] | select(.name == "base") | .registry) = strenv(REGISTRY)' presets/workspace/models/base_images.yaml
+          yq -i '(.images[] | select(.name == "base") | .tag) = strenv(VERSION)' presets/workspace/models/base_images.yaml
+          cat presets/workspace/models/base_images.yaml
+
+      - name: Build the workspace controller image
+        run: |
+          make generate
+          make docker-build-workspace
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_NAME: "workspace"
+          IMG_TAG: ${{ env.VERSION }}
+          OUTPUT_TYPE: "type=registry"
+          ARCH: "amd64"
+
+      - name: Install KAITO in BYO mode
+        run: |
+          set -euo pipefail
+          kubectl create namespace "$TEST_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+          # `helm install` refuses a name that is still in use, so a run that was
+          # cancelled before its cleanup step would block every later run.
+          if helm status kaito-workspace -n "$KAITO_NAMESPACE" >/dev/null 2>&1; then
+            echo "Removing the kaito-workspace release left by an earlier run"
+            helm uninstall kaito-workspace -n "$KAITO_NAMESPACE" --wait --timeout 10m || true
+          fi
+          if helm status kaito-workspace -n "$KAITO_NAMESPACE" >/dev/null 2>&1; then
+            # A release stuck in pending-install or uninstalling survives `helm uninstall`;
+            # dropping its records is the only way to free the name.
+            echo "::warning::release still registered after uninstall; deleting its release records"
+            kubectl delete secret -n "$KAITO_NAMESPACE" \
+              -l "owner=helm,name=kaito-workspace" --ignore-not-found
+          fi
+
+          make az-patch-install-helm
+          kubectl wait --for=condition=available deploy kaito-workspace -n "$KAITO_NAMESPACE" --timeout=600s
+        env:
+          AZURE_RESOURCE_GROUP: ${{ env.AZURE_RESOURCE_GROUP }}
+          AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+          REGISTRY: ${{ env.REGISTRY }}
+          IMG_TAG: ${{ env.VERSION }}
+          # The nodes already exist and already advertise nvidia.com/gpu (the availability
+          # gate proves it), so KAITO must not provision or install a second device plugin.
+          # NFD and GFD come from the cluster's NVIDIA GPU Operator: KAITO's NFD master runs
+          # with -enable-nodefeature-api=false, so installing it hijacks node labelling and
+          # drops the nvidia.com/gpu.{product,count,memory} labels the webhook validates.
+          # --take-ownership: the shared cluster may already carry a KAITO deployed by Tilt
+          # (kubectl apply, so labelled managed-by=tilt), which Helm otherwise refuses to adopt.
+          HELM_INSTALL_EXTRA_ARGS: "--set nodeProvisioner=byo --set featureGates.disableNodeAutoProvisioning=true --set nvidiaDevicePlugin.enabled=false --set gpu-feature-discovery.nfd.enabled=false --set gpu-feature-discovery.gfd.enabled=false --take-ownership"
+
+      - name: Wait for the validating webhook to be reachable
+        run: |
+          set -euo pipefail
+          # The Deployment reports Available before the webhook Service has endpoints,
+          # and a Workspace apply against an endpoint-less service fails admission.
+          end=$((SECONDS + 300))
+          while [ $SECONDS -lt $end ]; do
+            EP=$(kubectl get endpoints kaito-workspace-svc -n "$KAITO_NAMESPACE" \
+              -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null || true)
+            if [ -n "$EP" ]; then
+              echo "Webhook endpoint ready: ${EP}"
+              exit 0
+            fi
+            echo "Waiting for kaito-workspace-svc endpoints..."
+            sleep 5
+          done
+
+          echo "::error::Timed out waiting for kaito-workspace-svc endpoints"
+          kubectl get pods -n "$KAITO_NAMESPACE" -o wide
+          kubectl get endpoints -n "$KAITO_NAMESPACE"
+          kubectl logs -n "$KAITO_NAMESPACE" deploy/kaito-workspace --tail=200 || true
+          exit 1
+
+      - name: Run preset model regression
+        run: |
+          set -euo pipefail
+          MAX_HOURS="${{ inputs.max_hours || '20' }}"
+          GLOBAL_DEADLINE_EPOCH=$(( $(date +%s) + MAX_HOURS * 3600 ))
+          export GLOBAL_DEADLINE_EPOCH
+          chmod +x .github/scripts/preset-regression-run.sh
+          .github/scripts/preset-regression-run.sh
+        env:
+          MODEL_FILTER: ${{ inputs.models || '' }}
+          NAMESPACE: ${{ env.TEST_NAMESPACE }}
+          RESULTS_FILE: "results-8xh100.json"
+          ARTIFACT_DIR: "artifacts/8xh100"
+          # The nodes are already up, so anything slow here is a real scheduling problem.
+          RESOURCE_READY_TIMEOUT_MINUTES: "15"
+
+      - name: Release the GPU nodes
+        if: ${{ always() }}
+        run: |
+          set -uo pipefail
+          # Runs even when the regression step failed or the job was cancelled: a leaked
+          # label would keep two 8xH100 nodes permanently out of circulation.
+          if [ -n "${TEST_NAMESPACE:-}" ]; then
+            kubectl delete workspace --all -n "$TEST_NAMESPACE" --timeout=600s || true
+            kubectl delete namespace "$TEST_NAMESPACE" --timeout=600s || true
+          fi
+
+          if [ "${{ inputs.keep_reservation }}" = "true" ]; then
+            echo "keep_reservation was set; leaving ${RESERVED_NODES:-<none>} reserved."
+          else
+            for node in ${RESERVED_NODES:-}; do
+              echo "Releasing ${node}"
+              kubectl label node "$node" "${RESERVATION_LABEL_KEY}-" --overwrite || true
+            done
+          fi
+          kubectl get nodes -L "$RESERVATION_LABEL_KEY" -o wide || true
+
+      - name: Uninstall KAITO and delete the run-scoped ACR
+        if: ${{ always() }}
+        run: |
+          set -uo pipefail
+          # The chart templates the KAITO CRDs, so this also removes any Workspace left
+          # on the cluster.
+          helm uninstall kaito-workspace -n "$KAITO_NAMESPACE" --wait --timeout 10m || true
+
+          if [ -z "${ACR_RESOURCE_GROUP:-}" ]; then
+            exit 0
+          fi
+          if [ "$(az group exists --name "$ACR_RESOURCE_GROUP")" != "true" ]; then
+            exit 0
+          fi
+          for i in $(seq 1 5); do
+            if az group delete --name "$ACR_RESOURCE_GROUP" --yes --no-wait; then
+              echo "Deletion of ${ACR_RESOURCE_GROUP} accepted."
+              exit 0
+            fi
+            echo "::warning::az group delete attempt ${i}/5 failed; retrying in 30s"
+            sleep 30
+          done
+          echo "::error::Could not start deletion of ${ACR_RESOURCE_GROUP}; delete it manually."
+          exit 1

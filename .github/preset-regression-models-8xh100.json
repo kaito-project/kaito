@@ -1,0 +1,55 @@
+{
+  "_comment": [
+    "Test matrix for the 'Preset Model Regression Test (8xH100)' workflow",
+    "(.github/workflows/preset-model-regression-8xh100.yaml).",
+    "These models are too large for auto-provisioned pools, so they run on the pre-provisioned",
+    "8xH100 nodes of a shared cluster in BYO mode: the workflow reserves two nodes with a label",
+    "and every Workspace selects them, so `instanceTypes` is intentionally empty here.",
+    "`nodes` is the expected output of the KAITO node estimator; the workflow reports a warning",
+    "(not a failure) when status.targetNodeCount differs, since the estimator picks the real count.",
+    "Set `skip: true` on a model to exclude it; `skipReason` is shown in the report."
+  ],
+  "gpuPools": {
+    "h100": {
+      "displayName": "NVIDIA H100 (8 per node, pre-provisioned)",
+      "region": "southafricanorth",
+      "fallbackRegion": "",
+      "instanceTypes": {}
+    }
+  },
+  "defaults": {
+    "timeoutMinutes": 120
+  },
+  "models": [
+    {
+      "name": "deepseek-ai/DeepSeek-V4-Pro",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "deepseek-ai/DeepSeek-V3.2",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "moonshotai/Kimi-K2.7-Code",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "moonshotai/Kimi-K2.6",
+      "targets": [
+        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
+      ]
+    },
+    {
+      "name": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4",
+      "targets": [
+        { "gpu": "h100", "nodes": 1, "gpusPerNode": 8 }
+      ]
+    }
+  ]
+}

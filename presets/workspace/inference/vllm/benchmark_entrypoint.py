@@ -151,6 +151,8 @@ def _compute_max_concurrency(processor: str | None = None) -> int:
 
     Parses ``vllm:cache_config_info`` from /metrics to get block pool parameters,
     then computes blocks-per-request for both attention and Mamba layer groups.
+    The result is capped by vLLM's resolved ``max_num_seqs``, published as
+    ``kaito_max_concurrent_requests`` by the inference server.
 
     For hybrid Mamba models (e.g. NemotronH), attention and Mamba layers allocate
     blocks **additively** from a shared pool (see ``KVCacheCoordinator.
@@ -173,6 +175,11 @@ def _compute_max_concurrency(processor: str | None = None) -> int:
         raise RuntimeError(
             "vllm:cache_config_info metric or required labels not found in /metrics output"
         )
+    max_concurrent_requests = _get_metric_value(
+        content, "kaito_max_concurrent_requests"
+    )
+    if max_concurrent_requests is None or max_concurrent_requests <= 0:
+        raise RuntimeError("kaito_max_concurrent_requests metric not found or invalid")
 
     num_gpu_blocks = labels["num_gpu_blocks"]
     block_size = labels["block_size"]
@@ -191,7 +198,7 @@ def _compute_max_concurrency(processor: str | None = None) -> int:
     mamba_blocks = mamba_group_count * mamba_blocks_per_group
 
     blocks_per_request = attn_blocks + mamba_blocks
-    concurrency = num_gpu_blocks // blocks_per_request
+    concurrency = min(num_gpu_blocks // blocks_per_request, max_concurrent_requests)
     if concurrency <= 0:
         raise RuntimeError(
             f"computed max_concurrency={concurrency} <= 0 "
@@ -203,6 +210,15 @@ def _compute_max_concurrency(processor: str | None = None) -> int:
             f"seq_len={seq_len})"
         )
     return concurrency
+
+
+def _get_metric_value(metrics_text: str, metric_name: str) -> int | None:
+    """Return a gauge value from Prometheus text if exists, otherwise None."""
+    for family in text_string_to_metric_families(metrics_text):
+        for sample in family.samples:
+            if sample.name == metric_name:
+                return int(sample.value)
+    return None
 
 
 def _get_cache_config_labels(metrics_text: str) -> dict | None:

@@ -14,7 +14,7 @@ This PR implements:
 - ✅ Receives response body from Envoy (via bidirectional gRPC stream)
 - ✅ Appends `" [GATEWAY_TEST]"` to the body
 - ✅ Returns modified body to Envoy
-- ⏳ End-to-end validation: verify Gateway response gets mutated through mock backend
+- ✅ End-to-end validation: Gateway response gets mutated through mock backend
 
 ## What This PR Does NOT Do
 
@@ -65,7 +65,8 @@ Client receives mutated response
 ### Step 1: Build Docker Image
 
 ```bash
-cd /home/yiqi/kaito
+# From repository root
+cd <path-to-kaito>
 
 # Build from repo root (needs go.mod/go.sum for dependencies)
 docker build -t yiqi685/llm-guard-ext-proc:v1 \

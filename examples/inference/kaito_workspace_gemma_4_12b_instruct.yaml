@@ -10,5 +10,3 @@ resource:
 inference:
   preset:
     name: "google/gemma-4-12B-it"
-    presetOptions:
-      modelAccessSecret: hf-secret

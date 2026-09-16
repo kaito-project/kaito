@@ -102,22 +102,6 @@
       ]
     },
     {
-      "name": "deepseek-ai/DeepSeek-V4-Pro",
-      "skip": true,
-      "skipReason": "requires 8xH100 nodes",
-      "targets": [
-        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
-      ]
-    },
-    {
-      "name": "deepseek-ai/DeepSeek-V3.2",
-      "skip": true,
-      "skipReason": "requires 8xH100 nodes",
-      "targets": [
-        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
-      ]
-    },
-    {
       "name": "Qwen/Qwen3.8-27B",
       "targets": [
         { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
@@ -184,14 +168,6 @@
       ]
     },
     {
-      "name": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4",
-      "skip": true,
-      "skipReason": "requires 8xH100 nodes",
-      "targets": [
-        { "gpu": "h100", "nodes": 1, "gpusPerNode": 8 }
-      ]
-    },
-    {
       "name": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16",
       "timeoutMinutes": 90,
       "targets": [
@@ -227,30 +203,6 @@
         { "gpu": "a10", "nodes": 1, "gpusPerNode": 1 },
         { "gpu": "a100", "nodes": 1, "gpusPerNode": 1 },
         { "gpu": "h100", "nodes": 1, "gpusPerNode": 1 }
-      ]
-    },
-    {
-      "name": "zai-org/GLM-5.2-FP8",
-      "skip": true,
-      "skipReason": "requires 8xH100 nodes",
-      "targets": [
-        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
-      ]
-    },
-    {
-      "name": "moonshotai/Kimi-K2.7-Code",
-      "skip": true,
-      "skipReason": "requires 8xH100 nodes",
-      "targets": [
-        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
-      ]
-    },
-    {
-      "name": "moonshotai/Kimi-K2.6",
-      "skip": true,
-      "skipReason": "requires 8xH100 nodes",
-      "targets": [
-        { "gpu": "h100", "nodes": 2, "gpusPerNode": 8 }
       ]
     },
     {

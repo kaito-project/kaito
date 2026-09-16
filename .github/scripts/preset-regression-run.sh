@@ -33,6 +33,8 @@
 #   ARTIFACT_DIR   directory for per-model diagnostics
 #   MODEL_FILTER   comma-separated substrings; only matching models run
 #   NAMESPACE      namespace for the Workspaces (default "default")
+#   BYO_NODE_LABEL  "key=value" of a label on pre-provisioned GPU nodes. When set,
+#                   the Workspace selects those nodes and omits instanceType (BYO mode).
 #   GLOBAL_DEADLINE_EPOCH  unix time after which remaining models are skipped (0 = no budget)
 #   POLL_INTERVAL_SECONDS  workspace status poll interval (default 20)
 #   ENDPOINT_TIMEOUT_SECONDS  per-endpoint validation budget (default 300)
@@ -52,6 +54,7 @@ RESULTS_FILE="${RESULTS_FILE:-results-${GPU}.json}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-artifacts/${GPU}}"
 MODEL_FILTER="${MODEL_FILTER:-}"
 NAMESPACE="${NAMESPACE:-default}"
+BYO_NODE_LABEL="${BYO_NODE_LABEL:-}"
 GLOBAL_DEADLINE_EPOCH="${GLOBAL_DEADLINE_EPOCH:-0}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-20}"
 ENDPOINT_TIMEOUT_SECONDS="${ENDPOINT_TIMEOUT_SECONDS:-300}"
@@ -363,6 +366,24 @@ teardown() {
   log "Tearing down workspace ${ws}..."
   kubectl delete workspace "$ws" -n "$NAMESPACE" --ignore-not-found --timeout=10m >/dev/null 2>&1 || true
 
+  # Deleting the Workspace returns before its pods are gone, and the GPUs stay
+  # allocated until the last one does. On BYO nodes nothing else frees them, so the
+  # next model would be scheduled against a node this model still occupies.
+  local pod_deadline=$(($(date +%s) + 600)) remaining_pods
+  while :; do
+    remaining_pods="$(kubectl get pods -n "$NAMESPACE" -l "kaito.sh/workspace=${ws}" \
+      --no-headers 2>/dev/null | grep -c . || true)"
+    [[ "${remaining_pods:-0}" -eq 0 ]] && break
+    if [[ "$(date +%s)" -ge "$pod_deadline" ]]; then
+      log "WARNING: ${remaining_pods} pod(s) for ${ws} still present after 10m; force deleting to release GPUs."
+      kubectl delete pods -n "$NAMESPACE" -l "kaito.sh/workspace=${ws}" \
+        --force --grace-period=0 >/dev/null 2>&1 || true
+      break
+    fi
+    sleep 10
+  done
+  log "Workspace pods released."
+
   # GPU quota is the scarce resource: do not start the next model until the
   # provisioner has released every node claim from this one.
   local drain_deadline=$(($(date +%s) + 900))
@@ -395,7 +416,7 @@ run_target() {
   skip_reason="$(jq -r '.skipReason' <<<"$target")"
 
   log "=============================================================="
-  log "${model} -> ${nodes} x ${gpus_per_node}x${GPU} (${instance_type:-<unmapped>}) (attempt $((transient_failure_retry + 1))/$((MAX_RETRIES_FOR_TRANSIENT_FAILURE + 1)))"
+  log "${model} -> ${nodes} x ${gpus_per_node}x${GPU} (${BYO_NODE_LABEL:-${instance_type:-<unmapped>}}) (attempt $((transient_failure_retry + 1))/$((MAX_RETRIES_FOR_TRANSIENT_FAILURE + 1)))"
 
   if [[ -n "$skip_reason" ]]; then
     log "SKIPPED: ${skip_reason}"
@@ -403,7 +424,7 @@ run_target() {
     return 0
   fi
 
-  if [[ -z "$instance_type" ]]; then
+  if [[ -z "$instance_type" && -z "$BYO_NODE_LABEL" ]]; then
     local reason="no instance type mapped for ${gpus_per_node} ${GPU} GPU(s) per node"
     log "SKIPPED: ${reason}"
     record "$target" skipped "$reason" 0 "" "" ""
@@ -435,13 +456,27 @@ inference:
 EOF
 
   # strenv keeps every value a literal scalar, so config data can never inject YAML.
-  WS_NAME="$ws" INSTANCE_TYPE="$instance_type" PRESET_NAME="$model" \
-    yq -i '
-      .metadata.name = strenv(WS_NAME) |
-      .resource.instanceType = strenv(INSTANCE_TYPE) |
-      .resource.labelSelector.matchLabels.apps = strenv(WS_NAME) |
-      .inference.preset.name = strenv(PRESET_NAME)
-    ' "$ws_yaml"
+  if [[ -n "$BYO_NODE_LABEL" ]]; then
+    # BYO: the nodes already exist, so the selector is the reservation label and
+    # instanceType must be absent or the webhook rejects the Workspace.
+    WS_NAME="$ws" PRESET_NAME="$model" \
+      BYO_KEY="${BYO_NODE_LABEL%%=*}" BYO_VALUE="${BYO_NODE_LABEL#*=}" \
+      yq -i '
+        .metadata.name = strenv(WS_NAME) |
+        del(.resource.instanceType) |
+        .resource.labelSelector.matchLabels = {} |
+        .resource.labelSelector.matchLabels[strenv(BYO_KEY)] = strenv(BYO_VALUE) |
+        .inference.preset.name = strenv(PRESET_NAME)
+      ' "$ws_yaml"
+  else
+    WS_NAME="$ws" INSTANCE_TYPE="$instance_type" PRESET_NAME="$model" \
+      yq -i '
+        .metadata.name = strenv(WS_NAME) |
+        .resource.instanceType = strenv(INSTANCE_TYPE) |
+        .resource.labelSelector.matchLabels.apps = strenv(WS_NAME) |
+        .inference.preset.name = strenv(PRESET_NAME)
+      ' "$ws_yaml"
+  fi
 
   local artifact_dir="${ARTIFACT_DIR}/${ws}"
   mkdir -p "$artifact_dir"

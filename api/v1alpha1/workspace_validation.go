@@ -145,7 +145,8 @@ func (w *Workspace) validateSpeculativeDecoding() (errs *apis.FieldError) {
 
 	// Current reachable methods in this PR are only preset-tuned mtp and the
 	// universal ngram fallback; both are allowed under pipeline parallelism.
-	// Keep a follow-up hook here if KAITO later adds a method that is not PP-safe.
+	// If KAITO later adds a speculative-decoding method that is not PP-safe,
+	// add an explicit guard here before accepting the annotation.
 
 	return errs
 }

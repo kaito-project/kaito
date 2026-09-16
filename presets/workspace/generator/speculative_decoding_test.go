@@ -19,41 +19,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
-func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
-	presets := SupportedSpeculativeDecodingPresets()
-
-	want := []string{
-		"Qwen/Qwen3.5-122B-A10B",
-		"Qwen/Qwen3.5-122B-A10B-GPTQ-Int4",
-		"Qwen/Qwen3.5-2B",
-		"Qwen/Qwen3.5-397B-A17B-GPTQ-Int4",
-		"Qwen/Qwen3.5-4B",
-		"Qwen/Qwen3.5-9B",
-		"Qwen/Qwen3.6-27B",
-		"Qwen/Qwen3.6-35B-A3B",
-		"Qwen/Qwen3.6-35B-A3B-FP8",
-		"XiaomiMiMo/MiMo-7B-Base",
-		"deepseek-ai/DeepSeek-V3.2",
-		"deepseek-r1-0528",
-		"deepseek-v3-0324",
-		"google/gemma-4-12B-it",
-		"google/gemma-4-26B-A4B-it",
-		"google/gemma-4-31B-it",
-		"google/gemma-4-E2B-it",
-		"google/gemma-4-E4B-it",
-		"nvidia/DeepSeek-V4-Flash-NVFP4",
-		"zai-org/GLM-5.2-FP8",
-	}
-	if len(presets) != len(want) {
-		t.Fatalf("expected %d supported presets, got %d: %v", len(want), len(presets), presets)
-	}
-	for i := range want {
-		if presets[i] != want[i] {
-			t.Fatalf("unexpected presets[%d] = %q, want %q (all=%v)", i, presets[i], want[i], presets)
-		}
-	}
-}
-
 func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 	tests := []struct {
 		repoKey   string

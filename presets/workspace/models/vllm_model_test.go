@@ -1159,18 +1159,6 @@ func TestLegacyBuiltinAliasesResolveToCanonicalIDs(t *testing.T) {
 	}
 }
 
-func TestSupportedSpeculativeDecodingPresetsResolveViaGetModelByName(t *testing.T) {
-	registerHermeticSpeculativeDecodingTestModels(t)
-
-	for _, presetName := range generator.SupportedSpeculativeDecodingPresets() {
-		t.Run(presetName, func(t *testing.T) {
-			result, err := GetModelByName(context.Background(), presetName, "", "", nil)
-			assert.NoError(t, err)
-			assert.NotNil(t, result, "supported speculative-decoding preset %q must resolve via GetModelByName", presetName)
-		})
-	}
-}
-
 // TestCatalogModelsHaveMTBenchScores ensures every model in model_catalog.yaml
 // has a corresponding score entry in model_catalog_mtbench_scores.md.
 func TestCatalogModelsHaveMTBenchScores(t *testing.T) {

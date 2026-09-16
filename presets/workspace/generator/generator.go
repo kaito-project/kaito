@@ -357,18 +357,6 @@ var (
 	}
 )
 
-// SupportedSpeculativeDecodingPresets returns the sorted preset names that
-// currently carry a validated SpeculativeDecoding entry. Every returned name
-// must be accepted by GetModelByName.
-func SupportedSpeculativeDecodingPresets() []string {
-	out := make([]string, 0, len(speculativeDecodingByPreset))
-	for _, entry := range speculativeDecodingByPreset {
-		out = append(out, entry.UserFacing)
-	}
-	sort.Strings(out)
-	return out
-}
-
 type Generator struct {
 	ModelRepo      string
 	Token          string

@@ -426,6 +426,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	case isName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = isName
+	case isCustomModelName(p.VLLM.ModelName):
+		// A bring-your-own model's identifier is a configuration digest, which
+		// is meaningless to a client. Serve it under the workspace name instead.
+		p.VLLM.ModelRunParams["served-model-name"] = rc.WorkspaceMetadata.Name
 	case p.VLLM.ModelName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
@@ -752,4 +756,29 @@ func (p *PresetParam) GetTuningCommand(rc RuntimeContext) []string {
 	torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.AccelerateParams)
 	modelCommand := utils.BuildCmdStr(DefaultTuningMainFile, p.Transformers.ModelRunParams)
 	return utils.ShellCmd(torchCommand + " " + modelCommand)
+}
+
+// isCustomModelName reports whether a model name is a bring-your-own model's
+// content-addressed identifier.
+func isCustomModelName(modelName string) bool {
+	_, ok := CustomModelDigest(modelName)
+	return ok
+}
+
+// CustomModelDigest decodes a bring-your-own model's content-addressed name
+// into the configuration digest it was built from.
+//
+// The name encodes the digest only. The declared bundle size is deliberately
+// not part of it: the size may be corrected without the model becoming a
+// different model, so folding it into the identity would fragment the registry
+// and change the name for what is still the same weights.
+//
+// Note: the prefix is a string literal to avoid an import cycle with the
+// plugin package, which owns the canonical constant.
+func CustomModelDigest(modelName string) (digest string, ok bool) {
+	rest, ok := strings.CutPrefix(strings.ToLower(modelName), "custom-")
+	if !ok || rest == "" {
+		return "", false
+	}
+	return rest, true
 }

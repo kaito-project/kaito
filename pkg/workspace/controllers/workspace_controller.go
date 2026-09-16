@@ -140,6 +140,13 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 		return reconcile.Result{}, err
 	}
 
+	// Resolve and pin the bring-your-own model before anything is sized or
+	// provisioned, so that sizing and the workload are built from a model
+	// identity that has already been recorded.
+	if err = c.reconcileResolvedModel(ctx, workspaceObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
 	// update targetNodeCount for the workspace
 	if err = c.UpdateWorkspaceTargetNodeCount(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
@@ -240,7 +247,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	// Resolve model metadata for DiskStorageRequirement
 	presetName := string(wObj.Inference.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
 		return &streamingValidationError{
 			reason: reasonModelMirrorCreateFailed,
@@ -613,7 +620,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 	}
 
 	presetName := string(wObj.Tuning.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, "", wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, "", "", wObj.Namespace, c.Client)
 	if err != nil {
 		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
 		return err
@@ -680,7 +687,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	presetName := string(wObj.Inference.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
 		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
 		return err
@@ -956,6 +963,7 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 // cause of an inference workload that is not ready.
 const (
 	inferenceReasonSASTokenFetchFailed = "SASTokenFetchFailed"
+	inferenceReasonModelBundleMismatch = "ModelBundleMismatch"
 	inferenceReasonImagePullError      = "ImagePullError"
 	inferenceReasonCrashLoopBackOff    = "ContainerCrashLoopBackOff"
 	inferenceReasonOOMKilled           = "ContainerOOMKilled"
@@ -1035,21 +1043,50 @@ func (c *WorkspaceReconciler) classifyInferencePodFailure(ctx context.Context, w
 // detectSASInitFailure returns a reason/message when a workspace pod's SAS-fetch
 // init container has failed or is crash-looping. Returns empty strings when no
 // such failure is observed.
+//
+// The init container exits non-zero for two very different reasons: a genuine
+// SAS token/mint failure, or a bring-your-own bundle whose config.json is
+// missing or does not match what the deployment was sized for. The latter exits
+// with a distinct code (modelstreaming.SASFetchExitConfigMismatch) so it is
+// reported as an artifact mismatch rather than misattributed to a token failure.
 func detectSASInitFailure(pods *corev1.PodList) (reason, message string) {
 	for i := range pods.Items {
 		for _, ics := range pods.Items[i].Status.InitContainerStatuses {
 			if ics.Name != modelstreaming.SASFetchInitContainerName {
 				continue
 			}
-			if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
-				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			exitCode, failed := sasInitFailureExitCode(ics)
+			if !failed {
+				continue
 			}
-			if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
-				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			if int(exitCode) == modelstreaming.SASFetchExitConfigMismatch {
+				return inferenceReasonModelBundleMismatch, "model bundle verification failed: the streamed config.json is missing or does not match the configuration this deployment was sized for; check the fetch-sas init container logs"
 			}
+			return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
 		}
 	}
 	return "", ""
+}
+
+// sasInitFailureExitCode reports the exit code of the SAS-fetch init container's
+// most recent termination and whether that termination represents a failure
+// (non-zero exit, including one now hidden behind a CrashLoopBackOff wait). The
+// exit code is 0 with failed=true only when a crash loop is observed without a
+// recorded termination to read the code from.
+func sasInitFailureExitCode(ics corev1.ContainerStatus) (code int32, failed bool) {
+	if t := ics.State.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
+		if t := ics.LastTerminationState.Terminated; t != nil {
+			return t.ExitCode, true
+		}
+		return 0, true
+	}
+	return 0, false
 }
 
 // detectContainerFailure inspects init and main container statuses across all

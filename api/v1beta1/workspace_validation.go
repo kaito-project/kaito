@@ -121,6 +121,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
 			w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 			w.validateInferenceConfig(ctx),
+			w.validateCustomModelStreaming(),
 		)
 		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateStreamingCSIDriver(ctx))
@@ -507,6 +508,7 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 
 func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
 	var presetName, secretName string
+	configMapName := inference.Config
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
 		secretName = inference.Preset.PresetOptions.ModelAccessSecret
@@ -559,7 +561,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				return errs.Also(pErr)
 			}
 			if r.Partition.Mode == PartitionModeMIG && presetName != "" {
-				errs = errs.Also(r.validateMIGModelFit(ctx, presetName, secretName, wsNamespace, bypassResourceChecks))
+				errs = errs.Also(r.validateMIGModelFit(ctx, presetName, configMapName, secretName, wsNamespace, bypassResourceChecks))
 			}
 			return errs
 		}
@@ -647,7 +649,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset, err := models.GetModelByName(context.TODO(), presetName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
+			modelPreset, err := models.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
 			if err != nil {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 				return errs
@@ -759,14 +761,14 @@ func (r *ResourceSpec) validateAcceleratorPartition() (errs *apis.FieldError) {
 // compares the raw weight size against the slice's advertised memory and ignores
 // runtime overhead — so it only rejects models that can never fit. The node
 // estimator performs the authoritative, overhead-aware sizing at reconcile time.
-func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, secretName, wsNamespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, configMapName, secretName, wsNamespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
 	// The profile is already validated by validateMIGPartition before this runs,
 	// so this failure is defensive and should not occur in practice.
 	migConfig, err := utils.GetMIGGPUConfig(r.Partition.Profile)
 	if err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
-	modelPreset, err := models.GetModelByName(ctx, presetName, secretName, wsNamespace, k8sclient.Client)
+	modelPreset, err := models.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
 	if err != nil {
 		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
 	}
@@ -854,11 +856,22 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		presetName := string(i.Preset.Name)
 		// Validate preset name
 		if !plugin.IsValidPreset(presetName) {
-			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
+			// A name in the reserved "custom-" namespace is not merely unknown:
+			// it is an internal, content-addressed registry key, so point the
+			// user at the supported way to bring their own weights instead of a
+			// generic "unsupported" message.
+			if plugin.IsReservedCustomModelName(presetName) {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("inference preset name %q is reserved; select preset %q and supply the model configuration through 'inference.config'", presetName, plugin.PresetNameCustom), "presetName"))
+			} else {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
+			}
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
+		if err := i.validateCustomPreset(); err != nil {
+			return errs.Also(err)
+		}
+		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
 		if err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 			return errs
@@ -906,6 +919,15 @@ func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldErro
 
 	if !reflect.DeepEqual(i.Preset, old.Preset) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "preset"))
+	}
+	// For a bring-your-own model the ConfigMap is the model itself, so
+	// repointing it would swap the weights underneath an already-sized
+	// deployment. Serving a different model means a new Workspace or
+	// InferenceSet and an explicit cutover.
+	if i.Preset != nil && plugin.IsCustomPreset(string(i.Preset.Name)) && i.Config != old.Config {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf("field is immutable for preset %q: serving a different model or different runtime settings requires a new Workspace or InferenceSet", plugin.PresetNameCustom),
+			"config"))
 	}
 	// inference.template can be changed, but cannot be set/unset.
 	if (i.Template != nil && old.Template == nil) || (i.Template == nil && old.Template != nil) {

@@ -217,6 +217,28 @@ func TestConfigCMVolume(t *testing.T) {
 	}
 }
 
+// A bring-your-own model shares this ConfigMap with its config.json, which the
+// operator reads for sizing. Projecting the whole ConfigMap would drop that file
+// into the mount path alongside the authoritative config.json shipped with the
+// model bundle, where it could silently override the real one.
+func TestConfigCMVolumeProjectsOnlyRuntimeConfig(t *testing.T) {
+	vol, _ := ConfigCMVolume("my-configmap")
+	src := vol.VolumeSource.ConfigMap
+
+	if len(src.Items) != 1 {
+		t.Fatalf("expected exactly one projected key, got %d", len(src.Items))
+	}
+	if src.Items[0].Key != InferenceConfigKey || src.Items[0].Path != InferenceConfigKey {
+		t.Errorf("expected only %q to be projected, got key %q at path %q",
+			InferenceConfigKey, src.Items[0].Key, src.Items[0].Path)
+	}
+	// A custom model may supply only config.json, leaving no runtime settings
+	// to project; that must not block the pod from starting.
+	if src.Optional == nil || !*src.Optional {
+		t.Error("expected the runtime configuration to be optional")
+	}
+}
+
 func TestConfigDataVolume(t *testing.T) {
 	t.Run("nil input uses EmptyDir", func(t *testing.T) {
 		vol, mount := ConfigDataVolume(nil)

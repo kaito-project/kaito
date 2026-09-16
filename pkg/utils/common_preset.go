@@ -18,6 +18,7 @@ import (
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -28,6 +29,9 @@ const (
 	DefaultWeightsVolumePath  = "/workspace/weights"
 
 	DefaultORASToolImage = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3"
+
+	// InferenceConfigKey is the ConfigMap entry holding vLLM runtime overrides.
+	InferenceConfigKey = "inference_config.yaml"
 )
 
 var DefaultModelWeightsVolume = corev1.Volume{
@@ -189,6 +193,16 @@ func ConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: cmName,
 				},
+				// Project only the runtime configuration. A bring-your-own model
+				// shares this ConfigMap with its config.json, which is consumed
+				// by the operator for sizing and must not appear beside the
+				// authoritative config.json that arrives with the model bundle.
+				Items: []corev1.KeyToPath{
+					{Key: InferenceConfigKey, Path: InferenceConfigKey},
+				},
+				// The runtime configuration is optional; the model configuration
+				// alone is a valid ConfigMap for a custom model.
+				Optional: ptr.To(true),
 			},
 		},
 	}

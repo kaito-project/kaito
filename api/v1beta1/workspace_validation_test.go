@@ -1291,6 +1291,18 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
+			name: "Reserved custom- Preset Name",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("custom-deadbeef"),
+					},
+				},
+			},
+			errContent: "is reserved",
+			expectErrs: true,
+		},
+		{
 			name: "Only Template set",
 			inferenceSpec: &InferenceSpec{
 				Template: &v1.PodTemplateSpec{}, // Assuming a non-nil TemplateSpec implies it's set

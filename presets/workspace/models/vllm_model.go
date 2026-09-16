@@ -118,11 +118,23 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 }
 
 // GetModelByName returns a vLLM-compatible model for the given modelName.
+// The reserved name "custom" selects a bring-your-own model, resolved from the
+// configuration in the ConfigMap named by configMapName in secretNamespace.
 // If the modelName contains a "/", it fetches an access token from the
 // Kubernetes Secret identified by secretName and secretNamespace,
 // then generates a preset for the corresponding HuggingFace model.
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
-func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+func GetModelByName(ctx context.Context, modelName, configMapName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+	if plugin.IsCustomPreset(modelName) {
+		resolved, err := ResolveCustomModel(ctx, kubeClient, configMapName, secretNamespace)
+		if err != nil {
+			return nil, err
+		}
+		return resolved.Model, nil
+	}
+	if plugin.IsReservedCustomModelName(modelName) {
+		return nil, fmt.Errorf("model name %q is reserved: select preset %q and supply the model configuration through 'inference.config'", modelName, plugin.PresetNameCustom)
+	}
 	modelName = strings.ToLower(modelName)
 	modelName = plugin.ResolveHFModelID(modelName)
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {

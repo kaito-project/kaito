@@ -842,6 +842,11 @@ func (m *mockEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 }
 
 func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
+	// The request builder resolves the model from the registry before the
+	// estimator runs, so the preset must be registered even though the estimator
+	// itself is mocked.
+	test.RegisterTestModel()
+
 	tests := map[string]struct {
 		workspace      *v1beta1.Workspace
 		setupMocks     func(*test.MockClient, *mockEstimator, *int32)
@@ -882,7 +887,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 		"should use estimator when inference present and set returned value": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
@@ -905,7 +910,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 		"should return error when estimator fails": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, _ *int32) {
@@ -923,7 +928,7 @@ func TestUpdateWorkspaceTargetNodeCount(t *testing.T) {
 		"should persist estimate without error": {
 			workspace: &v1beta1.Workspace{
 				ObjectMeta: v1.ObjectMeta{Name: "test-workspace", Namespace: "default"},
-				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-preset"}}},
+				Inference:  &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
 				Status:     v1beta1.WorkspaceStatus{TargetNodeCount: 0},
 			},
 			setupMocks: func(c *test.MockClient, e *mockEstimator, updatedTarget *int32) {
@@ -2151,6 +2156,30 @@ func TestDetectInferencePodFailure(t *testing.T) {
 		reason, message := detectSASInitFailure(pods)
 		assert.Equal(t, inferenceReasonSASTokenFetchFailed, reason)
 		assert.Contains(t, message, "SAS token fetch failed")
+	})
+
+	t.Run("sas init config mismatch is not misreported as a token failure", func(t *testing.T) {
+		pods := podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{{
+			Name: modelstreaming.SASFetchInitContainerName,
+			State: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{
+				ExitCode: int32(modelstreaming.SASFetchExitConfigMismatch),
+			}},
+		}}}})
+		reason, message := detectSASInitFailure(pods)
+		assert.Equal(t, inferenceReasonModelBundleMismatch, reason)
+		assert.Contains(t, message, "model bundle verification failed")
+	})
+
+	t.Run("sas init config mismatch behind a crash loop", func(t *testing.T) {
+		pods := podList(corev1.Pod{Status: corev1.PodStatus{InitContainerStatuses: []corev1.ContainerStatus{{
+			Name:  modelstreaming.SASFetchInitContainerName,
+			State: corev1.ContainerState{Waiting: &corev1.ContainerStateWaiting{Reason: "CrashLoopBackOff"}},
+			LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{
+				ExitCode: int32(modelstreaming.SASFetchExitConfigMismatch),
+			}},
+		}}}})
+		reason, _ := detectSASInitFailure(pods)
+		assert.Equal(t, inferenceReasonModelBundleMismatch, reason)
 	})
 
 	t.Run("truncate long message", func(t *testing.T) {

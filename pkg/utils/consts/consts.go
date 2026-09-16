@@ -201,6 +201,11 @@ const (
 	// requires a CUDA toolchain (nvcc) that the base image does not ship.
 	VLLMUseFlashInferSamplerEnvName = "VLLM_USE_FLASHINFER_SAMPLER"
 
+	// ModelConfigSHA256EnvName carries the SHA-256 of the model configuration a
+	// bring-your-own deployment was sized and configured from, so the serving
+	// container can verify that the streamed bundle is that same model.
+	ModelConfigSHA256EnvName = "KAITO_MODEL_CONFIG_SHA256"
+
 	// VLLMUseDeepGEMMEnvName toggles vLLM's DeepGEMM FP8 kernels. vLLM 0.22.1
 	// defaults this on and reports DeepGEMM as available (it finds the vendored
 	// wrapper module), but the native FP8 GEMM backend is not present in the base
@@ -245,3 +250,33 @@ func NormalizeSupportedNodeImageFamily(value string) (string, bool) {
 		return "", false
 	}
 }
+
+// SAS-authenticated blob streaming annotations. When the static-model-mirror flag and the core
+// annotations are present on a Workspace (with model streaming enabled), KAITO streams weights
+// directly from a pre-existing external blob using a short-lived SAS token minted at pod start,
+// instead of mirroring the model to a PVC.
+//
+// These belong to the streaming path, not the mirror path: mirroring is independent of
+// streaming (it only copies weights to a PVC, skipping the download when no StorageClass
+// is set), so it has no knowledge of these keys.
+//
+// They live in this leaf package so that API validation can reference them without importing
+// the streaming package, which itself depends on the API types.
+const (
+	AnnotationStreamDatarefsURL = "inference.kaito.sh/stream-datarefs-url" // POST target to mint a fresh SAS
+	// AnnotationStreamIdentityClientID is the workload identity client ID used to mint the SAS.
+	AnnotationStreamIdentityClientID = "inference.kaito.sh/stream-identity-client-id" // WI client id for token exchange
+	// AnnotationStreamSourceType selects the model source API flavor: "public" or "byo". It
+	// drives the model-resolve URL derivation and the token audience used to mint the SAS.
+	AnnotationStreamSourceType = "inference.kaito.sh/stream-source-type" // "public" | "byo"
+
+	// AnnotationStaticModelMirror, when set to "true", marks the workspace as using a STATIC
+	// model mirror: enabling this flag requires the core SAS annotations to be present.
+	AnnotationStaticModelMirror = "inference.kaito.sh/static-model-mirror" // "true" => Mode=Static
+)
+
+// Source type values for AnnotationStreamSourceType.
+const (
+	SourceTypePublic = "public"
+	SourceTypeBYO    = "byo"
+)

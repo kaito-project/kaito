@@ -28,7 +28,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	estimator "github.com/kaito-project/kaito/pkg/workspace/estimator"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -49,21 +48,18 @@ func (c *NodeEstimator) Name() string {
 }
 
 func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, cl client.Client) (int32, error) {
-	// If no preset is configured, default to the requested node count or 1.
-	if req.ModelProfile.Name == "" {
+	// If no model is configured, default to the requested node count or 1.
+	model := req.ModelProfile.Model
+	if model == nil {
 		if req.ResourceProfile.RequestedNodeCount > 0 {
 			return int32(req.ResourceProfile.RequestedNodeCount), nil
 		}
 		return 1, nil
 	}
 
-	model, err := models.GetModelByNameWithToken(ctx, req.ModelProfile.Name, req.ModelProfile.AccessToken)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get model by name: %w", err)
-	}
-
 	// Resolve the GPU configuration for a single node.
 	var gpuConfig *sku.GPUConfig
+	var err error
 	if req.ResourceProfile.DisableNodeAutoProvisioning {
 		// NAP is disabled (BYO scenario).
 		if req.ResourceProfile.MIGProfile != "" {

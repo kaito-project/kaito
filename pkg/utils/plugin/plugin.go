@@ -41,6 +41,31 @@ type ModelRegister struct {
 
 var KaitoModelRegister ModelRegister
 
+const (
+	// PresetNameCustom is the reserved preset name selecting a bring-your-own
+	// model whose configuration is supplied through the inference ConfigMap.
+	PresetNameCustom = "custom"
+
+	// CustomModelNamePrefix prefixes the internal, content-addressed registry
+	// key derived from a custom model's configuration. Users select
+	// PresetNameCustom; the suffixed form is produced only by resolution.
+	CustomModelNamePrefix = "custom-"
+)
+
+// IsCustomPreset reports whether a preset name selects bring-your-own weights.
+func IsCustomPreset(presetName string) bool {
+	return strings.EqualFold(presetName, PresetNameCustom)
+}
+
+// IsReservedCustomModelName reports whether a name occupies the internal
+// content-addressed namespace. Such names are produced by resolution and must
+// never be accepted as user input: the registry is process-global and not
+// namespace-scoped, so honouring one would let a caller address a registration
+// populated from a ConfigMap they cannot read.
+func IsReservedCustomModelName(presetName string) bool {
+	return strings.HasPrefix(strings.ToLower(presetName), CustomModelNamePrefix)
+}
+
 // LegacyBuiltinToCatalog maps legacy short preset names to full HuggingFace
 // model IDs. Deprecated: use full HuggingFace model IDs in new manifests.
 var LegacyBuiltinToCatalog = map[string]string{
@@ -104,10 +129,21 @@ func (reg *ModelRegister) Has(name string) bool {
 }
 
 // IsValidPreset returns true if:
-// 1. the given preset name is registered in the KaitoModelRegister.
-// 2. the given preset name is a legacy builtin preset alias.
-// 3. the given preset name is a valid huggingface model card ID, e.g. "Qwen/Qwen2.5-Coder-7B-Instruct"
+// 1. the given preset name is the reserved "custom" name for bring-your-own weights.
+// 2. the given preset name is registered in the KaitoModelRegister.
+// 3. the given preset name is a legacy builtin preset alias.
+// 4. the given preset name is a valid huggingface model card ID, e.g. "Qwen/Qwen2.5-Coder-7B-Instruct"
+//
+// Names in the reserved "custom-" namespace are never valid input: they are
+// internal, content-addressed registry keys produced by resolving a custom
+// model, and the registry is process-global rather than namespace-scoped.
 func IsValidPreset(preset string) bool {
+	if IsCustomPreset(preset) {
+		return true
+	}
+	if IsReservedCustomModelName(preset) {
+		return false
+	}
 	if KaitoModelRegister.Has(preset) {
 		return true
 	}

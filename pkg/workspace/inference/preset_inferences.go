@@ -774,6 +774,17 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 		})
 	}
 
+	// A bring-your-own model is sized and configured from an operator-supplied
+	// config.json, which the serving pod never sees. Pass its digest so startup
+	// can confirm the streamed bundle is the same model that was sized, rather
+	// than discovering the mismatch as an out-of-memory failure during load.
+	if digest, ok := pkgmodel.CustomModelDigest(inferenceParam.Metadata.Name); ok {
+		env = append(env, corev1.EnvVar{
+			Name:  consts.ModelConfigSHA256EnvName,
+			Value: digest,
+		})
+	}
+
 	// When a CUDA toolkit is provided (installed via init container or mounted
 	// from the node), point CUDA_HOME at it so runtime JIT compilers (e.g.
 	// DeepGEMM's nvcc backend) can find nvcc and the CUDA headers.

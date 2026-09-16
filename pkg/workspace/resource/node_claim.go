@@ -167,7 +167,7 @@ func (c *NodeClaimManager) determineNodeOSDiskSize(ctx context.Context, wObj *ka
 		presetName := string(wObj.Inference.Preset.Name)
 		secretName := wObj.Inference.Preset.PresetOptions.ModelAccessSecret
 
-		model, err := models.GetModelByName(ctx, presetName, secretName, wObj.Namespace, c.Client)
+		model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Config, secretName, wObj.Namespace, c.Client)
 		if err == nil {
 			nodeOSDiskSize = model.GetInferenceParameters().DiskStorageRequirement
 		} else {

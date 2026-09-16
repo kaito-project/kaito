@@ -108,6 +108,12 @@ func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	// Fix the model identity for the whole set before any replica is created
+	// from it, so a replaced ConfigMap cannot reach new replicas.
+	if err := c.reconcileResolvedModel(ctx, iObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
 	return c.addOrUpdateInferenceSet(ctx, iObj)
 }
 

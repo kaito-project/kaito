@@ -6,7 +6,7 @@ metadata:
 spec:
   workloadSelector:
     labels:
-      app: istio-ingressgateway
+      gateway.networking.k8s.io/gateway-name: inference-gateway
   configPatches:
   # Add cluster for ext_proc service
   - applyTo: CLUSTER
@@ -16,6 +16,12 @@ spec:
         name: llm_guard_processor
         type: STRICT_DNS
         connect_timeout: 2s
+        # ext_proc uses gRPC, so the upstream cluster must use HTTP/2
+        typed_extension_protocol_options:
+          envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+            "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+            explicit_http_config:
+              http2_protocol_options: {}
         load_assignment:
           cluster_name: llm_guard_processor
           endpoints:
@@ -49,7 +55,7 @@ spec:
           processing_mode:
             request_header_mode: SKIP
             request_body_mode: NONE
-            response_header_mode: SEND
+            response_header_mode: SKIP
             response_body_mode: BUFFERED
             response_trailer_mode: SKIP
-          failure_mode_allow: true
+          failure_mode_allow: false

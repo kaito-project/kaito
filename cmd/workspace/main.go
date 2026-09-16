@@ -117,6 +117,8 @@ func main() {
 	var defaultStreamingServiceAccount string
 	var modelMirrorDownloadCPU string
 	var modelMirrorDownloadMemory string
+	var modelMirrorDownloadCPULimit string
+	var modelMirrorDownloadMemoryLimit string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.IntVar(&kubeClientQPS, "kube-client-qps", kubeClientQPS, "the rate of qps to kube-apiserver.")
@@ -137,8 +139,10 @@ func main() {
 	flag.BoolVar(&printVersionAndExit, "version", false, "Print version and exit.")
 	flag.StringVar(&defaultModelMirrorStorageClass, "default-model-mirror-storage-class", "", "StorageClass for ModelMirror PVCs.")
 	flag.StringVar(&defaultStreamingServiceAccount, "default-streaming-service-account", "", "Default ServiceAccount for streaming inference pods.")
-	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request==limit for the ModelMirror download Job container. Empty uses the built-in default (3).")
-	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request==limit for the ModelMirror download Job container. Empty uses the built-in default (8Gi).")
+	flag.StringVar(&modelMirrorDownloadCPU, "model-mirror-download-cpu", "", "CPU request for the ModelMirror download Job container. Empty uses the built-in default (2). Also sets the CPU limit unless --model-mirror-download-cpu-limit is provided.")
+	flag.StringVar(&modelMirrorDownloadMemory, "model-mirror-download-memory", "", "Memory request for the ModelMirror download Job container. Empty uses the built-in default (6Gi). Also sets the memory limit unless --model-mirror-download-memory-limit is provided.")
+	flag.StringVar(&modelMirrorDownloadCPULimit, "model-mirror-download-cpu-limit", "", "CPU limit for the ModelMirror download Job container. Empty uses the built-in default (4), or the configured CPU request when provided.")
+	flag.StringVar(&modelMirrorDownloadMemoryLimit, "model-mirror-download-memory-limit", "", "Memory limit for the ModelMirror download Job container. Empty uses the built-in default (10Gi), or the configured memory request when provided.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -150,6 +154,17 @@ func main() {
 		os.Exit(0)
 	}
 	klog.Info("version: ", version.VersionInfo())
+
+	downloadResources, err := mmconsts.ResolveDownloadJobResources(
+		modelMirrorDownloadCPU,
+		modelMirrorDownloadMemory,
+		modelMirrorDownloadCPULimit,
+		modelMirrorDownloadMemoryLimit,
+	)
+	if err != nil {
+		klog.ErrorS(err, "invalid ModelMirror download resources")
+		exitWithErrorFunc()
+	}
 
 	if err := featuregates.ParseAndValidateFeatureGates(featureGates); err != nil {
 		klog.ErrorS(err, "unable to set `feature-gates` flag")
@@ -365,14 +380,6 @@ func main() {
 
 	// ModelMirror controller — requires ModelMirror feature gate.
 	if featuregates.FeatureGates[consts.FeatureFlagModelMirror] {
-		// Start from the built-in defaults and override per-field from flags when provided.
-		downloadResources := mmconsts.DefaultDownloadJobResources()
-		if modelMirrorDownloadCPU != "" {
-			downloadResources.CPU = modelMirrorDownloadCPU
-		}
-		if modelMirrorDownloadMemory != "" {
-			downloadResources.Memory = modelMirrorDownloadMemory
-		}
 		mmReconciler := mmcontrollers.NewModelMirrorReconciler(
 			kClient,
 			mgr.GetAPIReader(),

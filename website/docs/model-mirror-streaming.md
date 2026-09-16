@@ -167,7 +167,7 @@ helm upgrade --install kaito-workspace kaito/workspace \
 `ModelStreaming` requires `ModelMirror` — enable both. `defaultModelMirrorStorageClass` and `defaultStreamingServiceAccount` set the cluster-wide defaults; individual workspaces can override them with annotations (see [Per-Workspace Configuration](#per-workspace-configuration)).
 :::
 
-The ModelMirror download Job requests and limits **3 CPU** and **8Gi of memory** by default. If the cluster cannot satisfy these requests, the Job remains pending; if the download exceeds its memory limit, it fails with `DownloadOOMKilled`, while node resource pressure can surface as `DownloadEvicted`. As a cluster-wide escape hatch, set the Helm values `modelMirrorDownloadCPU` and `modelMirrorDownloadMemory`, or pass `--model-mirror-download-cpu` and `--model-mirror-download-memory` directly to the workspace controller. The configured values are used for both requests and limits.
+The ModelMirror download Job requests **2 CPU** and **6Gi of memory** by default, with limits of **4 CPU** and **10Gi**. This lets the four parallel download workers use idle node capacity without requiring that burst capacity for scheduling. If the cluster cannot satisfy the requests, the Job remains pending; if the download exceeds its memory limit, it fails with `DownloadOOMKilled`, while node resource pressure can surface as `DownloadEvicted`. As a cluster-wide escape hatch, configure the Helm values `modelMirrorDownloadCPU`, `modelMirrorDownloadMemory`, `modelMirrorDownloadCPULimit`, and `modelMirrorDownloadMemoryLimit`, or pass their corresponding `--model-mirror-download-*` flags directly to the workspace controller.
 
 ## Usage
 

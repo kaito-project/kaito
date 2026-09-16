@@ -96,8 +96,8 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 				corev1.ResourceMemory: resource.MustParse(resources.Memory),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse(resources.CPU),
-				corev1.ResourceMemory: resource.MustParse(resources.Memory),
+				corev1.ResourceCPU:    resource.MustParse(resources.CPULimit),
+				corev1.ResourceMemory: resource.MustParse(resources.MemoryLimit),
 			},
 		},
 		VolumeMounts: []corev1.VolumeMount{

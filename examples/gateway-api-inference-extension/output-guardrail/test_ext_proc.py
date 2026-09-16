@@ -81,7 +81,11 @@ class TestExtProcRealExecution(unittest.TestCase):
         mock_gr.enabled = True
 
         response_obj = self._create_response_obj("clean")
-        mock_gr.guard_response.return_value = response_obj
+
+        # Mock guard_response to return an object with model_dump()
+        mock_response = MagicMock()
+        mock_response.model_dump.return_value = response_obj
+        mock_gr.guard_response.return_value = mock_response
 
         mock_reloader.get_current.return_value = mock_gr
 

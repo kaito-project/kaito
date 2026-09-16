@@ -2,9 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements (includes RAGEngine dependencies + gRPC)
-COPY examples/gateway-api-inference-extension/output-guardrail/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy and install RAGEngine dependencies
+COPY presets/ragengine/requirements.txt /tmp/ragengine-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/ragengine-requirements.txt
+
+# Copy and install ext_proc additional dependencies (grpcio, protobuf, etc.)
+COPY examples/gateway-api-inference-extension/output-guardrail/requirements.txt /tmp/extproc-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/extproc-requirements.txt
 
 # Copy presets (guardrails library)
 COPY presets/ ./presets/

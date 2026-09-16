@@ -240,12 +240,13 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Qwen3.6 27B InferenceSet with MTP speculative decoding enabled", utils.GinkgoLabelFastCheck, func() {
-		// Qwen3.6 27B is in speculativeDecodingByPreset with a self-contained
-		// MTP config, so this exercises the tuned MTP path where KAITO injects
-		// method=mtp for a built-in catalog model without assistant-model wiring.
+	It("should create a Qwen3.6 35B A3B FP8 InferenceSet with MTP speculative decoding enabled", utils.GinkgoLabelFastCheck, func() {
+		// Qwen3.6 35B-A3B-FP8 is in speculativeDecodingByPreset with a
+		// self-contained MTP config, so this exercises the tuned MTP path where
+		// KAITO injects method=mtp for a built-in catalog model without
+		// assistant-model wiring.
 		numOfReplicas := 1
-		inferenceSetObj := createQwen3_6_27BInferenceSetWithSpeculativeDecodingAndVLLM(numOfReplicas)
+		inferenceSetObj := createQwen3_6_35BA3BFP8InferenceSetWithSpeculativeDecodingAndVLLM(numOfReplicas)
 		DeferCleanup(func() {
 			cleanupResourcesForInferenceSet(inferenceSetObj)
 		})
@@ -1254,22 +1255,22 @@ func createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int)
 	return workspaceObj
 }
 
-// createQwen3_6_27BInferenceSetWithSpeculativeDecodingAndVLLM builds an
-// InferenceSet using the Qwen3.6 27B preset with the
+// createQwen3_6_35BA3BFP8InferenceSetWithSpeculativeDecodingAndVLLM builds an
+// InferenceSet using the Qwen3.6 35B-A3B-FP8 preset with the
 // kaito.sh/enable-speculative-decoding annotation set on Spec.Template.
-// Because Qwen3.6 27B is in presets/workspace/generator/generator.go
+// Because Qwen3.6 35B-A3B-FP8 is in presets/workspace/generator/generator.go
 // speculativeDecodingByPreset with a self-contained MTP config, this
 // exercises tuned MTP injection plus the InferenceSet -> child Workspace
 // annotation-propagation path.
-func createQwen3_6_27BInferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
+func createQwen3_6_35BA3BFP8InferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
 	inferenceSetObj := &kaitov1beta1.InferenceSet{}
 
-	By("Creating an InferenceSet CR with Qwen3.6 27B preset public mode, vLLM, and speculative-decoding annotation", func() {
-		uniqueID := fmt.Sprint("preset-qwen3-6-27b-spec-is-", rand.Intn(1000))
+	By("Creating an InferenceSet CR with Qwen3.6 35B-A3B-FP8 preset public mode, vLLM, and speculative-decoding annotation", func() {
+		uniqueID := fmt.Sprint("preset-qwen3-6-35b-a3b-fp8-spec-is-", rand.Intn(1000))
 		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NC24ads_A100_v4",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-qwen3-6-27b-vllm-specdec"},
-			}, PresetQwen3_6_27BModel, nil, nil, "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-qwen3-6-35b-a3b-fp8-vllm-specdec"},
+			}, PresetQwen3_6_35BA3BFP8Model, nil, nil, "")
 
 		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
 		if inferenceSetObj.Spec.Template.Annotations == nil {

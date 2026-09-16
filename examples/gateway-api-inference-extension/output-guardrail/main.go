@@ -24,15 +24,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-// OpenAI /v1/chat/completions response format
-type ChatCompletionResponse struct {
-	Choices []struct {
-		Message struct {
-			Content string `json:"content"`
-		} `json:"message"`
-	} `json:"choices"`
-}
-
 type processorServer struct {
 	v3.UnimplementedExternalProcessorServer
 }
@@ -90,25 +81,45 @@ func (s *processorServer) Process(
 	}
 }
 
-// processOpenAIResponse parses OpenAI chat completion response and extracts content.
-// This is where PR3 (guardrails) will hook in later.
+// processOpenAIResponse parses OpenAI chat completion response and extracts all message content.
+// Preserves all original JSON fields (id, model, usage, etc.) for compatibility.
 // Returns the (possibly modified) response body.
 func processOpenAIResponse(body []byte) ([]byte, error) {
-	var resp ChatCompletionResponse
+	var resp map[string]any
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("json parse error: %w", err)
 	}
 
-	if len(resp.Choices) == 0 {
+	// Extract choices array
+	choices, ok := resp["choices"].([]any)
+	if !ok || len(choices) == 0 {
 		return nil, fmt.Errorf("no choices in response")
 	}
 
-	// For PR2: just extract and log content
-	// PR3 will add guardrails.scanResponse() call here
-	content := resp.Choices[0].Message.Content
-	log.Printf("Extracted content: %s", content)
+	// Process all choices (not just first one)
+	for _, c := range choices {
+		choice, ok := c.(map[string]any)
+		if !ok {
+			continue
+		}
 
-	// Re-serialize (unchanged for now, PR3 will modify content)
+		message, ok := choice["message"].(map[string]any)
+		if !ok {
+			continue
+		}
+
+		content, ok := message["content"].(string)
+		if !ok {
+			continue
+		}
+
+		// For PR2: just extract and log content
+		// PR3 will add guardrails.scanResponse() call here
+		log.Printf("Extracted content: %s", content)
+		// message["content"] = guardrails.scan(content)  // ← PR3 hook
+	}
+
+	// Re-serialize (all original fields preserved)
 	modified, err := json.Marshal(resp)
 	if err != nil {
 		return nil, fmt.Errorf("json marshal error: %w", err)

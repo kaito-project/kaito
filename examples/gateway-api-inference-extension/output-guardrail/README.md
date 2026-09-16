@@ -170,12 +170,13 @@ The JSON is valid. Content is unchanged (no guardrails yet). Structure is preser
 
 ### What's New in PR2
 
-- ✅ Parses JSON response body into `ChatCompletionResponse` struct
-- ✅ Extracts `choices[*].message.content` safely
-- ✅ Handles malformed JSON (returns original on parse error)
-- ✅ Handles unsupported response formats gracefully
-- ✅ Re-serializes modified response back to JSON
-- ✅ Code size: ~120 LOC (within PR2 target)
+- ✅ Parses JSON response body using `map[string]any` (OpenAI-compatible, flexible)
+- ✅ Extracts `choices[*].message.content` safely, processes all choices (not just first)
+- ✅ Preserves all original JSON fields (id, model, usage, finish_reason, etc.)
+- ✅ Handles malformed JSON gracefully (fail-open)
+- ✅ Handles unsupported response formats (skips malformed choices)
+- ✅ Re-serializes to valid JSON with full structure intact
+- ✅ Unit tests (6 cases): verify preservation, multiple choices, edge cases
 
 ### Verification Results
 
@@ -187,7 +188,11 @@ The JSON is valid. Content is unchanged (no guardrails yet). Structure is preser
 
 ### Key Insight from PR2
 
-PR2 establishes the foundation for guardrails integration. By parsing the response into a structured type (`ChatCompletionResponse`), PR3 can cleanly call guardrails scanners without JSON manipulation.
+PR2 establishes the foundation for guardrails integration using a preservation-safe JSON model:
+- Uses `map[string]any` instead of struct to handle dynamic OpenAI-compatible fields
+- Processes all choices, not just first one
+- Leaves explicit hook for PR3: `message["content"] = guardrails.scan(content)`
+- Verified by unit tests: all original fields survive round-trip parsing
 
 ## Known Limitations
 

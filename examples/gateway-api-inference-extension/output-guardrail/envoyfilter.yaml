@@ -1,0 +1,55 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: gateway-output-guardrail
+  namespace: default
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+  # Add cluster for ext_proc service
+  - applyTo: CLUSTER
+    patch:
+      operation: ADD
+      value:
+        name: llm_guard_processor
+        type: STRICT_DNS
+        connect_timeout: 2s
+        load_assignment:
+          cluster_name: llm_guard_processor
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: llm-guard-ext-proc.default.svc.cluster.local
+                    port_value: 9000
+
+  # Insert ext_proc filter into HTTP filter chain (before router)
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.ext_proc
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_proc.v3.ExternalProcessor
+          grpc_service:
+            envoy_grpc:
+              cluster_name: llm_guard_processor
+            timeout: 5s
+          processing_mode:
+            request_header_mode: SKIP
+            request_body_mode: NONE
+            response_header_mode: SEND
+            response_body_mode: BUFFERED
+            response_trailer_mode: SKIP
+          failure_mode_allow: true

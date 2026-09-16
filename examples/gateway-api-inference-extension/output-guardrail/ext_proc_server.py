@@ -61,19 +61,19 @@ class ExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer):
             modified = await self._apply_guardrails(response_obj)
         except Exception as e:
             logger.error("Guardrails scanner failed (fail-closed): %s", e, exc_info=True)
-            # fail-closed: OutputGuardrails policy error → block response
+            # fail-closed: OutputGuardrails policy error → block all choices
             # Return block response while preserving original structure
             try:
-                if "choices" in response_obj and response_obj["choices"]:
-                    # Use guardial's block message if available
-                    guardrails = self.guardrails_reloader.get_current()
-                    block_msg = guardrails.block_message if guardrails else "Response blocked"
-                    # Update first choice's content to block message
-                    response_obj["choices"][0]["message"]["content"] = block_msg
-                    modified = response_obj
-                else:
-                    # Minimal fallback for malformed choices
-                    return external_processor_pb2.ProcessingResponse()
+                guardrails = self.guardrails_reloader.get_current()
+                block_msg = guardrails.block_message if guardrails else "Response blocked"
+
+                # Block all choices (not just first one)
+                for choice in response_obj.get("choices", []):
+                    if isinstance(choice, dict) and "message" in choice:
+                        if isinstance(choice["message"], dict):
+                            choice["message"]["content"] = block_msg
+
+                modified = response_obj
             except Exception as fallback_e:
                 logger.error("Error constructing block response: %s", fallback_e)
                 return external_processor_pb2.ProcessingResponse()

@@ -1,5 +1,29 @@
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-output-guardrails
+  namespace: default
+data:
+  policy.yaml: |
+    action: redact
+    blockMessage: "Response blocked by output guardrails"
+    scanners:
+      - type: ban_substrings
+        action: block
+        substrings: ["INTERNAL_ONLY", "SECRET_KEY"]
+        match_type: word
+        case_sensitive: false
+
+      - type: secrets
+        action: redact
+
+      - type: sensitive
+        action: redact
+        detectors: [email, phone, credit_card]
+
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: llm-guard-ext-proc
@@ -36,6 +60,15 @@ spec:
         ports:
         - containerPort: 9000
           name: grpc
+        env:
+        - name: OUTPUT_GUARDRAILS_ENABLED
+          value: "true"
+        - name: OUTPUT_GUARDRAILS_POLICY_PATH
+          value: /etc/kaito/guardrails/policy.yaml
+        volumeMounts:
+        - name: guardrails-policy
+          mountPath: /etc/kaito/guardrails
+          readOnly: true
         resources:
           requests:
             cpu: 100m
@@ -48,3 +81,8 @@ spec:
           readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 1000
+      volumes:
+      - name: guardrails-policy
+        configMap:
+          name: gateway-output-guardrails
+

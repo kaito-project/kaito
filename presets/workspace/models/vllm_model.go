@@ -177,14 +177,17 @@ type vLLMCompatibleModel struct {
 
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
-		Name:                  m.model.Name,
-		Version:               m.model.Version,
-		DownloadAuthRequired:  m.model.DownloadAuthRequired,
-		Architectures:         m.model.Architectures,
-		QuantMethod:           m.model.QuantMethod,
-		QuantBits:             m.model.QuantBits,
-		AttnType:              m.model.AttnType,
-		MambaStateBytesPerSeq: m.model.MambaStateBytesPerSeq,
+		Name:                    m.model.Name,
+		Version:                 m.model.Version,
+		DownloadAuthRequired:    m.model.DownloadAuthRequired,
+		Architectures:           m.model.Architectures,
+		QuantMethod:             m.model.QuantMethod,
+		QuantBits:               m.model.QuantBits,
+		AttnType:                m.model.AttnType,
+		MambaStateBytesPerSeq:   m.model.MambaStateBytesPerSeq,
+		MambaStateBytesPerLayer: m.model.MambaStateBytesPerLayer,
+		NumFullAttnLayers:       m.model.NumFullAttnLayers,
+		NumLinearLayers:         m.model.NumLinearLayers,
 	}
 
 	runParamsVLLM := make(map[string]string)

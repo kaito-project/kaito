@@ -42,6 +42,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
+	"github.com/kaito-project/kaito/pkg/workspace/estimator/maxnumseqestimator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
 	"github.com/kaito-project/kaito/pkg/workspace/manifests"
@@ -591,6 +592,10 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			vllmPort = consts.PortDecodeVLLM
 		}
 
+		// Hybrid Mamba/Gated-DeltaNet models need max-num-seqs capped to the Mamba
+		// cache blocks vLLM can allocate, otherwise engine startup hard-fails.
+		maxNumSeqs := resolveMaxNumSeqs(ctx.Workspace.Name, inferenceParam, gpuConfig, numNodes)
+
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
@@ -600,6 +605,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
 			DistributedInference: ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
+			MaxNumSeqs:           maxNumSeqs,
 			InferencePort:        vllmPort,
 			RuntimeContextExtraArguments: pkgmodel.RuntimeContextExtraArguments{
 				AdaptersEnabled:       len(ctx.Workspace.Inference.Adapters) > 0,
@@ -1144,4 +1150,41 @@ func needsRoutingSidecar(ws *v1beta1.Workspace) bool {
 		return false
 	}
 	return v1beta1.GetWorkspaceRuntimeName(ws) == pkgmodel.RuntimeNameVLLM
+}
+
+// maxNumSeqsTarget is a model/GPU pair the Mamba-cache-block estimate has been
+// measured against. modelName is model.Metadata.Name (the lowercased final segment
+// of the HuggingFace repo id); gpuModel is sku.GPUConfig.GPUModel.
+type maxNumSeqsTarget struct {
+	modelName string
+	gpuModel  string
+}
+
+// maxNumSeqsTargets gates the max-num-seqs estimator: only these pairs get a
+// --max-num-seqs. They are the combinations observed to exceed the available Mamba
+// cache blocks at vLLM's default max_num_seqs, with their ceilings measured on real
+// hardware. Capping an unmeasured pair would lower serving concurrency on a guess,
+// whereas leaving one out just keeps vLLM's own default.
+var maxNumSeqsTargets = map[maxNumSeqsTarget]struct{}{
+	{modelName: "qwen3.6-27b", gpuModel: "NVIDIA H100"}:     {}, // 614 blocks @ 94GiB
+	{modelName: "qwen3.8-27b", gpuModel: "NVIDIA H100"}:     {}, // 614 blocks @ 94GiB
+	{modelName: "qwen3.6-35b-a3b", gpuModel: "NVIDIA H100"}: {}, // 747 blocks @ 94GiB
+}
+
+// resolveMaxNumSeqs returns the estimated --max-num-seqs for a validated model/GPU
+// pair, or 0 to leave vLLM's own default in place.
+func resolveMaxNumSeqs(workspaceName string, params *pkgmodel.PresetParam, gpuConfig *sku.GPUConfig, numNodes int) int {
+	if params == nil || gpuConfig == nil {
+		return 0
+	}
+	if _, ok := maxNumSeqsTargets[maxNumSeqsTarget{modelName: params.Name, gpuModel: gpuConfig.GPUModel}]; !ok {
+		return 0
+	}
+	maxNumSeqs, _ := (&maxnumseqestimator.MaxNumSeqsEstimator{}).Estimate(maxnumseqestimator.MaxNumSeqsEstimateRequest{
+		WorkspaceName:   workspaceName,
+		InferenceParams: params,
+		GPUConfig:       gpuConfig,
+		NumNodes:        numNodes,
+	})
+	return maxNumSeqs
 }

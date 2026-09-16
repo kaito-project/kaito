@@ -16,7 +16,6 @@ package nodesestimator
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -24,7 +23,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -34,59 +32,12 @@ import (
 )
 
 const (
-	// weightExpansionFactor accounts for the ~2% expansion of model weights once
-	// loaded by vLLM relative to the on-disk safetensor size.
-	weightExpansionFactor = 1.02
-
-	// baseOverheadGiB is the model-independent part of vLLM's fixed per-GPU
-	// overhead: non-torch allocations such as the CUDA context and NCCL buffers
-	// (~0.6 GiB) plus a baseline for small-model activations and CUDA graphs
-	// (~1.7 GiB). Larger models add to this via overheadWeightFactor below.
-	// Overridden per GPU model in baseOverheadGiBByGPUModel.
-	baseOverheadGiB = 2.3
-
-	// overheadWeightFactor scales the runtime overhead with the per-GPU model
-	// weight share. Peak activation memory and CUDA graph capture both grow with
-	// hidden size / layer count and are sharded across TP ranks the same way
-	// weights are, so the per-GPU weight share is a good proxy for them. vLLM
-	// measures these empirically in determine_available_memory() and
-	// profile_cudagraph_memory(). We approximate at best effort here.
-	overheadWeightFactor = 0.05
-
 	// mambaStateReferenceConcurrency is the reference number of concurrent
 	// sequences used to size the per-GPU Mamba-2 state reservation for hybrid
 	// models. It mirrors how the KV-cache term uses a fixed reference context
 	// length: a representative serving batch rather than vLLM's max_num_seqs.
 	mambaStateReferenceConcurrency = 64
 )
-
-// baseOverheadGiBByGPUModel overrides baseOverheadGiB for specific GPU models.
-// The 24 GiB A10 measures less fixed runtime overhead in practice than the
-// default reserve assumes, so a lower value lets ~16-17 GiB models fit a single
-// A10 (empirically verified, e.g. granite-4.1-8b) instead of being pushed to an
-// extra node. Keyed by sku.GPUConfig.GPUModel (e.g. "NVIDIA A10").
-var baseOverheadGiBByGPUModel = map[string]float64{
-	"NVIDIA A10": 1.5,
-}
-
-// resolveGPUMemoryUtilization returns the --gpu-memory-utilization the launcher
-// runs vLLM with for the given GPU model (see ResolveGPUMemoryUtilization in
-// pkg/model), so the estimator predicts the same per-GPU budget vLLM will have.
-func resolveGPUMemoryUtilization(gpuModel string) float64 {
-	v, err := strconv.ParseFloat(pkgmodel.ResolveGPUMemoryUtilization(gpuModel), 64)
-	if err != nil {
-		return 0.92
-	}
-	return v
-}
-
-// resolveBaseOverheadGiB returns the fixed per-GPU overhead reserve for the GPU model.
-func resolveBaseOverheadGiB(gpuModel string) float64 {
-	if v, ok := baseOverheadGiBByGPUModel[gpuModel]; ok {
-		return v
-	}
-	return baseOverheadGiB
-}
 
 // NodeEstimator estimates node count based on SKU memory and model memory requirement
 type NodeEstimator struct {
@@ -176,16 +127,16 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 	if !gpuConfig.GPUMem.IsZero() && gpuConfig.GPUCount > 0 {
 		inferParams := model.GetInferenceParameters()
 		totalGPUMemRequired := resource.MustParse(inferParams.TotalSafeTensorFileSize)
-		modelSize := float64(totalGPUMemRequired.Value()) * weightExpansionFactor // vllm model size is about 102% of HuggingFace size
+		modelSize := float64(totalGPUMemRequired.Value()) * estimator.WeightExpansionFactor // vllm model size is about 102% of HuggingFace size
 		gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
-		availGPUMem := gpuMemPerGPU * resolveGPUMemoryUtilization(gpuConfig.GPUModel)
+		availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
 
 		// Overhead: a fixed base plus the KV cache for the
 		// context length, plus a term that scales with the per-GPU model weight
-		// share (overheadWeightFactor). For the tensor-parallel (sharded)
-		// case the weight-scaled term folds into the (1 + overheadWeightFactor)
+		// share (OverheadWeightFactor). For the tensor-parallel (sharded)
+		// case the weight-scaled term folds into the (1 + OverheadWeightFactor)
 		// divisor below, keeping the solve non-circular.
-		baseOverheadGiBForGPU := resolveBaseOverheadGiB(gpuConfig.GPUModel)
+		baseOverheadGiBForGPU := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel)
 		baseOverhead := baseOverheadGiBForGPU * float64(consts.GiBToBytes)
 		kvCache := float64(maxModelLen*inferParams.BytesPerToken) / float64(gpuConfig.GPUCount)
 		fixedReserve := baseOverhead + kvCache
@@ -196,8 +147,8 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		}
 
 		// Per-GPU memory available for model weights. The weight-scaled overhead
-		// (overheadWeightFactor x per-GPU weight) folds into the (1 + factor) divisor.
-		availMemPerGPU := (availGPUMem - fixedReserve) / (1 + overheadWeightFactor)
+		// (OverheadWeightFactor x per-GPU weight) folds into the (1 + factor) divisor.
+		availMemPerGPU := (availGPUMem - fixedReserve) / (1 + estimator.OverheadWeightFactor)
 
 		// Hybrid Mamba/Attention models (e.g. NemotronH) allocate a per-sequence
 		// Mamba-2 state cache in addition to the attention KV cache. Like weights it
@@ -214,7 +165,7 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		// runtime overhead must fit one slice. Report the slice-specific shortfall
 		// instead of scaling to multiple GPUs/nodes.
 		if gpuConfig.IsMIG && nodeCountPerReplica > 1 {
-			overhead := fixedReserve + overheadWeightFactor*modelSize
+			overhead := fixedReserve + estimator.OverheadWeightFactor*modelSize
 			sliceGiB := gpuMemPerGPU / float64(consts.GiBToBytes)
 			return 0, fmt.Errorf("model needs %.1fGB (weights %.1fGB + overhead %.1fGB) but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM gpu-memory-utilization)",
 				(modelSize+overhead)/float64(consts.GiBToBytes),

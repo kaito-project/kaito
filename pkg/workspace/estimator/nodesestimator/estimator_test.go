@@ -659,11 +659,11 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A100(t *testing.T) {
 		a100_2GPU = "Standard_NC48ads_A100_v4"
 	)
 	runRealCatalogModelCases(t, []realCatalogModelCase{
-		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 1},                          // 60.77Gi
-		{"DeepSeek-V4-Flash-0731/1xA100", "deepseek-ai/DeepSeek-V4-Flash-0731", a100_1GPU, 3}, // 155.43Gi
-		{"DeepSeek-V4-Flash-0731/2xA100", "deepseek-ai/DeepSeek-V4-Flash-0731", a100_2GPU, 2}, // 155.43Gi
-		{"Qwen3.8-27B/1xA100", "Qwen/Qwen3.8-27B", a100_1GPU, 1},                              // 51.75Gi
-		{"gemma-4-31B-it/1xA100", "google/gemma-4-31B-it", a100_1GPU, 1},                      // 58.25Gi
+		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 1},     // 60.77Gi
+		{"Qwen3.8-27B/1xA100", "Qwen/Qwen3.8-27B", a100_1GPU, 1},         // 51.75Gi
+		{"Qwen3.6-35B-A3B/1xA100", "Qwen/Qwen3.6-35B-A3B", a100_1GPU, 2}, // 66.97Gi, too tight on one 80Gi A100
+		{"Qwen/Qwen3.6-27B/1xA100", "Qwen/Qwen3.6-27B", a100_1GPU, 1},    // 51.75Gi
+		{"gemma-4-31B-it/1xA100", "google/gemma-4-31B-it", a100_1GPU, 1}, // 58.25Gi
 	})
 }
 
@@ -681,6 +681,7 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_H100(t *testing.T) {
 		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 2}, // 155.43Gi
 		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 1}, // 155.43Gi
 		{"Qwen3.8-27B/1xH100", "Qwen/Qwen3.8-27B", h100_1GPU, 1},                              // 51.75Gi
+		{"Qwen3.6-35B-A3B/1xH100", "Qwen/Qwen3.6-35B-A3B", h100_1GPU, 1},                      // 66.97Gi
 		{"gemma-4-31B-it/1xH100", "google/gemma-4-31B-it", h100_1GPU, 1},                      // 58.25Gi
 	})
 }

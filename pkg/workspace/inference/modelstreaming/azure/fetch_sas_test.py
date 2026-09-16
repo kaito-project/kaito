@@ -182,7 +182,9 @@ def test_discover_subpath_none():
 
 def test_blob_url_inserts_path_before_query():
     assert (
-        fetch_sas.blob_url("https://acct.blob.core.windows.net/c?sig=x", "sub/config.json")
+        fetch_sas.blob_url(
+            "https://acct.blob.core.windows.net/c?sig=x", "sub/config.json"
+        )
         == "https://acct.blob.core.windows.net/c/sub/config.json?sig=x"
     )
 

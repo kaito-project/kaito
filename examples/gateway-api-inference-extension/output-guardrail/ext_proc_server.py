@@ -6,14 +6,13 @@ import asyncio
 import json
 import logging
 import os
-from typing import Any
 
 from grpc import aio
 from envoy.service.ext_proc.v3 import external_processor_pb2, external_processor_pb2_grpc
 
-# Import KAITO guardrails
-from presets.ragengine.guardrails import GuardrailsReloader
-from pydantic import BaseModel
+# Import KAITO guardrails and models
+from ragengine.guardrails import GuardrailsReloader
+from ragengine.models import ChatCompletionResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -62,16 +61,8 @@ class ExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer):
             modified = await self._apply_guardrails(response_obj)
         except Exception as e:
             logger.error("Guardrails failed: %s", e)
-            # fail-closed: block on error
-            modified = {
-                "choices": [
-                    {
-                        "message": {
-                            "content": "Response processing error. Please try again."
-                        }
-                    }
-                ]
-            }
+            # fail-open on error (let original response through)
+            return external_processor_pb2.ProcessingResponse()
 
         # Re-serialize
         try:
@@ -92,43 +83,31 @@ class ExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer):
             body_mutation=external_processor_pb2.BodyMutation(body=modified_bytes)
         )
 
-    async def _apply_guardrails(self, response_obj: dict[str, Any]) -> dict[str, Any]:
-        """Apply guardrails to OpenAI response."""
+    async def _apply_guardrails(self, response_obj: dict) -> dict:
+        """Apply guardrails to OpenAI response using existing OutputGuardrails."""
         guardrails = self.guardrails_reloader.get_current()
         if not guardrails or not guardrails.enabled:
             logger.info("Guardrails disabled")
             return response_obj
 
-        # Extract and guard all choices
-        choices = response_obj.get("choices", [])
-        for choice in choices:
-            message = choice.get("message", {})
-            content = message.get("content", "")
+        try:
+            # Convert dict to ChatCompletionResponse (expected by guard_response)
+            response = ChatCompletionResponse(**response_obj)
 
-            if not content:
-                continue
-
-            # Apply guardrails: guard_response() expects full response object
-            # For response-only mode, we pass empty request dict
+            # Call existing OutputGuardrails: guard_response() handles all scanners internally
             guarded = guardrails.guard_response(
-                response_obj,
-                request_metadata={},  # No request context in response-only mode
+                response,
+                request={},  # Response-only mode: no request context
             )
 
-            # Update message content from guarded response
-            guarded_choices = guarded.get("choices", [])
-            if guarded_choices:
-                guarded_content = guarded_choices[0].get("message", {}).get("content", "")
-                if guarded_content != content:
-                    logger.info(
-                        "Content guarded: %d bytes → %d bytes",
-                        len(content),
-                        len(guarded_content),
-                    )
-                message["content"] = guarded_content
-            response_obj = guarded
+            # Convert back to dict for JSON serialization
+            return guarded.model_dump(mode="python")
 
-        return response_obj
+        except Exception as e:
+            logger.error("Guardrails processing error: %s", e, exc_info=True)
+            # Let guardrails' own fail-closed behavior apply
+            # Don't create synthetic block here; let OutputGuardrails policy decide
+            raise
 
 
 async def serve():

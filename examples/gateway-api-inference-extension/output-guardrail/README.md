@@ -79,15 +79,21 @@ Client receives scanned response
   - `ExtProcService` class (gRPC handler)
   - `Process()` method (bidirectional streaming)
   - `_process_response_body()` (JSON handling)
-  - `_apply_guardrails()` (call existing OutputGuardrails)
+  - `_apply_guardrails()` (thin wrapper around OutputGuardrails)
 
-**Core glue logic** (~30 LOC):
+**Core glue logic** (~20 LOC):
 ```python
+# Convert dict to ChatCompletionResponse
+response = ChatCompletionResponse(**response_obj)
+
+# Call existing OutputGuardrails
 guarded = guardrails.guard_response(
-    response_obj,
-    request_metadata={},  # response-only mode
+    response,
+    request={},  # Response-only mode
 )
-# Update choices from guarded response
+
+# Convert back to dict
+return guarded.model_dump(mode="python")
 ```
 
 ## Configuration
@@ -109,7 +115,7 @@ scanners:
 
   - type: sensitive
     action: redact
-    detectors: [email, phone_number, credit_card]
+    detectors: [email, phone, credit_card]
 ```
 
 ## Deployment

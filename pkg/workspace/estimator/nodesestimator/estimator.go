@@ -69,9 +69,12 @@ var baseOverheadGiBByGPUModel = map[string]float64{
 	"NVIDIA A10": 1.5,
 }
 
-// resolveGPUMemoryUtilization returns the --gpu-memory-utilization the launcher
-// runs vLLM with for the given GPU model (see ResolveGPUMemoryUtilization in
-// pkg/model), so the estimator predicts the same per-GPU budget vLLM will have.
+// resolveGPUMemoryUtilization returns the --gpu-memory-utilization the
+// estimator plans capacity with for the given GPU model (see
+// ResolveGPUMemoryUtilization in pkg/model). For GPU models with a hard safety
+// cap (e.g. A10) this matches what the launcher actually runs vLLM with; for
+// other GPU models it is a conservative planning assumption, since the
+// launcher instead lets vLLM pick its own free-memory-based value at runtime.
 func resolveGPUMemoryUtilization(gpuModel string) float64 {
 	v, err := strconv.ParseFloat(pkgmodel.ResolveGPUMemoryUtilization(gpuModel), 64)
 	if err != nil {

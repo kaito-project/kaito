@@ -1367,6 +1367,9 @@ func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
 			return "", fmt.Errorf("method=mtp requires mtp config")
 		}
 		m["num_speculative_tokens"] = sd.MTP.NumSpeculativeTokens
+		if sd.MTP.Model != "" {
+			m["model"] = sd.MTP.Model
+		}
 	case "ngram":
 		if sd.NGram == nil {
 			return "", fmt.Errorf("method=ngram requires ngram config")

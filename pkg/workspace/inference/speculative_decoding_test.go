@@ -60,6 +60,31 @@ func TestVllmFormat(t *testing.T) {
 			},
 		},
 		{
+			name: "mtp with assistant model",
+			sd: &pkgmodel.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP: &pkgmodel.MTPConfig{
+					NumSpeculativeTokens: 1,
+					Model:                "google/gemma-4-E2B-it-assistant",
+				},
+			},
+			check: func(t *testing.T, jsonStr string) {
+				var m map[string]any
+				if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
+					t.Fatalf("invalid JSON: %v", err)
+				}
+				if m["method"] != "mtp" {
+					t.Errorf("method = %v, want mtp", m["method"])
+				}
+				if m["num_speculative_tokens"] != float64(1) {
+					t.Errorf("num_speculative_tokens = %v, want 1", m["num_speculative_tokens"])
+				}
+				if m["model"] != "google/gemma-4-E2B-it-assistant" {
+					t.Errorf("model = %v, want google/gemma-4-E2B-it-assistant", m["model"])
+				}
+			},
+		},
+		{
 			name: "mtp nil sub-config",
 			sd: &pkgmodel.SpeculativeDecodingConfig{
 				Method: "mtp",
@@ -206,6 +231,22 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			},
 		}
 	}
+	presetWithAssistantMTP := func() *pkgmodel.PresetParam {
+		return &pkgmodel.PresetParam{
+			RuntimeParam: pkgmodel.RuntimeParam{
+				VLLM: pkgmodel.VLLMParam{
+					ModelRunParams: map[string]string{},
+				},
+			},
+			SpeculativeDecoding: &pkgmodel.SpeculativeDecodingConfig{
+				Method: "mtp",
+				MTP: &pkgmodel.MTPConfig{
+					NumSpeculativeTokens: 1,
+					Model:                "google/gemma-4-E2B-it-assistant",
+				},
+			},
+		}
+	}
 	presetNoSD := func() *pkgmodel.PresetParam {
 		return &pkgmodel.PresetParam{
 			RuntimeParam: pkgmodel.RuntimeParam{
@@ -299,6 +340,15 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			preset:       presetWithSD(),
 			wantDecision: SpecDecoInjected,
 			wantInjected: true,
+		},
+		{
+			name:         "annotation true + gemma-style mtp assistant model -> injected",
+			ws:           newWS("true", 1),
+			runtime:      pkgmodel.RuntimeNameVLLM,
+			preset:       presetWithAssistantMTP(),
+			wantDecision: SpecDecoInjected,
+			wantInjected: true,
+			wantContains: `"model":"google/gemma-4-E2B-it-assistant"`,
 		},
 	}
 	for _, tc := range tests {

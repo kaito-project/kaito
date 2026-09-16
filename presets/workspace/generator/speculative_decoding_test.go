@@ -23,10 +23,24 @@ func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 	presets := SupportedSpeculativeDecodingPresets()
 
 	want := []string{
+		"Qwen/Qwen3.5-122B-A10B",
+		"Qwen/Qwen3.5-122B-A10B-GPTQ-Int4",
+		"Qwen/Qwen3.5-2B",
+		"Qwen/Qwen3.5-397B-A17B-GPTQ-Int4",
+		"Qwen/Qwen3.5-4B",
+		"Qwen/Qwen3.5-9B",
+		"Qwen/Qwen3.6-27B",
+		"Qwen/Qwen3.6-35B-A3B",
+		"Qwen/Qwen3.6-35B-A3B-FP8",
 		"XiaomiMiMo/MiMo-7B-Base",
 		"deepseek-ai/DeepSeek-V3.2",
 		"deepseek-r1-0528",
 		"deepseek-v3-0324",
+		"google/gemma-4-12B-it",
+		"google/gemma-4-26B-A4B-it",
+		"google/gemma-4-31B-it",
+		"google/gemma-4-E2B-it",
+		"google/gemma-4-E4B-it",
 		"nvidia/DeepSeek-V4-Flash-NVFP4",
 		"zai-org/GLM-5.2-FP8",
 	}
@@ -42,15 +56,30 @@ func TestSupportedSpeculativeDecodingPresets(t *testing.T) {
 
 func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 	tests := []struct {
-		repoKey  string
-		wantUser string
+		repoKey   string
+		wantUser  string
+		wantModel string
 	}{
-		{"deepseek-ai/deepseek-r1-0528", "deepseek-r1-0528"},
-		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324"},
-		{"deepseek-ai/deepseek-v3.2", "deepseek-ai/DeepSeek-V3.2"},
-		{"zai-org/glm-5.2-fp8", "zai-org/GLM-5.2-FP8"},
-		{"nvidia/deepseek-v4-flash-nvfp4", "nvidia/DeepSeek-V4-Flash-NVFP4"},
-		{"xiaomimimo/mimo-7b-base", "XiaomiMiMo/MiMo-7B-Base"},
+		{"deepseek-ai/deepseek-r1-0528", "deepseek-r1-0528", ""},
+		{"deepseek-ai/deepseek-v3-0324", "deepseek-v3-0324", ""},
+		{"deepseek-ai/deepseek-v3.2", "deepseek-ai/DeepSeek-V3.2", ""},
+		{"zai-org/glm-5.2-fp8", "zai-org/GLM-5.2-FP8", ""},
+		{"nvidia/deepseek-v4-flash-nvfp4", "nvidia/DeepSeek-V4-Flash-NVFP4", ""},
+		{"xiaomimimo/mimo-7b-base", "XiaomiMiMo/MiMo-7B-Base", ""},
+		{"qwen/qwen3.5-2b", "Qwen/Qwen3.5-2B", ""},
+		{"qwen/qwen3.5-4b", "Qwen/Qwen3.5-4B", ""},
+		{"qwen/qwen3.5-9b", "Qwen/Qwen3.5-9B", ""},
+		{"qwen/qwen3.5-122b-a10b-gptq-int4", "Qwen/Qwen3.5-122B-A10B-GPTQ-Int4", ""},
+		{"qwen/qwen3.5-122b-a10b", "Qwen/Qwen3.5-122B-A10B", ""},
+		{"qwen/qwen3.6-35b-a3b-fp8", "Qwen/Qwen3.6-35B-A3B-FP8", ""},
+		{"qwen/qwen3.6-35b-a3b", "Qwen/Qwen3.6-35B-A3B", ""},
+		{"qwen/qwen3.6-27b", "Qwen/Qwen3.6-27B", ""},
+		{"qwen/qwen3.5-397b-a17b-gptq-int4", "Qwen/Qwen3.5-397B-A17B-GPTQ-Int4", ""},
+		{"google/gemma-4-e2b-it", "google/gemma-4-E2B-it", "google/gemma-4-E2B-it-assistant"},
+		{"google/gemma-4-e4b-it", "google/gemma-4-E4B-it", "google/gemma-4-E4B-it-assistant"},
+		{"google/gemma-4-12b-it", "google/gemma-4-12B-it", "google/gemma-4-12B-it-assistant"},
+		{"google/gemma-4-26b-a4b-it", "google/gemma-4-26B-A4B-it", "google/gemma-4-26B-A4B-it-assistant"},
+		{"google/gemma-4-31b-it", "google/gemma-4-31B-it", "google/gemma-4-31B-it-assistant"},
 	}
 
 	for _, tc := range tests {
@@ -76,6 +105,19 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 		if entry.Config.MTP.NumSpeculativeTokens != 1 {
 			t.Errorf("entry %q: NumSpeculativeTokens = %d, want 1", tc.repoKey, entry.Config.MTP.NumSpeculativeTokens)
 		}
+		if entry.Config.MTP.Model != tc.wantModel {
+			t.Errorf("entry %q: Model = %q, want %q", tc.repoKey, entry.Config.MTP.Model, tc.wantModel)
+		}
+	}
+}
+
+func TestMTPAssistantEntryIncludesModel(t *testing.T) {
+	entry := mtpSpecDecoEntryWithModel("google/gemma-4-E2B-it", "google/gemma-4-E2B-it-assistant")
+	if entry.Config == nil || entry.Config.MTP == nil {
+		t.Fatal("mtp assistant entry missing MTP config")
+	}
+	if entry.Config.MTP.Model != "google/gemma-4-E2B-it-assistant" {
+		t.Fatalf("assistant model = %q, want google/gemma-4-E2B-it-assistant", entry.Config.MTP.Model)
 	}
 }
 
@@ -119,7 +161,10 @@ func TestDeepCopySpeculativeDecoding(t *testing.T) {
 	p := &model.PresetParam{
 		SpeculativeDecoding: &model.SpeculativeDecodingConfig{
 			Method: "mtp",
-			MTP:    &model.MTPConfig{NumSpeculativeTokens: 1},
+			MTP: &model.MTPConfig{
+				NumSpeculativeTokens: 1,
+				Model:                "google/gemma-4-E2B-it-assistant",
+			},
 		},
 	}
 	c := p.DeepCopy()
@@ -135,10 +180,17 @@ func TestDeepCopySpeculativeDecoding(t *testing.T) {
 	if c.SpeculativeDecoding.MTP.NumSpeculativeTokens != 1 {
 		t.Fatalf("DeepCopy: NumSpeculativeTokens = %d, want 1", c.SpeculativeDecoding.MTP.NumSpeculativeTokens)
 	}
+	if c.SpeculativeDecoding.MTP.Model != "google/gemma-4-E2B-it-assistant" {
+		t.Fatalf("DeepCopy: Model = %q, want google/gemma-4-E2B-it-assistant", c.SpeculativeDecoding.MTP.Model)
+	}
 
 	// Mutate copy, original should be unaffected
 	c.SpeculativeDecoding.MTP.NumSpeculativeTokens = 5
+	c.SpeculativeDecoding.MTP.Model = "google/gemma-4-E4B-it-assistant"
 	if p.SpeculativeDecoding.MTP.NumSpeculativeTokens != 1 {
 		t.Fatal("DeepCopy: mutation leaked to original")
+	}
+	if p.SpeculativeDecoding.MTP.Model != "google/gemma-4-E2B-it-assistant" {
+		t.Fatal("DeepCopy: model mutation leaked to original")
 	}
 }

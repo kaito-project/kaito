@@ -115,7 +115,7 @@ func processOpenAIResponse(body []byte) ([]byte, error) {
 
 		// For PR2: just extract and log content
 		// PR3 will add guardrails.scanResponse() call here
-		log.Printf("Extracted content: %s", content)
+		log.Printf("Extracted content length=%d", len(content))
 		// message["content"] = guardrails.scan(content)  // ← PR3 hook
 	}
 

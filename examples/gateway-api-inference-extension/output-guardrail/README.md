@@ -177,6 +177,7 @@ The JSON is valid. Content is unchanged (no guardrails yet). Structure is preser
 - ✅ Handles unsupported response formats (skips malformed choices)
 - ✅ Re-serializes to valid JSON with full structure intact
 - ✅ Unit tests (6 cases): verify preservation, multiple choices, edge cases
+- ✅ Core adapter logic: `processOpenAIResponse()` ~40 LOC
 
 ### Verification Results
 

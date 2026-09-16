@@ -8,11 +8,13 @@ name: Preset Model Regression Test (H100/A100/A10)
 # and the run continues, then the pool job prints its summary plus per-failure
 # diagnostics and exits non-zero if any model failed.
 #
-# The test matrix lives in .github/preset-regression-models.json.
+# Model targets are generated from modelFileSize in
+# presets/workspace/models/model_catalog.yaml using the size policies and GPU
+# pool infrastructure in .github/preset-regression-config.json.
 #
 # Nothing is provisioned automatically: the per-pool job targets the protected
 # `e2e-test` environment, so it sits in `waiting` until a maintainer approves the
-# deployment. Only the plan job (a jq read of the matrix file) runs unattended.
+# deployment. Only the plan job (a yq/jq read of the model catalog) runs unattended.
 
 on:
   pull_request:
@@ -70,7 +72,9 @@ concurrency:
 
 env:
   GO_VERSION: "1.26.6"
-  CONFIG_FILE: ".github/preset-regression-models.json"
+  MODEL_CATALOG_FILE: "presets/workspace/models/model_catalog.yaml"
+  REGRESSION_CONFIG_FILE: ".github/preset-regression-config.json"
+  REGRESSION_PROFILE: "standard"
 
 jobs:
   plan:
@@ -90,6 +94,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
       - name: Build GPU pool matrix
         id: plan
         env:
@@ -97,15 +106,12 @@ jobs:
           MODEL_FILTER: ${{ inputs.models || '' }}
         run: |
           set -euo pipefail
-          MATRIX=$(jq -c --arg gpus "$GPUS" --arg filter "$MODEL_FILTER" '
-            .gpuPools as $pools
+          TARGETS_FILE=$(mktemp)
+          GPU="" bash .github/scripts/preset-regression-matrix.sh > "$TARGETS_FILE"
+          MATRIX=$(jq -c --slurpfile config "$REGRESSION_CONFIG_FILE" --arg gpus "$GPUS" '
+            $config[0].gpuPools as $pools
             | ($gpus | ascii_downcase | split(",") | map(gsub("\\s"; "")) | map(select(length > 0))) as $requested
-            | ($filter | ascii_downcase | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))) as $needles
-            | [ .models[] as $m
-                | select(($m.skip // false) | not)
-                | $m.targets[]
-                | select(($needles | length) == 0 or any($needles[]; inside($m.name | ascii_downcase)))
-                | .gpu ]
+            | [ .[].gpu ]
             | unique
             | map(select(. as $g | $requested | index($g)))
             | map({
@@ -114,7 +120,8 @@ jobs:
                 fallback_region: ($pools[.].fallbackRegion // "")
               })
             | { include: . }
-          ' "$CONFIG_FILE")
+          ' "$TARGETS_FILE")
+          rm -f "$TARGETS_FILE"
 
           echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
           COUNT=$(jq '.include | length' <<< "$MATRIX")

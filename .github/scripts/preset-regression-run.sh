@@ -28,7 +28,9 @@
 # Required environment:
 #   GPU            gpu pool key from the config (a10 | a100 | h100)
 # Optional environment:
-#   CONFIG_FILE    test matrix json (default .github/preset-regression-models.json)
+#   MODEL_CATALOG_FILE  model catalog YAML (default presets/workspace/models/model_catalog.yaml)
+#   REGRESSION_CONFIG_FILE  shared regression JSON (default .github/preset-regression-config.json)
+#   REGRESSION_PROFILE  target profile to run (default standard)
 #   RESULTS_FILE   where the json result array is written
 #   ARTIFACT_DIR   directory for per-model diagnostics
 #   MODEL_FILTER   comma-separated substrings; only matching models run
@@ -49,7 +51,9 @@
 set -euo pipefail
 
 GPU="${GPU:?GPU must be set (a10 | a100 | h100)}"
-CONFIG_FILE="${CONFIG_FILE:-.github/preset-regression-models.json}"
+MODEL_CATALOG_FILE="${MODEL_CATALOG_FILE:-presets/workspace/models/model_catalog.yaml}"
+REGRESSION_CONFIG_FILE="${REGRESSION_CONFIG_FILE:-.github/preset-regression-config.json}"
+REGRESSION_PROFILE="${REGRESSION_PROFILE:-standard}"
 RESULTS_FILE="${RESULTS_FILE:-results-${GPU}.json}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-artifacts/${GPU}}"
 MODEL_FILTER="${MODEL_FILTER:-}"
@@ -84,30 +88,7 @@ log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*"; }
 # Build the ordered list of targets for this GPU pool.
 # ---------------------------------------------------------------------------
 targets_file="${WORKDIR}/targets.json"
-jq -c --arg gpu "$GPU" '
-  .gpuPools[$gpu] as $pool
-  | (.defaults.timeoutMinutes // 90) as $defaultTimeout
-  | [ .models[] as $m
-      | $m.targets[]
-      | select(.gpu == $gpu)
-      | {
-          model: $m.name,
-          gpu: $gpu,
-          nodes: .nodes,
-          gpusPerNode: .gpusPerNode,
-          instanceType: ($pool.instanceTypes[(.gpusPerNode | tostring)] // ""),
-          timeoutMinutes: (.timeoutMinutes // $m.timeoutMinutes // $defaultTimeout),
-          skipReason: (if ($m.skip // false) then ($m.skipReason // "skipped in the test matrix") else "" end)
-        } ]
-' "$CONFIG_FILE" >"$targets_file"
-
-if [[ -n "$MODEL_FILTER" ]]; then
-  jq -c --arg filter "$MODEL_FILTER" '
-    ($filter | split(",") | map(ascii_downcase | gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))) as $needles
-    | map(select(.model | ascii_downcase | . as $n | any($needles[]; inside($n))))
-  ' "$targets_file" >"${targets_file}.filtered"
-  mv "${targets_file}.filtered" "$targets_file"
-fi
+bash .github/scripts/preset-regression-matrix.sh >"$targets_file"
 
 TARGET_COUNT="$(jq 'length' "$targets_file")"
 log "GPU pool '${GPU}': ${TARGET_COUNT} target(s) to process."
@@ -146,6 +127,39 @@ condition_of() {
   # condition_of <workspace-json-file> <condition-type> <field>
   jq -r --arg t "$2" --arg f "$3" \
     '(.status.conditions // []) | map(select(.type == $t)) | (.[0][$f] // "")' "$1"
+}
+
+nodeclaim_selector() {
+  # nodeclaim_selector <workspace-name>
+  if [[ "${TEST_SUITE:-gpuprovisioner}" == "azkarpenter" ]]; then
+    printf 'karpenter.kaito.sh/workspace-name=%s,karpenter.kaito.sh/workspace-namespace=%s' "$1" "$NAMESPACE"
+  else
+    printf 'kaito.sh/workspace=%s,kaito.sh/workspacenamespace=%s' "$1" "$NAMESPACE"
+  fi
+}
+
+nodeclaim_failure_reason() {
+  # nodeclaim_failure_reason <workspace-name>
+  kubectl get nodeclaims.karpenter.sh \
+    -l "$(nodeclaim_selector "$1")" \
+    -o json 2>/dev/null |
+    jq -r '
+      [ .items[] as $claim
+        | ($claim.status.conditions // [])[]
+        | select(.status != "True")
+        | select((.reason // "") != "" or (.message // "") != "")
+        | {
+            priority: (if .type == "Ready" then 1 else 0 end),
+            text: ("NodeClaim \($claim.metadata.name) \(.type)=\(.status)" +
+              (if (.reason // "") != "" then " reason=\(.reason)" else "" end) +
+              (if (.message // "") != "" then ": \(.message)" else "" end))
+          }
+      ]
+      | sort_by(.priority)
+      | map(.text)
+      | unique
+      | join("; ")
+    ' | cut -c1-1200 || true
 }
 
 # Mirrors validateWorkspaceBenchmarkCompleted in test/e2e/preset_vllm_test.go.
@@ -269,9 +283,13 @@ print_diagnostics() {
   # quota, SKU availability); the workspace condition only says "not ready".
   echo "::group::${ws} — node provisioning (NodePool / NodeClaim)"
   kubectl get nodepools.karpenter.sh -o wide 2>&1 || true
-  kubectl get nodeclaims.karpenter.sh -o wide 2>&1 || true
+  kubectl get nodeclaims.karpenter.sh \
+    -l "$(nodeclaim_selector "$ws")" \
+    -o wide 2>&1 || true
   echo "--- NodeClaim conditions ---"
-  kubectl get nodeclaims.karpenter.sh -o json 2>/dev/null | jq -r '
+  kubectl get nodeclaims.karpenter.sh \
+    -l "$(nodeclaim_selector "$ws")" \
+    -o json 2>/dev/null | jq -r '
     .items[]
     | "NodeClaim \(.metadata.name) node=\(.status.nodeName // "<none>")",
       ((.status.conditions // [])[]
@@ -407,16 +425,15 @@ run_target() {
   local target="$1"
   local transient_failure_retry="${2:-0}"
   local overall_start_epoch="${3:-$(date +%s)}"
-  local model nodes gpus_per_node instance_type timeout_minutes skip_reason
+  local model gpus_per_node instance_type timeout_minutes skip_reason
   model="$(jq -r '.model' <<<"$target")"
-  nodes="$(jq -r '.nodes' <<<"$target")"
   gpus_per_node="$(jq -r '.gpusPerNode' <<<"$target")"
   instance_type="$(jq -r '.instanceType' <<<"$target")"
   timeout_minutes="$(jq -r '.timeoutMinutes' <<<"$target")"
   skip_reason="$(jq -r '.skipReason' <<<"$target")"
 
   log "=============================================================="
-  log "${model} -> ${nodes} x ${gpus_per_node}x${GPU} (${BYO_NODE_LABEL:-${instance_type:-<unmapped>}}) (attempt $((transient_failure_retry + 1))/$((MAX_RETRIES_FOR_TRANSIENT_FAILURE + 1)))"
+  log "${model} -> ${gpus_per_node}x${GPU} per node (${BYO_NODE_LABEL:-${instance_type:-<unmapped>}}); node count determined by estimator (attempt $((transient_failure_retry + 1))/$((MAX_RETRIES_FOR_TRANSIENT_FAILURE + 1)))"
 
   if [[ -n "$skip_reason" ]]; then
     log "SKIPPED: ${skip_reason}"
@@ -555,6 +572,11 @@ EOF
     if [[ "$resource_status" != "True" && "$(date +%s)" -ge "$resource_deadline" ]]; then
       status="failed"
       reason="GPU nodes not ready within ${RESOURCE_READY_TIMEOUT_MINUTES}m (ResourceReady=${resource_status:-<none>}: $(condition_of "$ws_json" ResourceReady message))"
+      local nodeclaim_reason
+      nodeclaim_reason="$(nodeclaim_failure_reason "$ws")"
+      if [[ -n "$nodeclaim_reason" ]]; then
+        reason="${reason}; ${nodeclaim_reason}"
+      fi
       break
     fi
 
@@ -595,7 +617,7 @@ EOF
       stuck_since=0
     fi
 
-    log "  waiting... resource=${resource_status} inference=${inference_status} benchmark=$(condition_of "$ws_json" BenchmarkCompleted status) nodes=${actual_nodes:-?}/${nodes} ($(( (deadline - $(date +%s)) / 60 ))m left)"
+    log "  waiting... resource=${resource_status} inference=${inference_status} benchmark=$(condition_of "$ws_json" BenchmarkCompleted status) estimatedNodes=${actual_nodes:-?} ($(( (deadline - $(date +%s)) / 60 ))m left)"
     sleep "$POLL_INTERVAL_SECONDS"
   done
 
@@ -647,7 +669,7 @@ done
 
 jq -s '.' "$results_file" >"$RESULTS_FILE"
 log "Wrote $(jq 'length' "$RESULTS_FILE") result(s) to ${RESULTS_FILE}"
-jq -r '.[] | "  \(.status | ascii_upcase)\t\(.model)\t\(.nodes)x\(.gpusPerNode)x\(.gpu)"' "$RESULTS_FILE"
+jq -r '.[] | "  \(.status | ascii_upcase)\t\(.model)\testimatedNodes=\(if .actualNodes == "" then "n/a" else .actualNodes end)\t\(.gpusPerNode)x\(.gpu)/node"' "$RESULTS_FILE"
 
 # Exit non-zero only after every model has run, so the pool job turns red on its
 # own instead of relying on the aggregate report job (which a cancelled or
@@ -656,6 +678,6 @@ FAILED_COUNT="$(jq '[.[] | select(.status == "failed")] | length' "$RESULTS_FILE
 if [[ "$FAILED_COUNT" -gt 0 ]]; then
   log "${FAILED_COUNT} of ${TARGET_COUNT} target(s) failed in the ${GPU} pool:"
   jq -r '.[] | select(.status == "failed")
-    | "  - \(.model) on \(.nodes)x \(.gpusPerNode)x\(.gpu) (\(.instanceType)): \(.reason)"' "$RESULTS_FILE"
+    | "  - \(.model) on \(.gpusPerNode)x\(.gpu)/node, estimated nodes \(if .actualNodes == "" then "n/a" else .actualNodes end) (\(.instanceType)): \(.reason)"' "$RESULTS_FILE"
   exit 1
 fi

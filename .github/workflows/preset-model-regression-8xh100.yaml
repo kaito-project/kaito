@@ -8,9 +8,11 @@ name: Preset Model Regression Test (8xH100)
 # it reserves two idle GPU nodes with a run-scoped label, points every Workspace at
 # that label, and releases the nodes when it finishes.
 #
-# The test matrix lives in .github/preset-regression-models-8xh100.json. Nothing is
-# fail-fast: every model is torn down and the run continues, then the job prints its
-# summary plus per-failure diagnostics and exits non-zero if any model failed.
+# Model targets are generated from modelFileSize in
+# presets/workspace/models/model_catalog.yaml using the size policies and GPU pool
+# infrastructure in .github/preset-regression-config.json. Nothing is fail-fast:
+# every model is torn down and the run continues, then the job prints its summary
+# plus per-failure diagnostics and exits non-zero if any model failed.
 #
 # Triggered on demand, and on pull requests that touch this workflow, its matrix or the
 # shared run script, so changes to it can be validated before merging. The job targets
@@ -23,8 +25,10 @@ on:
   pull_request:
     paths:
       - ".github/workflows/preset-model-regression-8xh100.yaml"
-      - ".github/preset-regression-models-8xh100.json"
+      - ".github/scripts/preset-regression-matrix.sh"
       - ".github/scripts/preset-regression-run.sh"
+      - ".github/preset-regression-config.json"
+      - "presets/workspace/models/model_catalog.yaml"
   workflow_dispatch:
     inputs:
       cluster_name:
@@ -79,7 +83,9 @@ concurrency:
 
 env:
   GO_VERSION: "1.26.6"
-  CONFIG_FILE: ".github/preset-regression-models-8xh100.json"
+  MODEL_CATALOG_FILE: "presets/workspace/models/model_catalog.yaml"
+  REGRESSION_CONFIG_FILE: ".github/preset-regression-config.json"
+  REGRESSION_PROFILE: "8xh100"
   # Models are placed by this label, so it is both the reservation lock and the
   # BYO node selector. The value is the run id, which makes the owner traceable.
   RESERVATION_LABEL_KEY: "kaito-regression-reserved-by"

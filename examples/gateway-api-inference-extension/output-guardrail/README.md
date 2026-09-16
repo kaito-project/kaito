@@ -49,7 +49,7 @@ Istio Envoy (response path)
         ↓
     Extract choices[*].message.content
         ↓
-    Call: OutputGuardrails.guard_response(response, request_metadata={})
+    Call: OutputGuardrails.guard_response(response, request={})
         ↓
         scanner_schemas
             ↓

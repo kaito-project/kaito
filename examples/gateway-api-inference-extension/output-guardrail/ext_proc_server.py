@@ -52,17 +52,31 @@ class ExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer):
             body_str = body_bytes.decode("utf-8")
             response_obj = json.loads(body_str)
         except (UnicodeDecodeError, json.JSONDecodeError) as e:
-            logger.warning("Failed to parse response as JSON: %s", e)
-            # fail-open: return original
+            logger.warning("Failed to parse response as JSON (unsupported format): %s", e)
+            # fail-open: unsupported response format, pass through unchanged
             return external_processor_pb2.ProcessingResponse()
 
         # Apply guardrails
         try:
             modified = await self._apply_guardrails(response_obj)
         except Exception as e:
-            logger.error("Guardrails failed: %s", e)
-            # fail-open on error (let original response through)
-            return external_processor_pb2.ProcessingResponse()
+            logger.error("Guardrails scanner failed (fail-closed): %s", e, exc_info=True)
+            # fail-closed: OutputGuardrails policy error → block response
+            # Return block response while preserving original structure
+            try:
+                if "choices" in response_obj and response_obj["choices"]:
+                    # Use guardial's block message if available
+                    guardrails = self.guardrails_reloader.get_current()
+                    block_msg = guardrails.block_message if guardrails else "Response blocked"
+                    # Update first choice's content to block message
+                    response_obj["choices"][0]["message"]["content"] = block_msg
+                    modified = response_obj
+                else:
+                    # Minimal fallback for malformed choices
+                    return external_processor_pb2.ProcessingResponse()
+            except Exception as fallback_e:
+                logger.error("Error constructing block response: %s", fallback_e)
+                return external_processor_pb2.ProcessingResponse()
 
         # Re-serialize
         try:

@@ -88,27 +88,6 @@ func GenerateFromConfig(modelName string, configJSON []byte, sizeBytes int64) (*
 	return &gen.Param, nil
 }
 
-// validateSupportedConfig checks the model representation itself. Weight
-// quantization is deliberately not restricted here: the runtime handles the
-// common formats natively, KV-cache sizing is independent of weight dtype, and
-// the weight footprint is supplied rather than derived - so there is nothing
-// left for this feature to get wrong about a quantized checkpoint.
-//
-// A declared method is still required, because it is what selects the runtime's
-// automatic dtype handling; an unnamed quantization would be loaded as though
-// the weights were dense.
-func validateSupportedConfig(config map[string]interface{}) error {
-	qc, ok := config["quantization_config"].(map[string]interface{})
-	if !ok {
-		return nil
-	}
-
-	if getString(qc, []string{"quant_method", "quant_algo", "format"}) == "" {
-		return fmt.Errorf("quantization_config does not declare a quantization method")
-	}
-	return nil
-}
-
 // bytesToGiB renders a byte count in the "<N>Gi" form the rest of the pipeline
 // expects. The suffix is not cosmetic: calculateStorageSize parses this value by
 // trimming "Gi" and discards the parse error, so any other form would silently

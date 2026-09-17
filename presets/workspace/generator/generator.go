@@ -1007,10 +1007,32 @@ func (g *Generator) Generate() (*model.PresetParam, error) {
 			return nil, err
 		}
 	}
+	if err := validateSupportedConfig(g.ModelConfig); err != nil {
+		return nil, err
+	}
 	g.ParseModelMetadata()
 	g.FinalizeParams()
 
 	return &g.Param, nil
+}
+
+// validateSupportedConfig rejects a configuration whose quantization cannot be
+// used as declared. A quantization_config that names no method is rejected for
+// every model, preset and bring-your-own alike: the loader keys its automatic
+// dtype handling off the method name, so an unnamed quantization would be loaded
+// as though the weights were dense. Which formats are supported is otherwise
+// left to the runtime, which rejects what it cannot load; only the presence of a
+// method name is enforced here.
+func validateSupportedConfig(config map[string]interface{}) error {
+	qc, ok := config["quantization_config"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	if getString(qc, []string{"quant_method", "quant_algo", "format"}) == "" {
+		return fmt.Errorf("quantization_config does not declare a quantization method")
+	}
+	return nil
 }
 
 // GeneratePreset is the global function to generate preset param.

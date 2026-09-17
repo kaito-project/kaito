@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -388,6 +389,48 @@ func TestGeneratePreset(t *testing.T) {
 }
 
 // this test only makes sure that all keys in reasoningParserModeNamePrefixMap are lowercased
+// TestValidateSupportedConfig covers the shared quantization gate that both
+// Generate() (preset/HF) and GenerateFromConfig() (custom) run before parsing.
+// A quantization_config with no named method is rejected for every path,
+// because the loader keys its dtype handling off the method name.
+func TestValidateSupportedConfig(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    map[string]interface{}
+		expectErr bool
+	}{
+		{
+			name:   "no quantization_config",
+			config: map[string]interface{}{"architectures": []interface{}{"LlamaForCausalLM"}},
+		},
+		{
+			name:   "named quant_method",
+			config: map[string]interface{}{"quantization_config": map[string]interface{}{"quant_method": "fp8"}},
+		},
+		{
+			name:   "named via format",
+			config: map[string]interface{}{"quantization_config": map[string]interface{}{"format": "float-quantized"}},
+		},
+		{
+			name:      "unnamed quantization",
+			config:    map[string]interface{}{"quantization_config": map[string]interface{}{"bits": 4}},
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateSupportedConfig(tt.config)
+			if tt.expectErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "quantization method")
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestReasoningParserMap(t *testing.T) {
 	for key := range reasoningParserModeNamePrefixMap {
 		assert.Equal(t, key, strings.ToLower(key), "reasoningParserModeNamePrefixMap key is not lowercased: %s", key)

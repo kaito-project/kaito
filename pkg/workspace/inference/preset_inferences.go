@@ -1385,4 +1385,3 @@ func vllmFormat(sd *pkgmodel.SpeculativeDecodingConfig) (string, error) {
 	}
 	return string(b), nil
 }
-}

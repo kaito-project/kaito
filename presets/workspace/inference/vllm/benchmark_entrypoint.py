@@ -526,6 +526,38 @@ def _extract_guidellm_metrics(report) -> tuple:
         ) from exc
 
 
+def _extract_guidellm_output_token_count(report) -> int | None:
+    """Return total generated output tokens from a guidellm report if available.
+
+    Reasoning models can surface generated output via the OpenAI response even when
+    ``vllm:generation_tokens_total`` remains flat. In that case, use GuideLLM's own
+    output-token accounting to recover the benchmark's generated-token count.
+    """
+    try:
+        metrics = report.benchmarks[0].metrics
+        output_total = metrics.output_token_count.total
+    except (IndexError, AttributeError, TypeError):
+        return None
+
+    for aggregate_attr in ("total", "sum"):
+        value = getattr(output_total, aggregate_attr, None)
+        if isinstance(value, (int, float)) and value > 0:
+            return int(round(value))
+
+    mean = getattr(output_total, "mean", None)
+    request_totals = getattr(metrics, "request_totals", None)
+    request_count = getattr(request_totals, "total", None)
+    if (
+        isinstance(mean, (int, float))
+        and mean > 0
+        and isinstance(request_count, (int, float))
+        and request_count > 0
+    ):
+        return int(round(mean * request_count))
+
+    return None
+
+
 def _reasoning_generation_probe() -> bool:
     """Return True when a direct chat completion shows reasoning-only output.
 
@@ -621,8 +653,14 @@ def _run_benchmark() -> tuple:
             raise RuntimeError(
                 "benchmark_no_generation delta_gen=0 — model produced no output tokens"
             )
+        report_output_tokens = _extract_guidellm_output_token_count(report)
+        if not report_output_tokens or report_output_tokens <= 0:
+            raise RuntimeError(
+                "benchmark_reasoning_only_generation_unmeasurable — reasoning-only output was detected but guidellm did not expose output token counts"
+            )
+        delta_gen = report_output_tokens
         _log(
-            "benchmark_reasoning_only_generation delta_gen=0 but chat completion returned reasoning/completion tokens"
+            f"benchmark_reasoning_only_generation delta_gen=0 on vllm metrics; using guidellm output_token_count={delta_gen}"
         )
 
     elapsed = t1_epoch - t0_epoch

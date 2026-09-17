@@ -336,13 +336,20 @@ def test_run_guidellm_import_error():
 # ── _extract_guidellm_metrics ────────────────────────────────────────────────
 
 
-def _mock_report(ttft_mean=42.123, tpot_mean=3.456):
-    """Build a mock guidellm report with the given TTFT/TPOT mean values."""
+def _mock_report(
+    ttft_mean=42.123,
+    tpot_mean=3.456,
+    output_token_mean=256.0,
+    request_total=100,
+):
+    """Build a mock guidellm report with the given metric values."""
     report = MagicMock()
     report.benchmarks = [MagicMock()]
     metrics = report.benchmarks[0].metrics
     metrics.time_to_first_token_ms.total.mean = ttft_mean
     metrics.time_per_output_token_ms.total.mean = tpot_mean
+    metrics.output_token_count.total.mean = output_token_mean
+    metrics.request_totals.total = request_total
     return report
 
 
@@ -377,6 +384,44 @@ def test_reasoning_generation_probe_completion_tokens_success():
         {
             "usage": {"completion_tokens": 16},
             "choices": [{"message": {"content": None}}],
+        }
+    ).encode()
+    with patch(
+        "urllib.request.urlopen",
+        side_effect=[
+            _make_urlopen_response(200, models_body),
+            _make_urlopen_response(200, chat_body),
+        ],
+    ):
+        assert bm._reasoning_generation_probe() is True
+
+
+def test_reasoning_generation_probe_reasoning_field_success():
+    models_body = json.dumps({"data": [{"id": "qwen36"}]}).encode()
+    chat_body = json.dumps(
+        {
+            "usage": {"completion_tokens": 0},
+            "choices": [{"message": {"content": None, "reasoning": "step 1"}}],
+        }
+    ).encode()
+    with patch(
+        "urllib.request.urlopen",
+        side_effect=[
+            _make_urlopen_response(200, models_body),
+            _make_urlopen_response(200, chat_body),
+        ],
+    ):
+        assert bm._reasoning_generation_probe() is True
+
+
+
+def test_reasoning_generation_probe_reasoning_content_field_success():
+    models_body = json.dumps({"data": [{"id": "qwen36"}]}).encode()
+    chat_body = json.dumps(
+        {
+            "choices": [
+                {"message": {"content": None, "reasoning_content": "step 1"}}
+            ],
         }
     ).encode()
     with patch(
@@ -445,7 +490,12 @@ def test_run_benchmark_no_generation():
 
 
 def test_run_benchmark_reasoning_only_generation_succeeds():
-    mock_report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
+    mock_report = _mock_report(
+        ttft_mean=42.123,
+        tpot_mean=3.456,
+        output_token_mean=256.0,
+        request_total=100,
+    )
     call_count = [0]
 
     def read_counter(metric):
@@ -468,7 +518,7 @@ def test_run_benchmark_reasoning_only_generation_succeeds():
     ):
         tpm, ttft, tpot, max_concurrency = bm._run_benchmark()
 
-    assert tpm == pytest.approx(24576.0)
+    assert tpm == pytest.approx(50176.0)
     assert ttft == 42.12
     assert tpot == 3.46
     assert max_concurrency == 128

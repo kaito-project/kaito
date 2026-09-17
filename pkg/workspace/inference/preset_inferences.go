@@ -1246,9 +1246,9 @@ func resolveMaxNumSeqs(workspaceName string, params *pkgmodel.PresetParam, gpuCo
 }
 
 // shellSingleQuote wraps s in single quotes, escaping any embedded
-// single quote as ''' . Safe for /bin/sh -c "cmd --key=<value>".
+// single quote as '\'' . Safe for /bin/sh -c "cmd --key=<value>".
 func shellSingleQuote(s string) string {
-	return "'" + strings.ReplaceAll(s, "'", `'''`) + "'"
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
 // defaultFallbackNGramConfig returns the universal ngram fallback used when the

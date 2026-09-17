@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -86,7 +87,18 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 			if len(readyNodes) == 0 {
 				return 0, fmt.Errorf("no ready nodes found, unable to determine GPU configuration")
 			}
-			gpuConfig, err = sku.GetGPUConfigFromNodeLabels(readyNodes[0])
+			// Use a node matching the effective SKU when available. Without one,
+			// retain the legacy behavior of sizing from the first ready node.
+			sizingNode := readyNodes[0]
+			if req.ResourceProfile.InstanceType != "" {
+				for _, n := range readyNodes {
+					if n.Labels[corev1.LabelInstanceTypeStable] == req.ResourceProfile.InstanceType {
+						sizingNode = n
+						break
+					}
+				}
+			}
+			gpuConfig, err = sku.GetGPUConfigFromNodeLabels(sizingNode)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
 			}
@@ -105,12 +117,6 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		}
 	}
 
-	// Start with the user-requested node count (default is 1).
-	nodeCountPerReplica := 1
-	if req.ResourceProfile.RequestedNodeCount > 0 {
-		nodeCountPerReplica = req.ResourceProfile.RequestedNodeCount
-	}
-
 	// maxModelLen: use the value resolved by the caller (RuntimeProfile.ContextSize), falling back to 2048.
 	maxModelLen := 2048
 	if req.RuntimeProfile.ContextSize > 0 {
@@ -119,9 +125,26 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 
 	klog.Infof("[NodeEstimator] workspace=%s maxModelLen=%d", req.WorkspaceName, maxModelLen)
 
+	return ComputeNodeCountForGPUConfig(model, gpuConfig, maxModelLen, req.ResourceProfile.RequestedNodeCount, req.ResourceProfile.MIGProfile, req.WorkspaceName)
+}
+
+// ComputeNodeCountForGPUConfig returns the node count required to serve model m on
+// nodes with the given per-node gpuConfig and resolved maxModelLen. It performs no
+// cluster I/O: callers that already know the GPU configuration (e.g. BYO SKU
+// selection, which sizes each candidate SKU) share this core sizing math with
+// EstimateNodeCount, which resolves gpuConfig first and delegates here.
+//
+// requestedNodeCount is the caller-preferred count (0 means unspecified, default 1);
+// migProfile is used only for MIG-specific error messages; wsName is for logging.
+func ComputeNodeCountForGPUConfig(m pkgmodel.Model, gpuConfig *sku.GPUConfig, maxModelLen, requestedNodeCount int, migProfile, wsName string) (int32, error) {
+	nodeCountPerReplica := 1
+	if requestedNodeCount > 0 {
+		nodeCountPerReplica = requestedNodeCount
+	}
+
 	// If GPU memory information is available, calculate the optimal node count
 	if !gpuConfig.GPUMem.IsZero() && gpuConfig.GPUCount > 0 {
-		inferParams := model.GetInferenceParameters()
+		inferParams := m.GetInferenceParameters()
 		totalGPUMemRequired := resource.MustParse(inferParams.TotalSafeTensorFileSize)
 		modelSize := float64(totalGPUMemRequired.Value()) * estimator.WeightExpansionFactor // vllm model size is about 102% of HuggingFace size
 		gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
@@ -155,7 +178,7 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
 		klog.Infof("modelSize(%.0f), mambaState(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
-			modelSize, mambaState, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
+			modelSize, mambaState, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, wsName)
 
 		// MIG partitions are a single, non-shardable device: the model plus its
 		// runtime overhead must fit one slice. Report the slice-specific shortfall
@@ -167,15 +190,15 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 				(modelSize+overhead)/float64(consts.GiBToBytes),
 				modelSize/float64(consts.GiBToBytes),
 				overhead/float64(consts.GiBToBytes),
-				req.ResourceProfile.MIGProfile,
+				migProfile,
 				sliceGiB, availGPUMem/float64(consts.GiBToBytes))
 		}
 
-		if nodeCountPerReplica > 1 && !model.SupportDistributedInference() {
+		if nodeCountPerReplica > 1 && !m.SupportDistributedInference() {
 			return 0, fmt.Errorf("models with disabled support distributed inference cannot be distributed across more than 1 GPU node, please use a node with larger GPU memory, calculated nodes: %d", nodeCountPerReplica)
 		}
 	}
 
-	klog.Infof("[NodeEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, req.WorkspaceName)
+	klog.Infof("[NodeEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, wsName)
 	return int32(nodeCountPerReplica), nil
 }

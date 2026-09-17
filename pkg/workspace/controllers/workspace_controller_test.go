@@ -1333,8 +1333,8 @@ func TestSyncWorkspaceStatus(t *testing.T) {
 			}
 
 			mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil).Twice()
-			// collectNodeStatusSnapshot calls ListNodes once, then CollectNodeStatusInfo calls ListNodes again.
-			mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil).Twice()
+			// Live SKU selection may add node list calls during reconciliation.
+			mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(nil)
 
 			if ws.Inference != nil {
 				if tc.statefulSetNotFound {

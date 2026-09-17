@@ -171,15 +171,7 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
 
-	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if w.Resource.InstanceType != "" {
-			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "resource.instanceType"))
-		}
-	} else {
-		// When NAP is enabled, instanceType must be specified for node provisioning
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		if w.Resource.InstanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "resource.instanceType"))
 		}
@@ -553,6 +545,11 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
+	// Defer GPU-memory sufficiency checks when BYO reconciliation selects the
+	// effective SKU. Admission accepts the workspace and lets it remain Pending
+	// until suitable capacity is available.
+	relaxedBYONodeFit := false
+
 	if napDisabled {
 		// MIG uses a single non-shardable slice, so the node-label/multi-node GPU
 		// sizing below doesn't apply; validate the slice-specific fit instead.
@@ -582,24 +579,58 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				return errs
 			}
 
-			machineCount = len(nodeList.Items)
+			nodeItems := nodeList.Items
+			if r.InstanceType != "" {
+				filtered := make([]corev1.Node, 0, len(nodeList.Items))
+				for i := range nodeList.Items {
+					if nodeList.Items[i].Labels[corev1.LabelInstanceTypeStable] == r.InstanceType {
+						filtered = append(filtered, nodeList.Items[i])
+					}
+				}
+				nodeItems = filtered
+			}
+
+			// Auto-selected or explicitly requested SKUs may coexist with other GPU
+			// SKUs. Keep strict uniformity only for the legacy explicit-selector path.
+			relaxed := r.LabelSelector == nil || r.InstanceType != ""
+			relaxedBYONodeFit = relaxed
+
+			machineCount = len(nodeItems)
 			if machineCount == 0 {
+				if relaxed {
+					return errs
+				}
 				errs = errs.Also(apis.ErrGeneric("No nodes found matching the specified label selector"))
 				return errs
 			}
 
-			for _, node := range nodeList.Items {
+			groupCount := 0
+			for i := range nodeItems {
+				node := &nodeItems[i]
 				// Try to get GPU configuration from nvidia.com labels first
-				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(&node)
+				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(node)
 				if err != nil {
+					if relaxed {
+						continue
+					}
 					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
 					return errs
 				}
 
-				if skuConfig == nil {
+				switch {
+				case skuConfig == nil:
 					skuConfig = gpuConfig
-				} else {
-					// Verify uniformity
+					groupCount = 1
+				case relaxed:
+					if gpuConfig.GPUMem.Cmp(skuConfig.GPUMem) > 0 {
+						skuConfig = gpuConfig
+						groupCount = 1
+					} else if gpuConfig.GPUMem.Equal(skuConfig.GPUMem) &&
+						gpuConfig.GPUModel == skuConfig.GPUModel &&
+						gpuConfig.GPUCount == skuConfig.GPUCount {
+						groupCount++
+					}
+				default:
 					if gpuConfig.GPUModel != skuConfig.GPUModel {
 						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but previous node has %s GPUs, all nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
 						return errs
@@ -612,13 +643,18 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %s memory, but previous node has %s memory", node.Name, gpuConfig.GPUMem.String(), skuConfig.GPUMem.String())))
 						return errs
 					}
+					groupCount++
 				}
 			}
 
 			if skuConfig == nil {
+				if relaxed {
+					return errs
+				}
 				errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have appropriate NVIDIA GPU labels"))
 				return errs
 			}
+			machineCount = groupCount
 		}
 	} else { // NAP enabled
 		// GPU partitioning (MIG or accelerator) is only supported on BYO nodes.
@@ -673,6 +709,9 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 					if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
 						if bypassResourceChecks {
 							klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+								instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+						} else if relaxedBYONodeFit {
+							klog.Warningf("BYO node fit deferred to reconcile: instance type %s has a total of %s, but preset %s requires at least %s; workload will remain Pending until the cluster is scaled",
 								instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
 						} else {
 							errs = errs.Also(apis.ErrInvalidValue(
@@ -809,17 +848,10 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if old.InstanceType == "" {
-			if r.InstanceType != "" {
-				errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
-			}
-		} else {
-			// for backward compatibility, old.InstanceType is non-empty
-			// but update to empty is allowed.
-			if r.InstanceType != "" && old.InstanceType != r.InstanceType {
-				errs = errs.Also(apis.ErrInvalidValue("instanceType cannot be changed once set", "instanceType"))
-			}
+		// Keep instanceType immutable once set, while allowing it to be added and
+		// preserving the v0.7 upgrade path that clears it.
+		if old.InstanceType != "" && r.InstanceType != "" && old.InstanceType != r.InstanceType {
+			errs = errs.Also(apis.ErrInvalidValue("instanceType cannot be changed once set", "instanceType"))
 		}
 	} else {
 		if r.InstanceType == "" {

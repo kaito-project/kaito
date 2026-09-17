@@ -1147,16 +1147,16 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			expectErrs: false,
 		},
 		{
-			name: "NAP disabled - change to different instanceType (invalid)",
+			name: "NAP disabled - change to different instanceType (invalid, immutable once set)",
 			newResource: &ResourceSpec{
-				InstanceType: "new_type", // Changing instanceType
+				InstanceType: "new_type",
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
 				InstanceType: "old_type",
 				Count:        pointerToInt(1),
 			},
-			disableNAP: true, // NAP disabled (BYO mode)
+			disableNAP: true,
 			errContent: "instanceType cannot be changed once set",
 			expectErrs: true,
 		},
@@ -1177,6 +1177,20 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				},
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "NAP disabled - add instanceType on update (valid, immutable-once-set allows adding)",
+			newResource: &ResourceSpec{
+				InstanceType: "Standard_NV36ads_A10_v5",
+				Count:        pointerToInt(1),
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+			},
+			disableNAP: true,
 			errContent: "",
 			expectErrs: false,
 		},
@@ -2297,14 +2311,14 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 			errContains: "",
 		},
 		{
-			name: "NAP disabled - instanceType must be empty",
+			name: "NAP disabled - instanceType allowed as BYO preference",
 			workspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace-nap-disabled",
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV36ads_A10_v5", // Invalid: instanceType provided when NAP disabled
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
@@ -2320,9 +2334,9 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:  true, // NAP disabled (BYO mode)
-			expectErrs:  true,
-			errContains: "instanceType must be empty when node auto-provisioning is disabled (BYO scenario)",
+			disableNAP:  true,
+			expectErrs:  false,
+			errContains: "",
 		},
 		{
 			name: "NAP disabled - instanceType empty (valid)",

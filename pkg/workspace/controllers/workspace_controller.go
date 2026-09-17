@@ -56,6 +56,7 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -145,6 +146,19 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 	// identity that has already been recorded.
 	if err = c.reconcileResolvedModel(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
+	}
+
+	// BYO auto-selection requires a healthy GPU node to identify the effective SKU.
+	// Return an error before workload creation so reconciliation retries with backoff.
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] &&
+		workspaceObj.Resource.LabelSelector == nil && workspaceObj.Resource.InstanceType == "" {
+		it, selErr := byoprovisioner.SelectInstanceType(ctx, c.Client, workspaceObj)
+		if selErr != nil {
+			return reconcile.Result{}, selErr
+		}
+		if it == "" {
+			return reconcile.Result{}, fmt.Errorf("no ready GPU nodes present for BYO node selection; scale the cluster to add a GPU node")
+		}
 	}
 
 	// update targetNodeCount for the workspace
@@ -1620,15 +1634,15 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 
 		// Resolve the context window size from the workspace's inference ConfigMap (if any)
 		// and pass it through RuntimeProfile so the estimator does not need to do I/O.
-		if wObj.Inference != nil && wObj.Inference.Config != "" {
-			configMap := &corev1.ConfigMap{}
-			if cmErr := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); cmErr != nil {
-				klog.Warningf("[UpdateWorkspaceTargetNodeCount] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
-					wObj.Name, wObj.Inference.Config, cmErr)
-			} else if configData, exists := configMap.Data["inference_config.yaml"]; exists {
-				if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
-					req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
-				}
+		if contextSize := c.resolveInferenceContextSize(ctx, wObj); contextSize > 0 {
+			req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
+		}
+
+		// Size BYO workloads against their live effective SKU so the estimate matches
+		// the nodes selected for placement.
+		if req.ResourceProfile.DisableNodeAutoProvisioning {
+			if effIT, selErr := byoprovisioner.EffectiveInstanceType(ctx, c.Client, wObj); selErr == nil && effIT != "" {
+				req.ResourceProfile.InstanceType = effIT
 			}
 		}
 
@@ -1659,6 +1673,27 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	}
 
 	return nil
+}
+
+// resolveInferenceContextSize returns the explicit max-model-len configured in the
+// workspace's inference ConfigMap, or 0 when there is no ConfigMap, it cannot be
+// read, or it does not pin a context size (the estimator then applies its default).
+func (c *WorkspaceReconciler) resolveInferenceContextSize(ctx context.Context, wObj *kaitov1beta1.Workspace) int {
+	if wObj.Inference == nil || wObj.Inference.Config == "" {
+		return 0
+	}
+	configMap := &corev1.ConfigMap{}
+	if err := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); err != nil {
+		klog.Warningf("[resolveInferenceContextSize] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
+			wObj.Name, wObj.Inference.Config, err)
+		return 0
+	}
+	if configData, exists := configMap.Data["inference_config.yaml"]; exists {
+		if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
+			return contextSize
+		}
+	}
+	return 0
 }
 
 // SetupWithManager sets up the controller with the Manager.

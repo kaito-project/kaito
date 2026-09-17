@@ -526,6 +526,50 @@ def _extract_guidellm_metrics(report) -> tuple:
         ) from exc
 
 
+def _reasoning_generation_probe() -> bool:
+    """Return True when a direct chat completion shows reasoning-only output.
+
+    Some reasoning models can emit output tokens that appear in the OpenAI API
+    response as reasoning content while ``vllm:generation_tokens_total`` stays
+    unchanged. In that case the startup benchmark should still succeed.
+    """
+    try:
+        import json
+
+        with urllib.request.urlopen(f"{VLLM_BASE_URL}/v1/models", timeout=10) as resp:
+            model_list = json.loads(resp.read().decode())
+        model_name = ((model_list.get("data") or [{}])[0]).get("id")
+        if not model_name:
+            return False
+
+        payload = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": "Say exactly: ok"}],
+            "max_tokens": 16,
+            "temperature": 0,
+        }
+        req = urllib.request.Request(
+            f"{VLLM_BASE_URL}/v1/chat/completions",
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = json.loads(resp.read().decode())
+    except Exception as exc:
+        _log(f"reasoning_generation_probe_failed (non-fatal): {exc}")
+        return False
+
+    usage = body.get("usage") or {}
+    if (usage.get("completion_tokens") or 0) > 0:
+        return True
+
+    choices = body.get("choices") or []
+    if not choices:
+        return False
+    message = (choices[0] or {}).get("message") or {}
+    return bool(message.get("reasoning") or message.get("reasoning_content"))
+
+
 # ── Core benchmark sequence ───────────────────────────────────────────────────
 
 
@@ -568,11 +612,17 @@ def _run_benchmark() -> tuple:
     _log(f"benchmark_end epoch={t1_epoch:.1f} t1_gen={t1_gen} t1_prompt={t1_prompt}")
 
     delta_gen = t1_gen - t0_gen
-    # Require at least one generated token.  Zero generation means the load did not
-    # reach the model (e.g. wrong endpoint, auth failure, all requests are prefill-only).
+    # Require at least one generated token. Zero generation usually means the load
+    # did not reach the model (e.g. wrong endpoint, auth failure, all requests are
+    # prefill-only). Some reasoning models, however, can return reasoning-only
+    # output via the OpenAI API while ``vllm:generation_tokens_total`` stays flat.
     if delta_gen == 0:
-        raise RuntimeError(
-            "benchmark_no_generation delta_gen=0 — model produced no output tokens"
+        if not _reasoning_generation_probe():
+            raise RuntimeError(
+                "benchmark_no_generation delta_gen=0 — model produced no output tokens"
+            )
+        _log(
+            "benchmark_reasoning_only_generation delta_gen=0 but chat completion returned reasoning/completion tokens"
         )
 
     elapsed = t1_epoch - t0_epoch

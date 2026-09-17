@@ -393,7 +393,7 @@ def test_reasoning_generation_probe_completion_tokens_success():
             _make_urlopen_response(200, chat_body),
         ],
     ):
-        assert bm._reasoning_generation_probe() is True
+        assert bm._reasoning_generation_probe() == 16
 
 
 def test_reasoning_generation_probe_reasoning_field_success():
@@ -411,8 +411,7 @@ def test_reasoning_generation_probe_reasoning_field_success():
             _make_urlopen_response(200, chat_body),
         ],
     ):
-        assert bm._reasoning_generation_probe() is True
-
+        assert bm._reasoning_generation_probe() == 1
 
 
 def test_reasoning_generation_probe_reasoning_content_field_success():
@@ -431,7 +430,25 @@ def test_reasoning_generation_probe_reasoning_content_field_success():
             _make_urlopen_response(200, chat_body),
         ],
     ):
-        assert bm._reasoning_generation_probe() is True
+        assert bm._reasoning_generation_probe() == 1
+
+
+def test_reasoning_generation_probe_content_field_success_without_usage_tokens():
+    models_body = json.dumps({"data": [{"id": "qwen36"}]}).encode()
+    chat_body = json.dumps(
+        {
+            "usage": {"completion_tokens": 0},
+            "choices": [{"message": {"content": "ok"}}],
+        }
+    ).encode()
+    with patch(
+        "urllib.request.urlopen",
+        side_effect=[
+            _make_urlopen_response(200, models_body),
+            _make_urlopen_response(200, chat_body),
+        ],
+    ):
+        assert bm._reasoning_generation_probe() == 1
 
 
 # ── _run_benchmark ───────────────────────────────────────────────────────────
@@ -512,7 +529,7 @@ def test_run_benchmark_reasoning_only_generation_succeeds():
         patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
-        patch.object(bm, "_reasoning_generation_probe", return_value=True),
+        patch.object(bm, "_reasoning_generation_probe", return_value=1),
         patch.object(bm, "_log"),
         patch("time.time", side_effect=[0.0, 60.0]),
     ):
@@ -522,6 +539,46 @@ def test_run_benchmark_reasoning_only_generation_succeeds():
     assert ttft == 42.12
     assert tpot == 3.46
     assert max_concurrency == 128
+
+
+def test_run_benchmark_reasoning_only_generation_falls_back_to_probe_tokens():
+    mock_report = _mock_report(
+        ttft_mean=42.123,
+        tpot_mean=3.456,
+        output_token_mean=0.0,
+        request_total=100,
+    )
+    call_count = [0]
+
+    def read_counter(metric):
+        call_count[0] += 1
+        if call_count[0] <= 2:
+            return 0
+        if metric == "vllm:prompt_tokens_total":
+            return 24576
+        return 0
+
+    with (
+        patch.object(bm, "_sum_counter_metric", side_effect=read_counter),
+        patch.object(bm, "_resolve_processor", return_value="mymodel"),
+        patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
+        patch.object(bm, "_compute_max_concurrency", return_value=128),
+        patch.object(bm, "_run_guidellm", return_value=mock_report),
+        patch.object(bm, "_reasoning_generation_probe", return_value=1),
+        patch.object(bm, "_log") as log_mock,
+        patch("time.time", side_effect=[0.0, 60.0]),
+    ):
+        tpm, ttft, tpot, max_concurrency = bm._run_benchmark()
+
+    assert tpm == pytest.approx(24577.0)
+    assert ttft == 42.12
+    assert tpot == 3.46
+    assert max_concurrency == 128
+    assert any(
+        "guidellm output_token_count unavailable, using direct probe output_token_count=1"
+        in str(call.args[0])
+        for call in log_mock.call_args_list
+    )
 
 
 def test_run_benchmark_guidellm_fails():

@@ -558,12 +558,19 @@ def _extract_guidellm_output_token_count(report) -> int | None:
     return None
 
 
-def _reasoning_generation_probe() -> bool:
-    """Return True when a direct chat completion shows reasoning-only output.
+def _reasoning_generation_probe() -> int:
+    """Return a conservative nonzero generated-token count when direct probing succeeds.
 
     Some reasoning models can emit output tokens that appear in the OpenAI API
     response as reasoning content while ``vllm:generation_tokens_total`` stays
     unchanged. In that case the startup benchmark should still succeed.
+
+    The probe returns:
+
+    - ``usage.completion_tokens`` when the API reports it as a positive integer;
+    - otherwise ``1`` when the response contains non-empty generated content,
+      ``message.reasoning``, or ``message.reasoning_content``;
+    - otherwise ``0``.
     """
     try:
         import json
@@ -572,7 +579,7 @@ def _reasoning_generation_probe() -> bool:
             model_list = json.loads(resp.read().decode())
         model_name = ((model_list.get("data") or [{}])[0]).get("id")
         if not model_name:
-            return False
+            return 0
 
         payload = {
             "model": model_name,
@@ -589,17 +596,20 @@ def _reasoning_generation_probe() -> bool:
             body = json.loads(resp.read().decode())
     except Exception as exc:
         _log(f"reasoning_generation_probe_failed (non-fatal): {exc}")
-        return False
+        return 0
 
     usage = body.get("usage") or {}
-    if (usage.get("completion_tokens") or 0) > 0:
-        return True
+    completion_tokens = usage.get("completion_tokens")
+    if isinstance(completion_tokens, (int, float)) and completion_tokens > 0:
+        return int(round(completion_tokens))
 
     choices = body.get("choices") or []
     if not choices:
-        return False
+        return 0
     message = (choices[0] or {}).get("message") or {}
-    return bool(message.get("reasoning") or message.get("reasoning_content"))
+    if message.get("content") or message.get("reasoning") or message.get("reasoning_content"):
+        return 1
+    return 0
 
 
 # ── Core benchmark sequence ───────────────────────────────────────────────────
@@ -649,19 +659,22 @@ def _run_benchmark() -> tuple:
     # prefill-only). Some reasoning models, however, can return reasoning-only
     # output via the OpenAI API while ``vllm:generation_tokens_total`` stays flat.
     if delta_gen == 0:
-        if not _reasoning_generation_probe():
+        probe_output_tokens = _reasoning_generation_probe()
+        if probe_output_tokens <= 0:
             raise RuntimeError(
                 "benchmark_no_generation delta_gen=0 — model produced no output tokens"
             )
         report_output_tokens = _extract_guidellm_output_token_count(report)
-        if not report_output_tokens or report_output_tokens <= 0:
-            raise RuntimeError(
-                "benchmark_reasoning_only_generation_unmeasurable — reasoning-only output was detected but guidellm did not expose output token counts"
+        if report_output_tokens and report_output_tokens > 0:
+            delta_gen = report_output_tokens
+            _log(
+                f"benchmark_reasoning_only_generation delta_gen=0 on vllm metrics; using guidellm output_token_count={delta_gen}"
             )
-        delta_gen = report_output_tokens
-        _log(
-            f"benchmark_reasoning_only_generation delta_gen=0 on vllm metrics; using guidellm output_token_count={delta_gen}"
-        )
+        else:
+            delta_gen = probe_output_tokens
+            _log(
+                f"benchmark_reasoning_only_generation delta_gen=0 on vllm metrics; guidellm output_token_count unavailable, using direct probe output_token_count={delta_gen}"
+            )
 
     elapsed = t1_epoch - t0_epoch
     _log(

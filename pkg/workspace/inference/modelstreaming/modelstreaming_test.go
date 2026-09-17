@@ -93,6 +93,8 @@ func TestResolveHFModelID(t *testing.T) {
 		presetName string
 		expected   string
 	}{
+		{"legacy preset", "phi-4", "microsoft/phi-4"},
+		{"legacy preset case-insensitive", "Phi-4", "microsoft/phi-4"},
 		{"canonical preset", "microsoft/phi-4", "microsoft/phi-4"},
 		{"canonical preset preserves case", "Qwen/Qwen3.8-27B", "Qwen/Qwen3.8-27B"},
 	}

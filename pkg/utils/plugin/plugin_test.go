@@ -148,11 +148,11 @@ func TestIsValidPreset(t *testing.T) {
 		}
 	})
 
-	t.Run("legacy short preset is invalid", func(t *testing.T) {
+	t.Run("legacy short preset is valid", func(t *testing.T) {
 		KaitoModelRegister = ModelRegister{}
 
-		if IsValidPreset("phi-4") {
-			t.Error("expected IsValidPreset to return false for legacy short preset")
+		if !IsValidPreset("Phi-4") {
+			t.Error("expected IsValidPreset to return true for legacy short preset")
 		}
 	})
 

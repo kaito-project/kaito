@@ -107,6 +107,7 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
+	modelName = plugin.ResolveHFModelID(modelName)
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -123,6 +124,7 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
 func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
+	modelName = plugin.ResolveHFModelID(modelName)
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}

@@ -781,6 +781,10 @@ func TestGetModelByName_CatalogModels(t *testing.T) {
 			name:      "catalog model with mixed case input",
 			modelName: "OpenAI/GPT-OSS-20B",
 		},
+		{
+			name:      "legacy short model name",
+			modelName: "phi-4",
+		},
 	}
 
 	for _, tt := range tests {
@@ -803,11 +807,6 @@ func TestGetModelByName_ErrorCases(t *testing.T) {
 			name:          "unregistered model without slash",
 			modelName:     "nonexistent-model",
 			expectedError: "model is not registered: nonexistent-model",
-		},
-		{
-			name:          "legacy short model name",
-			modelName:     "phi-4",
-			expectedError: "model is not registered: phi-4",
 		},
 		{
 			name:          "empty model name",
@@ -973,6 +972,86 @@ func TestGetModelByName_ContextCancellation(t *testing.T) {
 	// Should still work for registered models since context is only used for k8s client
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
+}
+
+func catalogBackedLegacyAliases(t *testing.T) map[string]string {
+	t.Helper()
+
+	var catalog generator.ModelCatalog
+	if err := yaml.Unmarshal(modelCatalogYAML, &catalog); err != nil {
+		t.Fatalf("failed to parse model catalog: %v", err)
+	}
+
+	catalogModels := make(map[string]struct{}, len(catalog.Models))
+	for _, entry := range catalog.Models {
+		catalogModels[strings.ToLower(entry.Name)] = struct{}{}
+	}
+
+	aliases := make(map[string]string)
+	for shortName, hfName := range plugin.LegacyBuiltinToCatalog {
+		if _, ok := catalogModels[strings.ToLower(hfName)]; ok {
+			aliases[shortName] = hfName
+		}
+	}
+	return aliases
+}
+
+func TestGenerateHuggingFaceModel_CatalogOnlyModelsUseCatalogPath(t *testing.T) {
+	// Catalog-backed legacy aliases go through GeneratePreset and register a
+	// new vLLMCompatibleModel without requiring a HuggingFace API call.
+	for _, modelName := range catalogBackedLegacyAliases(t) {
+		t.Run(modelName, func(t *testing.T) {
+			result, err := generateHuggingFaceModel(modelName, "")
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM,
+				"model %q should be a vLLMCompatibleModel", modelName)
+
+			registered := plugin.KaitoModelRegister.MustGet(modelName)
+			assert.NotNil(t, registered,
+				"model %q should be registered under full HF name after catalog generation", modelName)
+		})
+	}
+}
+
+func TestGetModelByName_ShortNameRedirectsToCatalog(t *testing.T) {
+	for shortName, hfName := range catalogBackedLegacyAliases(t) {
+		t.Run(shortName, func(t *testing.T) {
+			result, err := GetModelByName(context.Background(), shortName, "", "", nil)
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel", shortName)
+
+			registered := plugin.KaitoModelRegister.MustGet(hfName)
+			assert.NotNil(t, registered)
+		})
+	}
+}
+
+func TestGetModelByNameWithToken_ShortNameRedirectsToCatalog(t *testing.T) {
+	for shortName := range catalogBackedLegacyAliases(t) {
+		t.Run(shortName, func(t *testing.T) {
+			result, err := GetModelByNameWithToken(context.Background(), shortName, "")
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+
+			_, isVLLM := result.(*vLLMCompatibleModel)
+			assert.True(t, isVLLM, "model %q should resolve to vLLMCompatibleModel", shortName)
+		})
+	}
+}
+
+func TestLegacyBuiltinAliasesResolveToCanonicalIDs(t *testing.T) {
+	for shortName, hfName := range plugin.LegacyBuiltinToCatalog {
+		t.Run(shortName, func(t *testing.T) {
+			assert.Equal(t, hfName, plugin.ResolveHFModelID(shortName))
+			assert.Equal(t, hfName, plugin.ResolveHFModelID(strings.ToUpper(shortName)))
+		})
+	}
 }
 
 // TestCatalogModelsHaveMTBenchScores ensures every model in model_catalog.yaml

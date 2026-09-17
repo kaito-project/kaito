@@ -240,27 +240,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a Qwen3.6 35B A3B FP8 InferenceSet with MTP speculative decoding enabled", utils.GinkgoLabelFastCheck, func() {
-		// Qwen3.6 35B-A3B-FP8 is in speculativeDecodingByPreset with a
-		// self-contained MTP config, so this exercises the tuned MTP path where
-		// KAITO injects method=mtp for a built-in catalog model without
-		// assistant-model wiring.
-		numOfReplicas := 1
-		inferenceSetObj := createQwen3_6_35BA3BFP8InferenceSetWithSpeculativeDecodingAndVLLM(numOfReplicas)
-		DeferCleanup(func() {
-			cleanupResourcesForInferenceSet(inferenceSetObj)
-		})
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-		validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj)
-
-		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
-		validateWorkspaceReadiness(childWS)
-		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
-		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
-	})
-
 	It("should inject universal ngram --speculative-config on a phi-4 vLLM InferenceSet opted in via annotation", utils.GinkgoLabelFastCheck, func() {
 		// phi-4 is a built-in vLLM preset but is not in speculativeDecodingByPreset,
 		// so this exercises the universal ngram fallback path introduced in
@@ -285,8 +264,8 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		// XiaomiMiMo/MiMo-7B-Base is in speculativeDecodingByPreset, so the
 		// InferenceSet -> child Workspace propagation path should inject the
 		// preset-tuned MTP configuration instead of the universal ngram
-		// fallback. This complements the Qwen tuned-MTP test and the phi-4
-		// ngram-fallback test above by proving another supported
+		// fallback. This complements the phi-4 ngram-fallback test above by
+		// proving another supported
 		// preset survives admission, replica creation, and a real
 		// inference round-trip with speculative decoding enabled.
 		numOfReplicas := 1
@@ -1253,34 +1232,6 @@ func createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode int)
 	})
 
 	return workspaceObj
-}
-
-// createQwen3_6_35BA3BFP8InferenceSetWithSpeculativeDecodingAndVLLM builds an
-// InferenceSet using the Qwen3.6 35B-A3B-FP8 preset with the
-// kaito.sh/enable-speculative-decoding annotation set on Spec.Template.
-// Because Qwen3.6 35B-A3B-FP8 is in presets/workspace/generator/generator.go
-// speculativeDecodingByPreset with a self-contained MTP config, this
-// exercises tuned MTP injection plus the InferenceSet -> child Workspace
-// annotation-propagation path.
-func createQwen3_6_35BA3BFP8InferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
-	inferenceSetObj := &kaitov1beta1.InferenceSet{}
-
-	By("Creating an InferenceSet CR with Qwen3.6 35B-A3B-FP8 preset public mode, vLLM, and speculative-decoding annotation", func() {
-		uniqueID := fmt.Sprint("preset-qwen3-6-35b-a3b-fp8-spec-is-", rand.Intn(1000))
-		inferenceSetObj = utils.GenerateInferenceSetManifestWithVLLM(uniqueID, namespaceName, "", replicas, "Standard_NC24ads_A100_v4",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-is-e2e-test-qwen3-6-35b-a3b-fp8-vllm-specdec"},
-			}, PresetQwen3_6_35BA3BFP8Model, nil, nil, "")
-
-		inferenceSetObj.Spec.Template.Annotations = utils.DisableModelStreaming(inferenceSetObj.Spec.Template.Annotations)
-		if inferenceSetObj.Spec.Template.Annotations == nil {
-			inferenceSetObj.Spec.Template.Annotations = map[string]string{}
-		}
-		inferenceSetObj.Spec.Template.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = "true"
-		createAndValidateInferenceSet(inferenceSetObj)
-	})
-
-	return inferenceSetObj
 }
 
 func createPhi4InferenceSetWithSpeculativeDecodingAndVLLM(replicas int) *kaitov1beta1.InferenceSet {

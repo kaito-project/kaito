@@ -19,6 +19,7 @@ External calls (urllib, subprocess, open) are patched via unittest.mock.
 
 import json
 import sys
+import urllib.error
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -146,6 +147,30 @@ def test_sum_counter_metric_not_found():
 def test_sum_counter_metric_network_error():
     with patch("urllib.request.urlopen", side_effect=OSError("timeout")):
         assert bm._sum_counter_metric("vllm:generation_tokens_total") == 0
+
+
+# ── _abort_requests ─────────────────────────────────────────────────────────
+
+
+def test_abort_requests_posts_empty_json():
+    resp = _make_urlopen_response(200)
+    with patch("urllib.request.urlopen", return_value=resp) as mock_urlopen:
+        bm._abort_requests()
+
+    request = mock_urlopen.call_args.args[0]
+    assert request.full_url == f"{bm.VLLM_BASE_URL}/abort_requests"
+    assert request.method == "POST"
+    assert json.loads(request.data) == {}
+    assert request.headers["Content-type"] == "application/json"
+
+
+def test_abort_requests_rejects_non_200_response():
+    resp = _make_urlopen_response(500)
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        pytest.raises(RuntimeError, match="HTTP status 500"),
+    ):
+        bm._abort_requests()
 
 
 # ── _compute_max_concurrency ──────────────────────────────────────────────────
@@ -440,11 +465,13 @@ def test_run_benchmark_guidellm_fails():
 
 def test_drain_already_zero():
     with (
+        patch.object(bm, "_abort_requests") as mock_abort,
         patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_log"),
         patch("time.sleep") as mock_sleep,
     ):
         bm._drain()
+    mock_abort.assert_called_once_with()
     mock_sleep.assert_not_called()
 
 
@@ -452,13 +479,54 @@ def test_drain_polls_until_zero():
     # Returns 3, 3, 0 on successive calls
     counter_calls = [3, 3, 0]
     with (
+        patch.object(bm, "_abort_requests") as mock_abort,
         patch.object(bm, "_sum_counter_metric", side_effect=counter_calls),
         patch.object(bm, "_log"),
         patch("time.sleep") as mock_sleep,
     ):
         bm._drain()
+    mock_abort.assert_called_once_with()
     assert mock_sleep.call_count == 2
     mock_sleep.assert_called_with(2)
+
+
+def test_drain_falls_back_when_abort_endpoint_is_absent():
+    not_found = urllib.error.HTTPError(
+        f"{bm.VLLM_BASE_URL}/abort_requests", 404, "Not Found", None, None
+    )
+    with (
+        patch.object(bm, "_abort_requests", side_effect=not_found),
+        patch.object(bm, "_sum_counter_metric", return_value=0),
+        patch.object(bm, "_log") as mock_log,
+    ):
+        bm._drain()
+
+    assert "falling back to passive drain" in mock_log.call_args_list[1].args[0]
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        urllib.error.HTTPError(
+            f"{bm.VLLM_BASE_URL}/abort_requests",
+            500,
+            "Internal Server Error",
+            None,
+            None,
+        ),
+        OSError("connection failed"),
+    ],
+)
+def test_drain_propagates_control_failure(error):
+    with (
+        patch.object(bm, "_abort_requests", side_effect=error),
+        patch.object(bm, "_sum_counter_metric") as mock_metric,
+        patch.object(bm, "_log"),
+        pytest.raises(type(error)),
+    ):
+        bm._drain()
+
+    mock_metric.assert_not_called()
 
 
 def test_drain_timeout():
@@ -466,6 +534,7 @@ def test_drain_timeout():
     # monotonic() returns: initial call (deadline set), then past-deadline on second call
     mono_values = [0.0, 301.0]
     with (
+        patch.object(bm, "_abort_requests"),
         patch.object(bm, "_sum_counter_metric", return_value=1),
         patch.object(bm, "_log"),
         patch("time.sleep"),
@@ -552,6 +621,39 @@ def test_main_benchmark_failure_exits_1(monkeypatch):
     assert data["vllm_total_tpm"] == -1.0
     assert data["ttft_avg_ms"] == -1.0
     assert data["tpot_avg_ms"] == -1.0
+
+
+def test_main_resume_failure_exits_1(monkeypatch):
+    monkeypatch.delenv("POD_INDEX", raising=False)
+    written = []
+    resume_failure = urllib.error.HTTPError(
+        f"{bm.VLLM_BASE_URL}/abort_requests",
+        500,
+        "Internal Server Error",
+        None,
+        None,
+    )
+
+    with (
+        patch.object(bm, "_health_check", return_value=True),
+        patch.object(bm, "_run_benchmark", return_value=(12345.67, 42.12, 3.46, 256)),
+        patch.object(bm, "_drain", side_effect=resume_failure),
+        patch.object(
+            bm, "_write_to_pid1", side_effect=lambda line, fd=1: written.append(line)
+        ),
+        patch("time.time", return_value=0.0),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        bm.main()
+
+    assert exc_info.value.code == 1
+    result_line = next(line for line in written if "KAITO_BENCHMARK_RESULT" in line)
+    payload = json.loads(result_line[result_line.index("{") :])
+    assert payload == {
+        "vllm_total_tpm": -1.0,
+        "ttft_avg_ms": -1.0,
+        "tpot_avg_ms": -1.0,
+    }
 
 
 def test_main_exactly_one_result_line_on_success(monkeypatch):

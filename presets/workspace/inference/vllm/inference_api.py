@@ -109,6 +109,12 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             default=False,
             help="Disable the queue-depth rate limit guard (which otherwise returns HTTP 429 when the waiting queue exceeds max-num-seqs).",
         )
+        self.add_argument(
+            "--kaito-disable-benchmark-control",
+            action="store_true",
+            default=False,
+            help="Disable the loopback endpoint used to abort startup benchmark requests.",
+        )
 
     def _reset_vllm_defaults(self):
         local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Default to 0 if not set
@@ -549,6 +555,23 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
         }
 
 
+def configure_middlewares(args: argparse.Namespace) -> None:
+    """Register KAITO middleware according to the parsed opt-out flags."""
+    args.middleware = list(args.middleware or [])
+    if args.kaito_disable_benchmark_control:
+        logger.info(
+            "Benchmark control middleware disabled "
+            "(--kaito-disable-benchmark-control set)"
+        )
+    else:
+        args.middleware.append("benchmark_control.BenchmarkControlMiddleware")
+
+    if args.kaito_disable_rate_limit:
+        logger.info("Rate limit guard disabled (--kaito-disable-rate-limit set)")
+    else:
+        args.middleware.append("rate_limit.RateLimitMiddleware")
+
+
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")
     args = parser.parse_args()
@@ -659,11 +682,7 @@ if __name__ == "__main__":
         )
 
     _wrap_build_and_serve(_configure_runtime_limits)
-    if args.kaito_disable_rate_limit:
-        logger.info("Rate limit guard disabled (--kaito-disable-rate-limit set)")
-    else:
-        args.middleware = list(args.middleware or [])
-        args.middleware.append("rate_limit.RateLimitMiddleware")
+    configure_middlewares(args)
 
     # See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html
     uvloop.run(api_server.run_server(args))

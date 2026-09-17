@@ -33,10 +33,12 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 """
 
 import asyncio
+import json
 import math
 import os
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -141,6 +143,19 @@ def _sum_counter_metric(metric: str) -> int:
             found = True
             total += sample.value
     return int(total) if found else 0
+
+
+def _abort_requests() -> None:
+    """Ask the local inference server to abort all in-flight requests."""
+    request = urllib.request.Request(
+        f"{VLLM_BASE_URL}/abort_requests",
+        data=json.dumps({}).encode(),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=5) as response:
+        if response.status != 200:
+            raise RuntimeError(f"abort_requests returned HTTP status {response.status}")
 
 
 # ── Benchmark configuration ───────────────────────────────────────────────────
@@ -585,12 +600,20 @@ def _run_benchmark() -> tuple:
 
 
 def _drain(timeout: float = 300.0) -> None:
-    """Spin until vllm:num_requests_running reaches zero.
+    """Abort in-flight requests, then wait until none remain.
 
+    Falls back to passive draining only when the optional abort endpoint is
+    absent. Other control failures are fatal because the engine may remain paused.
     Raises ``TimeoutError`` after *timeout* seconds so the pod can still
     become Ready rather than hanging forever if vLLM gets stuck.
     """
     _log("drain_start")
+    try:
+        _abort_requests()
+    except urllib.error.HTTPError as exc:
+        if exc.code != 404:
+            raise
+        _log(f"abort_requests_failed (falling back to passive drain): {exc}")
     deadline = time.monotonic() + timeout
     while True:
         if _sum_counter_metric("vllm:num_requests_running") == 0:

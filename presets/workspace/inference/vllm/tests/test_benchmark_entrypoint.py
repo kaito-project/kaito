@@ -418,9 +418,7 @@ def test_reasoning_generation_probe_reasoning_content_field_success():
     models_body = json.dumps({"data": [{"id": "qwen36"}]}).encode()
     chat_body = json.dumps(
         {
-            "choices": [
-                {"message": {"content": None, "reasoning_content": "step 1"}}
-            ],
+            "choices": [{"message": {"content": None, "reasoning_content": "step 1"}}],
         }
     ).encode()
     with patch(

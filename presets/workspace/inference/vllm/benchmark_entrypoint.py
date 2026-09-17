@@ -607,7 +607,11 @@ def _reasoning_generation_probe() -> int:
     if not choices:
         return 0
     message = (choices[0] or {}).get("message") or {}
-    if message.get("content") or message.get("reasoning") or message.get("reasoning_content"):
+    if (
+        message.get("content")
+        or message.get("reasoning")
+        or message.get("reasoning_content")
+    ):
         return 1
     return 0
 

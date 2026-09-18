@@ -40,11 +40,6 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 		{"qwen/qwen3.6-35b-a3b", "Qwen/Qwen3.6-35B-A3B", ""},
 		{"qwen/qwen3.6-27b", "Qwen/Qwen3.6-27B", ""},
 		{"qwen/qwen3.5-397b-a17b-gptq-int4", "Qwen/Qwen3.5-397B-A17B-GPTQ-Int4", ""},
-		{"google/gemma-4-e2b-it", "google/gemma-4-E2B-it", "google/gemma-4-E2B-it-assistant"},
-		{"google/gemma-4-e4b-it", "google/gemma-4-E4B-it", "google/gemma-4-E4B-it-assistant"},
-		{"google/gemma-4-12b-it", "google/gemma-4-12B-it", "google/gemma-4-12B-it-assistant"},
-		{"google/gemma-4-26b-a4b-it", "google/gemma-4-26B-A4B-it", "google/gemma-4-26B-A4B-it-assistant"},
-		{"google/gemma-4-31b-it", "google/gemma-4-31B-it", "google/gemma-4-31B-it-assistant"},
 	}
 
 	for _, tc := range tests {
@@ -76,13 +71,13 @@ func TestSpeculativeDecodingByPresetEntries(t *testing.T) {
 	}
 }
 
-func TestMTPAssistantEntryIncludesModel(t *testing.T) {
-	entry := mtpSpecDecoEntryWithModel("google/gemma-4-E2B-it", "google/gemma-4-E2B-it-assistant")
+func TestMTPDraftModelEntryIncludesModel(t *testing.T) {
+	entry := mtpSpecDecoEntryWithModel("example/main-model", "example/draft-model")
 	if entry.Config == nil || entry.Config.MTP == nil {
-		t.Fatal("mtp assistant entry missing MTP config")
+		t.Fatal("mtp draft-model entry missing MTP config")
 	}
-	if entry.Config.MTP.Model != "google/gemma-4-E2B-it-assistant" {
-		t.Fatalf("assistant model = %q, want google/gemma-4-E2B-it-assistant", entry.Config.MTP.Model)
+	if entry.Config.MTP.Model != "example/draft-model" {
+		t.Fatalf("draft model = %q, want example/draft-model", entry.Config.MTP.Model)
 	}
 }
 
@@ -128,7 +123,7 @@ func TestDeepCopySpeculativeDecoding(t *testing.T) {
 			Method: "mtp",
 			MTP: &model.MTPConfig{
 				NumSpeculativeTokens: 1,
-				Model:                "google/gemma-4-E2B-it-assistant",
+				Model:                "example/draft-model",
 			},
 		},
 	}
@@ -145,17 +140,17 @@ func TestDeepCopySpeculativeDecoding(t *testing.T) {
 	if c.SpeculativeDecoding.MTP.NumSpeculativeTokens != 1 {
 		t.Fatalf("DeepCopy: NumSpeculativeTokens = %d, want 1", c.SpeculativeDecoding.MTP.NumSpeculativeTokens)
 	}
-	if c.SpeculativeDecoding.MTP.Model != "google/gemma-4-E2B-it-assistant" {
-		t.Fatalf("DeepCopy: Model = %q, want google/gemma-4-E2B-it-assistant", c.SpeculativeDecoding.MTP.Model)
+	if c.SpeculativeDecoding.MTP.Model != "example/draft-model" {
+		t.Fatalf("DeepCopy: Model = %q, want example/draft-model", c.SpeculativeDecoding.MTP.Model)
 	}
 
 	// Mutate copy, original should be unaffected
 	c.SpeculativeDecoding.MTP.NumSpeculativeTokens = 5
-	c.SpeculativeDecoding.MTP.Model = "google/gemma-4-E4B-it-assistant"
+	c.SpeculativeDecoding.MTP.Model = "example/draft-model-v2"
 	if p.SpeculativeDecoding.MTP.NumSpeculativeTokens != 1 {
 		t.Fatal("DeepCopy: mutation leaked to original")
 	}
-	if p.SpeculativeDecoding.MTP.Model != "google/gemma-4-E2B-it-assistant" {
+	if p.SpeculativeDecoding.MTP.Model != "example/draft-model" {
 		t.Fatal("DeepCopy: model mutation leaked to original")
 	}
 }

@@ -220,9 +220,9 @@ type SpeculativeDecodingConfig struct {
 }
 
 // MTPConfig covers vLLM's mtp method, including both the self-contained-head
-// case (DeepSeek / Qwen / MiMo style, where the served checkpoint carries the
-// predictor) and the assistant-checkpoint case (Gemma 4 IT family), where the
-// draft/assistant checkpoint is passed via the model field.
+// case (where the served checkpoint carries the predictor) and the
+// assistant-checkpoint case, where the draft/assistant checkpoint is passed
+// via the model field.
 type MTPConfig struct {
 	NumSpeculativeTokens int    `yaml:"numSpeculativeTokens"`
 	Model                string `yaml:"model,omitempty"`

@@ -32,12 +32,38 @@ import (
 )
 
 const (
-	SystemFileDiskSizeGiB  = 80
-	DefaultModelTokenLimit = 2048
-	HuggingFaceWebsite     = "https://huggingface.co"
+	SystemFileDiskSizeGiB            = 80
+	DefaultModelTokenLimit           = 2048
+	HuggingFaceWebsite               = "https://huggingface.co"
+	SpeculativeDecodingMethodMTP     = "mtp"
+	mtpSpeculativeDecodingTokenCount = 1
 )
 
 // Please update the following model-specific configurations when adding new models to model catalog
+
+// specDecoEntry pairs the user-facing preset alias with the KAITO-authored config.
+type specDecoEntry struct {
+	UserFacing string // preset name accepted by GetModelByName, e.g. "deepseek-r1-0528"
+	Config     *model.SpeculativeDecodingConfig
+}
+
+func mtpSpecDecoEntry(userFacing string) specDecoEntry {
+	return mtpSpecDecoEntryWithModel(userFacing, "")
+}
+
+func mtpSpecDecoEntryWithModel(userFacing, draftModel string) specDecoEntry {
+	return specDecoEntry{
+		UserFacing: userFacing,
+		Config: &model.SpeculativeDecodingConfig{
+			Method: SpeculativeDecodingMethodMTP,
+			MTP: &model.MTPConfig{
+				NumSpeculativeTokens: mtpSpeculativeDecodingTokenCount,
+				Model:                draftModel,
+			},
+		},
+	}
+}
+
 var (
 	safetensorRegex = regexp.MustCompile(`.*\.safetensors`)
 	binRegex        = regexp.MustCompile(`.*\.bin`)
@@ -300,6 +326,29 @@ var (
 			Architectures: []string{"MistralLarge3ForCausalLM"},
 			PipelineTag:   "text-generation",
 		},
+	}
+
+	// speculativeDecodingByPreset maps lowercased HuggingFace repo names to
+	// their validated, preset-tuned speculative decoding configuration.
+	// Presets absent from this map can still opt into the universal ngram
+	// fallback; this map is only the source of truth for per-preset tuning.
+	// Keys follow the same convention as catalogOverrides.
+	speculativeDecodingByPreset = map[string]specDecoEntry{
+		"deepseek-ai/deepseek-r1-0528":     mtpSpecDecoEntry("deepseek-r1-0528"),
+		"deepseek-ai/deepseek-v3-0324":     mtpSpecDecoEntry("deepseek-v3-0324"),
+		"deepseek-ai/deepseek-v3.2":        mtpSpecDecoEntry("deepseek-ai/DeepSeek-V3.2"),
+		"zai-org/glm-5.2-fp8":              mtpSpecDecoEntry("zai-org/GLM-5.2-FP8"),
+		"nvidia/deepseek-v4-flash-nvfp4":   mtpSpecDecoEntry("nvidia/DeepSeek-V4-Flash-NVFP4"),
+		"xiaomimimo/mimo-7b-base":          mtpSpecDecoEntry("XiaomiMiMo/MiMo-7B-Base"),
+		"qwen/qwen3.5-2b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-2B"),
+		"qwen/qwen3.5-4b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-4B"),
+		"qwen/qwen3.5-9b":                  mtpSpecDecoEntry("Qwen/Qwen3.5-9B"),
+		"qwen/qwen3.5-122b-a10b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B-GPTQ-Int4"),
+		"qwen/qwen3.5-122b-a10b":           mtpSpecDecoEntry("Qwen/Qwen3.5-122B-A10B"),
+		"qwen/qwen3.6-35b-a3b-fp8":         mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B-FP8"),
+		"qwen/qwen3.6-35b-a3b":             mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B"),
+		"qwen/qwen3.6-27b":                 mtpSpecDecoEntry("Qwen/Qwen3.6-27B"),
+		"qwen/qwen3.5-397b-a17b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-397B-A17B-GPTQ-Int4"),
 	}
 )
 
@@ -998,6 +1047,11 @@ func (g *Generator) loadFromCatalog() bool {
 		g.TokenizerMode = entry.LoadFormat
 	}
 
+	// Populate speculative decoding config from the per-preset map.
+	if sdEntry, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+		g.Param.SpeculativeDecoding = sdEntry.Config
+	}
+
 	return true
 }
 
@@ -1005,6 +1059,10 @@ func (g *Generator) Generate() (*model.PresetParam, error) {
 	if !g.loadFromCatalog() {
 		if err := g.FetchModelMetadata(); err != nil {
 			return nil, err
+		}
+		// Populate speculative decoding config for the non-catalog path.
+		if sdEntry, ok := speculativeDecodingByPreset[strings.ToLower(g.ModelRepo)]; ok {
+			g.Param.SpeculativeDecoding = sdEntry.Config
 		}
 	}
 	if err := validateSupportedConfig(g.ModelConfig); err != nil {

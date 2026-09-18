@@ -372,9 +372,9 @@ func TestGeneratePresetInference(t *testing.T) {
 			}
 			mockClient.CreateOrUpdateObjectInMap(svc)
 
-			createdObject, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
+			result, _ := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
 
-			statefulset := createdObject.(*appsv1.StatefulSet)
+			statefulset := result.Workload.(*appsv1.StatefulSet)
 			image := statefulset.Spec.Template.Spec.Containers[0].Image
 			envVars := statefulset.Spec.Template.Spec.Containers[0].Env
 
@@ -1630,12 +1630,12 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 
 	model := plugin.KaitoModelRegister.MustGet("test-deepgemm-model")
 
-	createdObject, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
+	result, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, model, mockClient, nil)
 	if err != nil {
 		t.Fatalf("GeneratePresetInference returned error: %v", err)
 	}
 
-	ss := createdObject.(*appsv1.StatefulSet)
+	ss := result.Workload.(*appsv1.StatefulSet)
 	podSpec := ss.Spec.Template.Spec
 
 	// hostPath volumes for weights and CUDA toolkit are present; the default
@@ -1755,11 +1755,11 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		mockClient.CreateOrUpdateObjectInMap(svc)
 
 		m := plugin.KaitoModelRegister.MustGet(presetName)
-		obj, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, m, mockClient, nil)
+		result2, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, m, mockClient, nil)
 		if err != nil {
 			t.Fatalf("GeneratePresetInference returned error: %v", err)
 		}
-		return obj.(*appsv1.StatefulSet).Spec.Template.Spec
+		return result2.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
 	}
 
 	t.Run("DeepGEMM model without annotation uses the default baked path", func(t *testing.T) {

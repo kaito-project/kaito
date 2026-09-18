@@ -25,6 +25,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
 
 func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -52,6 +53,12 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 		errs = errs.Also(m.validateUpdate(old).ViaField("spec"))
 		errs = errs.Also(m.validateCapacityTypeAnnotationUpdate(old))
 	}
+	// Speculative-decoding opt-in is validated against top-level metadata
+	// (annotation propagates to child InferenceSets -> Workspaces via the
+	// MRI controller). Invoke outside the spec wrapper so field paths like
+	// metadata.annotations[...] are reported correctly, matching the
+	// Workspace validators.
+	errs = errs.Also(m.validateSpeculativeDecoding())
 	return errs
 }
 
@@ -183,6 +190,41 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 	if !hasDecode {
 		errs = errs.Also(apis.ErrMissingField("roles", "missing decode role"))
 	}
+
+	return errs
+}
+
+// validateSpeculativeDecoding mirrors the Workspace/InferenceSet validators
+// for the kaito.sh/enable-speculative-decoding opt-in. The MRI controller
+// propagates m.Annotations onto each child InferenceSet's Spec.Template.
+// Metadata, which the InferenceSet controller then clones onto each child
+// Workspace. Gating at MRI admission avoids surfacing a valid MRI whose
+// generated workspaces would silently drop speculative decoding.
+func (m *MultiRoleInference) validateSpeculativeDecoding() (errs *apis.FieldError) {
+	// Preset must be set (MRI's shared model).
+	presetName := m.Spec.Model.Name
+	runtime := EffectiveInferenceRuntime(m.Annotations)
+
+	errs = speculativedecoding.ValidateOptIn(m.GetAnnotations(), speculativedecoding.ValidationOptions{
+		AnnotationKey:        AnnotationEnableSpeculativeDecoding,
+		AnnotationPath:       fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		PresetName:           presetName,
+		MissingPresetMessage: "kaito.sh/enable-speculative-decoding requires spec.model.name",
+		Runtime:              runtime,
+		RuntimeMismatchMessage: fmt.Sprintf(
+			"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
+				"effective runtime resolves to %q (preset %q)",
+			runtime, presetName,
+		),
+	})
+
+	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
+	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else
+	// falls back to the universal ngram default at pod-spec generation time.
+	//
+	// Note: MRI is inherently multi-role (prefill + decode) and typically
+	// single-node per role. Pipeline-parallelism guard is enforced at the
+	// child Workspace layer (Resource.Count > 1).
 
 	return errs
 }

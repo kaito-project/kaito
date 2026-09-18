@@ -38,6 +38,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	utilsinferenceset "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
@@ -417,6 +418,72 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 // TestInferenceSetBenchmarkAggregation covers the TPM sum and BenchmarkCompleted
 // condition logic inside addOrUpdateInferenceSet.
 // --------------------------------------------------------------------------
+
+func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
+	t.Run("updates speculative decoding annotation without clobbering unrelated child annotations", func(t *testing.T) {
+		prevProvisioner := consts.ActiveNodeProvisioner
+		consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+		defer func() { consts.ActiveNodeProvisioner = prevProvisioner }()
+
+		iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+		iObj.Labels = map[string]string{
+			v1beta1.LabelInferenceRole: "prefill",
+		}
+		iObj.Spec.Template.Labels = map[string]string{
+			"team": "serving",
+		}
+		iObj.Spec.Template.Annotations = map[string]string{
+			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
+			v1beta1.AnnotationCapacityType:              consts.KarpenterCapacityTypeSpot,
+		}
+
+		desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+		ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		ws.Labels = map[string]string{
+			"team":  "old-team",
+			"extra": "keep-me",
+		}
+		ws.Annotations = map[string]string{
+			v1beta1.AnnotationEnableSpeculativeDecoding: "false",
+			v1beta1.AnnotationCapacityType:              "reserved",
+			v1beta1.AnnotationDisableBenchmark:          "true",
+			"workspace.kaito.io/hash":                   "hash",
+			"workspace.kaito.io/revision":               "3",
+			"kaito.sh/upgrade-start-time":               "ts",
+			"example.com/stale":                         "keep-me",
+		}
+
+		updated := reconcileExistingWorkspaceMetadata(ws, desired)
+		assert.True(t, updated)
+		assert.Equal(t, "serving", ws.Labels["team"])
+		assert.Equal(t, "prefill", ws.Labels[v1beta1.LabelInferenceRole])
+		assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+		assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
+		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
+		assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
+		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
+		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
+		assert.Equal(t, "ts", ws.Annotations["kaito.sh/upgrade-start-time"])
+		assert.Equal(t, "keep-me", ws.Annotations["example.com/stale"])
+
+		assert.False(t, reconcileExistingWorkspaceMetadata(ws, desired), "already-reconciled workspace metadata should be a no-op")
+	})
+
+	t.Run("removes speculative decoding annotation when no longer desired", func(t *testing.T) {
+		iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+		desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+		ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		ws.Annotations = map[string]string{
+			v1beta1.AnnotationEnableSpeculativeDecoding: "true",
+			"workspace.kaito.io/hash":                   "hash",
+		}
+
+		updated := reconcileExistingWorkspaceMetadata(ws, desired)
+		assert.True(t, updated)
+		assert.NotContains(t, ws.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
+		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
+	})
+}
 
 func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 	makeWorkspace := func(name string, tpm string) v1beta1.Workspace {

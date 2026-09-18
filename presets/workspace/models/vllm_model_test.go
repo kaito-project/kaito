@@ -21,13 +21,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kaito-project/kaito/pkg/model"
-	"github.com/kaito-project/kaito/pkg/utils/plugin"
-	"github.com/kaito-project/kaito/presets/workspace/generator"
-
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
+	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {

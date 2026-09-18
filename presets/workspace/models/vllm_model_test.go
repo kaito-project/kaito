@@ -21,13 +21,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/generator"
+
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestVLLMCompatibleModel_GetInferenceParameters(t *testing.T) {
@@ -1314,4 +1314,3 @@ func TestGetModelByName_Qwen35_4B_SpeculativeDecodingMTP(t *testing.T) {
 	assert.Equal(t, "", params.SpeculativeDecoding.MTP.Model,
 		"self-contained Qwen MTP should not inject a separate assistant model")
 }
-

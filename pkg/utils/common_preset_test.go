@@ -215,14 +215,19 @@ func TestConfigCMVolume(t *testing.T) {
 	if mount.MountPath != DefaultConfigMapMountPath {
 		t.Errorf("unexpected mount path %q", mount.MountPath)
 	}
+	// The whole ConfigMap must be projected: tuning relies on training_config.yaml
+	// being mounted, so no key filtering may be applied here.
+	if vol.VolumeSource.ConfigMap.Items != nil {
+		t.Errorf("expected the whole ConfigMap to be projected, got items %v", vol.VolumeSource.ConfigMap.Items)
+	}
 }
 
-// A bring-your-own model shares this ConfigMap with its config.json, which the
-// operator reads for sizing. Projecting the whole ConfigMap would drop that file
-// into the mount path alongside the authoritative config.json shipped with the
-// model bundle, where it could silently override the real one.
-func TestConfigCMVolumeProjectsOnlyRuntimeConfig(t *testing.T) {
-	vol, _ := ConfigCMVolume("my-configmap")
+// A bring-your-own model shares the inference ConfigMap with its config.json,
+// which the operator reads for sizing. Projecting the whole ConfigMap would drop
+// that file into the mount path alongside the authoritative config.json shipped
+// with the model bundle, where it could silently override the real one.
+func TestInferenceConfigCMVolumeProjectsOnlyRuntimeConfig(t *testing.T) {
+	vol, _ := InferenceConfigCMVolume("my-configmap")
 	src := vol.VolumeSource.ConfigMap
 
 	if len(src.Items) != 1 {

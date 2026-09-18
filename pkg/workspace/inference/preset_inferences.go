@@ -524,7 +524,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// no config volume is mounted and the runtime falls back to its built-in defaults.
 		var cmVolumeMountRef *corev1.VolumeMount
 		if userConfig := ctx.Workspace.Inference.Config; userConfig != "" {
-			cmVolume, cmVolumeMount := utils.ConfigCMVolume(userConfig)
+			cmVolume, cmVolumeMount := utils.InferenceConfigCMVolume(userConfig)
 			volumes = append(volumes, cmVolume)
 			volumeMounts = append(volumeMounts, cmVolumeMount)
 			cmVolumeMountRef = &cmVolumeMount

@@ -89,11 +89,15 @@ Each pod learns its role from a `POD_INDEX` environment variable, projected from
 
 ```sh
 if [ "${POD_INDEX}" = "0" ]; then
-  /workspace/vllm/multi-node-serving.sh leader ...   # Ray head + vLLM API
+  /workspace/vllm/multi-node-serving.sh leader ... && python3 /workspace/vllm/inference_api.py ...
 else
   /workspace/vllm/multi-node-serving.sh worker ...   # Ray worker joins leader
 fi
 ```
+
+The leader's two commands are chained with `&&`, not `;`: `multi-node-serving.sh leader` blocks
+until `ray_cluster_size` nodes have joined and exits non-zero on timeout, so the API server is
+only launched against a fully formed cluster.
 
 Workers find the leader through a **headless Service** that gives every pod a stable DNS name. The leader address is constructed as (`GetRayLeaderHost`):
 

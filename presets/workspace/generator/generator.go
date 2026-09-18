@@ -349,11 +349,6 @@ var (
 		"qwen/qwen3.6-35b-a3b":             mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B"),
 		"qwen/qwen3.6-27b":                 mtpSpecDecoEntry("Qwen/Qwen3.6-27B"),
 		"qwen/qwen3.5-397b-a17b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-397B-A17B-GPTQ-Int4"),
-		"google/gemma-4-e2b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-E2B-it", "google/gemma-4-E2B-it-assistant"),
-		"google/gemma-4-e4b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-E4B-it", "google/gemma-4-E4B-it-assistant"),
-		"google/gemma-4-12b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-12B-it", "google/gemma-4-12B-it-assistant"),
-		"google/gemma-4-26b-a4b-it":        mtpSpecDecoEntryWithModel("google/gemma-4-26B-A4B-it", "google/gemma-4-26B-A4B-it-assistant"),
-		"google/gemma-4-31b-it":            mtpSpecDecoEntryWithModel("google/gemma-4-31B-it", "google/gemma-4-31B-it-assistant"),
 	}
 )
 

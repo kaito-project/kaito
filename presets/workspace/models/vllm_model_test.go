@@ -1315,22 +1315,3 @@ func TestGetModelByName_Qwen35_4B_SpeculativeDecodingMTP(t *testing.T) {
 		"self-contained Qwen MTP should not inject a separate assistant model")
 }
 
-func TestGetModelByName_Gemma4E2B_SpeculativeDecodingMTP(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "google/gemma-4-E2B-it", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
-		return
-	}
-	assert.Equal(t, "mtp", params.SpeculativeDecoding.Method)
-	if !assert.NotNil(t, params.SpeculativeDecoding.MTP) {
-		return
-	}
-	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
-	assert.Equal(t, "google/gemma-4-E2B-it-assistant", params.SpeculativeDecoding.MTP.Model,
-		"Gemma 4 MTP should preserve the assistant checkpoint name")
-}

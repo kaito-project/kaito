@@ -60,12 +60,12 @@ func TestVllmFormat(t *testing.T) {
 			},
 		},
 		{
-			name: "mtp with assistant model",
+			name: "mtp with draft model",
 			sd: &pkgmodel.SpeculativeDecodingConfig{
 				Method: "mtp",
 				MTP: &pkgmodel.MTPConfig{
 					NumSpeculativeTokens: 1,
-					Model:                "google/gemma-4-E2B-it-assistant",
+					Model:                "example/draft-model",
 				},
 			},
 			check: func(t *testing.T, jsonStr string) {
@@ -79,8 +79,8 @@ func TestVllmFormat(t *testing.T) {
 				if m["num_speculative_tokens"] != float64(1) {
 					t.Errorf("num_speculative_tokens = %v, want 1", m["num_speculative_tokens"])
 				}
-				if m["model"] != "google/gemma-4-E2B-it-assistant" {
-					t.Errorf("model = %v, want google/gemma-4-E2B-it-assistant", m["model"])
+				if m["model"] != "example/draft-model" {
+					t.Errorf("model = %v, want example/draft-model", m["model"])
 				}
 			},
 		},
@@ -231,7 +231,7 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			},
 		}
 	}
-	presetWithAssistantMTP := func() *pkgmodel.PresetParam {
+	presetWithDraftMTP := func() *pkgmodel.PresetParam {
 		return &pkgmodel.PresetParam{
 			RuntimeParam: pkgmodel.RuntimeParam{
 				VLLM: pkgmodel.VLLMParam{
@@ -242,7 +242,7 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 				Method: "mtp",
 				MTP: &pkgmodel.MTPConfig{
 					NumSpeculativeTokens: 1,
-					Model:                "google/gemma-4-E2B-it-assistant",
+					Model:                "example/draft-model",
 				},
 			},
 		}
@@ -342,13 +342,13 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			wantInjected: true,
 		},
 		{
-			name:         "annotation true + gemma-style mtp assistant model -> injected",
+			name:         "annotation true + mtp draft model -> injected",
 			ws:           newWS("true", 1),
 			runtime:      pkgmodel.RuntimeNameVLLM,
-			preset:       presetWithAssistantMTP(),
+			preset:       presetWithDraftMTP(),
 			wantDecision: SpecDecoInjected,
 			wantInjected: true,
-			wantContains: `"model":"google/gemma-4-E2B-it-assistant"`,
+			wantContains: `"model":"example/draft-model"`,
 		},
 	}
 	for _, tc := range tests {

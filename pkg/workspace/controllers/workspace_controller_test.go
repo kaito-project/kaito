@@ -15,6 +15,8 @@ package controllers
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -616,17 +618,35 @@ func TestApplyInferenceWithTemplate(t *testing.T) {
 	}
 }
 
-func TestComputeHashIncludesSpeculativeDecodingAnnotation(t *testing.T) {
+func computeLegacyHash(w *v1beta1.Workspace) string {
+	hasher := sha256.New()
+	encoder := json.NewEncoder(hasher)
+	encoder.Encode(w.Resource)
+	encoder.Encode(w.Inference)
+	encoder.Encode(w.Tuning)
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func TestComputeHashIncludesOnlyEnabledSpeculativeDecodingState(t *testing.T) {
 	wsWithout := test.MockWorkspaceWithComputeHash.DeepCopy()
 	delete(wsWithout.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
 
-	wsWith := wsWithout.DeepCopy()
-	if wsWith.Annotations == nil {
-		wsWith.Annotations = map[string]string{}
+	wsFalse := wsWithout.DeepCopy()
+	if wsFalse.Annotations == nil {
+		wsFalse.Annotations = map[string]string{}
 	}
-	wsWith.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] = "true"
+	wsFalse.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] = "false"
 
-	assert.NotEqual(t, ComputeHash(wsWithout), ComputeHash(wsWith), "speculative-decoding annotation must affect workspace revision hash")
+	wsTrue := wsWithout.DeepCopy()
+	if wsTrue.Annotations == nil {
+		wsTrue.Annotations = map[string]string{}
+	}
+	wsTrue.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] = "true"
+
+	legacy := computeLegacyHash(wsWithout)
+	assert.Equal(t, legacy, ComputeHash(wsWithout), "absent speculative-decoding annotation must preserve the legacy workspace hash")
+	assert.Equal(t, legacy, ComputeHash(wsFalse), "disabled speculative-decoding annotation must preserve the legacy workspace hash")
+	assert.NotEqual(t, legacy, ComputeHash(wsTrue), "enabled speculative-decoding annotation must affect workspace revision hash")
 }
 
 func TestSyncInferenceMutablePodSpec(t *testing.T) {

@@ -22,6 +22,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -302,6 +304,96 @@ func TestInferenceSet_validateUpdate(t *testing.T) {
 	old := &InferenceSet{}
 	err := is.validateUpdate(old)
 	assert.Nil(t, err)
+}
+
+func TestInferenceSet_validateSpeculativeDecoding(t *testing.T) {
+	presetTpl := func(name string) InferenceSetTemplate {
+		return InferenceSetTemplate{
+			Inference: kaitov1beta1.InferenceSpec{Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: kaitov1beta1.ModelName(name)}}},
+		}
+	}
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		template    InferenceSetTemplate
+		wantErr     bool
+	}{
+		{
+			name:        "annotation absent - pass",
+			annotations: nil,
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     false,
+		},
+		{
+			name:        "annotation false - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "false"},
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     false,
+		},
+		{
+			name:        "invalid annotation value - rejected",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "yes"},
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     true,
+		},
+		{
+			name:        "true with supported preset - pass",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			template:    presetTpl("deepseek-r1-0528"),
+			wantErr:     false,
+		},
+		{
+			name:        "true with unsupported preset - accepted (ngram fallback)",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			template:    presetTpl("llama-3.1-8b-instruct"),
+			wantErr:     false,
+		},
+		{
+			name:        "true without preset - rejected",
+			annotations: map[string]string{AnnotationEnableSpeculativeDecoding: "true"},
+			template:    InferenceSetTemplate{},
+			wantErr:     true,
+		},
+		{
+			name: "true with non-vllm runtime annotation - rejected",
+			annotations: map[string]string{
+				AnnotationEnableSpeculativeDecoding: "true",
+				AnnotationWorkspaceRuntime:          "transformers",
+			},
+			template: presetTpl("deepseek-r1-0528"),
+			wantErr:  true,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tpl := tc.template
+			tpl.Annotations = tc.annotations
+			is := &InferenceSet{
+				ObjectMeta: metav1.ObjectMeta{Name: "is", Namespace: "default"},
+				Spec:       InferenceSetSpec{Template: tpl},
+			}
+			err := is.validateSpeculativeDecoding()
+			if (err != nil) != tc.wantErr {
+				t.Errorf("validateSpeculativeDecoding() err=%v wantErr=%v", err, tc.wantErr)
+			}
+		})
+	}
+
+	t.Run("vllm feature gate disabled - rejected", func(t *testing.T) {
+		orig := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
+		defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = orig }()
+
+		tpl := presetTpl("deepseek-r1-0528")
+		tpl.Annotations = map[string]string{AnnotationEnableSpeculativeDecoding: "true"}
+		is := &InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "is", Namespace: "default"},
+			Spec:       InferenceSetSpec{Template: tpl},
+		}
+		if err := is.validateSpeculativeDecoding(); err == nil {
+			t.Fatalf("expected rejection when vLLM feature gate is disabled")
+		}
+	})
 }
 
 func TestValidateMaintenanceWindow(t *testing.T) {

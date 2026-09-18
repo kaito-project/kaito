@@ -576,7 +576,9 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	encoder.Encode(w.Resource)
 	encoder.Encode(w.Inference)
 	encoder.Encode(w.Tuning)
-	encoder.Encode(w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding])
+	if w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
+		encoder.Encode(true)
+	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 

@@ -1,0 +1,116 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mock-backend-script
+  namespace: default
+data:
+  app.py: |
+    #!/usr/bin/env python3
+    import json
+    import sys
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    class MockLLMHandler(BaseHTTPRequestHandler):
+      def do_POST(self):
+        content_length = int(self.headers.get('content-length', 0))
+        body = self.rfile.read(content_length).decode('utf-8')
+
+        try:
+          request = json.loads(body)
+        except:
+          self.send_response(400)
+          self.end_headers()
+          return
+
+        # Check request content to determine response
+        messages = request.get('messages', [])
+        user_content = ''
+        for msg in messages:
+          if msg.get('role') == 'user':
+            user_content = msg.get('content', '')
+            break
+
+        # Return response based on request content
+        if 'PROHIBITED' in user_content:
+          # Mock returns content that will be blocked
+          response = {
+            'choices': [
+              {'message': {'content': 'Response contains PROHIBITED content that should be blocked'}}
+            ]
+          }
+        elif 'contact:' in user_content or 'test@example.com' in user_content:
+          # Return response with PII that should be redacted
+          response = {
+            'choices': [
+              {'message': {'content': 'contact: test@example.com and phone 555-1234'}}
+            ]
+          }
+        else:
+          # Normal clean response
+          response = {
+            'choices': [
+              {'message': {'content': 'hello from mock model'}}
+            ]
+          }
+
+        self.send_response(200)
+        self.send_header('content-type', 'application/json')
+        response_body = json.dumps(response).encode('utf-8')
+        self.send_header('content-length', str(len(response_body)))
+        self.end_headers()
+        self.wfile.write(response_body)
+
+      def log_message(self, format, *args):
+        pass  # Suppress logging
+
+    if __name__ == '__main__':
+      server = HTTPServer(('0.0.0.0', 8080), MockLLMHandler)
+      server.serve_forever()
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-llm
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-llm
+  template:
+    metadata:
+      labels:
+        app: mock-llm
+    spec:
+      containers:
+      - name: mock-llm
+        image: python:3.11-slim
+        command:
+        - python3
+        - /app/app.py
+        volumeMounts:
+        - name: app-script
+          mountPath: /app
+        ports:
+        - containerPort: 8080
+      volumes:
+      - name: app-script
+        configMap:
+          name: mock-backend-script
+          defaultMode: 0755
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-llm
+  namespace: default
+spec:
+  selector:
+    app: mock-llm
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP

@@ -1,0 +1,88 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-output-guardrails
+  namespace: default
+data:
+  policy.yaml: |
+    action: redact
+    blockMessage: "Response blocked by guardrails"
+    scanners:
+      - type: ban_substrings
+        action: block
+        substrings: ["PROHIBITED_CONTENT"]
+        match_type: word
+        case_sensitive: false
+
+      - type: secrets
+        action: redact
+
+      - type: sensitive
+        action: redact
+        detectors: [email, phone_number, credit_card]
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-guard-ext-proc
+  namespace: default
+spec:
+  selector:
+    app: llm-guard-ext-proc
+  ports:
+  - name: grpc
+    port: 9000
+    targetPort: 9000
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-guard-ext-proc
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: llm-guard-ext-proc
+  template:
+    metadata:
+      labels:
+        app: llm-guard-ext-proc
+    spec:
+      containers:
+      - name: ext-proc
+        image: yiqi685/llm-guard-ext-proc:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9000
+          name: grpc
+        env:
+        - name: OUTPUT_GUARDRAILS_ENABLED
+          value: "true"
+        - name: OUTPUT_GUARDRAILS_POLICY_PATH
+          value: /etc/kaito/guardrails/policy.yaml
+        volumeMounts:
+        - name: guardrails-policy
+          mountPath: /etc/kaito/guardrails
+          readOnly: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+      volumes:
+      - name: guardrails-policy
+        configMap:
+          name: gateway-output-guardrails
+

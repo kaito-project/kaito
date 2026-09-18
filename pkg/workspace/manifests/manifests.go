@@ -32,6 +32,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -424,7 +425,8 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 				// filter fails with "Connection refused" / "no healthy upstream"
 				// during TLS handshake against a plaintext client.
 				"flags": map[string]any{
-					"secure-serving": false,
+					"metrics-endpoint-auth": false,
+					"secure-serving":        false,
 				},
 			},
 			"modelServers": map[string]any{
@@ -434,6 +436,41 @@ func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet
 				}},
 			},
 		},
+	}
+	if featuregates.FeatureGates[consts.FeatureFlagEnableEPPFlowControl] {
+		// The router chart treats pluginsCustomConfig as a complete
+		// EndpointPickerConfig rather than merging it with the built-in default.
+		// Preserve that default plugin stack here while adding the flowControl
+		// feature gate. EPP v0.9.0's deprecated environment toggle is applied too
+		// late to initialize the Flow Control admission controller.
+		eppValues := helmValues["router"].(map[string]any)["epp"].(map[string]any)
+		eppValues["pluginsConfigFile"] = "flow-control-plugins.yaml"
+		eppValues["pluginsCustomConfig"] = map[string]string{
+			"flow-control-plugins.yaml": `apiVersion: llm-d.ai/v1alpha1
+kind: EndpointPickerConfig
+featureGates:
+- flowControl
+plugins:
+- type: queue-scorer
+- type: kv-cache-utilization-scorer
+- type: prefix-cache-scorer
+- type: metrics-data-source
+  parameters:
+    scheme: "http"
+    path: "/metrics"
+    insecureSkipVerify: true
+- type: core-metrics-extractor
+schedulingProfiles:
+- name: default
+  plugins:
+  - pluginRef: queue-scorer
+    weight: 2
+  - pluginRef: kv-cache-utilization-scorer
+    weight: 2
+  - pluginRef: prefix-cache-scorer
+    weight: 3
+`,
+		}
 	}
 	rawHelmValues, err := json.Marshal(helmValues)
 	if err != nil {

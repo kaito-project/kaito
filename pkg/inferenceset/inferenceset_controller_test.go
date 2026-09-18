@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/go-logr/logr"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -38,6 +40,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	utilinferenceset "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
@@ -559,6 +562,66 @@ func TestInferenceSetBenchmarkAggregation(t *testing.T) {
 				fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, *tc.inferenceset.Spec.Replicas))
 		})
 	}
+}
+
+func TestInferenceSetScaleFromZeroRetriesPendingExpectations(t *testing.T) {
+	ctx := context.Background()
+	inferenceSet := test.MockInferenceSetWithPreset.DeepCopy()
+	inferenceSet.Spec.Replicas = lo.ToPtr(int32(1))
+	workspace := utilinferenceset.NewWorkspaceForInferenceSet(inferenceSet)
+	workspace.Name = inferenceSet.Name + "-initial"
+	workspace.GenerateName = ""
+
+	scheme := runtime.NewScheme()
+	assert.NoError(t, v1beta1.AddToScheme(scheme))
+	assert.NoError(t, appsv1.AddToScheme(scheme))
+	cl := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithStatusSubresource(inferenceSet).
+		WithObjects(inferenceSet, workspace).
+		Build()
+	reconciler := NewInferenceSetReconciler(cl, scheme, logr.Discard(), nil)
+	isKey := client.ObjectKeyFromObject(inferenceSet).String()
+
+	// Scale down and intentionally do not report the Workspace deletion event.
+	inferenceSet.Spec.Replicas = lo.ToPtr(int32(0))
+	result, err := reconciler.addOrUpdateInferenceSet(ctx, inferenceSet)
+	assert.NoError(t, err)
+	assert.Zero(t, result.RequeueAfter)
+	assertWorkspaceCount(t, ctx, cl, inferenceSet, 0)
+
+	// Scale up. The missed observation leaves deletion expectations pending, so
+	// reconciliation must retry without requiring another spec change.
+	inferenceSet.Spec.Replicas = lo.ToPtr(int32(1))
+	result, err = reconciler.addOrUpdateInferenceSet(ctx, inferenceSet)
+	assert.NoError(t, err)
+	assert.Equal(t, time.Second, result.RequeueAfter)
+	assertWorkspaceCount(t, ctx, cl, inferenceSet, 0)
+
+	// A delayed watch event satisfies the deletion expectation. The scheduled
+	// retry then creates the replacement Workspace.
+	reconciler.expectations.DeletionObserved(reconciler.klogger, isKey)
+	result, err = reconciler.addOrUpdateInferenceSet(ctx, inferenceSet)
+	assert.NoError(t, err)
+	assert.Zero(t, result.RequeueAfter)
+	assertWorkspaceCount(t, ctx, cl, inferenceSet, 1)
+
+	// Until the creation event is observed, another retry must not create a
+	// duplicate Workspace.
+	result, err = reconciler.addOrUpdateInferenceSet(ctx, inferenceSet)
+	assert.NoError(t, err)
+	assert.Equal(t, time.Second, result.RequeueAfter)
+	assertWorkspaceCount(t, ctx, cl, inferenceSet, 1)
+}
+
+func assertWorkspaceCount(t *testing.T, ctx context.Context, cl client.Client, inferenceSet *v1beta1.InferenceSet, expected int) {
+	t.Helper()
+	workspaceList := &v1beta1.WorkspaceList{}
+	err := cl.List(ctx, workspaceList,
+		client.InNamespace(inferenceSet.Namespace),
+		client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSet.Name})
+	assert.NoError(t, err)
+	assert.Len(t, workspaceList.Items, expected)
 }
 
 func TestSelectWorkspacesToDelete(t *testing.T) {

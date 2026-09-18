@@ -459,6 +459,32 @@ func TestGetInferenceCommandVLLMMultiNode(t *testing.T) {
 	require.Len(t, cmd, 3)
 	// Multi-node path wraps in if/else on POD_INDEX
 	assert.Contains(t, cmd[2], "POD_INDEX")
+	assert.Contains(t, cmd[2], "--ray_cluster_size=2")
+	assert.Contains(t, cmd[2], " && vllm serve")
+}
+
+func TestMultiNodeRayCommandRequiresReadyCluster(t *testing.T) {
+	p := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{
+		BaseCommand:          "vllm serve",
+		ModelRunParams:       map[string]string{},
+		RayLeaderBaseCommand: "bash multi-node-serving.sh leader",
+		RayLeaderParams:      map[string]string{},
+		RayWorkerBaseCommand: "bash multi-node-serving.sh worker",
+		RayWorkerParams:      map[string]string{},
+	}}}
+	args := p.buildMultiNodeRayCommand(RuntimeContext{
+		NumNodes:          2,
+		WorkspaceMetadata: metav1.ObjectMeta{Name: "ws", Namespace: "default"},
+	})
+	require.Len(t, args, 3)
+	script := args[2]
+	// The Ray leader startup must gate the model server. multi-node-serving.sh
+	// exits non-zero until --ray_cluster_size nodes have joined, so chaining with
+	// '&&' short-circuits and the server never starts against an incomplete
+	// cluster; ';' (the regression this guards against) would start it anyway.
+	assert.Contains(t, script, "--ray_cluster_size=2")
+	assert.Contains(t, script, " && vllm serve")
+	assert.NotContains(t, script, "; vllm serve")
 }
 
 func TestGetInferenceCommandUnknownRuntime(t *testing.T) {

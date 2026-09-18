@@ -30,6 +30,7 @@ import rate_limit
 import uvloop
 import vllm.entrypoints.openai.api_server as api_server
 import yaml
+from _workarounds import model_asset_prefetch
 from huggingface_hub import HfFileSystem, scan_cache_dir
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from vllm.entrypoints.openai.models.protocol import LoRAModulePath
@@ -109,6 +110,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             default=False,
             help="Disable the queue-depth rate limit guard (which otherwise returns HTTP 429 when the waiting queue exceeds max-num-seqs).",
         )
+        model_asset_prefetch.register_args(self)
 
     def _reset_vllm_defaults(self):
         local_rank = int(os.environ.get("LOCAL_RANK", 0))  # Default to 0 if not set
@@ -664,6 +666,8 @@ if __name__ == "__main__":
     else:
         args.middleware = list(args.middleware or [])
         args.middleware.append("rate_limit.RateLimitMiddleware")
+
+    model_asset_prefetch.prefetch_model_assets(args)
 
     # See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html
     uvloop.run(api_server.run_server(args))

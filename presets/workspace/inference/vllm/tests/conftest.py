@@ -55,6 +55,9 @@ except (ImportError, Exception):
             "entrypoints.openai.models.protocol",
             "utils",
             "utils.argparse_utils",
+            "v1",
+            "v1.metrics",
+            "v1.metrics.prometheus",
         ],
     )
 

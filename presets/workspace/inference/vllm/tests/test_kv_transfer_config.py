@@ -133,12 +133,35 @@ class TestLMCacheMPServer:
                 "5555",
                 "--chunk-size",
                 "256",
+                "--l1-use-lazy",
+                "--l1-init-size-gb",
+                "1",
                 "--l1-size-gb",
                 "40.0",
                 "--eviction-policy",
                 "LRU",
             ]
         )
+
+    def test_start_scales_l1_size_by_tensor_parallel_size(self):
+        args = _make_args(
+            kaito_kv_cache_cpu_memory_utilization=0.5,
+            tensor_parallel_size=2,
+        )
+        memory = argparse.Namespace(total=500 * 1024**3, used=50 * 1024**3)
+        process = MagicMock()
+        process.poll.return_value = None
+
+        with (
+            patch("inference_api.psutil.virtual_memory", return_value=memory),
+            patch("inference_api.subprocess.Popen", return_value=process) as popen,
+            patch("inference_api.socket.create_connection"),
+        ):
+            assert start_lmcache_mp_server(args) is process
+
+        command = popen.call_args.args[0]
+        assert command[command.index("--l1-init-size-gb") + 1] == "1"
+        assert command[command.index("--l1-size-gb") + 1] == "112.5"
 
     def test_stop_terminates_server(self):
         process = MagicMock()

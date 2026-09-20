@@ -32,37 +32,37 @@ func TestGenerateRAGDeploymentManifestDifferentConfigurations(t *testing.T) {
 		"test-rag-with-no-compute-resource-and-inference-service": {
 			ragEngine: test.MockRAGEngineWithNoComputeResourceAndInferenceService,
 			expectedEnvs: map[string]string{
-				"VECTOR_DB_TYPE": "faiss",
-				"EMBEDDING_TYPE": "local",
-				"MODEL_ID":       "BAAI/bge-small-en-v1.5",
+				"VECTOR_DB_TYPE":        "faiss",
+				"EMBEDDING_SOURCE_TYPE": "local",
+				"MODEL_ID":              "BAAI/bge-small-en-v1.5",
 			},
 		},
 		"test-rag-with-no-compute-resource": {
 			ragEngine: test.MockRAGEngineWithNoComputeResource,
 			expectedEnvs: map[string]string{
-				"VECTOR_DB_TYPE":     "faiss",
-				"EMBEDDING_TYPE":     "local",
-				"LLM_CONTEXT_WINDOW": "512",
-				"MODEL_ID":           "BAAI/bge-small-en-v1.5",
-				"LLM_INFERENCE_URL":  "http://localhost:5000/chat",
+				"VECTOR_DB_TYPE":        "faiss",
+				"EMBEDDING_SOURCE_TYPE": "local",
+				"LLM_CONTEXT_WINDOW":    "512",
+				"MODEL_ID":              "BAAI/bge-small-en-v1.5",
+				"LLM_INFERENCE_URL":     "http://localhost:5000/chat",
 			},
 		},
 		"test-rag-with-no-inference-service": {
 			ragEngine: test.MockRAGEngineWithNoInferenceService,
 			expectedEnvs: map[string]string{
-				"VECTOR_DB_TYPE": "faiss",
-				"EMBEDDING_TYPE": "local",
-				"MODEL_ID":       "BAAI/bge-small-en-v1.5",
+				"VECTOR_DB_TYPE":        "faiss",
+				"EMBEDDING_SOURCE_TYPE": "local",
+				"MODEL_ID":              "BAAI/bge-small-en-v1.5",
 			},
 		},
 		"test-rag-with-preset": {
 			ragEngine: test.MockRAGEngineWithPreset,
 			expectedEnvs: map[string]string{
-				"VECTOR_DB_TYPE":     "faiss",
-				"EMBEDDING_TYPE":     "local",
-				"LLM_CONTEXT_WINDOW": "512",
-				"MODEL_ID":           "BAAI/bge-small-en-v1.5",
-				"LLM_INFERENCE_URL":  "http://localhost:5000/chat",
+				"VECTOR_DB_TYPE":        "faiss",
+				"EMBEDDING_SOURCE_TYPE": "local",
+				"LLM_CONTEXT_WINDOW":    "512",
+				"MODEL_ID":              "BAAI/bge-small-en-v1.5",
+				"LLM_INFERENCE_URL":     "http://localhost:5000/chat",
 			},
 		},
 	}
@@ -257,6 +257,74 @@ func TestRAGSetEnvGuardrails(t *testing.T) {
 	})
 }
 
+func TestRAGSetEnvRemoteEmbedding(t *testing.T) {
+	findEnv := func(envs []v1.EnvVar, name string) (v1.EnvVar, bool) {
+		for _, e := range envs {
+			if e.Name == name {
+				return e, true
+			}
+		}
+		return v1.EnvVar{}, false
+	}
+
+	t.Run("remote embedding without access secret", func(t *testing.T) {
+		re := &kaitov1beta1.RAGEngine{
+			ObjectMeta: metav1.ObjectMeta{Name: "rg", Namespace: "ns"},
+			Spec: &kaitov1beta1.RAGEngineSpec{
+				Embedding: &kaitov1beta1.EmbeddingSpec{
+					Remote: &kaitov1beta1.RemoteEmbeddingSpec{
+						URL: "https://embeddings.example.com/v1/embeddings",
+					},
+				},
+			},
+		}
+		envs := RAGSetEnv(re)
+
+		sourceType, ok := findEnv(envs, "EMBEDDING_SOURCE_TYPE")
+		if !ok || sourceType.Value != "remote" {
+			t.Errorf("expected EMBEDDING_SOURCE_TYPE 'remote', got %q (present=%v)", sourceType.Value, ok)
+		}
+
+		url, ok := findEnv(envs, "REMOTE_EMBEDDING_URL")
+		if !ok || url.Value != "https://embeddings.example.com/v1/embeddings" {
+			t.Errorf("expected REMOTE_EMBEDDING_URL to be injected, got %q (present=%v)", url.Value, ok)
+		}
+
+		if _, ok := findEnv(envs, "REMOTE_EMBEDDING_ACCESS_SECRET"); ok {
+			t.Errorf("expected REMOTE_EMBEDDING_ACCESS_SECRET to be absent when AccessSecret is unset")
+		}
+	})
+
+	t.Run("remote embedding with access secret", func(t *testing.T) {
+		re := &kaitov1beta1.RAGEngine{
+			ObjectMeta: metav1.ObjectMeta{Name: "rg", Namespace: "ns"},
+			Spec: &kaitov1beta1.RAGEngineSpec{
+				Embedding: &kaitov1beta1.EmbeddingSpec{
+					Remote: &kaitov1beta1.RemoteEmbeddingSpec{
+						URL:          "https://embeddings.example.com/v1/embeddings",
+						AccessSecret: "emb-secret",
+					},
+				},
+			},
+		}
+		envs := RAGSetEnv(re)
+
+		accessSecret, ok := findEnv(envs, "REMOTE_EMBEDDING_ACCESS_SECRET")
+		if !ok {
+			t.Fatalf("expected REMOTE_EMBEDDING_ACCESS_SECRET to be injected")
+		}
+		if accessSecret.ValueFrom == nil || accessSecret.ValueFrom.SecretKeyRef == nil {
+			t.Fatalf("expected REMOTE_EMBEDDING_ACCESS_SECRET to be sourced from a secret")
+		}
+		if accessSecret.ValueFrom.SecretKeyRef.Name != "emb-secret" {
+			t.Errorf("expected secret name 'emb-secret', got %q", accessSecret.ValueFrom.SecretKeyRef.Name)
+		}
+		if accessSecret.ValueFrom.SecretKeyRef.Key != "REMOTE_EMBEDDING_ACCESS_SECRET" {
+			t.Errorf("expected secret key 'REMOTE_EMBEDDING_ACCESS_SECRET', got %q", accessSecret.ValueFrom.SecretKeyRef.Key)
+		}
+	})
+}
+
 func TestRAGSetEnvPersistenceDirectory(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -388,8 +456,8 @@ func TestRAGSetEnv(t *testing.T) {
 			envMap[env.Name] = env.Value
 		}
 
-		if envMap["EMBEDDING_TYPE"] != "local" {
-			t.Errorf("expected EMBEDDING_TYPE 'local', got %s", envMap["EMBEDDING_TYPE"])
+		if envMap["EMBEDDING_SOURCE_TYPE"] != "local" {
+			t.Errorf("expected EMBEDDING_SOURCE_TYPE 'local', got %s", envMap["EMBEDDING_SOURCE_TYPE"])
 		}
 		if envMap["VECTOR_DB_TYPE"] != "faiss" {
 			t.Errorf("expected VECTOR_DB_TYPE 'faiss', got %s", envMap["VECTOR_DB_TYPE"])

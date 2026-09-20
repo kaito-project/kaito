@@ -65,6 +65,12 @@ kaito_max_concurrent_requests = Gauge(
     registry=_registry,
 )
 
+# Under MP model with lazy allocation LMCache will synchronously allocate
+# l1-init-size-gb memory and expand it to l1-size-gb in a background thread.
+# Setting l1-init-size-gb to 1 GiB to minimize the impact of synchronous memory
+# on startup latency. https://docs.lmcache.ai/mp/configuration.html#l1-memory-manager
+LMCACHE_L1_INITIAL_SIZE_GB = 1
+
 
 class KAITOArgumentParser(argparse.ArgumentParser):
     vllm_parser = FlexibleArgumentParser(description="vLLM serving server")
@@ -553,11 +559,14 @@ def start_lmcache_mp_server(args: argparse.Namespace) -> subprocess.Popen:
     available_memory_gb = (
         psutil.virtual_memory().total - psutil.virtual_memory().used
     ) / (1024**3)
-    cache_size_gb = available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization
+    cache_size_gb = (
+        available_memory_gb
+        * args.kaito_kv_cache_cpu_memory_utilization
+        / args.tensor_parallel_size
+    )
     logger.info(
-        "Offload KV cache to LMCache MP server, size limit: %.2f * %.2f = %.2f GB",
-        available_memory_gb,
-        args.kaito_kv_cache_cpu_memory_utilization,
+        "Offload KV cache to LMCache MP server: %.2f GB initial, %.2f GB final",
+        LMCACHE_L1_INITIAL_SIZE_GB,
         cache_size_gb,
     )
     process = subprocess.Popen(
@@ -570,6 +579,9 @@ def start_lmcache_mp_server(args: argparse.Namespace) -> subprocess.Popen:
             "5555",
             "--chunk-size",
             "256",
+            "--l1-use-lazy",
+            "--l1-init-size-gb",
+            str(LMCACHE_L1_INITIAL_SIZE_GB),
             "--l1-size-gb",
             str(cache_size_gb),
             "--eviction-policy",

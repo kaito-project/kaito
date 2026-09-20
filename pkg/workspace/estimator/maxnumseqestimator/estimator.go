@@ -134,7 +134,7 @@ func (c *MaxNumSeqsEstimator) Estimate(req MaxNumSeqsEstimateRequest) (int, bool
 
 	tp := gpuConfig.GPUCount
 	gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(tp))
-	availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+	availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(params.Name, gpuConfig.GPUModel)
 	weightsPerGPU := float64(weights.Value()) * estimator.WeightExpansionFactor / float64(tp)
 	baseOverhead := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel) * float64(consts.GiBToBytes)
 

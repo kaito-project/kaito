@@ -399,10 +399,21 @@ var gpuMemoryUtilizationByGPUModel = map[string]string{
 	"NVIDIA A10": "0.82",
 }
 
-// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
-// launched with for the given GPU. A per-GPU-model safety cap (clamps down for
-// tight-VRAM GPUs) wins over the default.
-func ResolveGPUMemoryUtilization(gpuModel string) string {
+var gpuMemoryUtilizationByModel = map[string]map[string]string{
+	// Reserve additional headroom for cataloged Gemma 4 models on tight A10 fits.
+	"gemma-4-e4b-it": {"NVIDIA A10": "0.80"},
+	"gemma-4-e2b-it": {"NVIDIA A10": "0.80"},
+}
+
+// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should
+// use for the given model and GPU. Model-specific overrides take precedence over
+// per-GPU overrides and the default.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string) string {
+	if byGPUModel, ok := gpuMemoryUtilizationByModel[strings.ToLower(modelName)]; ok {
+		if util, ok := byGPUModel[gpuModel]; ok {
+			return util
+		}
+	}
 	if util, ok := gpuMemoryUtilizationByGPUModel[gpuModel]; ok {
 		return util
 	}
@@ -443,7 +454,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if rc.GPUConfig != nil {
 		gpuModel = rc.GPUConfig.GPUModel
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(gpuModel)
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(p.Name, gpuModel)
 
 	// Cap --max-num-seqs for hybrid Mamba/Gated-DeltaNet models so vLLM engine init
 	// does not fail when the default (1024) exceeds the available Mamba cache blocks.

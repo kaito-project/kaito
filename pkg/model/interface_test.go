@@ -240,6 +240,10 @@ func TestGetInferenceCommandVLLMSingleNode(t *testing.T) {
 
 func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 	p := &PresetParam{
+		Metadata: Metadata{
+			Name:          "gemma-4-e4b-it-copy",
+			Architectures: []string{"Gemma4ForConditionalGeneration"},
+		},
 		RuntimeParam: RuntimeParam{
 			VLLM: VLLMParam{
 				BaseCommand:    "vllm serve",
@@ -247,7 +251,7 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 			},
 		},
 	}
-	// A10 pins gpu-memory-utilization to 0.82.
+	// Non-catalog models retain the normal A10 cap.
 	cmdA10 := p.GetInferenceCommand(RuntimeContext{
 		RuntimeName: RuntimeNameVLLM,
 		SKUNumGPUs:  1,
@@ -256,6 +260,56 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 	})
 	require.Len(t, cmdA10, 3)
 	assert.Contains(t, cmdA10[2], "--gpu-memory-utilization=0.82")
+
+	// Cataloged Gemma 4 models reserve additional GPU headroom.
+	for _, modelName := range []string{
+		"gemma-4-e4b-it",
+		"gemma-4-e2b-it",
+	} {
+		t.Run(modelName, func(t *testing.T) {
+			gemma := &PresetParam{
+				Metadata: Metadata{Name: modelName},
+				RuntimeParam: RuntimeParam{
+					VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}},
+				},
+			}
+			cmd := gemma.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				SKUNumGPUs:  1,
+				NumNodes:    1,
+				GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A10"},
+			})
+			require.Len(t, cmd, 3)
+			assert.Contains(t, cmd[2], "--gpu-memory-utilization=0.80")
+
+			gemma.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
+			cmdWithoutLMCache := gemma.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				SKUNumGPUs:  1,
+				NumNodes:    1,
+				GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A10"},
+			})
+			require.Len(t, cmdWithoutLMCache, 3)
+			assert.Contains(t, cmdWithoutLMCache[2], "--gpu-memory-utilization=0.80")
+		})
+	}
+
+	// The original A10 cap remains when LMCache is disabled.
+	pA10NoLMCache := &PresetParam{
+		Metadata: Metadata{Architectures: []string{"Qwen3_5ForConditionalGeneration"}},
+		RuntimeParam: RuntimeParam{
+			VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}},
+		},
+	}
+	cmdA10NoLMCache := pA10NoLMCache.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A10"},
+	})
+	require.Len(t, cmdA10NoLMCache, 3)
+	assert.Contains(t, cmdA10NoLMCache[2], "--gpu-memory-utilization=0.82")
+	assert.Contains(t, cmdA10NoLMCache[2], "--kaito-kv-cache-cpu-memory-utilization=0")
 
 	// A100 and nil GPUConfig fall back to the default 0.92.
 	p2 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}}}}

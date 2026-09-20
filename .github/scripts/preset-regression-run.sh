@@ -40,7 +40,7 @@
 #   GLOBAL_DEADLINE_EPOCH  unix time after which remaining models are skipped (0 = no budget)
 #   POLL_INTERVAL_SECONDS  workspace status poll interval (default 20)
 #   ENDPOINT_TIMEOUT_SECONDS  per-endpoint validation budget (default 300)
-#   RESOURCE_READY_TIMEOUT_MINUTES  GPU node provisioning budget (default 30)
+#   RESOURCE_READY_TIMEOUT_MINUTES  GPU node provisioning budget (default 20)
 #   INFERENCE_FAILURE_GRACE_MINUTES  how long a terminal InferenceReady reason must
 #                                    persist after ResourceReady before the model is
 #                                    failed (default 5)
@@ -62,7 +62,7 @@ BYO_NODE_LABEL="${BYO_NODE_LABEL:-}"
 GLOBAL_DEADLINE_EPOCH="${GLOBAL_DEADLINE_EPOCH:-0}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-20}"
 ENDPOINT_TIMEOUT_SECONDS="${ENDPOINT_TIMEOUT_SECONDS:-300}"
-RESOURCE_READY_TIMEOUT_MINUTES="${RESOURCE_READY_TIMEOUT_MINUTES:-30}"
+RESOURCE_READY_TIMEOUT_MINUTES="${RESOURCE_READY_TIMEOUT_MINUTES:-20}"
 INFERENCE_FAILURE_GRACE_MINUTES="${INFERENCE_FAILURE_GRACE_MINUTES:-5}"
 TRANSIENT_FAILURE_RETRY_INTERVAL_SEC="${TRANSIENT_FAILURE_RETRY_INTERVAL_SEC:-180}"
 DIAG_LOG_LINES="${DIAG_LOG_LINES:-200}"
@@ -74,7 +74,7 @@ MAX_CONTAINER_RESTARTS=3
 # Retries for a Workspace apply rejected by an unreachable validating webhook.
 MAX_WORKSPACE_CREATION_ATTEMPTS=6
 
-# Recreate the whole Workspace for transient registry or network failures.
+# Recreate the whole Workspace for transient registry, network, or provisioning failures.
 MAX_RETRIES_FOR_TRANSIENT_FAILURE=2
 
 WORKDIR="$(mktemp -d)"
@@ -570,7 +570,7 @@ EOF
     local resource_status
     resource_status="$(condition_of "$ws_json" ResourceReady status)"
     if [[ "$resource_status" != "True" && "$(date +%s)" -ge "$resource_deadline" ]]; then
-      status="failed"
+      status="retryable-failure"
       reason="GPU nodes not ready within ${RESOURCE_READY_TIMEOUT_MINUTES}m (ResourceReady=${resource_status:-<none>}: $(condition_of "$ws_json" ResourceReady message))"
       local nodeclaim_reason
       nodeclaim_reason="$(nodeclaim_failure_reason "$ws")"

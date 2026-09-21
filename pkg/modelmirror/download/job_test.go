@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
@@ -28,8 +29,8 @@ import (
 
 func newTestModelMirror() *kaitov1alpha1.ModelMirror {
 	return &kaitov1alpha1.ModelMirror{
+		ObjectMeta: metav1.ObjectMeta{Name: "mirror-1", Namespace: "default"},
 		Spec: kaitov1alpha1.ModelMirrorSpec{
-			JobNamespace: "default",
 			Source: &kaitov1alpha1.ModelMirrorSource{
 				ModelID: "Qwen/Qwen3-8B-AWQ",
 			},
@@ -39,23 +40,33 @@ func newTestModelMirror() *kaitov1alpha1.ModelMirror {
 
 func TestBuildDownloadJobResources(t *testing.T) {
 	cases := []struct {
-		name       string
-		cpu        string
-		memory     string
-		wantCPU    string
-		wantMemory string
+		name            string
+		cpu             string
+		memory          string
+		cpuLimit        string
+		memoryLimit     string
+		wantCPU         string
+		wantMemory      string
+		wantCPULimit    string
+		wantMemoryLimit string
 	}{
 		{
-			name:       "defaults",
-			wantCPU:    mmconsts.DefaultDownloadJobCPU,
-			wantMemory: mmconsts.DefaultDownloadJobMemory,
+			name:            "defaults",
+			wantCPU:         mmconsts.DefaultDownloadJobCPU,
+			wantMemory:      mmconsts.DefaultDownloadJobMemory,
+			wantCPULimit:    mmconsts.DefaultDownloadJobCPULimit,
+			wantMemoryLimit: mmconsts.DefaultDownloadJobMemoryLimit,
 		},
 		{
-			name:       "overridden for constrained clusters",
-			cpu:        "2",
-			memory:     "4Gi",
-			wantCPU:    "2",
-			wantMemory: "4Gi",
+			name:            "separate requests and limits",
+			cpu:             "1",
+			memory:          "4Gi",
+			cpuLimit:        "3",
+			memoryLimit:     "8Gi",
+			wantCPU:         "1",
+			wantMemory:      "4Gi",
+			wantCPULimit:    "3",
+			wantMemoryLimit: "8Gi",
 		},
 	}
 
@@ -68,6 +79,12 @@ func TestBuildDownloadJobResources(t *testing.T) {
 			if tc.memory != "" {
 				resources.Memory = tc.memory
 			}
+			if tc.cpuLimit != "" {
+				resources.CPULimit = tc.cpuLimit
+			}
+			if tc.memoryLimit != "" {
+				resources.MemoryLimit = tc.memoryLimit
+			}
 
 			job := BuildDownloadJob(newTestModelMirror(), resources, nil)
 			containers := job.Spec.Template.Spec.Containers
@@ -76,13 +93,13 @@ func TestBuildDownloadJobResources(t *testing.T) {
 
 			wantCPU := resource.MustParse(tc.wantCPU)
 			wantMemory := resource.MustParse(tc.wantMemory)
+			wantCPULimit := resource.MustParse(tc.wantCPULimit)
+			wantMemoryLimit := resource.MustParse(tc.wantMemoryLimit)
 
 			assert.True(t, res.Requests[corev1.ResourceCPU].Equal(wantCPU), "CPU request: got %s want %s", res.Requests.Cpu(), &wantCPU)
 			assert.True(t, res.Requests[corev1.ResourceMemory].Equal(wantMemory), "memory request: got %s want %s", res.Requests.Memory(), &wantMemory)
-
-			// request == limit is an invariant for the download Job.
-			assert.True(t, res.Limits[corev1.ResourceCPU].Equal(res.Requests[corev1.ResourceCPU]), "CPU limit must equal request")
-			assert.True(t, res.Limits[corev1.ResourceMemory].Equal(res.Requests[corev1.ResourceMemory]), "memory limit must equal request")
+			assert.True(t, res.Limits[corev1.ResourceCPU].Equal(wantCPULimit), "CPU limit: got %s want %s", res.Limits.Cpu(), &wantCPULimit)
+			assert.True(t, res.Limits[corev1.ResourceMemory].Equal(wantMemoryLimit), "memory limit: got %s want %s", res.Limits.Memory(), &wantMemoryLimit)
 		})
 	}
 }

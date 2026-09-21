@@ -28,7 +28,6 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
     FROM --platform=linux/amd64 mcr.microsoft.com/oss/go/microsoft/golang:1.24
     WORKDIR /
     COPY ./tilt_bin/manager /
-    COPY ./presets/workspace/models/supported_models.yaml /
     CMD ["/manager"]
     '''
 
@@ -134,10 +133,9 @@ def main(IMG='controller:latest', DISABLE_SECURITY_CONTEXT=True):
         ','.join(['{}={}'.format(k, str(v).lower()) for k, v in feature_gates.items()]),
         node_provisioner
      ),
-     only=['./tilt_bin/manager', './presets/workspace/models/supported_models.yaml'],
+     only=['./tilt_bin/manager'],
      live_update=[
            sync('./tilt_bin/manager', '/manager'),
-           sync('./presets/workspace/models/supported_models.yaml', '/supported_models.yaml'),
        ]
     )
 

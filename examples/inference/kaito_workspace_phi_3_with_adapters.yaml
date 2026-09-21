@@ -9,7 +9,7 @@ resource:
       apps: phi-3-adapter
 inference:
   preset:
-    name: phi-3-mini-128k-instruct
+    name: microsoft/Phi-3-mini-128k-instruct
   adapters:
     - source:
         name: "phi-3-adapter"

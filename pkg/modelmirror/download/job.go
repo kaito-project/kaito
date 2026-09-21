@@ -27,7 +27,7 @@ import (
 )
 
 // BuildDownloadJob constructs the Job that downloads model files to the PVC.
-// resources sets the CPU/memory request==limit on the downloader container.
+// resources sets the CPU/memory requests and limits on the downloader container.
 // podLabels are applied to the Job pod template when a ServiceAccount is set (e.g. the
 // cloud workload-identity label); pass nil to add none.
 func BuildDownloadJob(cr *kaitov1alpha1.ModelMirror, resources mmconsts.DownloadJobResources, podLabels map[string]string) *batchv1.Job {
@@ -71,12 +71,12 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 
 	// Always declare HF_TOKEN — optional:true means Kubernetes silently skips it
 	// if the secret doesn't exist.
-	if cr.Spec.Source.AccessSecret != nil {
+	if cr.Spec.Source.AccessSecretName != "" {
 		envVars = append(envVars, corev1.EnvVar{
 			Name: "HF_TOKEN",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.Source.AccessSecret.Name},
+					LocalObjectReference: corev1.LocalObjectReference{Name: cr.Spec.Source.AccessSecretName},
 					Key:                  "HF_TOKEN",
 					Optional:             ptr.To(true),
 				},
@@ -96,8 +96,8 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 				corev1.ResourceMemory: resource.MustParse(resources.Memory),
 			},
 			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse(resources.CPU),
-				corev1.ResourceMemory: resource.MustParse(resources.Memory),
+				corev1.ResourceCPU:    resource.MustParse(resources.CPULimit),
+				corev1.ResourceMemory: resource.MustParse(resources.MemoryLimit),
 			},
 		},
 		VolumeMounts: []corev1.VolumeMount{
@@ -108,7 +108,7 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: cr.Name + "-download-",
-			Namespace:    cr.Spec.JobNamespace,
+			Namespace:    cr.Namespace,
 			Labels: map[string]string{
 				mmconsts.LabelModelMirrorName: cr.Name,
 			},

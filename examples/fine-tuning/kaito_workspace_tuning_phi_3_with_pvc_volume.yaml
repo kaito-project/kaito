@@ -33,7 +33,7 @@ resource:
       app: tuning-phi-3
 tuning:
   preset:
-    name: phi-3-mini-128k-instruct
+    name: microsoft/Phi-3-mini-128k-instruct
   method: qlora
   input:
     volumeSource:

@@ -118,7 +118,7 @@ spec:
     matchLabels:
       apps: phi-4-mini
   model:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
   roles:
   - type: prefill
     replicas: 1

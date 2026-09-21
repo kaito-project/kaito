@@ -30,5 +30,5 @@ resource:
       apps: deepseek-r1-distill-qwen-14b
 inference:
   preset:
-    name: "deepseek-r1-distill-qwen-14b"
+    name: "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
   config: "ds-inference-params"

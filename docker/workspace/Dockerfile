@@ -41,7 +41,6 @@ RUN --mount=type=cache,target=${GOCACHE} \
 FROM mcr.microsoft.com/azurelinux/distroless/minimal:3.0
 WORKDIR /
 COPY --from=builder /workspace/manager .
-COPY --from=builder /workspace/presets/workspace/models/supported_models.yaml .
 USER 65532:65532
 
 ENTRYPOINT ["/manager"]

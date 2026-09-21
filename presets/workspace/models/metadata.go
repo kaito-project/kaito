@@ -30,37 +30,32 @@ const (
 )
 
 var (
-	//go:embed supported_models.yaml
-	supportedModelsYAML []byte
+	//go:embed base_images.yaml
+	baseImagesYAML []byte
 
-	// supportedModels is a map that holds the source of truth
-	// for all supported models and their metadata.
-	supportedModels sync.Map
+	// baseImages holds runtime metadata for KAITO base images.
+	baseImages sync.Map
 )
 
-// Catalog is a struct that holds a list of supported models parsed
-// from preset/workspace/models/supported_models.yaml. The YAML file is
-// considered the source of truth for the model metadata, and any
-// information in the YAML file should not be hardcoded in the codebase.
-type Catalog struct {
-	Models []model.Metadata `yaml:"models,omitempty"`
+// BaseImageCatalog holds runtime image metadata parsed from base_images.yaml.
+type BaseImageCatalog struct {
+	Images []model.Metadata `yaml:"images,omitempty"`
 }
 
-// init unmarshals the YAML data in supportedModelsYAML into the SupportedModels struct.
+// init loads the embedded base image metadata.
 func init() {
-	catalog := Catalog{}
-	utilruntime.Must(yaml.Unmarshal(supportedModelsYAML, &catalog))
+	catalog := BaseImageCatalog{}
+	utilruntime.Must(yaml.Unmarshal(baseImagesYAML, &catalog))
 
-	for _, m := range catalog.Models {
+	for _, m := range catalog.Images {
 		utilruntime.Must(m.Validate())
-		supportedModels.Store(m.Name, &m)
+		baseImages.Store(m.Name, &m)
 	}
 }
 
-// MustGet retrieves the model metadata for the given model name or
-// panics if the model name is not found in the SupportedModels map.
+// MustGet retrieves base image metadata by name or panics if it is missing.
 func MustGet(name string) model.Metadata {
-	m, ok := supportedModels.Load(name)
+	m, ok := baseImages.Load(name)
 	if !ok {
 		panic("model metadata not found: " + name)
 	}
@@ -68,10 +63,9 @@ func MustGet(name string) model.Metadata {
 	return *(m.(*model.Metadata))
 }
 
-// Get retrieves the model metadata for the given model name. The second return
-// value reports whether the model exists in the supported models catalog.
+// Get retrieves base image metadata by name.
 func Get(name string) (model.Metadata, bool) {
-	m, ok := supportedModels.Load(name)
+	m, ok := baseImages.Load(name)
 	if !ok {
 		return model.Metadata{}, false
 	}

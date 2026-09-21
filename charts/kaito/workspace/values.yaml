@@ -49,10 +49,12 @@ featureGates:
   enableBaseImageAutoUpgrade: false
 defaultModelMirrorStorageClass: ""
 defaultStreamingServiceAccount: ""
-# CPU/memory request==limit for the ModelMirror download Job. Empty uses the controller
-# defaults (3 CPU / 8Gi). Lower for resource-constrained clusters (e.g. e2e on small nodes).
+# Resource overrides for the ModelMirror download Job. Empty uses the controller defaults:
+# requests 2 CPU / 6Gi, limits 4 CPU / 10Gi.
 modelMirrorDownloadCPU: ""
 modelMirrorDownloadMemory: ""
+modelMirrorDownloadCPULimit: ""
+modelMirrorDownloadMemoryLimit: ""
 defaultNodeImageFamily: ""
 nodeProvisioner: "azure-gpu-provisioner"
 karpenterProvider: "azure"

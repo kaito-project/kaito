@@ -108,6 +108,12 @@ func (c *InferenceSetReconciler) Reconcile(ctx context.Context, req reconcile.Re
 		return reconcile.Result{}, err
 	}
 
+	// Fix the model identity for the whole set before any replica is created
+	// from it, so a replaced ConfigMap cannot reach new replicas.
+	if err := c.reconcileResolvedModel(ctx, iObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
 	return c.addOrUpdateInferenceSet(ctx, iObj)
 }
 
@@ -299,6 +305,25 @@ func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, w
 	return toDelete, nil
 }
 
+func repairInvalidWorkspaceCapacityType(ws *kaitov1beta1.Workspace, desired string) bool {
+	if !consts.IsSupportedKarpenterCapacityType(desired) {
+		return false
+	}
+	current := ws.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
+	if consts.IsSupportedKarpenterCapacityType(current) {
+		return false
+	}
+	if desired == "" {
+		delete(ws.Annotations, kaitov1beta1.AnnotationCapacityType)
+		return true
+	}
+	if ws.Annotations == nil {
+		ws.Annotations = make(map[string]string)
+	}
+	ws.Annotations[kaitov1beta1.AnnotationCapacityType] = desired
+	return true
+}
+
 func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
 	if iObj == nil {
 		return reconcile.Result{}, nil
@@ -402,25 +427,28 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if mriParent, ok := iObj.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent]; ok {
 		desiredLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mriParent
 	}
-	if len(desiredLabels) > 0 {
-		for i := range wsList.Items {
-			ws := &wsList.Items[i]
-			needsUpdate := false
-			if ws.Labels == nil {
-				ws.Labels = make(map[string]string)
+	desiredCapacityType := iObj.Spec.Template.Annotations[kaitov1beta1.AnnotationCapacityType]
+	for i := range wsList.Items {
+		ws := &wsList.Items[i]
+		needsUpdate := false
+		if ws.Labels == nil {
+			ws.Labels = make(map[string]string)
+		}
+		for k, v := range desiredLabels {
+			if ws.Labels[k] != v {
+				ws.Labels[k] = v
+				needsUpdate = true
 			}
-			for k, v := range desiredLabels {
-				if ws.Labels[k] != v {
-					ws.Labels[k] = v
-					needsUpdate = true
-				}
-			}
-			if needsUpdate {
-				klog.InfoS("Reconciling workspace labels", "workspace", klog.KObj(ws))
-				if err := c.Client.Update(ctx, ws); err != nil {
-					klog.ErrorS(err, "failed to update workspace labels", "workspace", klog.KObj(ws))
-					return ctrl.Result{}, err
-				}
+		}
+		if consts.IsKarpenterProvisioner() &&
+			repairInvalidWorkspaceCapacityType(ws, desiredCapacityType) {
+			needsUpdate = true
+		}
+		if needsUpdate {
+			klog.InfoS("Reconciling workspace metadata", "workspace", klog.KObj(ws))
+			if err := c.Client.Update(ctx, ws); err != nil {
+				klog.ErrorS(err, "failed to update workspace metadata", "workspace", klog.KObj(ws))
+				return ctrl.Result{}, err
 			}
 		}
 	}

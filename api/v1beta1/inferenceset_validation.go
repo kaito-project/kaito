@@ -68,6 +68,7 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
+	errs = errs.Also(is.validateCapacityTypeAnnotation().ViaField("template"))
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
 	return errs
 }
@@ -79,7 +80,41 @@ func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError
 	if !apiequality.Semantic.DeepEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "template", "resource", "partition"))
 	}
+	errs = errs.Also(is.validateCapacityTypeAnnotationUpdate(old))
 	return errs
+}
+
+func (is *InferenceSet) validateCapacityTypeAnnotation() *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	capacityType := is.Spec.Template.Annotations[AnnotationCapacityType]
+	if consts.IsSupportedKarpenterCapacityType(capacityType) {
+		return nil
+	}
+	return apis.ErrInvalidValue(
+		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
+			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
+		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
+	)
+}
+
+func (is *InferenceSet) validateCapacityTypeAnnotationUpdate(old *InferenceSet) *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	oldValue := old.Spec.Template.Annotations[AnnotationCapacityType]
+	newValue := is.Spec.Template.Annotations[AnnotationCapacityType]
+	if oldValue == newValue {
+		return nil
+	}
+	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
+		return is.validateCapacityTypeAnnotation().ViaField("template")
+	}
+	return apis.ErrGeneric(
+		fmt.Sprintf("annotation %s is immutable after creation", AnnotationCapacityType),
+		"template", "metadata", "annotations", AnnotationCapacityType,
+	)
 }
 
 func validateInferenceSetMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.FieldError) {

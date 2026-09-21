@@ -257,6 +257,59 @@ func TestRAGSetEnvGuardrails(t *testing.T) {
 	})
 }
 
+func TestRAGSetEnvPersistenceDirectory(t *testing.T) {
+	tests := []struct {
+		name          string
+		storage       *kaitov1beta1.StorageSpec
+		expectedValue string
+	}{
+		{
+			name:          "ephemeral storage",
+			expectedValue: "storage",
+		},
+		{
+			name: "default persistent volume mount",
+			storage: &kaitov1beta1.StorageSpec{
+				PersistentVolume: &kaitov1beta1.PersistentVolumeConfig{},
+			},
+			expectedValue: "/mnt/data/test-rag",
+		},
+		{
+			name: "custom persistent volume mount",
+			storage: &kaitov1beta1.StorageSpec{
+				PersistentVolume: &kaitov1beta1.PersistentVolumeConfig{
+					MountPath: "/mnt/vector-db/customer/indexes/",
+				},
+			},
+			expectedValue: "/mnt/vector-db/customer/indexes/test-rag",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ragEngine := &kaitov1beta1.RAGEngine{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-rag"},
+				Spec: &kaitov1beta1.RAGEngineSpec{
+					Embedding: &kaitov1beta1.EmbeddingSpec{
+						Local: &kaitov1beta1.LocalEmbeddingSpec{},
+					},
+					Storage: tt.storage,
+				},
+			}
+
+			for _, env := range RAGSetEnv(ragEngine) {
+				if env.Name == "DEFAULT_VECTOR_DB_PERSIST_DIR" {
+					if env.Value != tt.expectedValue {
+						t.Errorf("DEFAULT_VECTOR_DB_PERSIST_DIR = %q, want %q", env.Value, tt.expectedValue)
+					}
+					return
+				}
+			}
+			t.Fatal("DEFAULT_VECTOR_DB_PERSIST_DIR environment variable not found")
+		})
+	}
+}
+
 func TestGenerateRAGServiceManifest(t *testing.T) {
 	t.Run("generate RAG service", func(t *testing.T) {
 		// Mocking the RAGEngine object for the test

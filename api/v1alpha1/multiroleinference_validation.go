@@ -23,6 +23,7 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -44,10 +45,12 @@ func (m *MultiRoleInference) Validate(ctx context.Context) (errs *apis.FieldErro
 	if base == nil {
 		klog.InfoS("Validate creation", "multiroleinference", fmt.Sprintf("%s/%s", m.Namespace, m.Name))
 		errs = errs.Also(m.validateCreate().ViaField("spec"))
+		errs = errs.Also(m.validateCapacityTypeAnnotation())
 	} else {
 		klog.InfoS("Validate update", "multiroleinference", fmt.Sprintf("%s/%s", m.Namespace, m.Name))
 		old := base.(*MultiRoleInference)
 		errs = errs.Also(m.validateUpdate(old).ViaField("spec"))
+		errs = errs.Also(m.validateCapacityTypeAnnotationUpdate(old))
 	}
 	return errs
 }
@@ -84,6 +87,39 @@ func (m *MultiRoleInference) validateUpdate(old *MultiRoleInference) (errs *apis
 	errs = errs.Also(m.validateRoles())
 
 	return errs
+}
+
+func (m *MultiRoleInference) validateCapacityTypeAnnotation() *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	capacityType := m.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
+	if consts.IsSupportedKarpenterCapacityType(capacityType) {
+		return nil
+	}
+	return apis.ErrInvalidValue(
+		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
+			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
+		fmt.Sprintf("metadata.annotations[%s]", kaitov1beta1.AnnotationCapacityType),
+	)
+}
+
+func (m *MultiRoleInference) validateCapacityTypeAnnotationUpdate(old *MultiRoleInference) *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	oldValue := old.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
+	newValue := m.GetAnnotations()[kaitov1beta1.AnnotationCapacityType]
+	if oldValue == newValue {
+		return nil
+	}
+	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
+		return m.validateCapacityTypeAnnotation()
+	}
+	return apis.ErrGeneric(
+		fmt.Sprintf("annotation %s is immutable after creation", kaitov1beta1.AnnotationCapacityType),
+		fmt.Sprintf("metadata.annotations[%s]", kaitov1beta1.AnnotationCapacityType),
+	)
 }
 
 func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {

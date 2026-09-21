@@ -131,6 +131,18 @@ func catalogFields(e *generator.CatalogEntry) map[string]string {
 	if e.QuantBits > 0 {
 		m["quantBits"] = fmt.Sprintf("%d", e.QuantBits)
 	}
+	if e.MambaStateBytesPerSeq > 0 {
+		m["mambaStateBytesPerSeq"] = fmt.Sprintf("%d", e.MambaStateBytesPerSeq)
+	}
+	if e.MambaStateBytesPerLayer > 0 {
+		m["mambaStateBytesPerLayer"] = fmt.Sprintf("%d", e.MambaStateBytesPerLayer)
+	}
+	if e.NumFullAttnLayers > 0 {
+		m["numFullAttnLayers"] = fmt.Sprintf("%d", e.NumFullAttnLayers)
+	}
+	if e.NumLinearLayers > 0 {
+		m["numLinearLayers"] = fmt.Sprintf("%d", e.NumLinearLayers)
+	}
 	if e.LoadFormat != "" {
 		m["loadFormat"] = e.LoadFormat
 	}

@@ -12,7 +12,7 @@ Model Mirror and Streaming change this with two cooperating pieces:
 
 | Component | What it does |
 |-----------|--------------|
-| **Model Mirror** | Downloads a model's weights **once** into a blob-backed `PersistentVolumeClaim` and tracks it with a cluster-scoped `ModelMirror` custom resource. The download runs **in parallel** with GPU node provisioning, and the result is shared by every workspace that uses the same model. |
+| **Model Mirror** | Downloads a model's weights **once** into a blob-backed `PersistentVolumeClaim` and tracks it with a namespaced `ModelMirror` custom resource. The download runs **in parallel** with GPU node provisioning, and the result is shared by every workspace in the same namespace that uses the same model. |
 | **Model Streaming** | Makes the inference pod **stream** the weights from blob storage at startup (using the [Run:ai Model Streamer](https://github.com/run-ai/runai-model-streamer)) instead of downloading them locally. |
 
 Streaming builds on top of mirroring: when streaming is enabled, KAITO automatically creates the `ModelMirror` resource for the model, waits for the download to finish, then points the inference pod at the blob path.
@@ -22,7 +22,7 @@ Streaming builds on top of mirroring: when streaming is enabled, KAITO automatic
 Consider enabling Model Streaming when:
 
 - You serve large models and want to reduce **cold-start time** — GPU provisioning and model download overlap instead of running sequentially.
-- Multiple workspaces use the **same model** — the weights are downloaded once and shared, rather than re-downloaded per workspace.
+- Multiple workspaces in a namespace use the **same model** — the weights are downloaded once per namespace and shared, rather than re-downloaded per workspace.
 - You frequently scale inference replicas up and down and want faster pod startup.
 
 ## Requirements and Limitations
@@ -167,6 +167,8 @@ helm upgrade --install kaito-workspace kaito/workspace \
 `ModelStreaming` requires `ModelMirror` — enable both. `defaultModelMirrorStorageClass` and `defaultStreamingServiceAccount` set the cluster-wide defaults; individual workspaces can override them with annotations (see [Per-Workspace Configuration](#per-workspace-configuration)).
 :::
 
+The ModelMirror download Job requests **2 CPU** and **6Gi of memory** by default, with limits of **4 CPU** and **10Gi**. This lets the four parallel download workers use idle node capacity without requiring that burst capacity for scheduling. If the cluster cannot satisfy the requests, the Job remains pending; if the download exceeds its memory limit, it fails with `DownloadOOMKilled`, while node resource pressure can surface as `DownloadEvicted`. As a cluster-wide escape hatch, configure the Helm values `modelMirrorDownloadCPU`, `modelMirrorDownloadMemory`, `modelMirrorDownloadCPULimit`, and `modelMirrorDownloadMemoryLimit`, or pass their corresponding `--model-mirror-download-*` flags directly to the workspace controller.
+
 ## Usage
 
 Once the feature gates are enabled, **any vLLM Workspace streams by default** — no extra fields are required.
@@ -185,7 +187,7 @@ resource:
       apps: phi-4-mini
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 Apply your configuration to your cluster:
@@ -226,7 +228,7 @@ resource:
       apps: no-streaming
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 ## Verify
@@ -234,8 +236,9 @@ inference:
 Check that the `ModelMirror` resource was created and reached `Ready`:
 
 ```bash
-# The ModelMirror resource is cluster-scoped (one per model, shared across workspaces).
-kubectl get modelmirrors
+# The ModelMirror resource is namespaced (one per model per namespace, shared by the
+# workspaces in that namespace).
+kubectl get modelmirrors -n <namespace>
 ```
 
 Once the Workspace reports `Ready` and the inference pod is running, confirm the pod streams the weights — its command should use the `runai_streamer` load format:
@@ -288,7 +291,7 @@ ResourceReady   False   ModelMirrorNotReady
 Run [Step 3](#step-3-configure-workload-identity) for the Workspace's namespace.
 
 :::note
-These checks run only when the model is mirrored for the **first time**. If another Workspace already created the `ModelMirror` resource for the same model, a new Workspace reuses it and skips the ServiceAccount check — but the inference pod still needs a correctly configured ServiceAccount in its own namespace to stream.
+These checks run only when the model is mirrored for the **first time** in a namespace. If another Workspace in the same namespace already created the `ModelMirror` resource for the same model, a new Workspace reuses it and skips the ServiceAccount check — but the inference pod still needs a correctly configured ServiceAccount in its own namespace to stream.
 :::
 
 ### Inference pod crashes after the model download completes

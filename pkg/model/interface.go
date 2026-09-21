@@ -64,27 +64,10 @@ type Metadata struct {
 	// It is used to register the model information and retrieve it later.
 	Name string `yaml:"name"`
 
-	// ModelType is the type of the model, which indicates the kind of model
-	// it is. Currently, the only supported types are "text-generation" and
-	// "llama2-completion" (deprecated).
-	ModelType string `yaml:"type"`
-
 	// Version is the version of the model. It is a URL that points to the
 	// model's huggingface page, which contains the model's repository ID
 	// and revision ID, e.g. https://huggingface.co/mistralai/Mistral-7B-v0.3/commit/d8cadc02ac76bd617a919d50b092e59d2d110aff.
 	Version string `yaml:"version"`
-
-	// Runtime is the runtime environment in which the model operates.
-	// Currently, the only supported runtime is "tfs".
-	Runtime string `yaml:"runtime"`
-
-	// DownloadAtRuntime indicates whether the model should be downloaded
-	// at runtime. If set to true, the model will be downloaded when the
-	// model deployment is created, and the container image will always be
-	// the KAITO base image. If set to false, a container image whose name
-	// contains the model name will be used, in which the model weights are baked.
-	// +optional
-	DownloadAtRuntime bool `yaml:"downloadAtRuntime,omitempty"`
 
 	// DownloadAuthRequired indicates whether the model requires authentication to download.
 	// +optional
@@ -128,6 +111,30 @@ type Metadata struct {
 	// This field is only for best effort supported vLLM models.
 	// +optional
 	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
+
+	// MambaStateBytesPerSeq is the per-sequence Mamba-2 state cache size in bytes
+	// (single TP rank) for hybrid Mamba/Attention models (e.g. NemotronH). vLLM
+	// allocates this for every running sequence on top of the attention KV cache,
+	// so the node estimator reserves it. Zero for pure-attention models.
+	// +optional
+	MambaStateBytesPerSeq int `yaml:"mambaStateBytesPerSeq,omitempty"`
+
+	// MambaStateBytesPerLayer is the per-linear-layer, single-TP-rank hybrid state
+	// cache size in bytes for hybrid Mamba/Gated-DeltaNet models. With the layer
+	// counts below it lets the launcher estimate vLLM's Mamba-cache-block ceiling
+	// and cap --max-num-seqs so engine init does not fail. Zero for pure-attention
+	// models.
+	// +optional
+	MambaStateBytesPerLayer int `yaml:"mambaStateBytesPerLayer,omitempty"`
+
+	// NumFullAttnLayers is the number of full-attention layers in a hybrid model.
+	// +optional
+	NumFullAttnLayers int `yaml:"numFullAttnLayers,omitempty"`
+
+	// NumLinearLayers is the number of linear-attention / Mamba layers in a hybrid
+	// model.
+	// +optional
+	NumLinearLayers int `yaml:"numLinearLayers,omitempty"`
 
 	// AttnType specifies the attention implementation (e.g., MHA, GQA, MQA, MLA),
 	// computed by the preset generator from the model config.
@@ -216,10 +223,6 @@ type PresetParam struct {
 	TuningPerGPUMemoryRequirement map[string]int // Min GPU memory per tuning method (batch size 1). Used for tuning.
 	BytesPerToken                 int            // Number of bytes per token for the model. It is calculated by 2 * hidden_layers * kv_heads * head_dim (hidden_size/num_attemtion_numbers) * dtype_size
 	ModelTokenLimit               int            // Maximum number of tokens (context window) supported by the model. Maps to 'max_position_embeddings' in the model's Hugging Face config.json.
-
-	// To determine TotalSafeTensorFileSize and BytesPerToken values for a new model,
-	// run the presets/workspace/generator/preset_generator.py script
-	// with the model's Hugging Face repository ID as an argument.
 
 	RuntimeParam
 
@@ -320,8 +323,13 @@ type RuntimeContext struct {
 	NumNodes             int
 	WorkspaceMetadata    metav1.ObjectMeta
 	DistributedInference bool
-	MaxModelLen          int   // max-model-len for vLLM; MaxModelLenAuto means "auto"
-	InferencePort        int32 // port vLLM listens on; 0 means default (5000)
+	MaxModelLen          int // max-model-len for vLLM; MaxModelLenAuto means "auto"
+	// MaxNumSeqs caps vLLM's concurrent sequence count. Zero leaves vLLM's own
+	// default in place. Resolved by pkg/workspace/estimator/maxnumseqestimator,
+	// which hybrid Mamba/Gated-DeltaNet models need to avoid exceeding the
+	// available Mamba cache blocks at engine startup.
+	MaxNumSeqs    int
+	InferencePort int32 // port vLLM listens on; 0 means default (5000)
 	RuntimeContextExtraArguments
 }
 
@@ -357,7 +365,7 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	if p.Transformers.ModelName != "" {
 		p.Transformers.ModelRunParams["served_model_name"] = p.Transformers.ModelName
 	}
-	if p.DownloadAtRuntime {
+	if p.Version != "" {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.Transformers.ModelRunParams["pretrained_model_name_or_path"] = repoId
 		if revision != "" {
@@ -378,7 +386,7 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 
 // defaultGPUMemoryUtilization is the --gpu-memory-utilization value KAITO passes
 // to vLLM unless the GPU model overrides it in gpuMemoryUtilizationByGPUModel.
-const defaultGPUMemoryUtilization = "0.84"
+const defaultGPUMemoryUtilization = "0.92"
 
 // gpuMemoryUtilizationByGPUModel overrides --gpu-memory-utilization for specific
 // GPU models that need extra headroom. Keyed by the exact sku.GPUConfig.GPUModel
@@ -389,6 +397,16 @@ var gpuMemoryUtilizationByGPUModel = map[string]string{
 	// (e.g. gemma-4's huge-vocab final_logit_softcapping copy), so the default
 	// 0.84 leaves too little headroom and OOMs. 0.82 leaves enough slack.
 	"NVIDIA A10": "0.82",
+}
+
+// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
+// launched with for the given GPU. A per-GPU-model safety cap (clamps down for
+// tight-VRAM GPUs) wins over the default.
+func ResolveGPUMemoryUtilization(gpuModel string) string {
+	if util, ok := gpuMemoryUtilizationByGPUModel[gpuModel]; ok {
+		return util
+	}
+	return defaultGPUMemoryUtilization
 }
 
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
@@ -408,6 +426,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	case isName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = isName
+	case isCustomModelName(p.VLLM.ModelName):
+		// A bring-your-own model's identifier is a configuration digest, which
+		// is meaningless to a client. Serve it under the workspace name instead.
+		p.VLLM.ModelRunParams["served-model-name"] = rc.WorkspaceMetadata.Name
 	case p.VLLM.ModelName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
@@ -417,13 +439,19 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
 
-	gpuMemoryUtilization := defaultGPUMemoryUtilization
+	gpuModel := ""
 	if rc.GPUConfig != nil {
-		if util, ok := gpuMemoryUtilizationByGPUModel[rc.GPUConfig.GPUModel]; ok {
-			gpuMemoryUtilization = util
-		}
+		gpuModel = rc.GPUConfig.GPUModel
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = gpuMemoryUtilization
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(gpuModel)
+
+	// Cap --max-num-seqs for hybrid Mamba/Gated-DeltaNet models so vLLM engine init
+	// does not fail when the default (1024) exceeds the available Mamba cache blocks.
+	// A user-provided max-num-seqs in the inference config still wins: inference_api.py
+	// applies --kaito-config-file after these CLI args.
+	if _, set := p.VLLM.ModelRunParams["max-num-seqs"]; !set && rc.MaxNumSeqs > 0 {
+		p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(rc.MaxNumSeqs)
+	}
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
@@ -471,7 +499,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		// (e.g. mistral sets load_format=mistral); remove it to avoid conflicting
 		// with the hyphenated --load-format we set here.
 		delete(p.VLLM.ModelRunParams, "load_format")
-	} else if p.DownloadAtRuntime {
+	} else if p.Version != "" {
 		repoId, revision, _ := utils.ParseHuggingFaceModelVersion(p.Version)
 		p.VLLM.ModelRunParams["model"] = repoId
 		if revision != "" {
@@ -664,7 +692,7 @@ func (p *PresetParam) RequiresDeepGEMM() bool {
 // RequiresFlashInfer returns true for models which require JIT-compilation with nvcc at runtime.
 func (p *PresetParam) RequiresFlashInfer() bool {
 	switch p.Name {
-	case "mistral-small-4-119b-2603":
+	case "minimax-m2.7", "mistral-small-4-119b-2603":
 		return true
 	}
 	return false
@@ -728,4 +756,29 @@ func (p *PresetParam) GetTuningCommand(rc RuntimeContext) []string {
 	torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.AccelerateParams)
 	modelCommand := utils.BuildCmdStr(DefaultTuningMainFile, p.Transformers.ModelRunParams)
 	return utils.ShellCmd(torchCommand + " " + modelCommand)
+}
+
+// isCustomModelName reports whether a model name is a bring-your-own model's
+// content-addressed identifier.
+func isCustomModelName(modelName string) bool {
+	_, ok := CustomModelDigest(modelName)
+	return ok
+}
+
+// CustomModelDigest decodes a bring-your-own model's content-addressed name
+// into the configuration digest it was built from.
+//
+// The name encodes the digest only. The declared bundle size is deliberately
+// not part of it: the size may be corrected without the model becoming a
+// different model, so folding it into the identity would fragment the registry
+// and change the name for what is still the same weights.
+//
+// Note: the prefix is a string literal to avoid an import cycle with the
+// plugin package, which owns the canonical constant.
+func CustomModelDigest(modelName string) (digest string, ok bool) {
+	rest, ok := strings.CutPrefix(strings.ToLower(modelName), "custom-")
+	if !ok || rest == "" {
+		return "", false
+	}
+	return rest, true
 }

@@ -65,6 +65,12 @@ kaito_max_concurrent_requests = Gauge(
     registry=_registry,
 )
 
+# Under MP model with lazy allocation LMCache will synchronously allocate
+# l1-init-size-gb memory and expand it to l1-size-gb in a background thread.
+# Setting l1-init-size-gb to 1 GiB to minimize the impact of synchronous memory
+# on startup latency. https://docs.lmcache.ai/mp/configuration.html#l1-memory-manager
+LMCACHE_L1_INITIAL_SIZE_GB = 1
+
 
 class KAITOArgumentParser(argparse.ArgumentParser):
     vllm_parser = FlexibleArgumentParser(description="vLLM serving server")
@@ -507,11 +513,14 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
-def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
+def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> bool:
     """
     Set KV transfer config and optionally enable KV cache offloading to CPU RAM.
     - When KAITO_INFERENCE_ROLE is set: use NixlConnector (kv_both + fail policy).
-    - When kaito_kv_cache_cpu_memory_utilization is set: use LMCacheConnectorV1 with CPU offload.
+    - When kaito_kv_cache_cpu_memory_utilization is set: use LMCacheMPConnector with CPU offload.
+
+    Returns True when KAITO selected LMCacheMPConnector and should launch its
+    local server process. User-provided KV transfer configs own their server lifecycle.
     """
     # Configure kv_transfer_config for P/D disaggregation using NixlConnector.
     inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
@@ -529,30 +538,84 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
         logger.info(
             "kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."
         )
-        return
+        return False
 
-    os.environ["LMCACHE_CHUNK_SIZE"] = "256"
-    os.environ["LMCACHE_LOCAL_CPU"] = "True"
+    # Default to the HMA-capable multiprocess connector when CPU offload is enabled.
+    if args.kv_transfer_config is None:
+        args.kv_transfer_config = {
+            "kv_connector": "LMCacheMPConnector",
+            "kv_role": "kv_both",
+            "kv_connector_extra_config": {
+                "lmcache.mp.host": "tcp://127.0.0.1",
+                "lmcache.mp.port": 5555,
+            },
+        }
+        return True
+    return False
+
+
+def start_lmcache_mp_server(args: argparse.Namespace) -> subprocess.Popen:
+    """Start the local LMCache MP server and wait until its TCP listener is ready."""
     available_memory_gb = (
         psutil.virtual_memory().total - psutil.virtual_memory().used
     ) / (1024**3)
+    cache_size_gb = (
+        available_memory_gb
+        * args.kaito_kv_cache_cpu_memory_utilization
+        / args.tensor_parallel_size
+    )
     logger.info(
-        f"Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {args.kaito_kv_cache_cpu_memory_utilization} GB split among {args.tensor_parallel_size} GPUs"
+        "Offload KV cache to LMCache MP server: %.2f GB initial, %.2f GB final",
+        LMCACHE_L1_INITIAL_SIZE_GB,
+        cache_size_gb,
+    )
+    process = subprocess.Popen(
+        [
+            "lmcache",
+            "server",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "5555",
+            "--chunk-size",
+            "256",
+            "--l1-use-lazy",
+            "--l1-init-size-gb",
+            str(LMCACHE_L1_INITIAL_SIZE_GB),
+            "--l1-size-gb",
+            str(cache_size_gb),
+            "--eviction-policy",
+            "LRU",
+        ]
     )
 
-    # When using tensor parallelism, the KV cache CPU memory allocation must be divided evenly
-    # across all GPUs. Each GPU should only allocate its portion (1/tensor_parallel_size) of the
-    # total available CPU memory to prevent OOM.
-    os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = (
-        f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization / args.tensor_parallel_size}"
-    )
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            raise RuntimeError(
+                f"LMCache MP server exited during startup with code {process.returncode}"
+            )
+        try:
+            with socket.create_connection(("127.0.0.1", 5555), timeout=0.5):
+                logger.info("LMCache MP server is ready on 127.0.0.1:5555")
+                return process
+        except OSError:
+            time.sleep(0.1)
 
-    # Default to LMCacheConnectorV1 when CPU offload is enabled but no kv_transfer_config set.
-    if args.kv_transfer_config is None:
-        args.kv_transfer_config = {
-            "kv_connector": "LMCacheConnectorV1",
-            "kv_role": "kv_both",
-        }
+    stop_lmcache_mp_server(process)
+    raise TimeoutError("LMCache MP server did not become ready within 30 seconds")
+
+
+def stop_lmcache_mp_server(process: subprocess.Popen | None) -> None:
+    """Stop a local LMCache MP server process, escalating if it does not exit."""
+    if process is None or process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
 
 
 def configure_middlewares(args: argparse.Namespace) -> None:
@@ -580,7 +643,10 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-    set_kv_transfer_config_if_applicable(args)
+    use_local_lmcache_mp_server = set_kv_transfer_config_if_applicable(args)
+    lmcache_mp_server = (
+        start_lmcache_mp_server(args) if use_local_lmcache_mp_server else None
+    )
 
     logger.info(f"Starting server on port {args.port}")
 
@@ -685,4 +751,7 @@ if __name__ == "__main__":
     configure_middlewares(args)
 
     # See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html
-    uvloop.run(api_server.run_server(args))
+    try:
+        uvloop.run(api_server.run_server(args))
+    finally:
+        stop_lmcache_mp_server(lmcache_mp_server)

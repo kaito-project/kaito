@@ -158,6 +158,7 @@ def test_abort_requests_posts_empty_json():
         bm._abort_requests()
 
     request = mock_urlopen.call_args.args[0]
+    assert mock_urlopen.call_args.kwargs["timeout"] == bm.ABORT_REQUEST_TIMEOUT_SECONDS
     assert request.full_url == f"{bm.VLLM_BASE_URL}/abort_requests"
     assert request.method == "POST"
     assert json.loads(request.data) == {}

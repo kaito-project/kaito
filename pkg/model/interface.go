@@ -399,10 +399,21 @@ var gpuMemoryUtilizationByGPUModel = map[string]string{
 	"NVIDIA A10": "0.82",
 }
 
-// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
-// launched with for the given GPU. A per-GPU-model safety cap (clamps down for
-// tight-VRAM GPUs) wins over the default.
-func ResolveGPUMemoryUtilization(gpuModel string) string {
+var gpuMemoryUtilizationByModel = map[string]map[string]string{
+	// Reserve additional headroom for cataloged Gemma 4 models on tight A10 fits.
+	"gemma-4-e4b-it": {"NVIDIA A10": "0.80"},
+	"gemma-4-e2b-it": {"NVIDIA A10": "0.80"},
+}
+
+// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should
+// use for the given model and GPU. Model-specific overrides take precedence over
+// per-GPU overrides and the default.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string) string {
+	if byGPUModel, ok := gpuMemoryUtilizationByModel[strings.ToLower(modelName)]; ok {
+		if util, ok := byGPUModel[gpuModel]; ok {
+			return util
+		}
+	}
 	if util, ok := gpuMemoryUtilizationByGPUModel[gpuModel]; ok {
 		return util
 	}
@@ -443,7 +454,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if rc.GPUConfig != nil {
 		gpuModel = rc.GPUConfig.GPUModel
 	}
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(gpuModel)
+	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(p.Name, gpuModel)
 
 	// Cap --max-num-seqs for hybrid Mamba/Gated-DeltaNet models so vLLM engine init
 	// does not fail when the default (1024) exceeds the available Mamba cache blocks.
@@ -514,13 +525,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
-	// Disable LMCache KV cache CPU offloading for models where it is known to be
-	// problematic, either because:
-	//   - the model needs vLLM's hybrid KV cache manager (incompatible with the
-	//     LMCache connector), or
-	//   - LMCache is disabled for this model (see isLMCacheDisabled), or
+	// Disable LMCache KV cache CPU offloading when it is known to be problematic because:
+	//   - the model is not yet validated with LMCacheMPConnector, or
 	//   - the workload runs on a MIG partition (TODO: support KV cache CPU offloading on MIG).
-	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() ||
+	if p.isLMCacheDisabled() ||
 		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
@@ -646,31 +654,15 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 	return nil
 }
 
-// isVLLMHybridKVCacheManagerRequired returns true if the model uses a hybrid
-// architecture (e.g., Mamba/Attention) that requires vLLM's hybrid KV cache manager
-// (https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/)
-func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
-	for _, arch := range p.Architectures {
-		switch arch {
-		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
-			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
-			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
-			"DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM":
-			return true
-		}
-	}
-	return false
-}
-
-// isLMCacheDisabled returns true for architectures where LMCache needs to be disabled.
-// There is a known bug in LMCache that causes vLLM crashes on request abortion:
-// https://github.com/LMCache/LMCache/issues/3688
-// This bug will crash the vLLM engine during the TPM phase for certain models in KAITO.
-// TODO: remove this once the issue is resolved.
+// isLMCacheDisabled returns true for hybrid architectures that have not yet
+// been validated with LMCacheMPConnector's hybrid KV cache manager support.
 func (p *PresetParam) isLMCacheDisabled() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		case "GptOssForCausalLM":
+		// Qwen and Nvidia Nemotron models contain GDN/Mamba layers, which require per-model configuration:
+		// https://docs.lmcache.ai/recipes/qwen3_5.html. Disabling LMCache for these models for now.
+		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
+			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration":
 			return true
 		}
 	}

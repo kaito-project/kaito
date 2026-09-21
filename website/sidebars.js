@@ -45,6 +45,7 @@ const sidebars = {
                 'multi-node-inference',
                 'model-mirror-streaming',
                 'memory-estimator',
+                'kv-cache-offloading',
                 'keda-autoscaler-inference',
                 'multi-gpu-instance',
                 'bring-your-own-weights',

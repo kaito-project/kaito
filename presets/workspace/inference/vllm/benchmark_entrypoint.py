@@ -51,6 +51,7 @@ BENCHMARK_DURATION = 60
 BENCHMARK_INPUT_LEN = 2048
 BENCHMARK_OUTPUT_LEN = 256
 VLLM_BASE_URL = "http://localhost:5000"
+ABORT_REQUEST_TIMEOUT_SECONDS = 60
 
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -153,7 +154,9 @@ def _abort_requests() -> None:
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=5) as response:
+    with urllib.request.urlopen(
+        request, timeout=ABORT_REQUEST_TIMEOUT_SECONDS
+    ) as response:
         if response.status != 200:
             raise RuntimeError(f"abort_requests returned HTTP status {response.status}")
 

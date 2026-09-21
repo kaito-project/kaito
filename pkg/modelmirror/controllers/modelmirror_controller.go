@@ -53,7 +53,7 @@ type ModelMirrorReconciler struct {
 	// APIReader bypasses the informer cache for finalizer's fresh reads
 	APIReader client.Reader
 	Log       logr.Logger
-	// DownloadResources sets the CPU/memory request==limit on the download Job container.
+	// DownloadResources sets the CPU/memory requests and limits on the download Job container.
 	DownloadResources mmconsts.DownloadJobResources
 }
 
@@ -405,7 +405,7 @@ func (r *ModelMirrorReconciler) classifyDownloadFailure(ctx context.Context, cr 
 			for _, t := range []*corev1.ContainerStateTerminated{cs.State.Terminated, cs.LastTerminationState.Terminated} {
 				if t != nil && t.Reason == "OOMKilled" {
 					return mmconsts.ReasonDownloadOOMKilled,
-						fmt.Sprintf("download container was OOMKilled (exit code %d); the model may need a larger memory request", t.ExitCode)
+						fmt.Sprintf("download container was OOMKilled (exit code %d); increase modelMirrorDownloadMemoryLimit if the model requires more memory", t.ExitCode)
 				}
 			}
 		}

@@ -98,7 +98,7 @@ spec:
     inference:
       preset:
         accessMode: public
-        name: phi-4-mini-instruct
+        name: microsoft/Phi-4-mini-instruct
     resource:
       instanceType: Standard_NC24ads_A100_v4
 EOF
@@ -200,7 +200,7 @@ spec:
     inference:
       preset:
         accessMode: public
-        name: phi-4-mini-instruct
+        name: microsoft/Phi-4-mini-instruct
     resource:
       instanceType: Standard_NC24ads_A100_v4
 EOF

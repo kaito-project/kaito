@@ -191,7 +191,7 @@ resource:
       apps: phi-4-mini
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 Apply the workspace:

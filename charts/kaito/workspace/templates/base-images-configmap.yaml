@@ -9,7 +9,7 @@ data:
   BaseImages: |
     images:
       - name: base
-        tag: 0.5.1
+        tag: 0.5.2
         runtimeVersion:
           vllm: 0.25.1
           transformers: 5.14.1

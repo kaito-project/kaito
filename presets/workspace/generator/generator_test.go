@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -388,6 +389,48 @@ func TestGeneratePreset(t *testing.T) {
 }
 
 // this test only makes sure that all keys in reasoningParserModeNamePrefixMap are lowercased
+// TestValidateSupportedConfig covers the shared quantization gate that both
+// Generate() (preset/HF) and GenerateFromConfig() (custom) run before parsing.
+// A quantization_config with no named method is rejected for every path,
+// because the loader keys its dtype handling off the method name.
+func TestValidateSupportedConfig(t *testing.T) {
+	tests := []struct {
+		name      string
+		config    map[string]interface{}
+		expectErr bool
+	}{
+		{
+			name:   "no quantization_config",
+			config: map[string]interface{}{"architectures": []interface{}{"LlamaForCausalLM"}},
+		},
+		{
+			name:   "named quant_method",
+			config: map[string]interface{}{"quantization_config": map[string]interface{}{"quant_method": "fp8"}},
+		},
+		{
+			name:   "named via format",
+			config: map[string]interface{}{"quantization_config": map[string]interface{}{"format": "float-quantized"}},
+		},
+		{
+			name:      "unnamed quantization",
+			config:    map[string]interface{}{"quantization_config": map[string]interface{}{"bits": 4}},
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateSupportedConfig(tt.config)
+			if tt.expectErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "quantization method")
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestReasoningParserMap(t *testing.T) {
 	for key := range reasoningParserModeNamePrefixMap {
 		assert.Equal(t, key, strings.ToLower(key), "reasoningParserModeNamePrefixMap key is not lowercased: %s", key)
@@ -541,51 +584,34 @@ func TestLoadFromCatalog(t *testing.T) {
 			},
 		},
 		{
-			modelRepo:   "google/gemma-3-4b-it",
+			modelRepo:   "google/gemma-4-E4B-it",
 			expectFound: true,
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
-					Name:                   "gemma-3-4b-it",
-					Architectures:          []string{"Gemma3ForConditionalGeneration"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-3-4b-it"),
-					ModelFileSize:          "8.01Gi",
-					BytesPerToken:          139264,
+					Name:                   "gemma-4-e4b-it",
+					Architectures:          []string{"Gemma4ForConditionalGeneration"},
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "google/gemma-4-E4B-it"),
+					ModelFileSize:          "14.89Gi",
+					BytesPerToken:          86016,
 					ModelTokenLimit:        131072,
-					DiskStorageRequirement: "88Gi",
-					ToolCallParser:         "functiongemma",
+					DiskStorageRequirement: "94Gi",
+					ToolCallParser:         "gemma4",
 					AttnType:               "GQA",
 				},
 			},
 		},
 		{
-			modelRepo:   "mistralai/Mistral-7B-v0.3",
+			modelRepo:   "mistralai/Ministral-3-14B-Instruct-2512",
 			expectFound: true,
 			expectedParam: model.PresetParam{
 				Metadata: model.Metadata{
-					Name:                   "mistral-7b-v0.3",
-					Architectures:          []string{"MistralForCausalLM"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Mistral-7B-v0.3"),
-					ModelFileSize:          "13.50Gi",
-					BytesPerToken:          131072,
-					ModelTokenLimit:        32768,
-					DiskStorageRequirement: "93Gi",
-					ToolCallParser:         "mistral",
-					AttnType:               "GQA",
-				},
-			},
-		},
-		{
-			modelRepo:   "mistralai/Ministral-3-8B-Instruct-2512",
-			expectFound: true,
-			expectedParam: model.PresetParam{
-				Metadata: model.Metadata{
-					Name:                   "ministral-3-8b-instruct-2512",
+					Name:                   "ministral-3-14b-instruct-2512",
 					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-8B-Instruct-2512"),
-					ModelFileSize:          "9.70Gi",
-					BytesPerToken:          139264,
+					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-14B-Instruct-2512"),
+					ModelFileSize:          "14.65Gi",
+					BytesPerToken:          163840,
 					ModelTokenLimit:        262144,
-					DiskStorageRequirement: "89Gi",
+					DiskStorageRequirement: "94Gi",
 					AttnType:               "GQA",
 				},
 			},
@@ -634,11 +660,9 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	// Mistral catalog entries should set load_format, config_format, tokenizer_mode
 	// to "mistral" in VLLM.ModelRunParams after FinalizeParams.
 	mistralRepos := []string{
-		"mistralai/Mistral-7B-v0.3",
-		"mistralai/Mistral-7B-Instruct-v0.3",
-		"mistralai/Ministral-3-3B-Instruct-2512",
-		"mistralai/Ministral-3-8B-Instruct-2512",
 		"mistralai/Ministral-3-14B-Instruct-2512",
+		"mistralai/Mistral-Medium-3.5-128B",
+		"mistralai/Mistral-Small-4-119B-2603",
 	}
 
 	for _, repo := range mistralRepos {
@@ -659,8 +683,8 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 
 	// Non-Mistral catalog entries should have "auto" for all format fields.
 	nonMistralRepos := []string{
-		"google/gemma-3-4b-it",
-		"google/gemma-3-27b-it",
+		"google/gemma-4-E4B-it",
+		"google/gemma-4-31B-it",
 		"microsoft/Phi-4-mini-instruct",
 	}
 

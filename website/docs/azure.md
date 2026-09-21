@@ -156,7 +156,7 @@ resource:
       apps: phi-4-mini
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 Then apply the workspace:
@@ -236,7 +236,7 @@ resource:
       apps: phi-4-mini
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 Notes:

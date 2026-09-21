@@ -441,7 +441,7 @@ func TestPrepareTrainingOutput(t *testing.T) {
 				Tuning: &kaitov1beta1.TuningSpec{
 					Preset: &kaitov1beta1.PresetSpec{
 						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: "phi-3-mini-128k-instruct",
+							Name: "microsoft/Phi-3-mini-128k-instruct",
 						},
 					},
 					Output: &kaitov1beta1.DataDestination{

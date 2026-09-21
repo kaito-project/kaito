@@ -45,7 +45,7 @@ func TestReconcileInferenceSetPropagatesAnnotations(t *testing.T) {
 		},
 		Spec: kaitov1alpha1.MultiRoleInferenceSpec{
 			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "mri-test"}},
-			Model:         kaitov1alpha1.MultiRoleInferenceModelSpec{Name: "gemma-3-4b-instruct"},
+			Model:         kaitov1alpha1.MultiRoleInferenceModelSpec{Name: "google/gemma-4-E2B-it"},
 		},
 	}
 	role := kaitov1alpha1.MultiRoleInferenceRoleSpec{

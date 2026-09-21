@@ -18,6 +18,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 )
 
 // RuntimeProfile carries runtime serving parameters resolved by the caller
@@ -28,13 +30,13 @@ type RuntimeProfile struct {
 	ContextSize int
 }
 
-// ModelProfile identifies the model to be served.
+// ModelProfile carries the model to be sized. The caller resolves it — from the
+// preset registry, a ConfigMap, or elsewhere — so the estimator stays
+// independent of how and from where the model was obtained.
 type ModelProfile struct {
-	// Name is the preset model name; an empty string means no preset inference.
-	Name string
-	// AccessToken is the pre-resolved access token for gated models (e.g. a HuggingFace API token).
-	// Pass an empty string for public models that require no authentication.
-	AccessToken string
+	// Model is the resolved model to size. A nil value means no inference preset
+	// is configured, and the estimator falls back to the requested node count.
+	Model pkgmodel.Model
 }
 
 // ResourceProfile describes the compute resources available for the workload.
@@ -59,7 +61,7 @@ type ResourceProfile struct {
 type NodeEstimateRequest struct {
 	// WorkspaceName is used for logging and diagnostics.
 	WorkspaceName string
-	// ModelProfile identifies the model preset and any access credentials.
+	// ModelProfile carries the resolved model to size.
 	ModelProfile ModelProfile
 	// ResourceProfile describes the compute resources for the workload.
 	ResourceProfile ResourceProfile

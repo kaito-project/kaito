@@ -144,27 +144,29 @@ func configStorageVolume(storageSpec *v1beta1.StorageSpec) (corev1.Volume, corev
 }
 
 func configGuardrailsPolicyVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
-	return corev1.Volume{
-			Name: manifests.GuardrailsPolicyVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: cmName,
-					},
-					// The ConfigMap data key and the mounted filename are intentionally the same.
-					Items: []corev1.KeyToPath{
-						{
-							Key:  manifests.GuardrailsPolicyFileName,
-							Path: manifests.GuardrailsPolicyFileName,
-						},
+	volume := corev1.Volume{
+		Name: manifests.GuardrailsPolicyVolumeName,
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: cmName,
+				},
+				// The ConfigMap data key and the mounted filename are intentionally the same.
+				Items: []corev1.KeyToPath{
+					{
+						Key:  manifests.GuardrailsPolicyFileName,
+						Path: manifests.GuardrailsPolicyFileName,
 					},
 				},
 			},
-		}, corev1.VolumeMount{
-			Name:      manifests.GuardrailsPolicyVolumeName,
-			MountPath: manifests.GuardrailsPolicyMountPath,
-			ReadOnly:  true,
-		}
+		},
+	}
+	volumeMount := corev1.VolumeMount{
+		Name:      manifests.GuardrailsPolicyVolumeName,
+		MountPath: manifests.GuardrailsPolicyMountPath,
+		ReadOnly:  true,
+	}
+	return volume, volumeMount
 }
 
 func ensureGuardrailsPolicyConfigMap(ctx context.Context, ragEngineObj *v1beta1.RAGEngine, kubeClient client.Client) (*corev1.ConfigMap, error) {

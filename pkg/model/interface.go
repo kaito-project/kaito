@@ -119,6 +119,23 @@ type Metadata struct {
 	// +optional
 	MambaStateBytesPerSeq int `yaml:"mambaStateBytesPerSeq,omitempty"`
 
+	// MambaStateBytesPerLayer is the per-linear-layer, single-TP-rank hybrid state
+	// cache size in bytes for hybrid Mamba/Gated-DeltaNet models. With the layer
+	// counts below it lets the launcher estimate vLLM's Mamba-cache-block ceiling
+	// and cap --max-num-seqs so engine init does not fail. Zero for pure-attention
+	// models.
+	// +optional
+	MambaStateBytesPerLayer int `yaml:"mambaStateBytesPerLayer,omitempty"`
+
+	// NumFullAttnLayers is the number of full-attention layers in a hybrid model.
+	// +optional
+	NumFullAttnLayers int `yaml:"numFullAttnLayers,omitempty"`
+
+	// NumLinearLayers is the number of linear-attention / Mamba layers in a hybrid
+	// model.
+	// +optional
+	NumLinearLayers int `yaml:"numLinearLayers,omitempty"`
+
 	// AttnType specifies the attention implementation (e.g., MHA, GQA, MQA, MLA),
 	// computed by the preset generator from the model config.
 	// +optional
@@ -306,8 +323,13 @@ type RuntimeContext struct {
 	NumNodes             int
 	WorkspaceMetadata    metav1.ObjectMeta
 	DistributedInference bool
-	MaxModelLen          int   // max-model-len for vLLM; MaxModelLenAuto means "auto"
-	InferencePort        int32 // port vLLM listens on; 0 means default (5000)
+	MaxModelLen          int // max-model-len for vLLM; MaxModelLenAuto means "auto"
+	// MaxNumSeqs caps vLLM's concurrent sequence count. Zero leaves vLLM's own
+	// default in place. Resolved by pkg/workspace/estimator/maxnumseqestimator,
+	// which hybrid Mamba/Gated-DeltaNet models need to avoid exceeding the
+	// available Mamba cache blocks at engine startup.
+	MaxNumSeqs    int
+	InferencePort int32 // port vLLM listens on; 0 means default (5000)
 	RuntimeContextExtraArguments
 }
 
@@ -404,6 +426,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	case isName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = isName
+	case isCustomModelName(p.VLLM.ModelName):
+		// A bring-your-own model's identifier is a configuration digest, which
+		// is meaningless to a client. Serve it under the workspace name instead.
+		p.VLLM.ModelRunParams["served-model-name"] = rc.WorkspaceMetadata.Name
 	case p.VLLM.ModelName != "":
 		p.VLLM.ModelRunParams["served-model-name"] = p.VLLM.ModelName
 	}
@@ -418,6 +444,14 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		gpuModel = rc.GPUConfig.GPUModel
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = ResolveGPUMemoryUtilization(gpuModel)
+
+	// Cap --max-num-seqs for hybrid Mamba/Gated-DeltaNet models so vLLM engine init
+	// does not fail when the default (1024) exceeds the available Mamba cache blocks.
+	// A user-provided max-num-seqs in the inference config still wins: inference_api.py
+	// applies --kaito-config-file after these CLI args.
+	if _, set := p.VLLM.ModelRunParams["max-num-seqs"]; !set && rc.MaxNumSeqs > 0 {
+		p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(rc.MaxNumSeqs)
+	}
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
@@ -722,4 +756,29 @@ func (p *PresetParam) GetTuningCommand(rc RuntimeContext) []string {
 	torchCommand := utils.BuildCmdStr(p.Transformers.BaseCommand, p.Transformers.AccelerateParams)
 	modelCommand := utils.BuildCmdStr(DefaultTuningMainFile, p.Transformers.ModelRunParams)
 	return utils.ShellCmd(torchCommand + " " + modelCommand)
+}
+
+// isCustomModelName reports whether a model name is a bring-your-own model's
+// content-addressed identifier.
+func isCustomModelName(modelName string) bool {
+	_, ok := CustomModelDigest(modelName)
+	return ok
+}
+
+// CustomModelDigest decodes a bring-your-own model's content-addressed name
+// into the configuration digest it was built from.
+//
+// The name encodes the digest only. The declared bundle size is deliberately
+// not part of it: the size may be corrected without the model becoming a
+// different model, so folding it into the identity would fragment the registry
+// and change the name for what is still the same weights.
+//
+// Note: the prefix is a string literal to avoid an import cycle with the
+// plugin package, which owns the canonical constant.
+func CustomModelDigest(modelName string) (digest string, ok bool) {
+	rest, ok := strings.CutPrefix(strings.ToLower(modelName), "custom-")
+	if !ok || rest == "" {
+		return "", false
+	}
+	return rest, true
 }

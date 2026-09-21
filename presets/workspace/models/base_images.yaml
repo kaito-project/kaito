@@ -1,11 +1,12 @@
 images:
   # base image with no model weights
   - name: base
-    tag: 0.5.1
+    tag: 0.5.2
     runtimeVersion:
       vllm: 0.25.1
       transformers: 5.14.1
     # Tag history:
+    # 0.5.2 - abort in-flight startup benchmark requests during drain
     # 0.5.1 - cap startup benchmark's max concurrency
     # 0.5.0 - bump vllm to 0.26.0, lmcache to 0.5.2, transformers to 5.14.1; pin nixl-cu12 to 1.3.2
     # 0.4.5 - DeepSeek-V4 support: bookworm base + g++ and runtime CUDA toolkit install (cuda-provision.sh) for DeepGEMM; bump transformers to 5.8.1

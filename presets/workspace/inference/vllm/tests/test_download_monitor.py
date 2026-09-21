@@ -18,9 +18,10 @@ stubbed via sys.modules so these tests run on any machine, including Mac
 dev environments without a GPU or vllm installed.
 """
 
+import argparse
 import sys
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -541,3 +542,53 @@ class TestGpuMemoryUtilization:
             pytest.raises(RuntimeError),
         ):
             inference_api._query_gpu_mem_info(0)
+
+
+class TestConfigureMiddlewares:
+    @pytest.mark.parametrize(
+        ("cli_args", "expected"),
+        [([], False), (["--kaito-disable-benchmark-control"], True)],
+    )
+    def test_parser_supports_benchmark_control_flag(
+        self, monkeypatch, cli_args, expected
+    ):
+        monkeypatch.setattr(
+            inference_api.api_server,
+            "make_arg_parser",
+            lambda _parser: argparse.ArgumentParser(add_help=False),
+        )
+        monkeypatch.setattr(
+            inference_api.KAITOArgumentParser,
+            "_reset_vllm_defaults",
+            lambda _self: None,
+        )
+
+        args = inference_api.KAITOArgumentParser().parse_args(cli_args)
+
+        assert args.kaito_disable_benchmark_control is expected
+
+    def test_registers_benchmark_control_by_default(self):
+        args = SimpleNamespace(
+            middleware=["custom.Middleware"],
+            kaito_disable_benchmark_control=False,
+            kaito_disable_rate_limit=False,
+        )
+
+        inference_api.configure_middlewares(args)
+
+        assert args.middleware == [
+            "custom.Middleware",
+            "benchmark_control.BenchmarkControlMiddleware",
+            "rate_limit.RateLimitMiddleware",
+        ]
+
+    def test_can_disable_benchmark_control(self):
+        args = SimpleNamespace(
+            middleware=None,
+            kaito_disable_benchmark_control=True,
+            kaito_disable_rate_limit=False,
+        )
+
+        inference_api.configure_middlewares(args)
+
+        assert args.middleware == ["rate_limit.RateLimitMiddleware"]

@@ -1,13 +1,12 @@
 apiVersion: kaito.sh/v1beta1
 kind: Workspace
 metadata:
-  name: workspace-mistral-large-3-675b-instruct
+  name: workspace-gemma-4-12b-instruct
 resource:
-  count: 6
   instanceType: "Standard_NC80adis_H100_v5"
   labelSelector:
     matchLabels:
-      apps: mistral-large-3-675b-instruct
+      apps: gemma-4-12b-instruct
 inference:
   preset:
-    name: "mistral-large-3-675b-instruct"
+    name: "google/gemma-4-12B-it"

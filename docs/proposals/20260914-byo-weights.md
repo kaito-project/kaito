@@ -13,7 +13,7 @@ status: provisional
 
 ## Summary
 
-Deploy externally trained or fine-tuned models without registering a preset or publishing to Hugging Face. Customers select `inference.preset.name: custom`, supply `config.json` through the existing `inference.config` ConfigMap, and serve a complete model directory through existing static BYO model-mirror streaming.
+Deploy externally trained or fine-tuned models without registering a preset or publishing to Hugging Face. Customers select `inference.preset.name: custom`, supply `config.json` and the bundle size through the existing `inference.config` ConfigMap, and serve a complete model directory through existing static BYO model-mirror streaming.
 
 Admission validates that configuration and registers it as a content-addressed model named `custom-<sha256>`, so existing runtime-parameter, CLI-rendering, and sizing code paths resolve it like any other registration. Server-side dry-run reports errors and warnings without creating resources or returning a node count. Deployment then estimates GPU requirements, provisions capacity, renders runtime arguments, and checks artifacts at startup.
 
@@ -26,18 +26,17 @@ Support `kaito.sh/v1beta1` Workspace and InferenceSet with vLLM; InferenceSet is
 | Model representation | Initial support |
 |---|---|
 | Native BF16, FP16, FP32 | Supported for covered architecture/configuration and runtime/GPU combinations. |
-| Already-serialized FP8 | Requires explicit coverage of tensor layout, scales, non-FP8 tensors, and GPU/backend requirements. |
-| AWQ, GPTQ, FP4, and other uncovered formats | Not supported. |
+| Already-serialized quantized checkpoints | Supported where the runtime loads the format natively and `quantization_config.quant_method` names it. |
 | Online quantization | Not supported, including converting BF16/FP16 weights to FP8 at startup. |
 
-FP8 is an explicit exception: neither `quantization_config` nor the string `fp8` alone determines eligibility.
+Weight format is not an eligibility gate: the operator declares bundle size, so the format affects only how the runtime loads the bytes, and the runtime rejects what it cannot load. Quantization must still be *named* — a `quantization_config` without a `quant_method` is rejected, since the runtime would otherwise load the weights as dense. KV-cache sizing is unaffected: it derives from the cache dtype, independent of the weight dtype.
 
 The following are acceptance prerequisites, not blanket family-level support. Values must come from config fields or fixed, documented architecture rules, never unrelated preset defaults.
 
-| Configuration family | Metadata needed for sizing | Additional runtime requirements |
+| Configuration family | Metadata needed for cache and state sizing | Additional runtime requirements |
 |---|---|---|
-| Dense MHA/GQA/MQA attention | Layer count, hidden size, attention/KV-head counts, head dimension, vocabulary/FFN sizes; embedding tying and bias layout. | Complete tensor accounting and a built-in loader. |
-| Mixture of experts (MoE) | Attention fields, routed/shared expert counts and FFN dimensions; all resident experts, not only active experts. | Supported expert layout and backend. |
+| Dense MHA/GQA/MQA attention | Layer count, hidden size, attention/KV-head counts, head dimension. | A built-in loader. |
+| Mixture of experts (MoE) | Attention fields; expert layout affects the runtime rather than cache size. | Supported expert layout and backend. |
 | Multi-head latent attention (MLA) | Layer/FFN dimensions, KV-LoRA rank, rotary/non-rotary head dimensions, and applicable expert fields. | Projection-layout and MLA-cache support. |
 | Attention/recurrent hybrids | Ordered layer types, attention dimensions, state size, convolution kernel, recurrent head/group dimensions. | Separate attention-cache/recurrent-state accounting and compatible kernels. |
 
@@ -52,6 +51,7 @@ Reserve `custom` as an inference preset name, and reject user-supplied names beg
 | ConfigMap key | Purpose |
 |---|---|
 | `config.json` | Required in custom mode. Operator-supplied model configuration, never mounted into the serving pod. |
+| `model_size_bytes` | Required in custom mode. Total on-disk size of the weight bundle, as a plain decimal integer of bytes. |
 | `inference_config.yaml` | Optional runtime overrides, as in preset mode. Custom mode does not fall back to the default template. |
 
 The ConfigMap must be same-namespace, already existing, and immutable. Because it now carries both the model configuration and the runtime overrides, changing either requires a new ConfigMap name, and that rename is itself the new deployment this proposal requires. That is the deliberate cost of reusing one object: a runtime-only edit is not distinguishable from a model change.
@@ -70,6 +70,7 @@ kubectl create configmap my-model-v1 \
   --namespace models \
   --from-file=config.json=./config.json \
   --from-file=inference_config.yaml=./inference_config.yaml \
+  --from-literal=model_size_bytes=$(du -sb ./model-dir | cut -f1) \
   --dry-run=client -o json \
   | jq '.immutable = true' \
   | kubectl apply -f -
@@ -126,7 +127,7 @@ Parsers default by architecture. Without a reliable default or explicit selectio
 
 ## Model resolution and registration
 
-Custom mode reuses the existing preset generator rather than adding a second parser. Only the generator's Hugging Face front half — repository listing and remote config fetch — is skipped; the ConfigMap's `config.json` is supplied directly, and the source-independent half that derives architecture, dtype, parsers, context limit, and run parameters is reused unchanged. The result is registered in the model registry under `custom-<sha256>`, the SHA-256 of the configuration bytes.
+Custom mode reuses the existing preset generator rather than adding a second parser. Only the generator's Hugging Face front half — repository listing and remote config fetch — is skipped; the ConfigMap's `config.json` is supplied directly, and the source-independent half that derives architecture, dtype, parsers, context limit, and run parameters is reused unchanged. The result is registered in the model registry under `custom-<sha256>`, the SHA-256 of the configuration bytes. The declared bundle size feeds the generated parameters but not the name.
 
 This keeps derived values off the API surface entirely. Runtime parameters, CLI rendering, node estimation, and readiness all read them from the registration, exactly as they do for preset and Hugging Face models, so no `resolved-*` annotations are introduced.
 
@@ -134,35 +135,30 @@ The registry is an in-memory, process-local cache. Content addressing is what ma
 
 Two consequences are deliberate. Derived defaults follow the controller version rather than being pinned, matching existing preset behavior: a controller upgrade combined with a spec change may change derived flags. And the generator's model-name heuristics cannot match `custom-<sha256>`, so architecture-specific defaults come only from configuration; where no reliable default exists, the affected parser is disabled with a warning.
 
-Native dtype parsing is new; the current wrapper defaults native models to BF16. Reject conflicting normalized `dtype`/`torch_dtype`. CLI `auto` is not a memory representation: estimate actual weight, scale, and non-FP8 tensor storage. FP8 weights imply neither `--quantization=fp8` nor FP8 KV cache. Structural dimensions, RoPE, and checkpoint layout stay in the verified `config.json`. Source/tokenizer paths and code-trust policy remain separate responsibilities.
+Native dtype parsing is new; the current wrapper defaults native models to BF16. Reject conflicting normalized `dtype`/`torch_dtype`. CLI `auto` is not a memory representation. FP8 weights imply neither `--quantization=fp8` nor FP8 KV cache. Structural dimensions, RoPE, and checkpoint layout stay in the verified `config.json`. Source/tokenizer paths and code-trust policy remain separate responsibilities.
 
 ## Model metadata and memory estimation
 
 The [estimator](../../pkg/workspace/estimator/nodesestimator/estimator.go#L100) sizes from a registered model's weight-file size and per-token cache bytes. Preset and Hugging Face models obtain the weight size from an actual file listing, which custom mode has no equivalent of.
 
-That gap is the one genuinely new computation: derive resident weight bytes and per-token cache bytes from configuration alone, through architecture-specific tensor accounting. Everything else the estimator consumes is already produced by the shared generator, so the estimator needs no new inputs beyond the ConfigMap reference required to resolve the model. Never resolve `custom` through the preset registry or bypass sizing with an empty name.
+Custom mode closes that gap by having the operator declare the size in the `model_size_bytes` ConfigMap key rather than deriving it; everything else the estimator consumes is already produced by the shared generator. Never resolve `custom` through the preset registry or bypass sizing with an empty name.
+
+The declared value is on-disk bundle bytes — the sum of the artifact's files, which an operator reads off a directory listing without knowing the runtime's weight layout. Deriving it instead means re-implementing each architecture and quantization format's on-disk layout, which fails by producing a plausible wrong number rather than an error, and yields GPU-resident bytes rather than the on-disk bytes the disk estimator needs.
+
+The size lives in the ConfigMap, not an annotation, so changing it forces a new deployment: the ConfigMap is immutable and covered by `ComputeHash`, whereas an annotation edit produces no revision and is a silent no-op once `Status.TargetNodeCount` is set. It is validated once where the ConfigMap is read — missing, blank, zero, negative, non-integer, or implausibly large is rejected there — because a bad value otherwise reaches `resource.MustParse`, which panics.
+
+Identity stays `custom-<sha256>`, the digest of `config.json` alone; the size is not part of it. Correcting a mis-declared size is a correction to the same model, so a changed size is adopted, logged, and re-recorded in `status.resolvedModel`, whereas a changed `config.json` is a replacement. The size is not folded into `config.json` either, which would break the byte-for-byte startup verification. The registry cache is keyed by configuration and size together, so two deployments sharing a `config.json` but declaring different sizes keep separate entries and a corrected size is never served stale capacity figures. A `status.resolvedModel` recorded before this key existed carries no size and is adopted on upgrade rather than flagged as a mismatch.
 
 | Parsed or derived output | Where it is used |
 |---|---|
 | Architecture, dtype, parsers, context ceiling | Runtime parameters and CLI rendering, read from the registration. |
-| Structural configuration and checkpoint layout | Internal compatibility/tensor-accounting input; original data stays in `config.json`. |
-| Resident-weight bytes, KV bytes/token, recurrent-state bytes/sequence, context ceiling, distributed-execution capability | Explicit estimator input, calculated using the effective runtime settings. |
+| Structural configuration and checkpoint layout | Internal compatibility input; original data stays in `config.json`. |
+| Declared bundle size | Explicit estimator and disk-sizing input, converted using the effective runtime settings. |
+| KV bytes/token, recurrent-state bytes/sequence, context ceiling, distributed-execution capability | Derived from configuration, as for preset models. |
 
-Admission requires complete interpretation and sizing rules. Reconciliation merges user overrides before estimation; custom sizing consumes the resulting metadata directly. Existing preset/HF resolution remains unchanged.
+Reconciliation merges user overrides before estimation; custom sizing consumes the resulting metadata directly. Existing preset/HF resolution remains unchanged.
 
-New architecture-specific tensor accounting calculates:
-
-```text
-estimated serving memory =
-    resident weights and persistent model buffers
-  + FP8 scales and layout allowances where applicable
-  + KV cache and hybrid/recurrent state
-  + runtime overhead
-```
-
-Include tied embeddings, attention dimensions, all resident experts, FP8 scales/unquantized layers, and backend layout costs. Weight and cache dtypes are distinct. Reject incomplete/overflowing calculations; do not guess dimensions, substitute zero/preset sizes, confuse estimates with observed file bytes, or count overhead twice.
-
-Use this footprint in both node estimation and runtime parallelism selection, preserving supported multi-node/BYO behavior. Both must honor the same effective dtype, GPU utilization, cache settings, and topology constraints. Size cache for explicit context when supplied; otherwise use a defined baseline and let runtime auto-fit choose what fits, without promising the advertised maximum.
+Use the resulting footprint in both node estimation and runtime parallelism selection, preserving supported multi-node/BYO behavior. Both must honor the same effective dtype, GPU utilization, cache settings, and topology constraints. Size cache for explicit context when supplied; otherwise use a defined baseline and let runtime auto-fit choose what fits, without promising the advertised maximum.
 
 No artifact-inspection Job or storage lookup precedes provisioning. Actual allocations can exceed estimates; report startup/OOM failures without unbounded automatic re-provisioning.
 
@@ -179,9 +175,9 @@ flowchart TD
     Resolve --> Estimate["Estimate nodes from registered metadata<br/>and effective runtime settings"]
     Estimate --> Provision["Provision or select GPU nodes"]
     Provision --> Render["Render runtime arguments<br/>from the registration + resource plan"]
-    Render --> Startup["Startup: prepare streaming<br/>Verify config digest and assets"]
+    Render --> Startup["Startup: prepare streaming<br/>Verify config digest"]
     Bundle["Versioned, write-once model bundle<br/>Static BYO source"] --> Startup
-    Startup -->|Mismatch or missing assets| Failed["Report startup failure"]
+    Startup -->|Config digest mismatch| Failed["Report startup failure"]
     Startup -->|Valid| Load["Load model<br/>Readiness and benchmark flow"]
     Load -->|Successful| Ready["InferenceReady"]
     Load -->|Failed| Failed
@@ -195,15 +191,16 @@ Admission is deterministic and idempotent:
 
 Before sizing or provisioning, the controller resolves the model from the ConfigMap and records its digest in status. Because the ConfigMap is immutable and its reference cannot change, later resolutions reproduce that result. A ConfigMap deleted and recreated with content whose digest no longer matches the recorded one is a failure, not grounds to re-resolve.
 
-At startup, verify the artifact's `config.json` against the digest passed down from the controller, then confirm the required tokenizer/configuration/checkpoint/index assets, before loading that version. The operator-supplied `config.json` is never mounted into the pod; only `inference_config.yaml` is projected from the ConfigMap. Static ModelMirror readiness is not artifact verification. Checks occur after capacity allocation and do not require hashing every weight byte. Stage non-weight assets locally when needed, validate relative paths, and never use `custom` as an HF model/tokenizer ID.
+At startup, verify the artifact's `config.json` against the digest passed down from the controller before loading that version. A mismatch means the source is serving weights the deployment was not sized or configured for, so it fails. Missing tokenizer/checkpoint/index assets and a stale declared size are left for the runtime to surface at load rather than re-checked here. The operator-supplied `config.json` is never mounted into the pod; only `inference_config.yaml` is projected from the ConfigMap. Static
+ModelMirror readiness is not artifact verification. Checks occur after capacity allocation and do not require hashing every weight byte. Stage non-weight assets locally when needed, validate relative paths, and never use `custom` as an HF model/tokenizer ID.
 
-The storage owner must keep artifacts versioned and write-once throughout streaming; a config hash or directory name cannot enforce that. Changed weights require a new version and deployment even if config is unchanged. Never expose short-lived credentials in ConfigMaps, status, logs, or fingerprints.
+The storage owner must keep artifacts versioned and write-once throughout streaming; a config hash or directory name cannot enforce that. Changed weights require a new version and deployment even if config is unchanged. Never expose short-lived credentials in ConfigMaps, status, or logs.
 
 Identify models by configuration, source, and runtime, not `custom`; isolate workloads/namespaces. Pin runtime image digests from release metadata without admission-time registry lookups, and preserve them on scale-out and controller upgrades.
 
-Add optional controller-owned `status.resolvedModel` with the model-configuration digest, the pinned runtime image, and a non-secret source fingerprint. The digest is both what detects a replaced ConfigMap and what startup verification compares the artifact against. Keep `status.targetNodeCount` as the deployment result. Default the served model name to the InferenceSet name, or direct Workspace name.
+Add optional controller-owned `status.resolvedModel` with the model-configuration digest and the declared bundle size. The digest is both what detects a replaced ConfigMap and what startup verification compares the artifact against; the size is recorded separately so a replacement that changes the bundle size without changing `config.json` is still noticed. Keep `status.targetNodeCount` as the deployment result. Default the served model name to the InferenceSet name, or direct Workspace name.
 
-Report progress on parent and children using existing conditions plus `ModelConfigReady` and `ModelArtifactReady`:
+Report progress on parent and children using existing conditions plus `ModelConfigReady`:
 
 | Failure | User-visible behavior |
 |---|---|
@@ -211,7 +208,7 @@ Report progress on parent and children using existing conditions plus `ModelConf
 | No reliable parser default or explicit choice | Admission warning; affected parser disabled. |
 | Replaced model configuration whose digest no longer matches status | `ModelConfigReady=False`; no new capacity from replacement metadata. |
 | Resource provisioning failure | Existing resource conditions report the cause. |
-| Unavailable source or mismatched/missing artifacts | `ModelArtifactReady=False`; inference is not ready. |
+| Unavailable source or mismatched/missing artifacts | Inference is not ready; the failing pod's status reports the cause (`InferenceReady=False`). |
 | Model-load failure or OOM | `InferenceReady=False` with actionable failure information. |
 
 Missing dependencies must not block deletion, finalization, or legitimate status updates. Fail scale-out safely if the recorded model identity cannot be honored.
@@ -225,9 +222,10 @@ Model, source, and effective runtime changes require a new deployment and explic
 ## Acceptance criteria and test plan
 
 - Admission and dry-run reach identical conclusions without external access, side effects, or node-count responses, and write nothing back to the object. Updates reject model changes; children reach the same registration.
-- Registration is content-addressed and rebuildable: a cold registry reproduces identical metadata from the ConfigMap alone, with no preset/HF lookup or one-node fallback, and user-supplied `custom-` names are rejected. Tensor fixtures cover admitted formats and architectures, including FP8 and non-dense layouts.
+- Registration is content-addressed and rebuildable: a cold registry reproduces identical metadata from the ConfigMap alone, with no preset/HF lookup or one-node fallback, and user-supplied `custom-` names are rejected. Identical inputs hit the cache; identical configuration bytes with a differing declared size rebuild it rather than reuse it.
 - Overrides, parser clearing/warnings, dtype, context, topology, and code-trust policy remain consistent between validation, sizing, and rendering.
-- Artifact mismatches fail visibly against the recorded digest; a replaced ConfigMap is reported rather than silently re-resolved; only `inference_config.yaml` reaches the pod; models remain isolated across replicas/namespaces.
+- Unusable declared sizes are rejected at parse time rather than reaching a panicking or error-discarding consumer.
+- Artifact mismatches fail visibly against the recorded digest; a replaced ConfigMap is reported rather than silently re-resolved when the configuration digest changes, while a changed declared size is adopted and re-recorded; only `inference_config.yaml` reaches the pod; models remain isolated across replicas/namespaces.
 - Existing presets, status updates, and cleanup remain unaffected by custom dependencies.
 
 Use focused admission/estimator tests and existing GPU CI for loading, memory behavior, and replica consistency.

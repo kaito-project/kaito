@@ -131,7 +131,7 @@ jobs:
                 instanceType: "Standard_NV36ads_A10_v5"
               inference:
                 preset:
-                  name: mistral-7b-instruct
+                  name: mistralai/Mistral-7B-Instruct-v0.3
           EOF
 
       - name: Wait for workspace readiness (old controller)
@@ -451,7 +451,7 @@ jobs:
                 instanceType: "Standard_NV36ads_A10_v5"
               inference:
                 preset:
-                  name: mistral-7b-instruct
+                  name: mistralai/Mistral-7B-Instruct-v0.3
           EOF
 
       - name: Wait for workspace readiness (old controller)

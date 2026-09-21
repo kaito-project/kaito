@@ -16,7 +16,6 @@ package nodesestimator
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -30,63 +29,15 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	estimator "github.com/kaito-project/kaito/pkg/workspace/estimator"
-	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
-	// weightExpansionFactor accounts for the ~2% expansion of model weights once
-	// loaded by vLLM relative to the on-disk safetensor size.
-	weightExpansionFactor = 1.02
-
-	// baseOverheadGiB is the model-independent part of vLLM's fixed per-GPU
-	// overhead: non-torch allocations such as the CUDA context and NCCL buffers
-	// (~0.6 GiB) plus a baseline for small-model activations and CUDA graphs
-	// (~1.7 GiB). Larger models add to this via overheadWeightFactor below.
-	// Overridden per GPU model in baseOverheadGiBByGPUModel.
-	baseOverheadGiB = 2.3
-
-	// overheadWeightFactor scales the runtime overhead with the per-GPU model
-	// weight share. Peak activation memory and CUDA graph capture both grow with
-	// hidden size / layer count and are sharded across TP ranks the same way
-	// weights are, so the per-GPU weight share is a good proxy for them. vLLM
-	// measures these empirically in determine_available_memory() and
-	// profile_cudagraph_memory(). We approximate at best effort here.
-	overheadWeightFactor = 0.05
-
 	// mambaStateReferenceConcurrency is the reference number of concurrent
 	// sequences used to size the per-GPU Mamba-2 state reservation for hybrid
 	// models. It mirrors how the KV-cache term uses a fixed reference context
 	// length: a representative serving batch rather than vLLM's max_num_seqs.
 	mambaStateReferenceConcurrency = 64
 )
-
-// baseOverheadGiBByGPUModel overrides baseOverheadGiB for specific GPU models.
-// The 24 GiB A10 measures less fixed runtime overhead in practice than the
-// default reserve assumes, so a lower value lets ~16-17 GiB models fit a single
-// A10 (empirically verified, e.g. granite-4.1-8b) instead of being pushed to an
-// extra node. Keyed by sku.GPUConfig.GPUModel (e.g. "NVIDIA A10").
-var baseOverheadGiBByGPUModel = map[string]float64{
-	"NVIDIA A10": 1.5,
-}
-
-// resolveGPUMemoryUtilization returns the --gpu-memory-utilization the launcher
-// runs vLLM with for the given GPU model (see ResolveGPUMemoryUtilization in
-// pkg/model), so the estimator predicts the same per-GPU budget vLLM will have.
-func resolveGPUMemoryUtilization(gpuModel string) float64 {
-	v, err := strconv.ParseFloat(pkgmodel.ResolveGPUMemoryUtilization(gpuModel), 64)
-	if err != nil {
-		return 0.92
-	}
-	return v
-}
-
-// resolveBaseOverheadGiB returns the fixed per-GPU overhead reserve for the GPU model.
-func resolveBaseOverheadGiB(gpuModel string) float64 {
-	if v, ok := baseOverheadGiBByGPUModel[gpuModel]; ok {
-		return v
-	}
-	return baseOverheadGiB
-}
 
 // NodeEstimator estimates node count based on SKU memory and model memory requirement
 type NodeEstimator struct {
@@ -98,21 +49,18 @@ func (c *NodeEstimator) Name() string {
 }
 
 func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.NodeEstimateRequest, cl client.Client) (int32, error) {
-	// If no preset is configured, default to the requested node count or 1.
-	if req.ModelProfile.Name == "" {
+	// If no model is configured, default to the requested node count or 1.
+	model := req.ModelProfile.Model
+	if model == nil {
 		if req.ResourceProfile.RequestedNodeCount > 0 {
 			return int32(req.ResourceProfile.RequestedNodeCount), nil
 		}
 		return 1, nil
 	}
 
-	model, err := models.GetModelByNameWithToken(ctx, req.ModelProfile.Name, req.ModelProfile.AccessToken)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get model by name: %w", err)
-	}
-
 	// Resolve the GPU configuration for a single node.
 	var gpuConfig *sku.GPUConfig
+	var err error
 	if req.ResourceProfile.DisableNodeAutoProvisioning {
 		// NAP is disabled (BYO scenario).
 		if req.ResourceProfile.MIGProfile != "" {
@@ -139,7 +87,18 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 			if len(readyNodes) == 0 {
 				return 0, fmt.Errorf("no ready nodes found, unable to determine GPU configuration")
 			}
-			gpuConfig, err = sku.GetGPUConfigFromNodeLabels(readyNodes[0])
+			// Use a node matching the effective SKU when available. Without one,
+			// retain the legacy behavior of sizing from the first ready node.
+			sizingNode := readyNodes[0]
+			if req.ResourceProfile.InstanceType != "" {
+				for _, n := range readyNodes {
+					if n.Labels[corev1.LabelInstanceTypeStable] == req.ResourceProfile.InstanceType {
+						sizingNode = n
+						break
+					}
+				}
+			}
+			gpuConfig, err = sku.GetGPUConfigFromNodeLabels(sizingNode)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
 			}
@@ -158,12 +117,6 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		}
 	}
 
-	// Start with the user-requested node count (default is 1).
-	nodeCountPerReplica := 1
-	if req.ResourceProfile.RequestedNodeCount > 0 {
-		nodeCountPerReplica = req.ResourceProfile.RequestedNodeCount
-	}
-
 	// maxModelLen: use the value resolved by the caller (RuntimeProfile.ContextSize), falling back to 2048.
 	maxModelLen := 2048
 	if req.RuntimeProfile.ContextSize > 0 {
@@ -172,20 +125,37 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 
 	klog.Infof("[NodeEstimator] workspace=%s maxModelLen=%d", req.WorkspaceName, maxModelLen)
 
+	return ComputeNodeCountForGPUConfig(model, gpuConfig, maxModelLen, req.ResourceProfile.RequestedNodeCount, req.ResourceProfile.MIGProfile, req.WorkspaceName)
+}
+
+// ComputeNodeCountForGPUConfig returns the node count required to serve model m on
+// nodes with the given per-node gpuConfig and resolved maxModelLen. It performs no
+// cluster I/O: callers that already know the GPU configuration (e.g. BYO SKU
+// selection, which sizes each candidate SKU) share this core sizing math with
+// EstimateNodeCount, which resolves gpuConfig first and delegates here.
+//
+// requestedNodeCount is the caller-preferred count (0 means unspecified, default 1);
+// migProfile is used only for MIG-specific error messages; wsName is for logging.
+func ComputeNodeCountForGPUConfig(m pkgmodel.Model, gpuConfig *sku.GPUConfig, maxModelLen, requestedNodeCount int, migProfile, wsName string) (int32, error) {
+	nodeCountPerReplica := 1
+	if requestedNodeCount > 0 {
+		nodeCountPerReplica = requestedNodeCount
+	}
+
 	// If GPU memory information is available, calculate the optimal node count
 	if !gpuConfig.GPUMem.IsZero() && gpuConfig.GPUCount > 0 {
-		inferParams := model.GetInferenceParameters()
+		inferParams := m.GetInferenceParameters()
 		totalGPUMemRequired := resource.MustParse(inferParams.TotalSafeTensorFileSize)
-		modelSize := float64(totalGPUMemRequired.Value()) * weightExpansionFactor // vllm model size is about 102% of HuggingFace size
+		modelSize := float64(totalGPUMemRequired.Value()) * estimator.WeightExpansionFactor // vllm model size is about 102% of HuggingFace size
 		gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
-		availGPUMem := gpuMemPerGPU * resolveGPUMemoryUtilization(gpuConfig.GPUModel)
+		availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
 
 		// Overhead: a fixed base plus the KV cache for the
 		// context length, plus a term that scales with the per-GPU model weight
-		// share (overheadWeightFactor). For the tensor-parallel (sharded)
-		// case the weight-scaled term folds into the (1 + overheadWeightFactor)
+		// share (OverheadWeightFactor). For the tensor-parallel (sharded)
+		// case the weight-scaled term folds into the (1 + OverheadWeightFactor)
 		// divisor below, keeping the solve non-circular.
-		baseOverheadGiBForGPU := resolveBaseOverheadGiB(gpuConfig.GPUModel)
+		baseOverheadGiBForGPU := estimator.ResolveBaseOverheadGiB(gpuConfig.GPUModel)
 		baseOverhead := baseOverheadGiBForGPU * float64(consts.GiBToBytes)
 		kvCache := float64(maxModelLen*inferParams.BytesPerToken) / float64(gpuConfig.GPUCount)
 		fixedReserve := baseOverhead + kvCache
@@ -196,8 +166,8 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		}
 
 		// Per-GPU memory available for model weights. The weight-scaled overhead
-		// (overheadWeightFactor x per-GPU weight) folds into the (1 + factor) divisor.
-		availMemPerGPU := (availGPUMem - fixedReserve) / (1 + overheadWeightFactor)
+		// (OverheadWeightFactor x per-GPU weight) folds into the (1 + factor) divisor.
+		availMemPerGPU := (availGPUMem - fixedReserve) / (1 + estimator.OverheadWeightFactor)
 
 		// Hybrid Mamba/Attention models (e.g. NemotronH) allocate a per-sequence
 		// Mamba-2 state cache in addition to the attention KV cache. Like weights it
@@ -208,27 +178,27 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 		nodeCountPerReplica = (minGPUs + gpuConfig.GPUCount - 1) / gpuConfig.GPUCount
 
 		klog.Infof("modelSize(%.0f), mambaState(%.0f), gpuMemPerGPU(%.0f), availGPUMem(%.0f), fixedReserve(%.0f), availMemPerGPU(%.0f), minGPUs(%d) => nodeCountPerReplica(%d) for workspace %s",
-			modelSize, mambaState, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, req.WorkspaceName)
+			modelSize, mambaState, gpuMemPerGPU, availGPUMem, fixedReserve, availMemPerGPU, minGPUs, nodeCountPerReplica, wsName)
 
 		// MIG partitions are a single, non-shardable device: the model plus its
 		// runtime overhead must fit one slice. Report the slice-specific shortfall
 		// instead of scaling to multiple GPUs/nodes.
 		if gpuConfig.IsMIG && nodeCountPerReplica > 1 {
-			overhead := fixedReserve + overheadWeightFactor*modelSize
+			overhead := fixedReserve + estimator.OverheadWeightFactor*modelSize
 			sliceGiB := gpuMemPerGPU / float64(consts.GiBToBytes)
 			return 0, fmt.Errorf("model needs %.1fGB (weights %.1fGB + overhead %.1fGB) but MIG profile %s only provides %.0fGB (%.1fGB available after vLLM gpu-memory-utilization)",
 				(modelSize+overhead)/float64(consts.GiBToBytes),
 				modelSize/float64(consts.GiBToBytes),
 				overhead/float64(consts.GiBToBytes),
-				req.ResourceProfile.MIGProfile,
+				migProfile,
 				sliceGiB, availGPUMem/float64(consts.GiBToBytes))
 		}
 
-		if nodeCountPerReplica > 1 && !model.SupportDistributedInference() {
+		if nodeCountPerReplica > 1 && !m.SupportDistributedInference() {
 			return 0, fmt.Errorf("models with disabled support distributed inference cannot be distributed across more than 1 GPU node, please use a node with larger GPU memory, calculated nodes: %d", nodeCountPerReplica)
 		}
 	}
 
-	klog.Infof("[NodeEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, req.WorkspaceName)
+	klog.Infof("[NodeEstimator] Final result: nodeCountPerReplica=%d for workspace %s", nodeCountPerReplica, wsName)
 	return int32(nodeCountPerReplica), nil
 }

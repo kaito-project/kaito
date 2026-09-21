@@ -36,6 +36,12 @@ import (
 const (
 	// SASFetchInitContainerName is the name of the init container that mints the SAS token.
 	SASFetchInitContainerName = "fetch-sas"
+	// SASFetchExitConfigMismatch is the exit code fetch_sas.py returns when the streamed
+	// bundle's config.json is missing or does not match the digest the deployment was
+	// sized for. It is distinct from a generic failure (exit 1, e.g. a SAS token/mint
+	// error) so the controller can tell a bring-your-own artifact mismatch apart from a
+	// token failure. Keep in sync with EXIT_CONFIG_MISMATCH in fetch_sas.py.
+	SASFetchExitConfigMismatch = 3
 	// SASSharedVolumeName is the memory-backed emptyDir shared between the SAS-fetch
 	// init container and the main inference container.
 	SASSharedVolumeName = "streaming-sas"
@@ -112,11 +118,22 @@ func ModelMirrorObjectMeta(ws *v1beta1.Workspace) metav1.ObjectMeta {
 
 // ResolveHFModelID resolves the HuggingFace model ID from a workspace's preset name.
 // Returns "" if the workspace has no inference preset.
+// ResolveHFModelID returns the identifier the streaming layer uses for a
+// workspace's model. A bring-your-own model has no HuggingFace identity, so it
+// is identified by the ConfigMap that defines it rather than the reserved
+// literal "custom", which would collide across every custom deployment in the
+// namespace. That ConfigMap is immutable and a different model requires a
+// different name, so the identifier is stable for the model's lifetime and can
+// be derived without reading cluster state.
 func ResolveHFModelID(ws *v1beta1.Workspace) string {
 	if ws.Inference == nil || ws.Inference.Preset == nil {
 		return ""
 	}
-	return plugin.ResolveHFModelID(string(ws.Inference.Preset.Name))
+	presetName := string(ws.Inference.Preset.Name)
+	if plugin.IsCustomPreset(presetName) {
+		return plugin.CustomModelNamePrefix + ws.Inference.Config
+	}
+	return plugin.ResolveHFModelID(presetName)
 }
 
 // ResolveStreamingServiceAccount resolves the ServiceAccount name for streaming.

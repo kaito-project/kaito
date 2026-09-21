@@ -323,9 +323,10 @@ func TestFinalizeMirror_ReleasesCROnceChildrenAreGone(t *testing.T) {
 
 func TestClassifyDownloadFailure(t *testing.T) {
 	cases := []struct {
-		name       string
-		podStatus  corev1.PodStatus
-		wantReason string
+		name        string
+		podStatus   corev1.PodStatus
+		wantReason  string
+		wantMessage string
 	}{
 		{
 			name: "OOMKilled",
@@ -338,7 +339,8 @@ func TestClassifyDownloadFailure(t *testing.T) {
 					}},
 				}},
 			},
-			wantReason: mmconsts.ReasonDownloadOOMKilled,
+			wantReason:  mmconsts.ReasonDownloadOOMKilled,
+			wantMessage: "download container was OOMKilled (exit code 137); increase modelMirrorDownloadMemoryLimit if the model requires more memory",
 		},
 		{
 			name: "evicted, node low on ephemeral-storage",
@@ -405,6 +407,9 @@ func TestClassifyDownloadFailure(t *testing.T) {
 
 			reason, message := r.classifyDownloadFailure(context.Background(), cr, "mirror-1-download")
 			assert.Equal(t, tc.wantReason, reason)
+			if tc.wantMessage != "" {
+				assert.Equal(t, tc.wantMessage, message)
+			}
 			if tc.podStatus.Reason == "Evicted" {
 				assert.Contains(t, message, tc.podStatus.Message)
 			}

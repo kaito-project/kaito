@@ -76,7 +76,7 @@ jobs:
                 apps: mistral-7b-instruct
           inference:
             preset:
-              name: mistral-7b-instruct
+              name: mistralai/Mistral-7B-Instruct-v0.3
           EOF
 
       - name: Wait for workspace readiness (old controller)
@@ -235,7 +235,7 @@ jobs:
               - "${{ env.NODE_NAME }}"
           inference:
             preset:
-              name: mistral-7b-instruct
+              name: mistralai/Mistral-7B-Instruct-v0.3
           EOF
 
       - name: Wait for workspace readiness (old controller, BYO)

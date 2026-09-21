@@ -107,11 +107,7 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 // Pass an empty string for token when working with public models that require no authentication.
 func GetModelByNameWithToken(ctx context.Context, modelName, token string) (model.Model, error) {
 	modelName = strings.ToLower(modelName)
-	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
-	// model ID (e.g. "microsoft/phi-4").
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
-		modelName = hfName
-	}
+	modelName = plugin.ResolveHFModelID(modelName)
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -122,17 +118,25 @@ func GetModelByNameWithToken(ctx context.Context, modelName, token string) (mode
 }
 
 // GetModelByName returns a vLLM-compatible model for the given modelName.
+// The reserved name "custom" selects a bring-your-own model, resolved from the
+// configuration in the ConfigMap named by configMapName in secretNamespace.
 // If the modelName contains a "/", it fetches an access token from the
 // Kubernetes Secret identified by secretName and secretNamespace,
 // then generates a preset for the corresponding HuggingFace model.
 // Prefer GetModelByNameWithToken when the token has already been resolved by the caller.
-func GetModelByName(ctx context.Context, modelName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
-	modelName = strings.ToLower(modelName)
-	// Redirect legacy preset names (e.g. "phi-4") to their full HuggingFace
-	// model ID (e.g. "microsoft/phi-4").
-	if hfName, ok := plugin.LegacyBuiltinToCatalog[modelName]; ok {
-		modelName = hfName
+func GetModelByName(ctx context.Context, modelName, configMapName, secretName, secretNamespace string, kubeClient client.Client) (model.Model, error) {
+	if plugin.IsCustomPreset(modelName) {
+		resolved, err := ResolveCustomModel(ctx, kubeClient, configMapName, secretNamespace)
+		if err != nil {
+			return nil, err
+		}
+		return resolved.Model, nil
 	}
+	if plugin.IsReservedCustomModelName(modelName) {
+		return nil, fmt.Errorf("model name %q is reserved: select preset %q and supply the model configuration through 'inference.config'", modelName, plugin.PresetNameCustom)
+	}
+	modelName = strings.ToLower(modelName)
+	modelName = plugin.ResolveHFModelID(modelName)
 	if m := plugin.KaitoModelRegister.MustGet(modelName); m != nil {
 		return m, nil
 	}
@@ -177,14 +181,17 @@ type vLLMCompatibleModel struct {
 
 func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 	metaData := &model.Metadata{
-		Name:                  m.model.Name,
-		Version:               m.model.Version,
-		DownloadAuthRequired:  m.model.DownloadAuthRequired,
-		Architectures:         m.model.Architectures,
-		QuantMethod:           m.model.QuantMethod,
-		QuantBits:             m.model.QuantBits,
-		AttnType:              m.model.AttnType,
-		MambaStateBytesPerSeq: m.model.MambaStateBytesPerSeq,
+		Name:                    m.model.Name,
+		Version:                 m.model.Version,
+		DownloadAuthRequired:    m.model.DownloadAuthRequired,
+		Architectures:           m.model.Architectures,
+		QuantMethod:             m.model.QuantMethod,
+		QuantBits:               m.model.QuantBits,
+		AttnType:                m.model.AttnType,
+		MambaStateBytesPerSeq:   m.model.MambaStateBytesPerSeq,
+		MambaStateBytesPerLayer: m.model.MambaStateBytesPerLayer,
+		NumFullAttnLayers:       m.model.NumFullAttnLayers,
+		NumLinearLayers:         m.model.NumLinearLayers,
 	}
 
 	runParamsVLLM := make(map[string]string)

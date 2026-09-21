@@ -56,6 +56,7 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -138,6 +139,26 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 
 	if err = c.syncControllerRevision(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
+	}
+
+	// Resolve and pin the bring-your-own model before anything is sized or
+	// provisioned, so that sizing and the workload are built from a model
+	// identity that has already been recorded.
+	if err = c.reconcileResolvedModel(ctx, workspaceObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// BYO auto-selection requires a healthy GPU node to identify the effective SKU.
+	// Return an error before workload creation so reconciliation retries with backoff.
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] &&
+		workspaceObj.Resource.LabelSelector == nil && workspaceObj.Resource.InstanceType == "" {
+		it, selErr := byoprovisioner.SelectInstanceType(ctx, c.Client, workspaceObj)
+		if selErr != nil {
+			return reconcile.Result{}, selErr
+		}
+		if it == "" {
+			return reconcile.Result{}, fmt.Errorf("no ready GPU nodes present for BYO node selection; scale the cluster to add a GPU node")
+		}
 	}
 
 	// update targetNodeCount for the workspace
@@ -240,7 +261,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	// Resolve model metadata for DiskStorageRequirement
 	presetName := string(wObj.Inference.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
 		return &streamingValidationError{
 			reason: reasonModelMirrorCreateFailed,
@@ -613,7 +634,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 	}
 
 	presetName := string(wObj.Tuning.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, "", wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, "", "", wObj.Namespace, c.Client)
 	if err != nil {
 		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
 		return err
@@ -680,7 +701,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	presetName := string(wObj.Inference.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
 		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
 		return err
@@ -956,6 +977,7 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 // cause of an inference workload that is not ready.
 const (
 	inferenceReasonSASTokenFetchFailed = "SASTokenFetchFailed"
+	inferenceReasonModelBundleMismatch = "ModelBundleMismatch"
 	inferenceReasonImagePullError      = "ImagePullError"
 	inferenceReasonCrashLoopBackOff    = "ContainerCrashLoopBackOff"
 	inferenceReasonOOMKilled           = "ContainerOOMKilled"
@@ -1035,21 +1057,50 @@ func (c *WorkspaceReconciler) classifyInferencePodFailure(ctx context.Context, w
 // detectSASInitFailure returns a reason/message when a workspace pod's SAS-fetch
 // init container has failed or is crash-looping. Returns empty strings when no
 // such failure is observed.
+//
+// The init container exits non-zero for two very different reasons: a genuine
+// SAS token/mint failure, or a bring-your-own bundle whose config.json is
+// missing or does not match what the deployment was sized for. The latter exits
+// with a distinct code (modelstreaming.SASFetchExitConfigMismatch) so it is
+// reported as an artifact mismatch rather than misattributed to a token failure.
 func detectSASInitFailure(pods *corev1.PodList) (reason, message string) {
 	for i := range pods.Items {
 		for _, ics := range pods.Items[i].Status.InitContainerStatuses {
 			if ics.Name != modelstreaming.SASFetchInitContainerName {
 				continue
 			}
-			if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
-				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			exitCode, failed := sasInitFailureExitCode(ics)
+			if !failed {
+				continue
 			}
-			if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
-				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			if int(exitCode) == modelstreaming.SASFetchExitConfigMismatch {
+				return inferenceReasonModelBundleMismatch, "model bundle verification failed: the streamed config.json is missing or does not match the configuration this deployment was sized for; check the fetch-sas init container logs"
 			}
+			return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
 		}
 	}
 	return "", ""
+}
+
+// sasInitFailureExitCode reports the exit code of the SAS-fetch init container's
+// most recent termination and whether that termination represents a failure
+// (non-zero exit, including one now hidden behind a CrashLoopBackOff wait). The
+// exit code is 0 with failed=true only when a crash loop is observed without a
+// recorded termination to read the code from.
+func sasInitFailureExitCode(ics corev1.ContainerStatus) (code int32, failed bool) {
+	if t := ics.State.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
+		if t := ics.LastTerminationState.Terminated; t != nil {
+			return t.ExitCode, true
+		}
+		return 0, true
+	}
+	return 0, false
 }
 
 // detectContainerFailure inspects init and main container statuses across all
@@ -1583,15 +1634,15 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 
 		// Resolve the context window size from the workspace's inference ConfigMap (if any)
 		// and pass it through RuntimeProfile so the estimator does not need to do I/O.
-		if wObj.Inference != nil && wObj.Inference.Config != "" {
-			configMap := &corev1.ConfigMap{}
-			if cmErr := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); cmErr != nil {
-				klog.Warningf("[UpdateWorkspaceTargetNodeCount] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
-					wObj.Name, wObj.Inference.Config, cmErr)
-			} else if configData, exists := configMap.Data["inference_config.yaml"]; exists {
-				if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
-					req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
-				}
+		if contextSize := c.resolveInferenceContextSize(ctx, wObj); contextSize > 0 {
+			req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
+		}
+
+		// Size BYO workloads against their live effective SKU so the estimate matches
+		// the nodes selected for placement.
+		if req.ResourceProfile.DisableNodeAutoProvisioning {
+			if effIT, selErr := byoprovisioner.EffectiveInstanceType(ctx, c.Client, wObj); selErr == nil && effIT != "" {
+				req.ResourceProfile.InstanceType = effIT
 			}
 		}
 
@@ -1622,6 +1673,27 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	}
 
 	return nil
+}
+
+// resolveInferenceContextSize returns the explicit max-model-len configured in the
+// workspace's inference ConfigMap, or 0 when there is no ConfigMap, it cannot be
+// read, or it does not pin a context size (the estimator then applies its default).
+func (c *WorkspaceReconciler) resolveInferenceContextSize(ctx context.Context, wObj *kaitov1beta1.Workspace) int {
+	if wObj.Inference == nil || wObj.Inference.Config == "" {
+		return 0
+	}
+	configMap := &corev1.ConfigMap{}
+	if err := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); err != nil {
+		klog.Warningf("[resolveInferenceContextSize] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
+			wObj.Name, wObj.Inference.Config, err)
+		return 0
+	}
+	if configData, exists := configMap.Data["inference_config.yaml"]; exists {
+		if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
+			return contextSize
+		}
+	}
+	return 0
 }
 
 // SetupWithManager sets up the controller with the Manager.

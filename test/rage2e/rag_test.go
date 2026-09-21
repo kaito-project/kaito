@@ -39,7 +39,7 @@ import (
 )
 
 const (
-	PresetPhi3Mini128kModel = "phi-3-mini-128k-instruct"
+	PresetPhi3Mini128kModel = "microsoft/Phi-3-mini-128k-instruct"
 )
 
 func loadTestEnvVars() {

@@ -27,7 +27,7 @@ resource:
       apps: gpt-oss-120b
 inference:
   preset:
-    name: gpt-oss-120b
+    name: openai/gpt-oss-120b
     presetOptions:
       modelAccessSecret: hf-token # Reference to Secret name
   config: gpt-oss-120b-inference-config # Reference to ConfigMap name

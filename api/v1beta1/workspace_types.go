@@ -280,6 +280,31 @@ type WorkspaceStatus struct {
 	// Populated by default; omitted when kaito.sh/disable-benchmark is set to "true".
 	// +optional
 	Performance *Performance `json:"performance,omitempty"`
+
+	// ResolvedModel records what a bring-your-own deployment actually resolved to.
+	// It is owned by the controller and set only for the "custom" preset.
+	// +optional
+	ResolvedModel *ResolvedModel `json:"resolvedModel,omitempty"`
+}
+
+// ResolvedModel identifies the model a deployment was resolved, sized and
+// configured from, so that a later change to its inputs can be detected rather
+// than silently re-resolved.
+type ResolvedModel struct {
+	// ConfigSHA256 is the SHA-256 of the model configuration this deployment was
+	// resolved from. The serving container verifies the model bundle against it,
+	// and a replaced configuration whose digest no longer matches is reported
+	// rather than adopted.
+	// +optional
+	ConfigSHA256 string `json:"configSHA256,omitempty"`
+
+	// SizeBytes is the declared on-disk size of the weight bundle this
+	// deployment was sized from. It is recorded separately from ConfigSHA256
+	// because that digest covers the model configuration only, so a replaced
+	// configuration that changes the size but not config.json would otherwise
+	// go unnoticed.
+	// +optional
+	SizeBytes int64 `json:"sizeBytes,omitempty"`
 }
 
 // Workspace is the Schema for the workspaces API

@@ -19,6 +19,8 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
@@ -34,6 +36,12 @@ import (
 const (
 	// SASFetchInitContainerName is the name of the init container that mints the SAS token.
 	SASFetchInitContainerName = "fetch-sas"
+	// SASFetchExitConfigMismatch is the exit code fetch_sas.py returns when the streamed
+	// bundle's config.json is missing or does not match the digest the deployment was
+	// sized for. It is distinct from a generic failure (exit 1, e.g. a SAS token/mint
+	// error) so the controller can tell a bring-your-own artifact mismatch apart from a
+	// token failure. Keep in sync with EXIT_CONFIG_MISMATCH in fetch_sas.py.
+	SASFetchExitConfigMismatch = 3
 	// SASSharedVolumeName is the memory-backed emptyDir shared between the SAS-fetch
 	// init container and the main inference container.
 	SASSharedVolumeName = "streaming-sas"
@@ -94,13 +102,38 @@ func ModelMirrorCRName(modelID string) string {
 	return sha256First6(modelID)
 }
 
+// ModelMirrorKey is the key of the ModelMirror a workspace uses.
+func ModelMirrorKey(ws *v1beta1.Workspace) client.ObjectKey {
+	return client.ObjectKey{
+		Namespace: ws.Namespace,
+		Name:      ModelMirrorCRName(ResolveHFModelID(ws)),
+	}
+}
+
+// ModelMirrorObjectMeta is the ObjectMeta for a ModelMirror a workspace creates.
+func ModelMirrorObjectMeta(ws *v1beta1.Workspace) metav1.ObjectMeta {
+	key := ModelMirrorKey(ws)
+	return metav1.ObjectMeta{Name: key.Name, Namespace: key.Namespace}
+}
+
 // ResolveHFModelID resolves the HuggingFace model ID from a workspace's preset name.
 // Returns "" if the workspace has no inference preset.
+// ResolveHFModelID returns the identifier the streaming layer uses for a
+// workspace's model. A bring-your-own model has no HuggingFace identity, so it
+// is identified by the ConfigMap that defines it rather than the reserved
+// literal "custom", which would collide across every custom deployment in the
+// namespace. That ConfigMap is immutable and a different model requires a
+// different name, so the identifier is stable for the model's lifetime and can
+// be derived without reading cluster state.
 func ResolveHFModelID(ws *v1beta1.Workspace) string {
 	if ws.Inference == nil || ws.Inference.Preset == nil {
 		return ""
 	}
-	return plugin.ResolveHFModelID(string(ws.Inference.Preset.Name))
+	presetName := string(ws.Inference.Preset.Name)
+	if plugin.IsCustomPreset(presetName) {
+		return plugin.CustomModelNamePrefix + ws.Inference.Config
+	}
+	return plugin.ResolveHFModelID(presetName)
 }
 
 // ResolveStreamingServiceAccount resolves the ServiceAccount name for streaming.
@@ -147,9 +180,8 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 //   - When the provider supplies init containers (SAS path): appends the shared volume, mounts
 //     it in the main container, and prepends the transparent entrypoint wrapper.
 //
-// Note: weights volume mount removal and init container skipping are handled upstream —
-// GenerateInferencePodSpec skips the mount when streamingModelPath is set, and
-// SetModelDownloadInfo returns early when streaming is enabled.
+// Note: weight-volume handling is performed upstream. GenerateInferencePodSpec
+// skips the default mount when streamingModelPath is set.
 func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		mainIdx := -1

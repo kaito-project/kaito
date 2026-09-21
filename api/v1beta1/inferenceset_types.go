@@ -171,6 +171,11 @@ type InferenceSetStatus struct {
 	// AutoUpgrade reports the observed state of automatic base image upgrades.
 	// +optional
 	AutoUpgrade *AutoUpgradeStatus `json:"autoUpgrade,omitempty"`
+
+	// ResolvedModel records what a bring-your-own deployment actually resolved to.
+	// It is owned by the controller and set only for the "custom" preset.
+	// +optional
+	ResolvedModel *ResolvedModel `json:"resolvedModel,omitempty"`
 }
 
 // InferenceSet is the Schema for the InferenceSet API

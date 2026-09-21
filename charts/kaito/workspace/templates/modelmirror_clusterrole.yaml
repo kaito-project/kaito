@@ -13,9 +13,17 @@ rules:
   - apiGroups: ["kaito.sh"]
     resources: ["modelmirrors/status"]
     verbs: ["get", "update", "patch"]
+  # SetControllerReference stamps blockOwnerDeletion on the PVC and Job it owns, which the
+  # OwnerReferencesPermissionEnforcement admission plugin only allows for a subject holding
+  # update on the owner's finalizers subresource. Unrelated to finalizers on the CR itself.
+  - apiGroups: ["kaito.sh"]
+    resources: ["modelmirrors/finalizers"]
+    verbs: ["update"]
+  # The PVC and Job are torn down explicitly while the mirror's cleanup finalizer holds the
+  # CR, so the replacement mirror can never observe the previous generation's storage.
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["create", "update", "patch", "delete"]
+    verbs: ["create", "delete"]
   - apiGroups: ["admissionregistration.k8s.io"]
     resources: ["validatingwebhookconfigurations"]
     verbs: ["update"]

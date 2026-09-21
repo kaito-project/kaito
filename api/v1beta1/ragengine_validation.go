@@ -18,7 +18,9 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path"
 	"regexp"
+	"strings"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -80,6 +82,9 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 	if w.Spec.Compute != nil {
 		errs = errs.Also(w.Spec.Compute.validateRAGCreate())
 	}
+	if w.Spec.Storage != nil {
+		errs = errs.Also(w.Spec.Storage.validate().ViaField("storage"))
+	}
 
 	if w.Spec.Embedding.Local != nil {
 		errs = errs.Also(w.Spec.Embedding.Local.validateCreate().ViaField("embedding"))
@@ -89,6 +94,30 @@ func (w *RAGEngine) validateCreate() (errs *apis.FieldError) {
 	}
 
 	return errs
+}
+
+func (s *StorageSpec) validate() (errs *apis.FieldError) {
+	if s.PersistentVolume == nil || s.PersistentVolume.MountPath == "" {
+		return nil
+	}
+
+	mountPath := s.PersistentVolume.MountPath
+	field := "persistentVolume.mountPath"
+	if !path.IsAbs(mountPath) {
+		return apis.ErrInvalidValue("mountPath must be absolute", field)
+	}
+	for _, component := range strings.Split(mountPath, "/") {
+		if component == ".." {
+			return apis.ErrInvalidValue("mountPath must not contain parent directory references", field)
+		}
+	}
+
+	cleanedMountPath := path.Clean(mountPath)
+	if !strings.HasPrefix(cleanedMountPath, RAGStorageAllowedMountRoot+"/") {
+		return apis.ErrInvalidValue(fmt.Sprintf("mountPath must be a directory beneath %s", RAGStorageAllowedMountRoot), field)
+	}
+
+	return nil
 }
 
 func (w *RAGEngine) validateGuardrails(ctx context.Context) (errs *apis.FieldError) {

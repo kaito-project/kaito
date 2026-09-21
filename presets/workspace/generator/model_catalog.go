@@ -46,6 +46,16 @@ type CatalogEntry struct {
 	QKRopeHeadDim     int      `yaml:"qkRopeHeadDim,omitempty"`
 	QuantMethod       string   `yaml:"quantMethod,omitempty"`
 	QuantBits         int      `yaml:"quantBits,omitempty"`
+	// MambaStateBytesPerSeq is the per-sequence Mamba-2 state cache size in bytes
+	// (single TP rank) for hybrid Mamba/Attention models (e.g. NemotronH).
+	MambaStateBytesPerSeq int `yaml:"mambaStateBytesPerSeq,omitempty"`
+	// MambaStateBytesPerLayer is the per-linear-layer, single-TP-rank hybrid state
+	// cache size; with the layer counts below it bounds vLLM's Mamba-cache-block count.
+	MambaStateBytesPerLayer int `yaml:"mambaStateBytesPerLayer,omitempty"`
+	// NumFullAttnLayers is the number of full-attention layers in a hybrid model.
+	NumFullAttnLayers int `yaml:"numFullAttnLayers,omitempty"`
+	// NumLinearLayers is the number of linear-attention / Mamba layers in a hybrid model.
+	NumLinearLayers int `yaml:"numLinearLayers,omitempty"`
 }
 
 // ModelCatalog holds the list of pre-computed model entries.
@@ -185,6 +195,13 @@ func FetchCatalogEntry(repo, token string) (*CatalogEntry, error) {
 		entry.QuantMethod = getString(qc, optionalKeyMap["quantMethod"])
 		entry.QuantBits = getInt(qc, []string{"bits"}, 0)
 	}
+
+	// Reserve Mamba-2 state for hybrid Mamba/Attention models (e.g. NemotronH).
+	mambaInfo := computeMambaLayerInfo(config)
+	entry.MambaStateBytesPerSeq = mambaInfo.PerLayerBytes * mambaInfo.NumLinearLayers
+	entry.MambaStateBytesPerLayer = mambaInfo.PerLayerBytes
+	entry.NumFullAttnLayers = mambaInfo.NumFullAttnLayers
+	entry.NumLinearLayers = mambaInfo.NumLinearLayers
 
 	// Copy format fields from generator (only when non-default)
 	if g.LoadFormat != "auto" {

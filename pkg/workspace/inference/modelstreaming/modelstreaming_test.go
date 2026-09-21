@@ -95,7 +95,8 @@ func TestResolveHFModelID(t *testing.T) {
 	}{
 		{"legacy preset", "phi-4", "microsoft/phi-4"},
 		{"legacy preset case-insensitive", "Phi-4", "microsoft/phi-4"},
-		{"non-legacy preset", "Qwen/Qwen2.5-Coder-32B-Instruct", "Qwen/Qwen2.5-Coder-32B-Instruct"},
+		{"canonical preset", "microsoft/phi-4", "microsoft/phi-4"},
+		{"canonical preset preserves case", "Qwen/Qwen3.8-27B", "Qwen/Qwen3.8-27B"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

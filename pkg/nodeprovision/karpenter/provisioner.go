@@ -348,7 +348,11 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 		if !apierrors.IsNotFound(err) {
 			return fmt.Errorf("getting NodePool %q: %w", nodePoolName, err)
 		}
-		np := generateNodePool(ws, p.nodeClassConfig, nodeClassName)
+		capacityType, err := resolveCapacityType(ws)
+		if err != nil {
+			return err
+		}
+		np := generateNodePool(ws, p.nodeClassConfig, nodeClassName, capacityType)
 		np.Spec.Replicas = lo.ToPtr(desiredReplicas)
 		if err := p.client.Create(ctx, np); err != nil {
 			if apierrors.IsAlreadyExists(err) {

@@ -227,22 +227,22 @@ Use this endpoint to remove documents that are no longer needed from your index.
 
 ## Persist Index
 
-To save (persist) the data of an index to disk, use the `/persist/{index_name}` API route. This endpoint accepts a POST request with the index name in the URL and an optional `path` query parameter specifying where to save the index data.
+To save (persist) the data of an index to disk, use the `/persist/{index_name}` API route. This endpoint accepts a POST request with the index name in the URL and an optional `path` query parameter specifying where to save the index data. Custom paths must be within the configured persistence directory.
 
 ### Persist Index Request
 
 ```
-POST /persist/rag_index?path=./custom_path
+POST /persist/rag_index?path=storage/custom_path/rag_index
 ```
 
 - `index_name`: The name of the index to persist.
-- `path`: (optional) The directory path where the index will be saved. If not provided, the default directory is used.
+- `path`: (optional) The directory path where the index will be saved. If not provided, the default directory is used. The resolved path must remain within the configured persistence directory.
 
 ### Persist Index Response
 
 ```json
 {
-  "message": "Successfully persisted index rag_index to ./custom_path/rag_index."
+  "message": "Successfully persisted index rag_index to /app/ragengine/storage/custom_path/rag_index."
 }
 ```
 
@@ -252,23 +252,23 @@ Use this endpoint to ensure your indexed data is safely stored on disk.
 
 ## Load Index
 
-To load an existing index from disk, use the `/load/{index_name}` API route. This endpoint accepts a POST request with the index name in the URL, an optional `path` query parameter specifying where to load the index from, and an optional `overwrite` flag.
+To load an existing index from disk, use the `/load/{index_name}` API route. This endpoint accepts a POST request with the index name in the URL, an optional `path` query parameter specifying where to load the index from, and an optional `overwrite` flag. Custom paths must be within the configured persistence directory.
 
 ### Load Index Request
 
 ```
-POST /load/rag_index?path=./custom_path/rag_index
+POST /load/rag_index?path=storage/custom_path/rag_index
 ```
 
 - `index_name`: The name of the index to load.
-- `path`: (optional) The path to load the index from. If not provided, the default directory is used.
+- `path`: (optional) The path to load the index from. If not provided, the default directory is used. The resolved path must remain within the configured persistence directory.
 - `overwrite`: (optional, default: false) If true, will overwrite the existing index if it already exists in memory.
 
 ### Load Index Response
 
 ```json
 {
-  "message": "Successfully loaded index rag_index from ./custom_path/rag_index."
+  "message": "Successfully loaded index rag_index from /app/ragengine/storage/custom_path/rag_index."
 }
 ```
 

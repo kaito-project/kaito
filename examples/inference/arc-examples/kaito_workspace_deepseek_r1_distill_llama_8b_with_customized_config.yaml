@@ -11,7 +11,7 @@ resource:
       apps: llm-inference
 inference:
   preset:
-    name: "deepseek-r1-distill-llama-8b"
+    name: "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
   config: "ds-inference-params"
 ---
 apiVersion: v1

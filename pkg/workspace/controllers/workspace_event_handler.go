@@ -96,16 +96,16 @@ var enqueueWorkspaceForNodeClaim = handler.EnqueueRequestsFromMapFunc(
 		}
 	})
 
-// enqueueWorkspacesForModelMirror returns a handler that enqueues all workspaces
-// whose expected ModelMirror CR name matches the changed CR.
+// enqueueWorkspacesForModelMirror returns a handler that enqueues the workspaces in the
+// changed CR's namespace whose expected ModelMirror CR name matches it.
 func enqueueWorkspacesForModelMirror(kubeClient client.Client) handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(
 		func(ctx context.Context, o client.Object) []reconcile.Request {
 			crName := o.GetName()
 
-			// List all workspaces across all namespaces.
+			// A workspace only uses a mirror in its own namespace.
 			wsList := &kaitov1beta1.WorkspaceList{}
-			if err := kubeClient.List(ctx, wsList); err != nil {
+			if err := kubeClient.List(ctx, wsList, client.InNamespace(o.GetNamespace())); err != nil {
 				klog.ErrorS(err, "failed to list workspaces for ModelMirror watch", "modelmirror", crName)
 				return nil
 			}

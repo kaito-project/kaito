@@ -102,7 +102,6 @@ func (*testModelDownload) GetInferenceParameters() *model.PresetParam {
 	return &model.PresetParam{
 		Metadata: model.Metadata{
 			Version:              "https://huggingface.co/test-repo/test-model/commit/test-revision",
-			DownloadAtRuntime:    true,
 			DownloadAuthRequired: true,
 		},
 		TotalSafeTensorFileSize: "32Gi",
@@ -764,18 +763,6 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			useFeatureGate:     true,
 		},
 		{
-			name: "Deprecated Model",
-			resourceSpec: &ResourceSpec{
-				InstanceType: "Standard_NV36ads_A10_v5",
-				Count:        pointerToInt(1),
-			},
-			preset:             true,
-			presetNameOverride: "phi-2",
-			runtime:            model.RuntimeNameVLLM,
-			expectErrs:         true,
-			errContent:         "Model phi-2 is deprecated and no longer supported",
-		},
-		{
 			name: "Empty TotalSafeTensorFileSize skips GPU memory validation",
 			resourceSpec: &ResourceSpec{
 				InstanceType: "Standard_NV36ads_A10_v5",
@@ -1160,16 +1147,16 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 			expectErrs: false,
 		},
 		{
-			name: "NAP disabled - change to different instanceType (invalid)",
+			name: "NAP disabled - change to different instanceType (invalid, immutable once set)",
 			newResource: &ResourceSpec{
-				InstanceType: "new_type", // Changing instanceType
+				InstanceType: "new_type",
 				Count:        pointerToInt(1),
 			},
 			oldResource: &ResourceSpec{
 				InstanceType: "old_type",
 				Count:        pointerToInt(1),
 			},
-			disableNAP: true, // NAP disabled (BYO mode)
+			disableNAP: true,
 			errContent: "instanceType cannot be changed once set",
 			expectErrs: true,
 		},
@@ -1190,6 +1177,20 @@ func TestResourceSpecValidateUpdate(t *testing.T) {
 				},
 			},
 			disableNAP: true, // NAP disabled (BYO mode)
+			errContent: "",
+			expectErrs: false,
+		},
+		{
+			name: "NAP disabled - add instanceType on update (valid, immutable-once-set allows adding)",
+			newResource: &ResourceSpec{
+				InstanceType: "Standard_NV36ads_A10_v5",
+				Count:        pointerToInt(1),
+			},
+			oldResource: &ResourceSpec{
+				InstanceType: "",
+				Count:        pointerToInt(1),
+			},
+			disableNAP: true,
 			errContent: "",
 			expectErrs: false,
 		},
@@ -1301,6 +1302,18 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 				},
 			},
 			errContent: "Unsupported inference preset name",
+			expectErrs: true,
+		},
+		{
+			name: "Reserved custom- Preset Name",
+			inferenceSpec: &InferenceSpec{
+				Preset: &PresetSpec{
+					PresetMeta: PresetMeta{
+						Name: ModelName("custom-deadbeef"),
+					},
+				},
+			},
+			errContent: "is reserved",
 			expectErrs: true,
 		},
 		{
@@ -1522,7 +1535,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			expectErrs: true,
 		},
 		{
-			name: "Preset with model weights packaged but with access secret",
+			name: "public preset with optional access secret",
 			inferenceSpec: &InferenceSpec{
 				Preset: &PresetSpec{
 					PresetMeta: PresetMeta{
@@ -1533,8 +1546,6 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 					},
 				},
 			},
-			errContent: "This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions",
-			expectErrs: true,
 		},
 	}
 
@@ -2181,6 +2192,56 @@ func TestWorkspaceValidateNodeClassNameAnnotation(t *testing.T) {
 	})
 }
 
+func TestWorkspaceCapacityTypeAnnotation(t *testing.T) {
+	originalProvisioner := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	t.Cleanup(func() { consts.ActiveNodeProvisioner = originalProvisioner })
+
+	for _, value := range []string{"", consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot} {
+		ws := &Workspace{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{AnnotationCapacityType: value},
+		}}
+		if errs := ws.validateCapacityTypeAnnotation(); errs != nil {
+			t.Errorf("validateCapacityTypeAnnotation() rejected %q: %v", value, errs)
+		}
+	}
+
+	invalid := &Workspace{ObjectMeta: metav1.ObjectMeta{
+		Annotations: map[string]string{AnnotationCapacityType: "reserved"},
+	}}
+	if errs := invalid.validateCapacityTypeAnnotation(); errs == nil {
+		t.Fatal("validateCapacityTypeAnnotation() accepted an unsupported value")
+	}
+
+	t.Run("valid value is immutable", func(t *testing.T) {
+		old := &Workspace{ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{AnnotationCapacityType: consts.KarpenterCapacityTypeOnDemand},
+		}}
+		updated := old.DeepCopy()
+		updated.Annotations[AnnotationCapacityType] = consts.KarpenterCapacityTypeSpot
+		if errs := updated.validateCapacityTypeAnnotationUpdate(old); errs == nil {
+			t.Fatal("validateCapacityTypeAnnotationUpdate() allowed a valid capacity type to change")
+		}
+	})
+
+	t.Run("invalid legacy value can be repaired", func(t *testing.T) {
+		old := invalid.DeepCopy()
+		updated := old.DeepCopy()
+		updated.Annotations[AnnotationCapacityType] = consts.KarpenterCapacityTypeOnDemand
+		if errs := updated.validateCapacityTypeAnnotationUpdate(old); errs != nil {
+			t.Errorf("validateCapacityTypeAnnotationUpdate() rejected legacy repair: %v", errs)
+		}
+	})
+
+	t.Run("annotation is inert outside karpenter", func(t *testing.T) {
+		consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+		defer func() { consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter }()
+		if errs := invalid.validateCapacityTypeAnnotation(); errs != nil {
+			t.Errorf("validateCapacityTypeAnnotation() rejected inert annotation: %v", errs)
+		}
+	})
+}
+
 func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 	RegisterValidationTestModels()
 
@@ -2250,14 +2311,14 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 			errContains: "",
 		},
 		{
-			name: "NAP disabled - instanceType must be empty",
+			name: "NAP disabled - instanceType allowed as BYO preference",
 			workspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace-nap-disabled",
 					Namespace: "kaito",
 				},
 				Resource: ResourceSpec{
-					InstanceType: "Standard_NV36ads_A10_v5", // Invalid: instanceType provided when NAP disabled
+					InstanceType: "Standard_NV36ads_A10_v5",
 					Count:        pointerToInt(1),
 					LabelSelector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
@@ -2273,9 +2334,9 @@ func TestWorkspaceValidateNAPFeatureGate(t *testing.T) {
 					},
 				},
 			},
-			disableNAP:  true, // NAP disabled (BYO mode)
-			expectErrs:  true,
-			errContains: "instanceType must be empty when node auto-provisioning is disabled (BYO scenario)",
+			disableNAP:  true,
+			expectErrs:  false,
+			errContains: "",
 		},
 		{
 			name: "NAP disabled - instanceType empty (valid)",

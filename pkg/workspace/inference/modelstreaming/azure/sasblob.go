@@ -25,6 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
@@ -78,6 +80,11 @@ func (s *SASBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorCo
 			{Name: "STREAM_IDENTITY_CLIENT_ID", Value: ann[modelstreaming.AnnotationStreamIdentityClientID]},
 			{Name: "STREAM_SOURCE_TYPE", Value: ann[modelstreaming.AnnotationStreamSourceType]},
 			{Name: modelstreaming.SASEnvFileEnvVar, Value: envFilePath},
+			// For a bring-your-own model, the operator sized and configured the
+			// deployment from a config.json the serving pod never sees. Passing
+			// its digest lets this container confirm the bundle it is about to
+			// stream is that same model, before any capacity is consumed loading it.
+			{Name: consts.ModelConfigSHA256EnvName, Value: expectedModelConfigDigest(ctx)},
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: modelstreaming.SASSharedVolumeName, MountPath: modelstreaming.SASSharedMountPath},
@@ -161,4 +168,19 @@ func (s *SASBlobProvider) ValidateAuth(ctx context.Context, ws *v1beta1.Workspac
 		return err
 	}
 	return ValidateStreamingServiceAccount(ctx, ws, kubeClient, defaultSA)
+}
+
+// expectedModelConfigDigest returns the configuration digest for a
+// bring-your-own model, or an empty string for any other model, in which case
+// the init container skips bundle verification.
+func expectedModelConfigDigest(ctx *generator.WorkspaceGeneratorContext) string {
+	if ctx.Model == nil {
+		return ""
+	}
+	params := ctx.Model.GetInferenceParameters()
+	if params == nil {
+		return ""
+	}
+	digest, _ := pkgmodel.CustomModelDigest(params.Metadata.Name)
+	return digest
 }

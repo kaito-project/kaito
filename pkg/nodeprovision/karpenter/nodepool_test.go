@@ -162,6 +162,45 @@ func TestIsInferenceSetWorkspace_False(t *testing.T) {
 	assert.Assert(t, !isInferenceSetWorkspace(ws))
 }
 
+func TestResolveCapacityType(t *testing.T) {
+	tests := []struct {
+		name        string
+		annotations map[string]string
+		want        string
+		wantErr     bool
+	}{
+		{name: "absent defaults to on-demand", want: consts.KarpenterCapacityTypeOnDemand},
+		{
+			name:        "empty defaults to on-demand",
+			annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: ""},
+			want:        consts.KarpenterCapacityTypeOnDemand,
+		},
+		{
+			name:        "spot opt-in",
+			annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: consts.KarpenterCapacityTypeSpot},
+			want:        consts.KarpenterCapacityTypeSpot,
+		},
+		{
+			name:        "invalid value",
+			annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: "reserved"},
+			wantErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ws := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Annotations: tt.annotations}}
+			got, err := resolveCapacityType(ws)
+			if tt.wantErr {
+				assert.Assert(t, err != nil)
+				return
+			}
+			assert.NilError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 // --- generateNodePool tests ---
 
 func newTestWorkspace(ns, name, instanceType string, targetNodeCount int32, labels, annotations map[string]string) *kaitov1beta1.Workspace {
@@ -189,7 +228,7 @@ func newTestWorkspace(ns, name, instanceType string, targetNodeCount int32, labe
 
 func TestGenerateNodePool_Standalone(t *testing.T) {
 	ws := newTestWorkspace("default", "llama-serve", "Standard_NC24ads_A100_v4", 2, nil, nil)
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName)
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
 
 	// Name
 	assert.Equal(t, "default-llama-serve", np.Name)
@@ -212,12 +251,16 @@ func TestGenerateNodePool_Standalone(t *testing.T) {
 	assert.Equal(t, testConfig.DefaultName, ref.Name)
 
 	// Requirements
-	assert.Equal(t, 2, len(np.Spec.Template.Spec.Requirements))
+	assert.Equal(t, 3, len(np.Spec.Template.Spec.Requirements))
 	req := np.Spec.Template.Spec.Requirements[0]
 	assert.Equal(t, corev1.LabelInstanceTypeStable, req.Key)
 	assert.Equal(t, corev1.NodeSelectorOpIn, req.Operator)
 	assert.Equal(t, "Standard_NC24ads_A100_v4", req.Values[0])
-	placementReq := np.Spec.Template.Spec.Requirements[1]
+	capacityReq := np.Spec.Template.Spec.Requirements[1]
+	assert.Equal(t, consts.KarpenterCapacityTypeLabel, capacityReq.Key)
+	assert.Equal(t, corev1.NodeSelectorOpIn, capacityReq.Operator)
+	assert.Equal(t, consts.KarpenterCapacityTypeOnDemand, capacityReq.Values[0])
+	placementReq := np.Spec.Template.Spec.Requirements[2]
 	assert.Equal(t, consts.AzurePlacementScopeLabel, placementReq.Key)
 	assert.Equal(t, corev1.NodeSelectorOpIn, placementReq.Operator)
 	assert.Equal(t, consts.AzurePlacementRegional, placementReq.Values[0])
@@ -247,7 +290,7 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 		consts.WorkspaceCreatedByInferenceSetLabel: "my-infset",
 	}
 	ws := newTestWorkspace("prod", "llama-infset-0", "Standard_NC24ads_A100_v4", 1, labels, nil)
-	np := generateNodePool(ws, testConfig, testConfig.DefaultName)
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
 
 	// InferenceSet workspace gets budget "0"
 	assert.Equal(t, "0", np.Spec.Disruption.Budgets[0].Nodes)
@@ -267,7 +310,7 @@ func TestGenerateNodePool_WithAnnotation(t *testing.T) {
 	})
 	nodeClassName, err := resolveNodeClassName(ws, testConfig)
 	assert.NilError(t, err)
-	np := generateNodePool(ws, testConfig, nodeClassName)
+	np := generateNodePool(ws, testConfig, nodeClassName, consts.KarpenterCapacityTypeOnDemand)
 	assert.Equal(t, "image-family-azure-linux", np.Spec.Template.Spec.NodeClassRef.Name)
 }
 
@@ -278,14 +321,16 @@ func TestGenerateNodePool_CustomCloudConfig(t *testing.T) {
 		DefaultName: "default-ec2",
 	}
 	ws := newTestWorkspace("default", "ws1", "m5.xlarge", 1, nil, nil)
-	np := generateNodePool(ws, cfg, cfg.DefaultName)
+	np := generateNodePool(ws, cfg, cfg.DefaultName, consts.KarpenterCapacityTypeSpot)
 
 	ref := np.Spec.Template.Spec.NodeClassRef
 	assert.Equal(t, "karpenter.k8s.aws", ref.Group)
 	assert.Equal(t, "EC2NodeClass", ref.Kind)
 	assert.Equal(t, "default-ec2", ref.Name)
 
-	// Non-Azure providers should only have instance-type requirement (no placement scope).
-	assert.Equal(t, 1, len(np.Spec.Template.Spec.Requirements))
+	// Non-Azure providers should have portable instance and capacity requirements only.
+	assert.Equal(t, 2, len(np.Spec.Template.Spec.Requirements))
 	assert.Equal(t, corev1.LabelInstanceTypeStable, np.Spec.Template.Spec.Requirements[0].Key)
+	assert.Equal(t, consts.KarpenterCapacityTypeLabel, np.Spec.Template.Spec.Requirements[1].Key)
+	assert.Equal(t, consts.KarpenterCapacityTypeSpot, np.Spec.Template.Spec.Requirements[1].Values[0])
 }

@@ -46,7 +46,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/models"
-	metadata "github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -86,6 +85,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
 			errs = errs.Also(w.validateNodeClassNameAnnotation())
 		}
+		errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
 		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
@@ -106,6 +106,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 	errs = errs.Also(w.validateCreate().ViaField("spec"))
 	errs = errs.Also(w.validateAnnotations())
 	errs = errs.Also(w.validateNodeClassNameAnnotation())
+	errs = errs.Also(w.validateCapacityTypeAnnotation())
 	if w.Inference != nil {
 		bypassResourceChecks := false
 		if w.GetAnnotations() != nil {
@@ -120,6 +121,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
 			w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 			w.validateInferenceConfig(ctx),
+			w.validateCustomModelStreaming(),
 		)
 		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
 			errs = errs.Also(w.validateStreamingCSIDriver(ctx))
@@ -169,15 +171,7 @@ func (w *Workspace) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrGeneric("Either Inference or Tuning must be specified, but not both", ""))
 	}
 
-	// Check node auto-provisioning feature gate and validate instanceType accordingly
-	// This validation only applies to CREATE operations, not UPDATE (since instanceType is immutable)
-	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if w.Resource.InstanceType != "" {
-			errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "resource.instanceType"))
-		}
-	} else {
-		// When NAP is enabled, instanceType must be specified for node provisioning
+	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		if w.Resource.InstanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "resource.instanceType"))
 		}
@@ -232,6 +226,39 @@ func (w *Workspace) validateNodeClassNameAnnotation() *apis.FieldError {
 		)
 	}
 	return nil
+}
+
+func (w *Workspace) validateCapacityTypeAnnotation() *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	capacityType := w.GetAnnotations()[AnnotationCapacityType]
+	if consts.IsSupportedKarpenterCapacityType(capacityType) {
+		return nil
+	}
+	return apis.ErrInvalidValue(
+		fmt.Sprintf("%q is not a supported capacity type; choose one of: %s, %s",
+			capacityType, consts.KarpenterCapacityTypeOnDemand, consts.KarpenterCapacityTypeSpot),
+		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
+	)
+}
+
+func (w *Workspace) validateCapacityTypeAnnotationUpdate(old *Workspace) *apis.FieldError {
+	if !consts.IsKarpenterProvisioner() {
+		return nil
+	}
+	oldValue := old.GetAnnotations()[AnnotationCapacityType]
+	newValue := w.GetAnnotations()[AnnotationCapacityType]
+	if oldValue == newValue {
+		return nil
+	}
+	if !consts.IsSupportedKarpenterCapacityType(oldValue) {
+		return w.validateCapacityTypeAnnotation()
+	}
+	return apis.ErrGeneric(
+		fmt.Sprintf("annotation %s is immutable after creation", AnnotationCapacityType),
+		fmt.Sprintf("metadata.annotations[%s]", AnnotationCapacityType),
+	)
 }
 
 func (w *Workspace) validateUpdate(old *Workspace) (errs *apis.FieldError) {
@@ -473,28 +500,12 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 
 func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, bypassResourceChecks bool, runtime model.RuntimeName, wsNamespace string) (errs *apis.FieldError) {
 	var presetName, secretName string
+	configMapName := inference.Config
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
 		secretName = inference.Preset.PresetOptions.ModelAccessSecret
 		// Since inference.Preset exists, we must validate preset name.
 		if !plugin.IsValidPreset(presetName) {
-			// If the preset is not valid, check if it is a deprecated model
-			// We use recover() to handle the panic from MustGet if the model is not found
-			var isDeprecated bool
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						isDeprecated = false
-					}
-				}()
-				m := metadata.MustGet(presetName)
-				isDeprecated = m.Deprecated
-			}()
-
-			if isDeprecated {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Model %s is deprecated and no longer supported", presetName), "presetName"))
-				return errs
-			}
 			// Return to skip the rest of checks, the Inference spec validation will return proper err msg.
 			return errs
 		}
@@ -534,6 +545,11 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 
+	// Defer GPU-memory sufficiency checks when BYO reconciliation selects the
+	// effective SKU. Admission accepts the workspace and lets it remain Pending
+	// until suitable capacity is available.
+	relaxedBYONodeFit := false
+
 	if napDisabled {
 		// MIG uses a single non-shardable slice, so the node-label/multi-node GPU
 		// sizing below doesn't apply; validate the slice-specific fit instead.
@@ -542,7 +558,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				return errs.Also(pErr)
 			}
 			if r.Partition.Mode == PartitionModeMIG && presetName != "" {
-				errs = errs.Also(r.validateMIGModelFit(ctx, presetName, secretName, wsNamespace, bypassResourceChecks))
+				errs = errs.Also(r.validateMIGModelFit(ctx, presetName, configMapName, secretName, wsNamespace, bypassResourceChecks))
 			}
 			return errs
 		}
@@ -563,24 +579,58 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				return errs
 			}
 
-			machineCount = len(nodeList.Items)
+			nodeItems := nodeList.Items
+			if r.InstanceType != "" {
+				filtered := make([]corev1.Node, 0, len(nodeList.Items))
+				for i := range nodeList.Items {
+					if nodeList.Items[i].Labels[corev1.LabelInstanceTypeStable] == r.InstanceType {
+						filtered = append(filtered, nodeList.Items[i])
+					}
+				}
+				nodeItems = filtered
+			}
+
+			// Auto-selected or explicitly requested SKUs may coexist with other GPU
+			// SKUs. Keep strict uniformity only for the legacy explicit-selector path.
+			relaxed := r.LabelSelector == nil || r.InstanceType != ""
+			relaxedBYONodeFit = relaxed
+
+			machineCount = len(nodeItems)
 			if machineCount == 0 {
+				if relaxed {
+					return errs
+				}
 				errs = errs.Also(apis.ErrGeneric("No nodes found matching the specified label selector"))
 				return errs
 			}
 
-			for _, node := range nodeList.Items {
+			groupCount := 0
+			for i := range nodeItems {
+				node := &nodeItems[i]
 				// Try to get GPU configuration from nvidia.com labels first
-				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(&node)
+				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(node)
 				if err != nil {
+					if relaxed {
+						continue
+					}
 					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
 					return errs
 				}
 
-				if skuConfig == nil {
+				switch {
+				case skuConfig == nil:
 					skuConfig = gpuConfig
-				} else {
-					// Verify uniformity
+					groupCount = 1
+				case relaxed:
+					if gpuConfig.GPUMem.Cmp(skuConfig.GPUMem) > 0 {
+						skuConfig = gpuConfig
+						groupCount = 1
+					} else if gpuConfig.GPUMem.Equal(skuConfig.GPUMem) &&
+						gpuConfig.GPUModel == skuConfig.GPUModel &&
+						gpuConfig.GPUCount == skuConfig.GPUCount {
+						groupCount++
+					}
+				default:
 					if gpuConfig.GPUModel != skuConfig.GPUModel {
 						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but previous node has %s GPUs, all nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
 						return errs
@@ -593,13 +643,18 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU memory: node %s has %s memory, but previous node has %s memory", node.Name, gpuConfig.GPUMem.String(), skuConfig.GPUMem.String())))
 						return errs
 					}
+					groupCount++
 				}
 			}
 
 			if skuConfig == nil {
+				if relaxed {
+					return errs
+				}
 				errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have appropriate NVIDIA GPU labels"))
 				return errs
 			}
+			machineCount = groupCount
 		}
 	} else { // NAP enabled
 		// GPU partitioning (MIG or accelerator) is only supported on BYO nodes.
@@ -630,7 +685,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 	if presetName != "" && skuConfig != nil {
 		if napDisabled || (runtime != model.RuntimeNameVLLM && !napDisabled) {
-			modelPreset, err := models.GetModelByName(context.TODO(), presetName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
+			modelPreset, err := models.GetModelByName(context.TODO(), presetName, configMapName, secretName, wsNamespace, k8sclient.Client) // InferenceSpec has been validated so the name is valid.
 			if err != nil {
 				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 				return errs
@@ -654,6 +709,9 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 					if machineTotalGPUMem.Cmp(modelTotalGPUMemory) < 0 {
 						if bypassResourceChecks {
 							klog.Warningf("Bypassing resource check: Insufficient total GPU memory detected but continuing due to bypass flag. Instance type %s has a total of %s, but preset %s requires at least %s",
+								instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
+						} else if relaxedBYONodeFit {
+							klog.Warningf("BYO node fit deferred to reconcile: instance type %s has a total of %s, but preset %s requires at least %s; workload will remain Pending until the cluster is scaled",
 								instanceType, machineTotalGPUMem.String(), presetName, modelTotalGPUMemory.String())
 						} else {
 							errs = errs.Also(apis.ErrInvalidValue(
@@ -742,14 +800,14 @@ func (r *ResourceSpec) validateAcceleratorPartition() (errs *apis.FieldError) {
 // compares the raw weight size against the slice's advertised memory and ignores
 // runtime overhead — so it only rejects models that can never fit. The node
 // estimator performs the authoritative, overhead-aware sizing at reconcile time.
-func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, secretName, wsNamespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, configMapName, secretName, wsNamespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
 	// The profile is already validated by validateMIGPartition before this runs,
 	// so this failure is defensive and should not occur in practice.
 	migConfig, err := utils.GetMIGGPUConfig(r.Partition.Profile)
 	if err != nil {
 		return apis.ErrInvalidValue(err.Error(), "partition.profile")
 	}
-	modelPreset, err := models.GetModelByName(ctx, presetName, secretName, wsNamespace, k8sclient.Client)
+	modelPreset, err := models.GetModelByName(ctx, presetName, configMapName, secretName, wsNamespace, k8sclient.Client)
 	if err != nil {
 		return apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset")
 	}
@@ -790,17 +848,10 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 
 	// Check node auto-provisioning feature gate and validate instanceType accordingly
 	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		// When NAP is disabled, instanceType must be empty (BYO scenario)
-		if old.InstanceType == "" {
-			if r.InstanceType != "" {
-				errs = errs.Also(apis.ErrInvalidValue("instanceType must be empty when node auto-provisioning is disabled (BYO scenario)", "instanceType"))
-			}
-		} else {
-			// for backward compatibility, old.InstanceType is non-empty
-			// but update to empty is allowed.
-			if r.InstanceType != "" && old.InstanceType != r.InstanceType {
-				errs = errs.Also(apis.ErrInvalidValue("instanceType cannot be changed once set", "instanceType"))
-			}
+		// Keep instanceType immutable once set, while allowing it to be added and
+		// preserving the v0.7 upgrade path that clears it.
+		if old.InstanceType != "" && r.InstanceType != "" && old.InstanceType != r.InstanceType {
+			errs = errs.Also(apis.ErrInvalidValue("instanceType cannot be changed once set", "instanceType"))
 		}
 	} else {
 		if r.InstanceType == "" {
@@ -837,11 +888,22 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		presetName := string(i.Preset.Name)
 		// Validate preset name
 		if !plugin.IsValidPreset(presetName) {
-			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
+			// A name in the reserved "custom-" namespace is not merely unknown:
+			// it is an internal, content-addressed registry key, so point the
+			// user at the supported way to bring their own weights instead of a
+			// generic "unsupported" message.
+			if plugin.IsReservedCustomModelName(presetName) {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("inference preset name %q is reserved; select preset %q and supply the model configuration through 'inference.config'", presetName, plugin.PresetNameCustom), "presetName"))
+			} else {
+				errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("Unsupported inference preset name %s", presetName), "presetName"))
+			}
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
+		if err := i.validateCustomPreset(); err != nil {
+			return errs.Also(err)
+		}
+		modelPreset, err := models.GetModelByName(ctx, string(i.Preset.Name), i.Config, i.Preset.PresetOptions.ModelAccessSecret, wsNamespace, k8sclient.Client)
 		if err != nil {
 			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "preset"))
 			return errs
@@ -864,13 +926,8 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 		if err != nil {
 			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Runtime validation: %v", err)))
 		}
-		// For models that require downloading at runtime, we need to check if the modelAccessSecret is provided
-		if params.DownloadAtRuntime {
-			if params.DownloadAuthRequired && i.Preset.PresetOptions.ModelAccessSecret == "" {
-				errs = errs.Also(apis.ErrGeneric("This preset requires authentication and needs a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
-			}
-		} else if i.Preset.PresetOptions.ModelAccessSecret != "" {
-			errs = errs.Also(apis.ErrGeneric("This preset does not require a modelAccessSecret with HF_TOKEN key under presetOptions"))
+		if params.DownloadAuthRequired && i.Preset.PresetOptions.ModelAccessSecret == "" {
+			errs = errs.Also(apis.ErrGeneric("This preset requires authentication and needs a modelAccessSecret with HF_TOKEN key under presetOptions to download the model"))
 		}
 	}
 	if len(i.Adapters) > MaxAdaptersNumber {
@@ -894,6 +951,15 @@ func (i *InferenceSpec) validateUpdate(old *InferenceSpec) (errs *apis.FieldErro
 
 	if !reflect.DeepEqual(i.Preset, old.Preset) {
 		errs = errs.Also(apis.ErrGeneric("field is immutable", "preset"))
+	}
+	// For a bring-your-own model the ConfigMap is the model itself, so
+	// repointing it would swap the weights underneath an already-sized
+	// deployment. Serving a different model means a new Workspace or
+	// InferenceSet and an explicit cutover.
+	if i.Preset != nil && plugin.IsCustomPreset(string(i.Preset.Name)) && i.Config != old.Config {
+		errs = errs.Also(apis.ErrGeneric(
+			fmt.Sprintf("field is immutable for preset %q: serving a different model or different runtime settings requires a new Workspace or InferenceSet", plugin.PresetNameCustom),
+			"config"))
 	}
 	// inference.template can be changed, but cannot be set/unset.
 	if (i.Template != nil && old.Template == nil) || (i.Template == nil && old.Template != nil) {

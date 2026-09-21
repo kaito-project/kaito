@@ -19,6 +19,7 @@ import (
 	"path"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	fluxkustomize "github.com/fluxcd/pkg/apis/kustomize"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/samber/lo"
 	appsv1 "k8s.io/api/apps/v1"
@@ -387,6 +388,16 @@ func inferencePoolTargetPort() int32 {
 
 // GenerateInferencePoolHelmRelease generates a Flux HelmRelease for the inference pool.
 func GenerateInferencePoolHelmRelease(inferenceSetObj *kaitov1beta1.InferenceSet) (*helmv2.HelmRelease, error) {
+	inferencePoolName := utils.InferencePoolName(inferenceSetObj.Name)
+	// llm-d-router-gateway v0.9.0 has no value for extending EPP pod labels.
+	eppPodLabelPatch, err := json.Marshal([]map[string]string{{
+		"op":   "copy",
+		"from": "/metadata/name",
+		"path": "/spec/template/metadata/labels/inferencepool",
+	}})
+	if err != nil {
+		return nil, err
+	}
 	matchLabels := map[string]string{
 		consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name,
 	}
@@ -479,18 +490,31 @@ schedulingProfiles:
 
 	return &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.InferencePoolName(inferenceSetObj.Name),
+			Name:      inferencePoolName,
 			Namespace: inferenceSetObj.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(inferenceSetObj, kaitov1beta1.GroupVersion.WithKind("InferenceSet")),
 			},
 		},
 		Spec: helmv2.HelmReleaseSpec{
+			PostRenderers: []helmv2.PostRenderer{{
+				Kustomize: &helmv2.Kustomize{
+					Patches: []fluxkustomize.Patch{{
+						Patch: string(eppPodLabelPatch),
+						Target: &fluxkustomize.Selector{
+							Group:         "apps",
+							Version:       "v1",
+							Kind:          "Deployment",
+							LabelSelector: "llm-d.ai/igw-mode=llm-d-router-gateway",
+						},
+					}},
+				},
+			}},
 			// Referencing the OCIRepository created above
 			ChartRef: &helmv2.CrossNamespaceSourceReference{
 				Kind:      sourcev1.OCIRepositoryKind,
 				Namespace: inferenceSetObj.Namespace,
-				Name:      utils.InferencePoolName(inferenceSetObj.Name),
+				Name:      inferencePoolName,
 			},
 			Values: &apiextensionsv1.JSON{
 				Raw: rawHelmValues,

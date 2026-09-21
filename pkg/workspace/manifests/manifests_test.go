@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	fluxkustomize "github.com/fluxcd/pkg/apis/kustomize"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -267,6 +268,34 @@ func TestGenerateInferencePoolHelmReleaseFlowControl(t *testing.T) {
 				assert.Contains(t, customConfig, "featureGates:\n- flowControl")
 			}
 		})
+	}
+}
+
+func TestGenerateInferencePoolHelmReleaseEPPPodLabel(t *testing.T) {
+	inferenceSet := test.MockInferenceSetWithPreset.DeepCopy()
+	inferenceSet.Name = "model-deployment"
+
+	helmRelease, err := GenerateInferencePoolHelmRelease(inferenceSet)
+	assert.NoError(t, err)
+
+	if assert.Len(t, helmRelease.Spec.PostRenderers, 1) &&
+		assert.NotNil(t, helmRelease.Spec.PostRenderers[0].Kustomize) &&
+		assert.Len(t, helmRelease.Spec.PostRenderers[0].Kustomize.Patches, 1) {
+		patch := helmRelease.Spec.PostRenderers[0].Kustomize.Patches[0]
+		assert.Equal(t, &fluxkustomize.Selector{
+			Group:         "apps",
+			Version:       "v1",
+			Kind:          "Deployment",
+			LabelSelector: "llm-d.ai/igw-mode=llm-d-router-gateway",
+		}, patch.Target)
+
+		operations := []map[string]string{}
+		assert.NoError(t, json.Unmarshal([]byte(patch.Patch), &operations))
+		assert.Equal(t, []map[string]string{{
+			"op":   "copy",
+			"from": "/metadata/name",
+			"path": "/spec/template/metadata/labels/inferencepool",
+		}}, operations)
 	}
 }
 

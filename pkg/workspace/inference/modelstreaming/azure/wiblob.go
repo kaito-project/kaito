@@ -52,13 +52,14 @@ func (a *WIBlobProvider) CSIDriverName() string {
 // ModelMirror download Job writes to /models/<modelID> inside the PVC,
 // and the PVC is backed by a blob container — so the blob path matches the modelID.
 func (a *WIBlobProvider) GetStreamingConfig(ctx *generator.WorkspaceGeneratorContext, modelID string) (*modelstreaming.StreamingConfig, error) {
-	crName := modelstreaming.ModelMirrorCRName(modelID)
+	mirrorKey := modelstreaming.ModelMirrorKey(ctx.Workspace)
+	crName := mirrorKey.Name
 	mmCR := &kaitov1alpha1.ModelMirror{}
-	if err := ctx.KubeClient.Get(ctx.Ctx, client.ObjectKey{Name: crName}, mmCR); err != nil {
+	if err := ctx.KubeClient.Get(ctx.Ctx, mirrorKey, mmCR); err != nil {
 		return nil, fmt.Errorf("failed to get ModelMirror CR %s for streaming config: %w", crName, err)
 	}
 	pvcName := crName
-	pvcNamespace := mmCR.Spec.JobNamespace
+	pvcNamespace := mmCR.Namespace
 
 	pvc := &corev1.PersistentVolumeClaim{}
 	if err := ctx.KubeClient.Get(ctx.Ctx, types.NamespacedName{

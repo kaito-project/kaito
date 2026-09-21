@@ -22,7 +22,9 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	estimatorpkg "github.com/kaito-project/kaito/pkg/workspace/estimator"
 	"github.com/kaito-project/kaito/presets/workspace/models"
 )
@@ -53,24 +55,42 @@ func NodeEstimateRequestFromWorkspace(ctx context.Context, w *kaitov1beta1.Works
 			req.ResourceProfile.AcceleratorCount = *w.Resource.Partition.Count
 		}
 	}
-	if w.Inference != nil && w.Inference.Preset != nil {
-		name := string(w.Inference.Preset.Name)
-		token := ""
-		// Only HuggingFace models (names containing "/") require an access token for model lookup.
-		// Standard preset models use ModelAccessSecret only for runtime env-var injection,
-		// which is outside the estimator's concern.
-		if strings.Contains(name, "/") {
-			secretName := w.Inference.Preset.PresetOptions.ModelAccessSecret
-			var err error
-			token, err = models.GetHFTokenFromSecret(ctx, kubeClient, secretName, w.Namespace)
-			if err != nil {
-				return estimatorpkg.NodeEstimateRequest{}, fmt.Errorf("failed to resolve access token for model %q: %w", name, err)
-			}
+	if w.Inference != nil && w.Inference.Preset != nil && w.Inference.Preset.Name != "" {
+		m, err := resolveModelForEstimation(ctx, w, kubeClient)
+		if err != nil {
+			return estimatorpkg.NodeEstimateRequest{}, err
 		}
-		req.ModelProfile = estimatorpkg.ModelProfile{
-			Name:        name,
-			AccessToken: token,
-		}
+		req.ModelProfile = estimatorpkg.ModelProfile{Model: m}
 	}
 	return req, nil
+}
+
+// resolveModelForEstimation resolves the model the estimator will size. A
+// bring-your-own model comes from its configuration ConfigMap; every other
+// model is looked up by name, resolving a HuggingFace access token first when
+// the name is a HuggingFace card ID. Resolution happens here rather than in the
+// estimator so that the estimator stays independent of where the model is read
+// from.
+func resolveModelForEstimation(ctx context.Context, w *kaitov1beta1.Workspace, kubeClient client.Client) (pkgmodel.Model, error) {
+	name := string(w.Inference.Preset.Name)
+	if plugin.IsCustomPreset(name) {
+		resolved, err := models.ResolveCustomModel(ctx, kubeClient, w.Inference.Config, w.Namespace)
+		if err != nil {
+			return nil, err
+		}
+		return resolved.Model, nil
+	}
+
+	token := ""
+	// Only HuggingFace models (names containing "/") require an access token for model lookup.
+	// Standard preset models use ModelAccessSecret only for runtime env-var injection,
+	// which is outside the estimator's concern.
+	if strings.Contains(name, "/") {
+		var err error
+		token, err = models.GetHFTokenFromSecret(ctx, kubeClient, w.Inference.Preset.PresetOptions.ModelAccessSecret, w.Namespace)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve access token for model %q: %w", name, err)
+		}
+	}
+	return models.GetModelByNameWithToken(ctx, name, token)
 }

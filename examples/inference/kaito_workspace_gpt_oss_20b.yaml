@@ -18,5 +18,5 @@ resource:
       apps: gpt-oss-20b
 inference:
   preset:
-    name: "gpt-oss-20b"
+    name: "openai/gpt-oss-20b"
   config: "inference-params"  # Reference to ConfigMap name

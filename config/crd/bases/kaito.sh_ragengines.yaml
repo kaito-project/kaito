@@ -562,7 +562,7 @@ spec:
                       mountPath:
                         description: |-
                           MountPath specifies where the volume should be mounted in the container.
-                          Defaults to /mnt/data if not specified.
+                          Defaults to /mnt/data if not specified. Custom paths must be beneath /mnt.
                         type: string
                       persistentVolumeClaim:
                         description: PersistentVolumeClaim specifies the PVC to use

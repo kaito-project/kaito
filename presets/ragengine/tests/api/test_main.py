@@ -16,6 +16,7 @@ import json
 import os
 import re
 import time
+from pathlib import Path
 from unittest.mock import patch
 
 import httpx
@@ -23,6 +24,7 @@ import pytest
 import respx
 
 import ragengine
+import ragengine.main as ragengine_main
 from ragengine.config import DEFAULT_VECTOR_DB_PERSIST_DIR
 
 AUTO_GEN_DOC_ID_LEN = 64
@@ -404,18 +406,20 @@ async def test_persist_documents(async_client):
     response = await async_client.post(f"/persist/{index_name}")
     assert response.status_code == 200
     response_json = response.json()
+    default_path = str(Path(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name).resolve())
     assert response_json == {
-        "message": f"Successfully persisted index {index_name} to {DEFAULT_VECTOR_DB_PERSIST_DIR}/{index_name}."
+        "message": f"Successfully persisted index {index_name} to {default_path}."
     }
     assert os.path.exists(os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name))
 
     # Persist documents for the specific index at a custom path
-    custom_path = "./custom_test_path"
+    custom_path = os.path.join(DEFAULT_VECTOR_DB_PERSIST_DIR, "custom_test_path")
     response = await async_client.post(f"/persist/{index_name}?path={custom_path}")
     assert response.status_code == 200
     response_json = response.json()
+    resolved_custom_path = str(Path(custom_path).resolve())
     assert response_json == {
-        "message": f"Successfully persisted index {index_name} to {custom_path}."
+        "message": f"Successfully persisted index {index_name} to {resolved_custom_path}."
     }
     assert os.path.exists(custom_path)
 
@@ -458,8 +462,9 @@ async def test_load_documents(async_client):
     )
 
     assert response.status_code == 200
+    load_path = str(Path(DEFAULT_VECTOR_DB_PERSIST_DIR, index_name).resolve())
     assert response.json() == {
-        "message": "Successfully loaded index test_index from storage/test_index."
+        "message": f"Successfully loaded index test_index from {load_path}."
     }
 
     response = await async_client.get("/indexes")
@@ -503,6 +508,103 @@ async def test_load_documents(async_client):
         )
         == 1
     )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("endpoint", ["persist", "load"])
+async def test_storage_path_outside_persistence_directory_is_rejected(
+    async_client, monkeypatch, tmp_path, endpoint
+):
+    storage_root = tmp_path / "storage"
+    storage_root.mkdir()
+    outside_path = tmp_path / "outside"
+    outside_path.mkdir()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(ragengine_main, "DEFAULT_VECTOR_DB_PERSIST_DIR", "storage")
+
+    response = await async_client.post(
+        f"/{endpoint}/test_index", params={"path": str(outside_path)}
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Path must be within the configured persistence directory."
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("endpoint", ["persist", "load"])
+async def test_storage_path_parent_traversal_is_rejected(
+    async_client, monkeypatch, tmp_path, endpoint
+):
+    storage_root = tmp_path / "storage"
+    storage_root.mkdir()
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(ragengine_main, "DEFAULT_VECTOR_DB_PERSIST_DIR", "storage")
+
+    response = await async_client.post(
+        f"/{endpoint}/test_index",
+        params={"path": str(storage_root / ".." / "outside")},
+    )
+
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("endpoint", ["persist", "load"])
+async def test_storage_path_symlink_escape_is_rejected(
+    async_client, monkeypatch, tmp_path, endpoint
+):
+    storage_root = tmp_path / "storage"
+    storage_root.mkdir()
+    outside_path = tmp_path / "outside"
+    outside_path.mkdir()
+    (storage_root / "outside-link").symlink_to(outside_path, target_is_directory=True)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(ragengine_main, "DEFAULT_VECTOR_DB_PERSIST_DIR", "storage")
+
+    response = await async_client.post(
+        f"/{endpoint}/test_index", params={"path": str(storage_root / "outside-link")}
+    )
+
+    assert response.status_code == 400
+
+
+def test_mounted_storage_root_is_allowed(monkeypatch):
+    monkeypatch.setattr(
+        ragengine_main, "DEFAULT_VECTOR_DB_PERSIST_DIR", "/mnt/vector-db/test-rag"
+    )
+
+    assert (
+        ragengine_main.resolve_storage_path("/mnt/vector-db/test-rag/index")
+        == "/mnt/vector-db/test-rag/index"
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("endpoint", ["persist", "load"])
+@pytest.mark.parametrize(
+    "storage_root",
+    [
+        "/tmp/storage",
+        "/mnt",
+        "/mnt/data/../../../etc",
+        "./storage",
+    ],
+)
+async def test_invalid_configured_storage_root_is_rejected(
+    async_client, monkeypatch, endpoint, storage_root
+):
+    monkeypatch.setattr(ragengine_main, "DEFAULT_VECTOR_DB_PERSIST_DIR", storage_root)
+
+    response = await async_client.post(
+        f"/{endpoint}/test_index", params={"path": storage_root}
+    )
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "detail": "Configured persistence directory must be storage or a directory beneath /mnt."
+    }
 
 
 @pytest.mark.asyncio

@@ -51,6 +51,12 @@ spec:
             {{- if .Values.modelMirrorDownloadMemory }}
             - --model-mirror-download-memory={{ .Values.modelMirrorDownloadMemory }}
             {{- end }}
+            {{- if .Values.modelMirrorDownloadCPULimit }}
+            - --model-mirror-download-cpu-limit={{ .Values.modelMirrorDownloadCPULimit }}
+            {{- end }}
+            {{- if .Values.modelMirrorDownloadMemoryLimit }}
+            - --model-mirror-download-memory-limit={{ .Values.modelMirrorDownloadMemoryLimit }}
+            {{- end }}
             {{- if .Values.defaultNodeImageFamily }}
             - --default-node-image-family={{ .Values.defaultNodeImageFamily }}
             {{- end }}

@@ -107,10 +107,9 @@ func TestModelMirrorValidate_Managed_StillValidates(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Mode:         ModelMirrorModeManaged,
-			Source:       &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
-			Storage:      &ModelMirrorStorage{StorageClassName: ptr.To("blob-fuse"), Size: "20Gi"},
-			JobNamespace: "default",
+			Mode:    ModelMirrorModeManaged,
+			Source:  &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
+			Storage: &ModelMirrorStorage{StorageClassName: ptr.To("blob-fuse"), Size: "20Gi"},
 		},
 	}
 
@@ -129,9 +128,8 @@ func TestModelMirrorValidate_Managed_MissingSource_Fails(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Mode:         ModelMirrorModeManaged,
-			Storage:      &ModelMirrorStorage{StorageClassName: ptr.To("blob-fuse"), Size: "20Gi"},
-			JobNamespace: "default",
+			Mode:    ModelMirrorModeManaged,
+			Storage: &ModelMirrorStorage{StorageClassName: ptr.To("blob-fuse"), Size: "20Gi"},
 		},
 	}
 
@@ -147,9 +145,8 @@ func TestModelMirrorValidate_Managed_MissingStorage_Fails(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Mode:         ModelMirrorModeManaged,
-			Source:       &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
-			JobNamespace: "default",
+			Mode:   ModelMirrorModeManaged,
+			Source: &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
 		},
 	}
 
@@ -166,10 +163,9 @@ func TestModelMirrorValidate_Managed_MissingStorageClass_Fails(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Mode:         ModelMirrorModeManaged,
-			Source:       &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
-			Storage:      &ModelMirrorStorage{StorageClassName: ptr.To("nonexistent"), Size: "20Gi"},
-			JobNamespace: "default",
+			Mode:    ModelMirrorModeManaged,
+			Source:  &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
+			Storage: &ModelMirrorStorage{StorageClassName: ptr.To("nonexistent"), Size: "20Gi"},
 		},
 	}
 
@@ -207,9 +203,8 @@ func TestModelMirrorValidate_Managed_NilStorageClass_Fails(t *testing.T) {
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
 			// Mode intentionally empty -> defaults to Managed
-			Source:       &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
-			Storage:      &ModelMirrorStorage{Size: "20Gi"}, // StorageClassName intentionally nil
-			JobNamespace: "default",
+			Source:  &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
+			Storage: &ModelMirrorStorage{Size: "20Gi"}, // StorageClassName intentionally nil
 		},
 	}
 
@@ -226,10 +221,9 @@ func TestModelMirrorValidate_Managed_EmptyStorageClass_Fails(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Mode:         ModelMirrorModeManaged,
-			Source:       &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
-			Storage:      &ModelMirrorStorage{StorageClassName: ptr.To(""), Size: "20Gi"},
-			JobNamespace: "default",
+			Mode:    ModelMirrorModeManaged,
+			Source:  &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
+			Storage: &ModelMirrorStorage{StorageClassName: ptr.To(""), Size: "20Gi"},
 		},
 	}
 
@@ -250,10 +244,9 @@ func TestModelMirrorValidate_Managed_EmptyValues_ReportMissing(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Mode:         ModelMirrorModeManaged,
-			Source:       &ModelMirrorSource{Registry: "", ModelID: ""},                        // both blank
-			Storage:      &ModelMirrorStorage{Size: "", StorageClassName: ptr.To("blob-fuse")}, // blank size
-			JobNamespace: "default",
+			Mode:    ModelMirrorModeManaged,
+			Source:  &ModelMirrorSource{Registry: "", ModelID: ""},                        // both blank
+			Storage: &ModelMirrorStorage{Size: "", StorageClassName: ptr.To("blob-fuse")}, // blank size
 		},
 	}
 
@@ -287,10 +280,9 @@ func TestModelMirrorValidate_Managed_BadSize_ReportsInvalid(t *testing.T) {
 
 	m := &ModelMirror{
 		Spec: ModelMirrorSpec{
-			Mode:         ModelMirrorModeManaged,
-			Source:       &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
-			Storage:      &ModelMirrorStorage{Size: "not-a-quantity", StorageClassName: ptr.To("blob-fuse")},
-			JobNamespace: "default",
+			Mode:    ModelMirrorModeManaged,
+			Source:  &ModelMirrorSource{Registry: RegistryHuggingFace, ModelID: "org/model"},
+			Storage: &ModelMirrorStorage{Size: "not-a-quantity", StorageClassName: ptr.To("blob-fuse")},
 		},
 	}
 

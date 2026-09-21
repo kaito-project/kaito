@@ -148,6 +148,14 @@ func TestIsValidPreset(t *testing.T) {
 		}
 	})
 
+	t.Run("legacy short preset is valid", func(t *testing.T) {
+		KaitoModelRegister = ModelRegister{}
+
+		if !IsValidPreset("Phi-4") {
+			t.Error("expected IsValidPreset to return true for legacy short preset")
+		}
+	})
+
 	t.Run("valid HuggingFace model ID format", func(t *testing.T) {
 		KaitoModelRegister = ModelRegister{}
 
@@ -205,11 +213,4 @@ func TestIsValidPreset(t *testing.T) {
 		}
 	})
 
-	t.Run("valid legacy builtin preset", func(t *testing.T) {
-		KaitoModelRegister = ModelRegister{}
-
-		if !IsValidPreset("llama-3.1-8b-instruct") {
-			t.Error("expected IsValidPreset to return true for legacy builtin preset name")
-		}
-	})
 }

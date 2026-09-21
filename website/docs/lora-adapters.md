@@ -60,7 +60,7 @@ resource:
       app: tuning-phi-3
 tuning:
   preset:
-    name: phi-3-mini-128k-instruct
+    name: microsoft/Phi-3-mini-128k-instruct
   method: qlora
   input:
     urls:
@@ -110,7 +110,7 @@ resource:
       apps: phi-3-adapter
 inference:
   preset:
-    name: phi-3-mini-128k-instruct
+    name: microsoft/Phi-3-mini-128k-instruct
   adapters:
     - source:
         name: "my-lora-adapter"
@@ -132,7 +132,7 @@ resource:
       apps: phi-3-adapter
 inference:
   preset:
-    name: phi-3-mini-128k-instruct
+    name: microsoft/Phi-3-mini-128k-instruct
   adapters:
     - source:
         name: "my-lora-adapter"
@@ -155,7 +155,7 @@ resource:
       apps: phi4-volume-adapter
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
   adapters:
     - source:
         name: "my-volume-adapter"

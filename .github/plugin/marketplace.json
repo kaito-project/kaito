@@ -11,13 +11,14 @@
   "plugins": [
     {
       "name": "kaito-workspace",
-      "description": "Deploy LLM models to Kubernetes using the KAITO kubectl plugin. Guides you through model selection, GPU sizing, and generates ready-to-run kubectl kaito deploy commands.",
+      "description": "Deploy LLM models with kubectl kaito and troubleshoot KAITO Workspace or InferenceSet startup through read-only provisioning, pod, and runtime diagnosis.",
       "version": "0.1.0",
       "source": "./plugins/kaito-workspace",
       "skills": [
-        "./skills/kaito-inference"
+        "./skills/kaito-inference",
+        "./skills/kaito-troubleshoot"
       ],
-      "keywords": ["kubernetes", "ai", "llm", "gpu", "inference", "kaito"],
+      "keywords": ["kubernetes", "ai", "llm", "gpu", "inference", "troubleshooting", "kaito"],
       "license": "Apache-2.0"
     }
   ]

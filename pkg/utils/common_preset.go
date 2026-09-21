@@ -18,6 +18,7 @@ import (
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -28,6 +29,9 @@ const (
 	DefaultWeightsVolumePath  = "/workspace/weights"
 
 	DefaultORASToolImage = "mcr.microsoft.com/oss/v2/oras-project/oras:v1.2.3"
+
+	// InferenceConfigKey is the ConfigMap entry holding vLLM runtime overrides.
+	InferenceConfigKey = "inference_config.yaml"
 )
 
 var DefaultModelWeightsVolume = corev1.Volume{
@@ -181,6 +185,9 @@ func HostPathVolume(name, hostPath string) (corev1.Volume, corev1.VolumeMount) {
 	return volume, volumeMount
 }
 
+// ConfigCMVolume mounts the whole ConfigMap at DefaultConfigMapMountPath. Used
+// by callers (e.g. tuning) whose ConfigMap holds a single well-known file and
+// that expect every key to appear in the pod.
 func ConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
 	volume := corev1.Volume{
 		Name: "config-volume",
@@ -189,6 +196,35 @@ func ConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: cmName,
 				},
+			},
+		},
+	}
+
+	volumeMount := corev1.VolumeMount{
+		Name:      volume.Name,
+		MountPath: DefaultConfigMapMountPath,
+	}
+	return volume, volumeMount
+}
+
+// InferenceConfigCMVolume mounts only the runtime configuration
+// (inference_config.yaml) from the inference ConfigMap. A bring-your-own model
+// shares this ConfigMap with its config.json, which is consumed by the operator
+// for sizing and must not appear beside the authoritative config.json that
+// arrives with the model bundle. The key is projected optionally because the
+// model configuration alone is a valid ConfigMap for a custom model.
+func InferenceConfigCMVolume(cmName string) (corev1.Volume, corev1.VolumeMount) {
+	volume := corev1.Volume{
+		Name: "config-volume",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: cmName,
+				},
+				Items: []corev1.KeyToPath{
+					{Key: InferenceConfigKey, Path: InferenceConfigKey},
+				},
+				Optional: ptr.To(true),
 			},
 		},
 	}

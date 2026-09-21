@@ -156,7 +156,7 @@ resource:
       apps: phi-4-mini
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 Then apply the workspace:
@@ -187,6 +187,23 @@ helm uninstall karpenter -n karpenter
 # The Karpenter workload identity created by `make generate-identities` is named azkarpenterIdentity
 az identity delete --name azkarpenterIdentity -g $AZURE_RESOURCE_GROUP
 ```
+
+## Select a Capacity Type
+
+KAITO uses on-demand capacity for every new Karpenter `NodePool` by default. To opt a
+`Workspace` into Spot capacity, set the following annotation when creating it:
+
+```yaml
+metadata:
+  annotations:
+    kaito.sh/capacity-type: spot
+```
+
+The supported values are `on-demand` and `spot`. An absent or empty annotation means
+`on-demand`. The annotation is immutable after creation and does not modify existing
+NodePools. For an `InferenceSet`, place it under
+`spec.template.metadata.annotations`. For a `MultiRoleInference`, place it in the
+resource's top-level `metadata.annotations`; the selection applies to every role.
 
 ## Select a Node Class (Optional)
 
@@ -219,7 +236,7 @@ resource:
       apps: phi-4-mini
 inference:
   preset:
-    name: phi-4-mini-instruct
+    name: microsoft/Phi-4-mini-instruct
 ```
 
 Notes:

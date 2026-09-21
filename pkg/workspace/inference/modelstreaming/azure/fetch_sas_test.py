@@ -19,6 +19,7 @@ do NOT run it automatically. Run manually during development:
 It stubs azure.identity so azure-identity need not be installed locally.
 """
 
+import hashlib
 import importlib.util
 import os
 import sys
@@ -125,34 +126,23 @@ def test_account_and_container():
     assert container == "private-mo-abc", container
 
 
-def test_discover_subpath_nested():
+def test_list_blob_names_parses_names():
     xml = (
         "<EnumerationResults><Blobs>"
-        "<Blob><Name>mlflow_model_folder/data/model/a.safetensors</Name></Blob>"
-        "<Blob><Name>mlflow_model_folder/data/model/b.safetensors</Name></Blob>"
-        "<Blob><Name>mlflow_model_folder/config.json</Name></Blob>"
+        "<Blob><Name>model/a.safetensors</Name></Blob>"
+        "<Blob><Name>model/config.json</Name></Blob>"
         "</Blobs></EnumerationResults>"
     )
-    _with_stub_urlopen(xml, lambda: _assert_subpath("mlflow_model_folder/data/model"))
-
-
-def test_discover_subpath_root():
-    xml = (
-        "<EnumerationResults><Blobs>"
-        "<Blob><Name>a.safetensors</Name></Blob>"
-        "<Blob><Name>b.safetensors</Name></Blob>"
-        "</Blobs></EnumerationResults>"
+    names = _with_urlopen(
+        lambda url, timeout=30: _FakeResp(xml),
+        lambda: fetch_sas.list_blob_names("https://blob/c?sig=x"),
     )
-    _with_stub_urlopen(xml, lambda: _assert_subpath(""))
+    assert names == ["model/a.safetensors", "model/config.json"], names
 
 
-def test_discover_subpath_none():
-    xml = "<EnumerationResults><Blobs><Blob><Name>config.json</Name></Blob></Blobs></EnumerationResults>"
-    _with_stub_urlopen(xml, lambda: _assert_subpath(""))
-
-
-def test_discover_subpath_paginates_and_unescapes():
-    # First page carries a NextMarker; safetensors (with an '&amp;' entity) only appear on page 2.
+def test_list_blob_names_paginates_and_unescapes():
+    # First page carries a NextMarker; the safetensors blob (with an '&amp;'
+    # entity) only appears on page 2, so both pages must be fetched and unescaped.
     page1 = (
         "<EnumerationResults><Blobs>"
         "<Blob><Name>a&amp;b/config.json</Name></Blob>"
@@ -164,19 +154,80 @@ def test_discover_subpath_paginates_and_unescapes():
         "</Blobs></EnumerationResults>"
     )
     pages = [page1, page2]
-    orig = fetch_sas.urllib.request.urlopen
-    fetch_sas.urllib.request.urlopen = lambda url, timeout=30: _FakeResp(pages.pop(0))
-    try:
-        got = fetch_sas.discover_subpath("https://blob/c?sig=x")
-    finally:
-        fetch_sas.urllib.request.urlopen = orig
-    # entity unescaped ('a&b') and the second page was fetched via the marker.
-    assert got == "a&b", got
+    names = _with_urlopen(
+        lambda url, timeout=30: _FakeResp(pages.pop(0)),
+        lambda: fetch_sas.list_blob_names("https://blob/c?sig=x"),
+    )
+    assert names == ["a&b/config.json", "a&b/model.safetensors"], names
+    # The unescaped names feed discover_subpath, which finds the shared prefix.
+    assert fetch_sas.discover_subpath(names) == "a&b"
 
 
-def _assert_subpath(expected):
-    got = fetch_sas.discover_subpath("https://blob/c?sig=x")
-    assert got == expected, f"got {got!r} want {expected!r}"
+def test_discover_subpath_nested():
+    names = [
+        "mlflow_model_folder/data/model/a.safetensors",
+        "mlflow_model_folder/data/model/b.safetensors",
+        "mlflow_model_folder/config.json",
+    ]
+    assert fetch_sas.discover_subpath(names) == "mlflow_model_folder/data/model", names
+
+
+def test_discover_subpath_root():
+    assert fetch_sas.discover_subpath(["a.safetensors", "b.safetensors"]) == ""
+
+
+def test_discover_subpath_none():
+    assert fetch_sas.discover_subpath(["config.json"]) == ""
+
+
+def test_blob_url_inserts_path_before_query():
+    assert (
+        fetch_sas.blob_url(
+            "https://acct.blob.core.windows.net/c?sig=x", "sub/config.json"
+        )
+        == "https://acct.blob.core.windows.net/c/sub/config.json?sig=x"
+    )
+
+
+def test_blob_url_without_query():
+    assert (
+        fetch_sas.blob_url("https://acct.blob.core.windows.net/c", "config.json")
+        == "https://acct.blob.core.windows.net/c/config.json"
+    )
+
+
+def test_verify_bundle_accepts_matching_config():
+    config = '{"architectures": ["LlamaForCausalLM"]}'
+    sha = hashlib.sha256(config.encode("utf-8")).hexdigest()
+    names = ["model/config.json", "model/model.safetensors"]
+    # No exception means the bundle's config.json matched what was sized for.
+    _with_urlopen(
+        lambda url, timeout=60: _FakeResp(config),
+        lambda: fetch_sas.verify_bundle("https://blob/c?sig=x", names, "model", sha),
+    )
+
+
+def test_verify_bundle_rejects_missing_config():
+    # config.json absence is caught before any fetch is attempted.
+    _expect_valueerror(
+        "config.json",
+        lambda: fetch_sas.verify_bundle(
+            "https://blob/c?sig=x", ["model/model.safetensors"], "model", "deadbeef"
+        ),
+    )
+
+
+def test_verify_bundle_rejects_mismatched_config():
+    config = '{"architectures": ["LlamaForCausalLM"]}'
+    _with_urlopen(
+        lambda url, timeout=60: _FakeResp(config),
+        lambda: _expect_valueerror(
+            "does not match",
+            lambda: fetch_sas.verify_bundle(
+                "https://blob/c?sig=x", ["config.json"], "", "0" * 64
+            ),
+        ),
+    )
 
 
 class _FakeResp:
@@ -193,13 +244,23 @@ class _FakeResp:
         return False
 
 
-def _with_stub_urlopen(xml, fn):
+def _with_urlopen(responder, fn):
+    """Run fn with urllib.request.urlopen replaced by responder, then restore it."""
     orig = fetch_sas.urllib.request.urlopen
-    fetch_sas.urllib.request.urlopen = lambda url, timeout=30: _FakeResp(xml)
+    fetch_sas.urllib.request.urlopen = responder
     try:
-        fn()
+        return fn()
     finally:
         fetch_sas.urllib.request.urlopen = orig
+
+
+def _expect_valueerror(substr, fn):
+    try:
+        fn()
+    except ValueError as e:
+        assert substr in str(e), f"{substr!r} not in {e!r}"
+        return
+    raise AssertionError(f"expected ValueError containing {substr!r}")
 
 
 def test_write_env_file():

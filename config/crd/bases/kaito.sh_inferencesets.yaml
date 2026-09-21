@@ -854,6 +854,28 @@ spec:
                 description: Replicas is the total number of workspaces created by
                   the InferenceSet.
                 type: integer
+              resolvedModel:
+                description: |-
+                  ResolvedModel records what a bring-your-own deployment actually resolved to.
+                  It is owned by the controller and set only for the "custom" preset.
+                properties:
+                  configSHA256:
+                    description: |-
+                      ConfigSHA256 is the SHA-256 of the model configuration this deployment was
+                      resolved from. The serving container verifies the model bundle against it,
+                      and a replaced configuration whose digest no longer matches is reported
+                      rather than adopted.
+                    type: string
+                  sizeBytes:
+                    description: |-
+                      SizeBytes is the declared on-disk size of the weight bundle this
+                      deployment was sized from. It is recorded separately from ConfigSHA256
+                      because that digest covers the model configuration only, so a replaced
+                      configuration that changes the size but not config.json would otherwise
+                      go unnoticed.
+                    format: int64
+                    type: integer
+                type: object
               selector:
                 description: |-
                   Selector is used to select the pods that provide metrics for making scaling action decisions.

@@ -56,6 +56,7 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
@@ -140,6 +141,26 @@ func (c *WorkspaceReconciler) Reconcile(ctx context.Context, req reconcile.Reque
 		return reconcile.Result{}, err
 	}
 
+	// Resolve and pin the bring-your-own model before anything is sized or
+	// provisioned, so that sizing and the workload are built from a model
+	// identity that has already been recorded.
+	if err = c.reconcileResolvedModel(ctx, workspaceObj); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// BYO auto-selection requires a healthy GPU node to identify the effective SKU.
+	// Return an error before workload creation so reconciliation retries with backoff.
+	if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] &&
+		workspaceObj.Resource.LabelSelector == nil && workspaceObj.Resource.InstanceType == "" {
+		it, selErr := byoprovisioner.SelectInstanceType(ctx, c.Client, workspaceObj)
+		if selErr != nil {
+			return reconcile.Result{}, selErr
+		}
+		if it == "" {
+			return reconcile.Result{}, fmt.Errorf("no ready GPU nodes present for BYO node selection; scale the cluster to add a GPU node")
+		}
+	}
+
 	// update targetNodeCount for the workspace
 	if err = c.UpdateWorkspaceTargetNodeCount(ctx, workspaceObj); err != nil {
 		return reconcile.Result{}, err
@@ -168,21 +189,15 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	}
 
 	modelID := modelstreaming.ResolveHFModelID(wObj)
-	crName := modelstreaming.ModelMirrorCRName(modelID)
+	mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+	crName := mirrorKey.Name
+	staticRequested := modelstreaming.StaticModelMirrorEnabled(wObj.Annotations)
 
 	// Check if CR already exists
 	existing := &kaitov1alpha1.ModelMirror{}
-	err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, existing)
+	err := c.Client.Get(ctx, mirrorKey, existing)
 	if err == nil {
-		// CR exists — verify it's for the same model (collision check).
-		if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
-			return &streamingValidationError{
-				reason: reasonModelMirrorCreateFailed,
-				err: fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
-					crName, existing.Spec.Source.ModelID, modelID),
-			}
-		}
-		return nil
+		return c.validateExistingModelMirror(wObj, existing, modelID, staticRequested)
 	}
 	if !apierrors.IsNotFound(err) {
 		return &streamingValidationError{
@@ -191,17 +206,17 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		}
 	}
 
-	if modelstreaming.StaticModelMirrorEnabled(wObj.Annotations) {
+	if staticRequested {
 		if err := registry.SelectModelStreamer(wObj).ValidateAuth(ctx, wObj, c.Client, modelstreaming.StreamingDefaults.ServiceAccount); err != nil {
 			return &streamingValidationError{reason: reasonModelStreamingServiceAccountInvalid, err: err}
 		}
 		staticCR := &kaitov1alpha1.ModelMirror{
-			ObjectMeta: metav1.ObjectMeta{Name: crName},
+			ObjectMeta: modelstreaming.ModelMirrorObjectMeta(wObj),
 			Spec:       kaitov1alpha1.ModelMirrorSpec{Mode: kaitov1alpha1.ModelMirrorModeStatic},
 		}
 		if err := c.Client.Create(ctx, staticCR); err != nil {
 			if apierrors.IsAlreadyExists(err) {
-				return nil // Race condition
+				return errModelMirrorRaced
 			}
 			return &streamingValidationError{
 				reason: reasonModelMirrorCreateFailed,
@@ -246,7 +261,7 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 
 	// Resolve model metadata for DiskStorageRequirement
 	presetName := string(wObj.Inference.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
 		return &streamingValidationError{
 			reason: reasonModelMirrorCreateFailed,
@@ -262,35 +277,26 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 		}
 	}
 
-	var accessSecret *corev1.ObjectReference
-	if wObj.Inference.Preset.PresetOptions.ModelAccessSecret != "" {
-		accessSecret = &corev1.ObjectReference{
-			Name:      wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
-			Namespace: wObj.Namespace,
-		}
-	}
-
 	cr := &kaitov1alpha1.ModelMirror{
-		ObjectMeta: metav1.ObjectMeta{Name: crName},
+		ObjectMeta: modelstreaming.ModelMirrorObjectMeta(wObj),
 		Spec: kaitov1alpha1.ModelMirrorSpec{
 			Mode: kaitov1alpha1.ModelMirrorModeManaged,
 			Source: &kaitov1alpha1.ModelMirrorSource{
-				Registry:     kaitov1alpha1.RegistryHuggingFace,
-				ModelID:      modelID,
-				AccessSecret: accessSecret,
+				Registry:         kaitov1alpha1.RegistryHuggingFace,
+				ModelID:          modelID,
+				AccessSecretName: wObj.Inference.Preset.PresetOptions.ModelAccessSecret,
 			},
 			Storage: &kaitov1alpha1.ModelMirrorStorage{
 				Size:             modelSize,
 				StorageClassName: ptr.To(storageClass),
 			},
-			JobNamespace:       wObj.Namespace,
 			ServiceAccountName: serviceAccount,
 		},
 	}
 
 	if err := c.Client.Create(ctx, cr); err != nil {
 		if apierrors.IsAlreadyExists(err) {
-			return nil // Race condition
+			return errModelMirrorRaced
 		}
 		return &streamingValidationError{
 			reason: reasonModelMirrorCreateFailed,
@@ -302,19 +308,97 @@ func (c *WorkspaceReconciler) ensureModelMirror(ctx context.Context, wObj *kaito
 	return nil
 }
 
+// validateExistingModelMirror checks that a mirror already present in the workspace's
+// namespace describes the same model, mode and storage this workspace asks for. A mirror is
+// shared by every workspace in the namespace that uses the same model, so a disagreement
+// means one of them would silently stream from the wrong place.
+func (c *WorkspaceReconciler) validateExistingModelMirror(wObj *kaitov1beta1.Workspace,
+	existing *kaitov1alpha1.ModelMirror, modelID string, staticRequested bool) error {
+	crName := existing.Name
+
+	// A mirror on its way out still holds the name, so a replacement cannot be created yet.
+	// Deleting one while workspaces still use it is not a supported operation; this only
+	// keeps the workspace from binding to storage that is about to disappear.
+	if !existing.DeletionTimestamp.IsZero() {
+		return &streamingValidationError{
+			reason: reasonModelMirrorDeleting,
+			err: fmt.Errorf("ModelMirror %s in namespace %s is being deleted; waiting for it to be removed before recreating it",
+				crName, existing.Namespace),
+		}
+	}
+
+	if existing.Spec.Source != nil && existing.Spec.Source.ModelID != modelID {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror CR name collision: %s maps to both %q and %q",
+				crName, existing.Spec.Source.ModelID, modelID),
+		}
+	}
+
+	// A static mirror has no Source, so the model check above cannot catch a mode mismatch.
+	// Left unchecked, a managed workspace adopts a static mirror, sees it Ready, and then
+	// fails looking for a PVC that a static mirror never creates.
+	existingStatic := existing.Spec.Mode == kaitov1alpha1.ModelMirrorModeStatic
+	if existingStatic != staticRequested {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror %s in namespace %s has mode %q but this workspace requires mode %q; "+
+				"delete the existing ModelMirror or move this workspace to another namespace",
+				crName, existing.Namespace, mirrorMode(existingStatic), mirrorMode(staticRequested)),
+		}
+	}
+
+	if staticRequested {
+		return nil
+	}
+
+	want, err := modelstreaming.ResolveStorageClass(wObj, modelstreaming.StreamingDefaults.StorageClass)
+	if err != nil {
+		return &streamingValidationError{reason: reasonModelStreamingStorageClassNotFound, err: err}
+	}
+	if got := existingStorageClass(existing); got != want {
+		return &streamingValidationError{
+			reason: reasonModelMirrorCreateFailed,
+			err: fmt.Errorf("ModelMirror %s in namespace %s uses StorageClass %q but this workspace requires %q; "+
+				"delete the existing ModelMirror or align the %s annotation",
+				crName, existing.Namespace, got, want, mmconsts.AnnotationModelMirrorStorageClass),
+		}
+	}
+	return nil
+}
+
+func mirrorMode(static bool) kaitov1alpha1.ModelMirrorMode {
+	if static {
+		return kaitov1alpha1.ModelMirrorModeStatic
+	}
+	return kaitov1alpha1.ModelMirrorModeManaged
+}
+
+func existingStorageClass(cr *kaitov1alpha1.ModelMirror) string {
+	if cr.Spec.Storage == nil || cr.Spec.Storage.StorageClassName == nil {
+		return ""
+	}
+	return *cr.Spec.Storage.StorageClassName
+}
+
 // waitForModelMirror checks if the ModelMirror CR is Ready.
 // Returns (nil, nil) to proceed, or (*Result, err) to stop — same pattern as reconcileNodes.
 func (c *WorkspaceReconciler) waitForModelMirror(ctx context.Context, wObj *kaitov1beta1.Workspace) (result *reconcile.Result, err error) {
-	modelID := modelstreaming.ResolveHFModelID(wObj)
-	crName := modelstreaming.ModelMirrorCRName(modelID)
+	mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+	crName := mirrorKey.Name
 
 	cr := &kaitov1alpha1.ModelMirror{}
-	if err := c.Client.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+	if err := c.Client.Get(ctx, mirrorKey, cr); err != nil {
 		if apierrors.IsNotFound(err) {
 			// CR was deleted externally; ensureModelMirror will recreate on next reconcile
 			return &reconcile.Result{}, nil
 		}
 		return &reconcile.Result{}, fmt.Errorf("failed to get ModelMirror CR %s: %w", crName, err)
+	}
+
+	if !cr.DeletionTimestamp.IsZero() {
+		klog.InfoS("ModelMirror CR is being deleted, gating inference", "name", crName)
+		return &reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
 	}
 
 	if cr.Status.Phase != kaitov1alpha1.ModelMirrorPhaseReady {
@@ -357,6 +441,11 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 	// Ensure ModelMirror CR exists (starts download in parallel with node provisioning).
 	if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference != nil && wObj.Inference.Preset != nil {
 		if err := c.ensureModelMirror(ctx, wObj); err != nil {
+			var sve *streamingValidationError
+			if errors.Is(err, errModelMirrorRaced) ||
+				(errors.As(err, &sve) && sve.reason == reasonModelMirrorDeleting) {
+				return reconcile.Result{RequeueAfter: modelMirrorDrainRetryInterval}, nil
+			}
 			return reconcile.Result{}, err
 		}
 	}
@@ -545,7 +634,7 @@ func (c *WorkspaceReconciler) applyTuning(ctx context.Context, wObj *kaitov1beta
 	}
 
 	presetName := string(wObj.Tuning.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, "", wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, "", "", wObj.Namespace, c.Client)
 	if err != nil {
 		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
 		return err
@@ -612,7 +701,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	presetName := string(wObj.Inference.Preset.Name)
-	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
+	model, err := models.GetModelByName(ctx, presetName, wObj.Inference.Config, wObj.Inference.Preset.PresetOptions.ModelAccessSecret, wObj.Namespace, c.Client)
 	if err != nil {
 		klog.ErrorS(err, "failed to get model by name", "model", presetName, "workspace", klog.KObj(wObj))
 		return err
@@ -774,11 +863,11 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		if wObj.Inference != nil {
 			if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
 
-				modelID := modelstreaming.ResolveHFModelID(wObj)
-				crName := modelstreaming.ModelMirrorCRName(modelID)
+				mirrorKey := modelstreaming.ModelMirrorKey(wObj)
+				crName := mirrorKey.Name
 
 				cr := &kaitov1alpha1.ModelMirror{}
-				if err := c.Get(ctx, client.ObjectKey{Name: crName}, cr); err != nil {
+				if err := c.Get(ctx, mirrorKey, cr); err != nil {
 					if !apierrors.IsNotFound(err) {
 						klog.ErrorS(err, "failed to get ModelMirror CR for status sync", "cr", crName)
 					}
@@ -788,23 +877,16 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 						kaitov1beta1.ConditionTypeResourceStatus,
 						metav1.ConditionFalse, "ModelMirrorNotReady", "Model download has not started")
 				} else {
-					if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
-						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
-							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
-							metav1.ConditionTrue, "ModelMirrorReady", "Model download complete")
-					} else {
-						msg := "Model download in progress"
-						if cr.Status.FailureMessage != "" {
-							msg = cr.Status.FailureMessage
-						}
-						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
-							kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
-							metav1.ConditionFalse, modelMirrorPendingReason(cr), msg)
+					mirrorStatus, mirrorReason, mirrorMsg := modelMirrorCondition(cr, infFailReason, infFailMsg)
+					setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
+						kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
+						mirrorStatus, mirrorReason, mirrorMsg)
+					if mirrorStatus != metav1.ConditionTrue {
 						// Model weights not ready — override ResourceReady
 						resourceConditionStatus = metav1.ConditionFalse
 						setWorkspaceCondition(status, wObj.GetGeneration(), appendReconcileErrMessage,
 							kaitov1beta1.ConditionTypeResourceStatus,
-							metav1.ConditionFalse, "ModelMirrorNotReady", msg)
+							metav1.ConditionFalse, "ModelMirrorNotReady", mirrorMsg)
 					}
 				}
 			}
@@ -895,6 +977,7 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 // cause of an inference workload that is not ready.
 const (
 	inferenceReasonSASTokenFetchFailed = "SASTokenFetchFailed"
+	inferenceReasonModelBundleMismatch = "ModelBundleMismatch"
 	inferenceReasonImagePullError      = "ImagePullError"
 	inferenceReasonCrashLoopBackOff    = "ContainerCrashLoopBackOff"
 	inferenceReasonOOMKilled           = "ContainerOOMKilled"
@@ -912,7 +995,17 @@ const (
 	reasonModelStreamingServiceAccountInvalid = "ModelStreamingServiceAccountInvalid"
 	reasonModelStreamingInvalidAnnotations    = "ModelStreamingInvalidAnnotations"
 	reasonModelMirrorCreateFailed             = "ModelMirrorCreateFailed"
+	reasonModelMirrorDeleting                 = "ModelMirrorDeleting"
 )
+
+// modelMirrorDrainRetryInterval paces retries while a mirror finishes tearing down.
+const modelMirrorDrainRetryInterval = 5 * time.Second
+
+// errModelMirrorRaced reports a mirror that appeared between this workspace's cached read
+// and its create. It was built from another workspace's spec, so this one must still run
+// validateExistingModelMirror against it; that happens on the next pass, once the cache
+// catches up and the Get path is taken.
+var errModelMirrorRaced = errors.New("ModelMirror was created concurrently")
 
 type streamingValidationError struct {
 	reason string
@@ -964,21 +1057,50 @@ func (c *WorkspaceReconciler) classifyInferencePodFailure(ctx context.Context, w
 // detectSASInitFailure returns a reason/message when a workspace pod's SAS-fetch
 // init container has failed or is crash-looping. Returns empty strings when no
 // such failure is observed.
+//
+// The init container exits non-zero for two very different reasons: a genuine
+// SAS token/mint failure, or a bring-your-own bundle whose config.json is
+// missing or does not match what the deployment was sized for. The latter exits
+// with a distinct code (modelstreaming.SASFetchExitConfigMismatch) so it is
+// reported as an artifact mismatch rather than misattributed to a token failure.
 func detectSASInitFailure(pods *corev1.PodList) (reason, message string) {
 	for i := range pods.Items {
 		for _, ics := range pods.Items[i].Status.InitContainerStatuses {
 			if ics.Name != modelstreaming.SASFetchInitContainerName {
 				continue
 			}
-			if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
-				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			exitCode, failed := sasInitFailureExitCode(ics)
+			if !failed {
+				continue
 			}
-			if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
-				return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
+			if int(exitCode) == modelstreaming.SASFetchExitConfigMismatch {
+				return inferenceReasonModelBundleMismatch, "model bundle verification failed: the streamed config.json is missing or does not match the configuration this deployment was sized for; check the fetch-sas init container logs"
 			}
+			return inferenceReasonSASTokenFetchFailed, "SAS token fetch failed: the streaming init container could not obtain a SAS token; check the fetch-sas init container logs"
 		}
 	}
 	return "", ""
+}
+
+// sasInitFailureExitCode reports the exit code of the SAS-fetch init container's
+// most recent termination and whether that termination represents a failure
+// (non-zero exit, including one now hidden behind a CrashLoopBackOff wait). The
+// exit code is 0 with failed=true only when a crash loop is observed without a
+// recorded termination to read the code from.
+func sasInitFailureExitCode(ics corev1.ContainerStatus) (code int32, failed bool) {
+	if t := ics.State.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if t := ics.LastTerminationState.Terminated; t != nil && t.ExitCode != 0 {
+		return t.ExitCode, true
+	}
+	if w := ics.State.Waiting; w != nil && w.Reason == "CrashLoopBackOff" {
+		if t := ics.LastTerminationState.Terminated; t != nil {
+			return t.ExitCode, true
+		}
+		return 0, true
+	}
+	return 0, false
 }
 
 // detectContainerFailure inspects init and main container statuses across all
@@ -1178,6 +1300,28 @@ func modelMirrorPendingReason(cr *kaitov1alpha1.ModelMirror) string {
 		return reasonModelMirrorPending
 	}
 	return cond.Reason
+}
+
+// modelMirrorCondition reports the ModelMirrorReady condition for cr. A mirror this
+// workspace was refused the use of is not ready for it regardless of its own phase.
+func modelMirrorCondition(cr *kaitov1alpha1.ModelMirror, infFailReason, infFailMsg string) (metav1.ConditionStatus, string, string) {
+	if infFailReason == reasonModelMirrorCreateFailed {
+		return metav1.ConditionFalse, infFailReason, infFailMsg
+	}
+	// Reported here rather than off the reconcile error, which is a requeue and so never
+	// reaches the status sync.
+	if !cr.DeletionTimestamp.IsZero() {
+		return metav1.ConditionFalse, reasonModelMirrorDeleting,
+			fmt.Sprintf("ModelMirror %s in namespace %s is being deleted", cr.Name, cr.Namespace)
+	}
+	if cr.Status.Phase == kaitov1alpha1.ModelMirrorPhaseReady {
+		return metav1.ConditionTrue, "ModelMirrorReady", "Model download complete"
+	}
+	msg := "Model download in progress"
+	if cr.Status.FailureMessage != "" {
+		msg = cr.Status.FailureMessage
+	}
+	return metav1.ConditionFalse, modelMirrorPendingReason(cr), msg
 }
 
 // streamingValidationReason promotes a model-streaming validation failure carried on
@@ -1490,15 +1634,15 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 
 		// Resolve the context window size from the workspace's inference ConfigMap (if any)
 		// and pass it through RuntimeProfile so the estimator does not need to do I/O.
-		if wObj.Inference != nil && wObj.Inference.Config != "" {
-			configMap := &corev1.ConfigMap{}
-			if cmErr := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); cmErr != nil {
-				klog.Warningf("[UpdateWorkspaceTargetNodeCount] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
-					wObj.Name, wObj.Inference.Config, cmErr)
-			} else if configData, exists := configMap.Data["inference_config.yaml"]; exists {
-				if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
-					req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
-				}
+		if contextSize := c.resolveInferenceContextSize(ctx, wObj); contextSize > 0 {
+			req.RuntimeProfile = estimator.RuntimeProfile{ContextSize: contextSize}
+		}
+
+		// Size BYO workloads against their live effective SKU so the estimate matches
+		// the nodes selected for placement.
+		if req.ResourceProfile.DisableNodeAutoProvisioning {
+			if effIT, selErr := byoprovisioner.EffectiveInstanceType(ctx, c.Client, wObj); selErr == nil && effIT != "" {
+				req.ResourceProfile.InstanceType = effIT
 			}
 		}
 
@@ -1529,6 +1673,27 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	}
 
 	return nil
+}
+
+// resolveInferenceContextSize returns the explicit max-model-len configured in the
+// workspace's inference ConfigMap, or 0 when there is no ConfigMap, it cannot be
+// read, or it does not pin a context size (the estimator then applies its default).
+func (c *WorkspaceReconciler) resolveInferenceContextSize(ctx context.Context, wObj *kaitov1beta1.Workspace) int {
+	if wObj.Inference == nil || wObj.Inference.Config == "" {
+		return 0
+	}
+	configMap := &corev1.ConfigMap{}
+	if err := resources.GetResource(ctx, wObj.Inference.Config, wObj.Namespace, c.Client, configMap); err != nil {
+		klog.Warningf("[resolveInferenceContextSize] workspace=%s: failed to get ConfigMap %s: %v, using estimator default context size",
+			wObj.Name, wObj.Inference.Config, err)
+		return 0
+	}
+	if configData, exists := configMap.Data["inference_config.yaml"]; exists {
+		if contextSize, found := utils.ParseExplicitMaxModelLen(configData); found {
+			return contextSize
+		}
+	}
+	return 0
 }
 
 // SetupWithManager sets up the controller with the Manager.

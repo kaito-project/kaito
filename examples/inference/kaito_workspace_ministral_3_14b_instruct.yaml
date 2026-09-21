@@ -9,4 +9,4 @@ resource:
       apps: ministral-3-14b-instruct
 inference:
   preset:
-    name: "ministral-3-14b-instruct"
+    name: "mistralai/Ministral-3-14B-Instruct-2512"

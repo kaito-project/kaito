@@ -102,6 +102,27 @@ func TestInferenceSetMIGImmutable(t *testing.T) {
 	assert.Contains(t, errs.Error(), "field is immutable")
 }
 
+func TestInferenceSetCapacityTypeAnnotation(t *testing.T) {
+	originalProvisioner := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
+	t.Cleanup(func() { consts.ActiveNodeProvisioner = originalProvisioner })
+
+	makeIS := func(value string) *InferenceSet {
+		return &InferenceSet{Spec: InferenceSetSpec{Template: InferenceSetTemplate{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{AnnotationCapacityType: value},
+			},
+		}}}
+	}
+
+	assert.Nil(t, makeIS(consts.KarpenterCapacityTypeSpot).validateCapacityTypeAnnotation())
+	assert.NotNil(t, makeIS("reserved").validateCapacityTypeAnnotation())
+	assert.NotNil(t, makeIS(consts.KarpenterCapacityTypeSpot).
+		validateCapacityTypeAnnotationUpdate(makeIS(consts.KarpenterCapacityTypeOnDemand)))
+	assert.Nil(t, makeIS(consts.KarpenterCapacityTypeOnDemand).
+		validateCapacityTypeAnnotationUpdate(makeIS("reserved")))
+}
+
 func TestInferenceSetAcceleratorImmutable(t *testing.T) {
 	makeIS := func(count *int) *InferenceSet {
 		var p *PartitionSpec

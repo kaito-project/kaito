@@ -59,6 +59,11 @@ kaito_model_download_remaining_seconds = Gauge(
     "Estimated remaining time for model download in seconds; -1 when unknown",
     registry=_registry,
 )
+kaito_max_concurrent_requests = Gauge(
+    "kaito_max_concurrent_requests",
+    "Resolved vLLM maximum number of concurrent sequences",
+    registry=_registry,
+)
 
 
 class KAITOArgumentParser(argparse.ArgumentParser):
@@ -103,6 +108,12 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             action="store_true",
             default=False,
             help="Disable the queue-depth rate limit guard (which otherwise returns HTTP 429 when the waiting queue exceeds max-num-seqs).",
+        )
+        self.add_argument(
+            "--kaito-disable-benchmark-control",
+            action="store_true",
+            default=False,
+            help="Disable the loopback endpoint used to abort startup benchmark requests.",
         )
 
     def _reset_vllm_defaults(self):
@@ -544,6 +555,23 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
         }
 
 
+def configure_middlewares(args: argparse.Namespace) -> None:
+    """Register KAITO middleware according to the parsed opt-out flags."""
+    args.middleware = list(args.middleware or [])
+    if args.kaito_disable_benchmark_control:
+        logger.info(
+            "Benchmark control middleware disabled "
+            "(--kaito-disable-benchmark-control set)"
+        )
+    else:
+        args.middleware.append("benchmark_control.BenchmarkControlMiddleware")
+
+    if args.kaito_disable_rate_limit:
+        logger.info("Rate limit guard disabled (--kaito-disable-rate-limit set)")
+    else:
+        args.middleware.append("rate_limit.RateLimitMiddleware")
+
+
 if __name__ == "__main__":
     parser = KAITOArgumentParser(description="KAITO wrapper of vLLM serving server")
     args = parser.parse_args()
@@ -642,20 +670,19 @@ if __name__ == "__main__":
     # last possible moment — the pre-serve hook fires after that resolution
     # but before uvicorn accepts any traffic. Until configure() is called
     # the middleware is a safe no-op.
-    def _configure_rate_limit(engine_client):
+    def _configure_runtime_limits(engine_client):
         max_num_seqs = engine_client.vllm_config.scheduler_config.max_num_seqs
+        kaito_max_concurrent_requests.set(max_num_seqs)
+        if args.kaito_disable_rate_limit:
+            return
         rate_limit.configure(max_num_seqs)
         logger.info(
             "Rate limit guard active: threshold %d",
             max_num_seqs,
         )
 
-    if args.kaito_disable_rate_limit:
-        logger.info("Rate limit guard disabled (--kaito-disable-rate-limit set)")
-    else:
-        _wrap_build_and_serve(_configure_rate_limit)
-        args.middleware = list(args.middleware or [])
-        args.middleware.append("rate_limit.RateLimitMiddleware")
+    _wrap_build_and_serve(_configure_runtime_limits)
+    configure_middlewares(args)
 
     # See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html
     uvloop.run(api_server.run_server(args))

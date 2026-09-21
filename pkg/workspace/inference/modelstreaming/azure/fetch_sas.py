@@ -21,7 +21,9 @@ script resolves everything else at pod runtime using the workload identity:
   3. Derive the storage account and container from the blobUri.
   4. Mint a SAS at the mint endpoint with {blobUri[, assetId]} -> SAS token.
   5. List the container with the SAS to discover the safetensors subpath -> model streaming URI.
-  6. Write AZURE_STORAGE_SAS_TOKEN, AZURE_STORAGE_ACCOUNT_NAME, and STREAM_MODEL_URI to the
+  6. For a bring-your-own model, verify the bundle's config.json against the digest the
+     operator sized the deployment from.
+  7. Write AZURE_STORAGE_SAS_TOKEN, AZURE_STORAGE_ACCOUNT_NAME, and STREAM_MODEL_URI to the
      shared env file so the main container's entrypoint wrapper can source them.
 
 Required environment variables:
@@ -30,8 +32,14 @@ Required environment variables:
     STREAM_IDENTITY_CLIENT_ID - workload identity client ID to resolve/mint as
     STREAM_SOURCE_TYPE        - model source flavor: "public" or "byo"
     STREAM_ENV_FILE           - file path to write the env file (KEY=value lines)
+
+Optional environment variables:
+    KAITO_MODEL_CONFIG_SHA256 - expected SHA-256 of the bundle's config.json. When set, the
+                                bundle is verified before the model is loaded; when unset
+                                (preset and HuggingFace models) verification is skipped.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -44,6 +52,13 @@ from azure.identity import WorkloadIdentityCredential
 
 SOURCE_PUBLIC = "public"
 SOURCE_BYO = "byo"
+
+# Exit code returned when the streamed bundle's config.json is missing or does not
+# match the digest the deployment was sized for. It is distinct from a generic
+# failure (exit 1) so the controller can tell a bring-your-own artifact mismatch
+# apart from a SAS token/mint failure. Keep in sync with SASFetchExitConfigMismatch
+# in modelstreaming.go.
+EXIT_CONFIG_MISMATCH = 3
 
 # Token audience per source type (fixed Azure AAD resource identifiers).
 AUDIENCE_BY_TYPE = {
@@ -131,9 +146,8 @@ def account_and_container(blob_uri: str) -> "tuple[str, str]":
     return account, container
 
 
-def discover_subpath(sas_uri: str) -> str:
-    """List the container via the SAS and return the common directory prefix of the
-    safetensors files (empty string when they are at the container root).
+def list_blob_names(sas_uri: str) -> "list[str]":
+    """List every blob name in the container via the SAS.
 
     Pages through the full listing (Azure returns at most 5000 blobs per page plus a
     NextMarker) and unescapes XML entities in blob names so paths with '&' etc. are correct.
@@ -147,18 +161,68 @@ def discover_subpath(sas_uri: str) -> str:
             body = resp.read().decode("utf-8", errors="replace")
         names.extend(
             xml.sax.saxutils.unescape(n)
-            for n in re.findall(r"<Name>(.*?)</Name>", body)
+            for n in re.findall(r"<Name>(.*?)</Name>", body, re.DOTALL)
         )
         m = re.search(r"<NextMarker>(.*?)</NextMarker>", body)
         marker = xml.sax.saxutils.unescape(m.group(1)) if m and m.group(1) else ""
         if not marker:
             break
+    return names
+
+
+def discover_subpath(names: "list[str]") -> str:
+    """Return the common directory prefix of the safetensors files (empty string when
+    they are at the container root)."""
     safetensors = [n for n in names if n.endswith(".safetensors")]
     if not safetensors:
         return ""
     if len(safetensors) == 1:
         return os.path.dirname(safetensors[0])
     return os.path.commonpath(safetensors)
+
+
+def blob_url(sas_uri: str, blob_name: str) -> str:
+    """Build a blob-scoped URL by inserting the blob path into a container SAS URI."""
+    base, _, query = sas_uri.partition("?")
+    return f"{base.rstrip('/')}/{urllib.parse.quote(blob_name)}" + (
+        f"?{query}" if query else ""
+    )
+
+
+def fetch_blob(sas_uri: str, blob_name: str) -> bytes:
+    """Download a single blob via the container SAS."""
+    with urllib.request.urlopen(blob_url(sas_uri, blob_name), timeout=60) as resp:
+        return resp.read()
+
+
+def verify_bundle(
+    sas_uri: str, names: "list[str]", subpath: str, expected_sha256: str
+) -> None:
+    """Verify the bundle's config.json against the digest the deployment was sized for.
+
+    Raises ValueError when config.json is missing or does not match. This is the one
+    check worth blocking on: a mismatch means the source served weights the deployment
+    was never sized or argument-rendered for. Anything else the bundle lacks (tokenizer,
+    weight files) is left for the runtime to report when it loads, so this stays a
+    verification of identity rather than a re-implementation of the loader's own checks.
+
+    Only the small configuration blob is hashed; the weights themselves are not, since
+    the source is required to be versioned and write-once.
+    """
+    prefix = f"{subpath}/" if subpath else ""
+    in_bundle = {n[len(prefix) :] for n in names if n.startswith(prefix)}
+
+    if "config.json" not in in_bundle:
+        raise ValueError(f"model bundle at '{prefix}' does not contain config.json")
+
+    actual = hashlib.sha256(fetch_blob(sas_uri, prefix + "config.json")).hexdigest()
+    if actual != expected_sha256:
+        raise ValueError(
+            "model bundle config.json does not match the configuration this deployment "
+            f"was sized and configured from (expected sha256 {expected_sha256}, found {actual}); "
+            "the model source must be versioned and write-once, and serving different "
+            "weights requires a new deployment"
+        )
 
 
 def write_env_file(out_path: str, values: dict) -> None:
@@ -214,8 +278,20 @@ def main() -> int:
     sas_token = sas_uri.split("?", 1)[1]
 
     # Discover the safetensors subpath and build the az:// model URI.
-    subpath = discover_subpath(sas_uri)
+    names = list_blob_names(sas_uri)
+    subpath = discover_subpath(names)
     model_uri = f"az://{container}/{subpath}" if subpath else f"az://{container}"
+
+    # Bring-your-own models carry an expected configuration digest; verify the bundle
+    # matches it before the main container is allowed to start loading.
+    expected_sha256 = os.environ.get("KAITO_MODEL_CONFIG_SHA256", "").strip()
+    if expected_sha256:
+        try:
+            verify_bundle(sas_uri, names, subpath, expected_sha256)
+        except ValueError as err:
+            print(f"ERROR: {err}", file=sys.stderr)
+            return EXIT_CONFIG_MISMATCH
+        print(f"Model bundle verified against config.json sha256 {expected_sha256}")
 
     write_env_file(
         out_path,

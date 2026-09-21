@@ -9,4 +9,4 @@ resource:
       apps: phi-4
 inference:
   preset:
-    name: phi-4 
+    name: microsoft/phi-4

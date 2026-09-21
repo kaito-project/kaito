@@ -1,0 +1,71 @@
+{
+  "_comment": "Shared infrastructure and size-based target policies for preset regression workflows. Model names and sizes come from presets/workspace/models/model_catalog.yaml.",
+  "profiles": {
+    "standard": {
+      "timeoutMinutes": 60,
+      "largeModelThresholdGiB": 100,
+      "largeModelTimeoutMinutes": 90,
+      "pools": {
+        "a10": {
+          "maxModelSizeGiB": 17,
+          "gpusPerNode": 1,
+          "blocklist": []
+        },
+        "a100": {
+          "maxModelSizeGiB": 250,
+          "gpusPerNode": 1,
+          "blocklist": [
+            "deepseek-ai/DeepSeek-V4-Flash-0731",
+            "mistralai/Mistral-Small-4-119B-2603"
+          ]
+        },
+        "h100": {
+          "maxModelSizeGiB": 250,
+          "gpusPerNode": 1,
+          "blocklist": []
+        }
+      }
+    },
+    "8xh100": {
+      "timeoutMinutes": 120,
+      "pools": {
+        "h100": {
+          "minModelSizeGiBExclusive": 250,
+          "gpusPerNode": 8,
+          "blocklist": []
+        }
+      }
+    }
+  },
+  "gpuPools": {
+    "a10": {
+      "displayName": "NVIDIA A10",
+      "region": "swedencentral",
+      "fallbackRegion": "polandcentral",
+      "instanceTypes": {
+        "1": "Standard_NV36ads_A10_v5",
+        "2": "Standard_NV72ads_A10_v5"
+      }
+    },
+    "a100": {
+      "displayName": "NVIDIA A100 80GB",
+      "region": "eastus",
+      "fallbackRegion": "westeurope",
+      "instanceTypes": {
+        "1": "Standard_NC24ads_A100_v4",
+        "2": "Standard_NC48ads_A100_v4",
+        "4": "Standard_NC96ads_A100_v4"
+      }
+    },
+    "h100": {
+      "displayName": "NVIDIA H100",
+      "region": "australiaeast",
+      "fallbackRegion": "",
+      "instanceTypes": {
+        "1": "Standard_NC40ads_H100_v5",
+        "2": "Standard_NC80adis_H100_v5",
+        "8": "Standard_ND96isr_H100_v5"
+      }
+    }
+  }
+}

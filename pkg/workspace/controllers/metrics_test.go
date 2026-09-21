@@ -70,12 +70,12 @@ func TestGetWorkspacePresetName(t *testing.T) {
 				Inference: &kaitov1beta1.InferenceSpec{
 					Preset: &kaitov1beta1.PresetSpec{
 						PresetMeta: kaitov1beta1.PresetMeta{
-							Name: "phi-4",
+							Name: "microsoft/phi-4",
 						},
 					},
 				},
 			},
-			expected: "phi-4",
+			expected: "microsoft/phi-4",
 		},
 		{
 			name: "workspace with custom template returns empty string",

@@ -24,3 +24,4 @@ GHSA-xf7x-x43h-rpqh
 # affected: it already ships transformers 5.14.1.
 CVE-2026-4372
 CVE-2026-5241
+CVE-2026-9856

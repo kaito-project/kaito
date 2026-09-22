@@ -89,6 +89,7 @@ jobs:
 
       - name: Check if version already exists
         id: check-version
+        if: steps.get-version.outputs.IS_RC == 'false'
         run: |
           if grep -q '"${{ steps.get-version.outputs.DOC_VERSION }}"' versions.json; then
             echo "VERSION_EXISTS=true" >> $GITHUB_OUTPUT

@@ -1,0 +1,10 @@
+schemaVersion: 1
+targets:
+  - model: google/gemma-4-E2B-it
+    instanceType: Standard_NC40ads_H100_v5
+    nodes: 1
+    profile: chat-thinking-v1
+    accuracy: 0.84375
+    correct: 108
+    evaluated: 128
+    measuredAt: "2026-09-21T00:00:00Z"

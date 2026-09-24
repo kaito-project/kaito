@@ -25,9 +25,10 @@ on:
   pull_request:
     paths:
       - ".github/workflows/preset-model-regression-8xh100.yaml"
-      - ".github/scripts/preset-regression-matrix.sh"
-      - ".github/scripts/preset-regression-run.sh"
+      - ".github/scripts/preset-regression-tests/**"
       - ".github/preset-regression-config.json"
+      - "benchmarks/gsm8k/**"
+      - "benchmarks/guidellm/**"
       - "presets/workspace/models/model_catalog.yaml"
   workflow_dispatch:
     inputs:
@@ -152,6 +153,11 @@ jobs:
           fi
           yq --version
           jq --version
+
+      - name: Test benchmark configuration and comparison
+        run: |
+          python3 -m pip install --disable-pip-version-check --quiet PyYAML==6.0.3
+          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_benchmarks.py
 
       - name: Azure CLI login and cluster credentials
         run: |
@@ -438,8 +444,8 @@ jobs:
           MAX_HOURS="${{ inputs.max_hours || '20' }}"
           GLOBAL_DEADLINE_EPOCH=$(( $(date +%s) + MAX_HOURS * 3600 ))
           export GLOBAL_DEADLINE_EPOCH
-          chmod +x .github/scripts/preset-regression-run.sh
-          .github/scripts/preset-regression-run.sh
+          chmod +x .github/scripts/preset-regression-tests/preset-regression-run.sh
+          .github/scripts/preset-regression-tests/preset-regression-run.sh
         env:
           MODEL_FILTER: ${{ inputs.models || '' }}
           NAMESPACE: ${{ env.TEST_NAMESPACE }}
@@ -447,6 +453,16 @@ jobs:
           ARTIFACT_DIR: "artifacts/8xh100"
           # The nodes are already up, so anything slow here is a real scheduling problem.
           RESOURCE_READY_TIMEOUT_MINUTES: "15"
+
+      - name: Upload regression results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: preset-regression-8xh100
+          path: |
+            results-8xh100.json
+            artifacts/8xh100/
+          if-no-files-found: warn
 
       - name: Release the GPU nodes
         if: ${{ always() }}

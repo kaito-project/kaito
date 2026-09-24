@@ -1,0 +1,47 @@
+schemaVersion: 1
+benchmark:
+  dataset: openai/gsm8k
+  datasetRevision: 740312add88f781978c0658806c59bc2815b9866
+  split: test
+  evaluator: lm-eval
+  evaluatorVersion: 0.4.13
+  task: gsm8k
+  metric: exact_match,flexible-extract
+  sampleSelection:
+    strategy: first
+    count: 128
+  promptTokenReserve: 2048
+  defaultProfile: chat-thinking-v1
+
+profiles:
+  chat-nonthinking-v1:
+    applyChatTemplate: true
+    fewshotAsMultiturn: false
+    temperature: 0
+    maxGenTokens: 512
+    chatTemplateKwargs:
+      enable_thinking: false
+    stopSequences:
+      - "</s>"
+      - "<|im_end|>"
+  chat-thinking-v1:
+    applyChatTemplate: true
+    fewshotAsMultiturn: false
+    temperature: 0
+    maxGenTokens: 8192
+    chatTemplateKwargs:
+      enable_thinking: true
+    stopSequences:
+      - "</s>"
+      - "<|im_end|>"
+
+execution:
+  numConcurrent: 2
+  requestTimeoutSeconds: 300
+  timeoutSeconds: 1200
+  maxRetries: 3
+
+comparison:
+  defaultMaxRegression: 0.05
+  maxRegressionOverrides: {}
+  requireBaselines: false

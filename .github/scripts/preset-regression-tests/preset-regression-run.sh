@@ -47,12 +47,18 @@
 #   TRANSIENT_FAILURE_RETRY_INTERVAL_SEC  wait before recreating a Workspace after
 #                                         a transient failure (default 180)
 #   DIAG_LOG_LINES  pod log lines echoed into the job log on failure (default 200)
+#   KEEP_SUCCESS_ARTIFACTS  retain raw successful benchmark artifacts for baseline collection
+#   PYTHON_BIN  Python interpreter used to create the benchmark virtual environment
 
 set -euo pipefail
 
 GPU="${GPU:?GPU must be set (a10 | a100 | h100)}"
 MODEL_CATALOG_FILE="${MODEL_CATALOG_FILE:-presets/workspace/models/model_catalog.yaml}"
 REGRESSION_CONFIG_FILE="${REGRESSION_CONFIG_FILE:-.github/preset-regression-config.json}"
+GSM8K_CONFIG_FILE="${GSM8K_CONFIG_FILE:-benchmarks/gsm8k/config.yaml}"
+GSM8K_BASELINES_FILE="${GSM8K_BASELINES_FILE:-benchmarks/gsm8k/baselines.yaml}"
+GUIDELLM_CONFIG_FILE="${GUIDELLM_CONFIG_FILE:-benchmarks/guidellm/config.yaml}"
+GUIDELLM_BASELINES_FILE="${GUIDELLM_BASELINES_FILE:-benchmarks/guidellm/baselines.yaml}"
 REGRESSION_PROFILE="${REGRESSION_PROFILE:-standard}"
 RESULTS_FILE="${RESULTS_FILE:-results-${GPU}.json}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-artifacts/${GPU}}"
@@ -66,6 +72,7 @@ RESOURCE_READY_TIMEOUT_MINUTES="${RESOURCE_READY_TIMEOUT_MINUTES:-30}"
 INFERENCE_FAILURE_GRACE_MINUTES="${INFERENCE_FAILURE_GRACE_MINUTES:-5}"
 TRANSIENT_FAILURE_RETRY_INTERVAL_SEC="${TRANSIENT_FAILURE_RETRY_INTERVAL_SEC:-180}"
 DIAG_LOG_LINES="${DIAG_LOG_LINES:-200}"
+KEEP_SUCCESS_ARTIFACTS="${KEEP_SUCCESS_ARTIFACTS:-false}"
 
 # Exit 137 is a SIGKILL from the startup/liveness probe, which large models hit
 # legitimately while weights download, so only the restart count catches those.
@@ -79,6 +86,8 @@ MAX_RETRIES_FOR_TRANSIENT_FAILURE=2
 
 WORKDIR="$(mktemp -d)"
 trap 'rm -rf "$WORKDIR"' EXIT
+BENCHMARK_VENV="${WORKDIR}/benchmark-venv"
+BENCHMARK_PYTHON="${BENCHMARK_VENV}/bin/python"
 
 mkdir -p "$ARTIFACT_DIR"
 
@@ -88,7 +97,7 @@ log() { printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*"; }
 # Build the ordered list of targets for this GPU pool.
 # ---------------------------------------------------------------------------
 targets_file="${WORKDIR}/targets.json"
-bash .github/scripts/preset-regression-matrix.sh >"$targets_file"
+bash .github/scripts/preset-regression-tests/preset-regression-matrix.sh >"$targets_file"
 
 TARGET_COUNT="$(jq 'length' "$targets_file")"
 log "GPU pool '${GPU}': ${TARGET_COUNT} target(s) to process."
@@ -97,7 +106,8 @@ results_file="${WORKDIR}/results.ndjson"
 : >"$results_file"
 
 record() {
-  # record <target-json> <status> <reason> <duration> <actual-nodes> <peak-tpm> <artifacts>
+  # record <target-json> <status> <reason> <duration> <actual-nodes> <peak-tpm> <artifacts> [correctness-json] [performance-json]
+  local correctness="${8:-null}" performance="${9:-null}"
   jq -c -n \
     --argjson target "$1" \
     --arg status "$2" \
@@ -106,12 +116,16 @@ record() {
     --arg actualNodes "$5" \
     --arg peakTPM "$6" \
     --arg artifacts "$7" \
+    --argjson correctness "$correctness" \
+    --argjson performance "$performance" \
     '$target + {
        status: $status,
        reason: $reason,
        durationSeconds: $durationSeconds,
        actualNodes: $actualNodes,
        peakTPM: $peakTPM,
+      correctness: $correctness,
+      performance: $performance,
        artifacts: $artifacts
      }' >>"$results_file"
 }
@@ -165,11 +179,99 @@ nodeclaim_failure_reason() {
 # Mirrors validateWorkspaceBenchmarkCompleted in test/e2e/preset_vllm_test.go.
 benchmark_metrics_valid() {
   jq -e '
-    (.status.performance.metrics.peakTokensPerMinute // {}) as $m
-    | (($m.value // "") | tonumber? // 0) > 0
-      and (((["durationSec", "inputTokens", "outputTokens", "maxConcurrency"])
-             - (($m.config // {}) | keys)) | length) == 0
+    ["peakTokensPerMinute", "averageTimeToFirstToken", "averageTimePerOutputToken"] as $names
+    | [ $names[] as $name
+        | (.status.performance.metrics[$name] // {}) as $m
+        | (($m.value // "") | tonumber? // 0) > 0
+          and (((["durationSec", "inputTokens", "outputTokens", "maxConcurrency"])
+                 - (($m.config // {}) | keys)) | length) == 0
+      ]
+    | all
   ' "$1" >/dev/null 2>&1
+}
+
+prepare_benchmark_environment() {
+  local lm_eval_version python_bin
+  lm_eval_version="$(yq -r '.benchmark.evaluatorVersion' "$GSM8K_CONFIG_FILE")"
+  python_bin="${PYTHON_BIN:-}"
+  if [[ -z "$python_bin" ]]; then
+    if command -v python3.12 >/dev/null 2>&1; then
+      python_bin="python3.12"
+    else
+      python_bin="python3"
+    fi
+  fi
+  log "Installing lm-eval ${lm_eval_version} for correctness checks..."
+  "$python_bin" -m venv "$BENCHMARK_VENV"
+  "$BENCHMARK_VENV/bin/pip" install --disable-pip-version-check --quiet "lm_eval[api]==${lm_eval_version}"
+}
+
+run_gsm8k() {
+  # run_gsm8k <workspace> <model> <instance-type> <nodes> <artifact-dir>
+  local ws="$1" model="$2" instance_type="$3" nodes="$4" artifact_dir="$5"
+  local served_model port forward_pid result=0 ready=false
+  served_model="$(printf '%s' "${model##*/}" | tr '[:upper:]' '[:lower:]')"
+  port="$($BENCHMARK_PYTHON - <<'PY'
+import socket
+with socket.socket() as sock:
+    sock.bind(("127.0.0.1", 0))
+    print(sock.getsockname()[1])
+PY
+)"
+  kubectl port-forward -n "$NAMESPACE" "service/${ws}" "${port}:80" \
+    >"${artifact_dir}/gsm8k-port-forward.log" 2>&1 &
+  forward_pid=$!
+  for _ in $(seq 1 30); do
+    if curl -fsS "http://127.0.0.1:${port}/v1/models" >/dev/null 2>&1; then
+      ready=true
+      break
+    fi
+    if ! kill -0 "$forward_pid" 2>/dev/null; then
+      result=1
+      break
+    fi
+    sleep 1
+  done
+  if [[ "$ready" != true ]]; then
+    result=1
+    jq -n \
+      --arg model "$model" \
+      --arg instanceType "$instance_type" \
+      --argjson nodes "$nodes" \
+      '{model: $model, instanceType: $instanceType, nodes: $nodes,
+        status: "correctness-invalid", passed: false,
+        error: "port-forward did not expose the inference endpoint within 30 seconds"}' \
+      >"${artifact_dir}/gsm8k-summary.json"
+  fi
+
+  if [[ "$result" -eq 0 ]]; then
+    "$BENCHMARK_PYTHON" .github/scripts/preset-regression-tests/preset_regression_gsm8k.py \
+      --model "$model" \
+      --served-model "$served_model" \
+      --endpoint "http://127.0.0.1:${port}/v1/chat/completions" \
+      --instance-type "$instance_type" \
+      --nodes "$nodes" \
+      --config "$GSM8K_CONFIG_FILE" \
+      --baselines "$GSM8K_BASELINES_FILE" \
+      --summary-output "${artifact_dir}/gsm8k-summary.json" \
+      --raw-output "${artifact_dir}/gsm8k-raw.json" \
+      > >(tee "${artifact_dir}/gsm8k-evaluator.log") 2>&1 || result=$?
+  fi
+  kill "$forward_pid" >/dev/null 2>&1 || true
+  wait "$forward_pid" >/dev/null 2>&1 || true
+  return "$result"
+}
+
+compare_guidellm() {
+  # compare_guidellm <workspace-json> <model> <instance-type> <nodes> <output>
+  "$BENCHMARK_PYTHON" .github/scripts/preset-regression-tests/preset_regression_benchmarks.py \
+    --workspace "$1" \
+    --model "$2" \
+    --instance-type "$3" \
+    --nodes "$4" \
+    --config "$GUIDELLM_CONFIG_FILE" \
+    --baselines "$GUIDELLM_BASELINES_FILE" \
+    --output "$5"
 }
 
 # Prints a non-empty reason when the Workspace reports a transient failure. Add
@@ -534,6 +636,7 @@ EOF
   local resource_deadline=$((start_epoch + RESOURCE_READY_TIMEOUT_MINUTES * 60))
 
   local status="failed" actual_nodes="" peak_tpm=""
+  local correctness_result="null" performance_result="null"
   local reason="timed out waiting for WorkspaceSucceeded and BenchmarkCompleted"
   local ws_json="${WORKDIR}/ws.json"
   local stuck_reason="" stuck_since=0
@@ -560,11 +663,10 @@ EOF
       if benchmark_metrics_valid "$ws_json"; then
         status="passed"
         reason=""
+        break
       else
-        status="failed"
-        reason="BenchmarkCompleted=True but status.performance.metrics.peakTokensPerMinute is missing or not positive"
+        log "  BenchmarkCompleted=True; waiting for TPM, TTFT, and TPOT status metrics to propagate..."
       fi
-      break
     fi
 
     local resource_status
@@ -580,12 +682,14 @@ EOF
       break
     fi
 
-    local transient_failure
-    transient_failure="$(transient_failure_reason "$ws_json")"
-    if [[ -n "$transient_failure" ]]; then
-      status="retryable-failure"
-      reason="$transient_failure"
-      break
+    if [[ "$resource_status" == "True" ]]; then
+      local transient_failure
+      transient_failure="$(transient_failure_reason "$ws_json")"
+      if [[ -n "$transient_failure" ]]; then
+        status="retryable-failure"
+        reason="$transient_failure"
+        break
+      fi
     fi
 
     local crash
@@ -640,10 +744,39 @@ EOF
     reason="$ENDPOINT_FAILURE"
   fi
 
+  if [[ "$status" == "passed" && ! "$actual_nodes" =~ ^[1-9][0-9]*$ ]]; then
+    status="failed"
+    reason="Workspace reported an invalid targetNodeCount: ${actual_nodes:-<empty>}"
+  fi
+
   if [[ "$status" == "passed" ]]; then
-    log "PASSED in $((($(date +%s) - start_epoch) / 60))m (peak TPM ${peak_tpm:-n/a})"
-    rm -rf "$artifact_dir"
-    artifact_dir=""
+    log "  running bounded GSM8K correctness profile..."
+    if run_gsm8k "$ws" "$model" "$instance_type" "$actual_nodes" "$artifact_dir"; then
+      correctness_result="$(jq -c . "${artifact_dir}/gsm8k-summary.json")"
+    else
+      correctness_result="$(jq -c . "${artifact_dir}/gsm8k-summary.json" 2>/dev/null || printf 'null')"
+      status="failed"
+      reason="GSM8K correctness check failed: $(jq -r '.error // .status // "evaluator failed"' "${artifact_dir}/gsm8k-summary.json" 2>/dev/null || printf 'evaluator failed')"
+    fi
+  fi
+
+  if [[ "$status" == "passed" ]]; then
+    kubectl get workspace "$ws" -n "$NAMESPACE" -o json >"$ws_json"
+    if compare_guidellm "$ws_json" "$model" "$instance_type" "$actual_nodes" "${artifact_dir}/guidellm-summary.json"; then
+      performance_result="$(jq -c . "${artifact_dir}/guidellm-summary.json")"
+    else
+      performance_result="$(jq -c . "${artifact_dir}/guidellm-summary.json" 2>/dev/null || printf 'null')"
+      status="failed"
+      reason="GuideLLM performance check failed: $(jq -r '.error // .status // "comparison failed"' "${artifact_dir}/guidellm-summary.json" 2>/dev/null || printf 'comparison failed')"
+    fi
+  fi
+
+  if [[ "$status" == "passed" ]]; then
+    log "PASSED in $((($(date +%s) - start_epoch) / 60))m (peak TPM ${peak_tpm:-n/a}, GSM8K $(jq -r '.accuracy // "baseline pending"' <<<"$correctness_result"))"
+    if [[ "$KEEP_SUCCESS_ARTIFACTS" != "true" ]]; then
+      rm -rf "$artifact_dir"
+      artifact_dir=""
+    fi
   else
     # Re-read the latest conditions so the report carries the real blocking message.
     if kubectl get workspace "$ws" -n "$NAMESPACE" -o json >"$ws_json" 2>/dev/null; then
@@ -658,10 +791,12 @@ EOF
   fi
 
   record "$target" "$status" "$reason" "$(($(date +%s) - overall_start_epoch))" \
-    "$actual_nodes" "$peak_tpm" "$artifact_dir"
+    "$actual_nodes" "$peak_tpm" "$artifact_dir" "$correctness_result" "$performance_result"
   teardown "$ws"
   return 0
 }
+
+prepare_benchmark_environment
 
 for i in $(seq 0 "$((TARGET_COUNT - 1))"); do
   run_target "$(jq -c ".[${i}]" "$targets_file")"

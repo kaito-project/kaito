@@ -99,6 +99,11 @@ jobs:
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
+      - name: Test benchmark configuration and comparison
+        run: |
+          python3 -m pip install --disable-pip-version-check --quiet PyYAML==6.0.3
+          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_benchmarks.py
+
       - name: Build GPU pool matrix
         id: plan
         env:
@@ -107,7 +112,7 @@ jobs:
         run: |
           set -euo pipefail
           TARGETS_FILE=$(mktemp)
-          GPU="" bash .github/scripts/preset-regression-matrix.sh > "$TARGETS_FILE"
+          GPU="" bash .github/scripts/preset-regression-tests/preset-regression-matrix.sh > "$TARGETS_FILE"
           MATRIX=$(jq -c --slurpfile config "$REGRESSION_CONFIG_FILE" --arg gpus "$GPUS" '
             $config[0].gpuPools as $pools
             | ($gpus | ascii_downcase | split(",") | map(gsub("\\s"; "")) | map(select(length > 0))) as $requested
@@ -419,12 +424,22 @@ jobs:
           MAX_HOURS="${{ inputs.max_hours || '20' }}"
           GLOBAL_DEADLINE_EPOCH=$(( $(date +%s) + MAX_HOURS * 3600 ))
           export GLOBAL_DEADLINE_EPOCH
-          chmod +x .github/scripts/preset-regression-run.sh
-          .github/scripts/preset-regression-run.sh
+          chmod +x .github/scripts/preset-regression-tests/preset-regression-run.sh
+          .github/scripts/preset-regression-tests/preset-regression-run.sh
         env:
           MODEL_FILTER: ${{ inputs.models || '' }}
           RESULTS_FILE: "results-${{ matrix.gpu }}.json"
           ARTIFACT_DIR: "artifacts/${{ matrix.gpu }}"
+
+      - name: Upload regression results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: preset-regression-${{ matrix.gpu }}
+          path: |
+            results-${{ matrix.gpu }}.json
+            artifacts/${{ matrix.gpu }}/
+          if-no-files-found: warn
 
       - name: Cleanup
         if: ${{ always() && !inputs.keep_cluster }}

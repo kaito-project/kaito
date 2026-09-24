@@ -1,0 +1,28 @@
+schemaVersion: 1
+benchmark:
+  defaultProfile: stress-high-concurrency-v1
+  metrics:
+    peakTokensPerMinute:
+      unit: tokens/min
+      better: higher
+    averageTimeToFirstToken:
+      unit: ms
+      better: lower
+    averageTimePerOutputToken:
+      unit: ms
+      better: lower
+
+profiles:
+  stress-high-concurrency-v1:
+    description: stress/high-concurrency
+    durationSec: 60
+    inputTokens: 2048
+    outputTokens: 256
+
+comparison:
+  defaultMaxRegressionRatios:
+    peakTokensPerMinute: 0.15
+    averageTimeToFirstToken: 0.2
+    averageTimePerOutputToken: 0.15
+  maxRegressionRatioOverrides: {}
+  requireBaselines: false

@@ -27,7 +27,7 @@ Benchmark definitions and baseline results become separate, reviewed repository 
 - `benchmarks/guidellm/config.yaml` stores startup benchmark profiles, the default profile, and metric definitions; and
 - `benchmarks/guidellm/baselines.yaml` stores TPM, TTFT, and TPOT results by deployment target.
 
-Every runnable target emitted by `.github/scripts/preset-regression-matrix.sh` must eventually have both a GSM8K baseline and a GuideLLM baseline. Missing or incomparable baselines are reported distinctly from benchmark regressions.
+Every runnable target emitted by `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` must eventually have both a GSM8K baseline and a GuideLLM baseline. Missing or incomparable baselines are reported distinctly from benchmark regressions.
 
 ## Motivation
 
@@ -82,33 +82,25 @@ benchmarks/
 
 The README files document collection commands, schema versions, profile semantics, and the update process. Configuration and baseline manifests are hand-reviewable YAML and are validated by deterministic tooling.
 
-Baseline data does not belong in `.github/preset-regression-config.json`. That file continues to describe infrastructure, workflow budgets, execution limits, comparison policy, and baseline-collection policy. Benchmark `config.yaml` files describe reproducibility-critical benchmark identity and model profiles. Baseline manifests contain measured reference results only.
+Benchmark configuration and baseline data do not belong in `.github/preset-regression-config.json`; that file remains limited to infrastructure and target-matrix policy. Benchmark `config.yaml` files own reproducibility-critical identity, profiles, execution limits, and comparison policy. Baseline manifests contain measured reference results only.
 
 ### Regression execution policy
 
-Operational settings and default comparison tolerance belong to the regression workflow configuration rather than a baseline manifest:
+Operational settings and comparison tolerances belong to each benchmark's `config.yaml`, rather than to the shared regression infrastructure or a baseline manifest:
 
-```json
-{
-  "gsm8k": {
-    "numConcurrent": 8,
-    "requestTimeoutSeconds": 120,
-    "timeoutSeconds": 1200,
-    "defaultMaxRegression": 0.05,
-    "maxRegressionOverrides": {}
-  },
-  "guidellm": {
-    "defaultMaxRegressionRatios": {
-      "peakTokensPerMinute": 0.15,
-      "averageTimeToFirstToken": 0.20,
-      "averageTimePerOutputToken": 0.15
-    },
-    "maxRegressionRatioOverrides": {}
-  }
-}
+```yaml
+execution:
+  numConcurrent: 2
+  requestTimeoutSeconds: 300
+  timeoutSeconds: 1200
+  maxRetries: 3
+comparison:
+  defaultMaxRegression: 0.05
+  maxRegressionOverrides: {}
+  requireBaselines: false
 ```
 
-These values control runner resource use, failure deadlines, and gating policy. Changing them does not change benchmark questions, prompts, output parsing, workload shape, or a stored measured score. A reviewed override is keyed by complete regression-target identity in this policy file; baseline result entries never contain tolerances.
+These values control runner resource use, failure deadlines, and gating policy. A reviewed override is keyed by complete regression-target identity; baseline result entries never contain tolerances.
 
 ## GSM8K configuration schema
 
@@ -144,7 +136,7 @@ profiles:
     applyChatTemplate: true
     fewshotAsMultiturn: false
     temperature: 0
-    maxGenTokens: 2048
+    maxGenTokens: 8192
     chatTemplateKwargs:
       enable_thinking: true
     stopSequences:

@@ -30,7 +30,7 @@ nixl-cu12==1.3.2
 ray[default]==2.55.0
 
 # Utility libraries
-guidellm==0.5.4
+guidellm==0.7.4
 datasets==4.8.4
 bitsandbytes==0.46.1
 

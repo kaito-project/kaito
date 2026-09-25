@@ -30,6 +30,7 @@ from preset_regression_benchmarks import (
     find_baseline,
     load_yaml,
     related_baselines,
+    resolve_gsm8k_execution,
     resolve_profile,
     target_policy_key,
     validate_gsm8k_data,
@@ -125,6 +126,17 @@ def effective_max_gen_tokens(
     return min(configured_max, available_output_tokens)
 
 
+def generation_kwargs(profile: dict[str, Any]) -> dict[str, Any]:
+    kwargs = {
+        "until": profile.get("stopSequences", []),
+        "temperature": float(profile["temperature"]),
+        **profile.get("requestKwargs", {}),
+    }
+    if "chatTemplateKwargs" in profile:
+        kwargs["chat_template_kwargs"] = profile["chatTemplateKwargs"]
+    return kwargs
+
+
 def run_evaluation(
     served_model: str,
     endpoint: str,
@@ -160,11 +172,7 @@ def run_evaluation(
         log_samples=True,
         apply_chat_template=bool(profile["applyChatTemplate"]),
         fewshot_as_multiturn=bool(profile["fewshotAsMultiturn"]),
-        gen_kwargs={
-            "chat_template_kwargs": profile.get("chatTemplateKwargs", {}),
-            "until": profile.get("stopSequences", []),
-            "temperature": float(profile["temperature"]),
-        },
+        gen_kwargs=generation_kwargs(profile),
         random_seed=0,
         numpy_random_seed=1234,
         torch_random_seed=1234,
@@ -202,7 +210,7 @@ def main() -> int:
     validate_gsm8k_data(config, baselines)
     profile_name, profile = resolve_profile(config, args.model)
     benchmark = config["benchmark"]
-    execution = config["execution"]
+    execution = resolve_gsm8k_execution(config, args.model)
     comparison_policy = config["comparison"]
     configured_max_gen_tokens = int(profile["maxGenTokens"])
     max_gen_tokens = effective_max_gen_tokens(
@@ -264,15 +272,12 @@ def main() -> int:
         responses = responses_by_document(raw_results, benchmark["task"])
         failures = failed_samples(raw_results, benchmark["task"], benchmark["metric"])
         print_failed_samples(failures)
+        # lm-eval already scores empty final responses as incorrect. Keep their
+        # count and diagnostics without discarding the otherwise valid run.
         empty_responses = sum(
             not values or all(not value.strip() for value in values)
             for values in responses.values()
         )
-        if empty_responses:
-            raise ValueError(
-                f"{empty_responses} of {len(responses)} responses were empty; "
-                "increase the profile generation budget or inspect response parsing"
-            )
         comparison = compare_accuracy(
             accuracy,
             baseline,

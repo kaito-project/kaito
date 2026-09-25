@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,12 @@ PERFORMANCE_DEFINITIONS = {
     "peakTokensPerMinute": {"unit": "tokens/min", "better": "higher"},
     "averageTimeToFirstToken": {"unit": "ms", "better": "lower"},
     "averageTimePerOutputToken": {"unit": "ms", "better": "lower"},
+}
+GSM8K_EXECUTION_FIELDS = {
+    "numConcurrent",
+    "requestTimeoutSeconds",
+    "timeoutSeconds",
+    "maxRetries",
 }
 
 
@@ -64,6 +71,15 @@ def resolve_profile(
     if not isinstance(profile, dict):
         raise ValueError(f"profile {profile_name!r} must be an object")
     return profile_name, profile
+
+
+def resolve_gsm8k_execution(
+    config: dict[str, Any], model: str | None = None
+) -> dict[str, int]:
+    execution = dict(config.get("execution", {}))
+    if model is not None:
+        execution.update(config.get("modelExecutionOverrides", {}).get(model, {}))
+    return {key: int(execution.get(key, 0)) for key in GSM8K_EXECUTION_FIELDS}
 
 
 def deployment_key(target: dict[str, Any]) -> tuple[str, str, int]:
@@ -108,16 +124,29 @@ def validate_tolerance(value: float, name: str) -> float:
     return value
 
 
+def is_iso_date(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        return date.fromisoformat(value).isoformat() == value
+    except ValueError:
+        return False
+
+
 def validate_gsm8k_policy(config: dict[str, Any]) -> None:
-    execution = config.get("execution", {})
-    for key in (
-        "numConcurrent",
-        "requestTimeoutSeconds",
-        "timeoutSeconds",
-        "maxRetries",
-    ):
-        if int(execution.get(key, 0)) <= 0:
-            raise ValueError(f"GSM8K execution.{key} must be positive")
+    executions = [("default", resolve_gsm8k_execution(config))]
+    for model, overrides in config.get("modelExecutionOverrides", {}).items():
+        unknown = set(overrides) - GSM8K_EXECUTION_FIELDS
+        if unknown:
+            raise ValueError(
+                f"GSM8K execution override {model!r} contains unknown fields: "
+                f"{sorted(unknown)}"
+            )
+        executions.append((str(model), resolve_gsm8k_execution(config, str(model))))
+    for name, execution in executions:
+        for key in GSM8K_EXECUTION_FIELDS:
+            if execution[key] <= 0:
+                raise ValueError(f"GSM8K execution {name!r}.{key} must be positive")
     comparison = config.get("comparison", {})
     validate_tolerance(float(comparison.get("defaultMaxRegression", -1)), "GSM8K")
     for key, value in comparison.get("maxRegressionOverrides", {}).items():
@@ -161,6 +190,11 @@ def validate_gsm8k_data(config: dict[str, Any], baselines: dict[str, Any]) -> No
     sample_count = int(benchmark.get("sampleSelection", {}).get("count", 0))
     if sample_count <= 0:
         raise ValueError("GSM8K sample count must be positive")
+    for profile_name, profile in config["profiles"].items():
+        if not isinstance(profile.get("requestKwargs", {}), dict):
+            raise ValueError(
+                f"GSM8K profile {profile_name!r}.requestKwargs must be an object"
+            )
     for model, profile_name in config.get("modelProfileOverrides", {}).items():
         if profile_name not in config["profiles"]:
             raise ValueError(
@@ -176,7 +210,15 @@ def validate_gsm8k_data(config: dict[str, Any], baselines: dict[str, Any]) -> No
         accuracy = float(target.get("accuracy", -1))
         correct = int(target.get("correct", -1))
         evaluated = int(target.get("evaluated", -1))
-        if not 0 <= accuracy <= 1 or evaluated != sample_count or correct < 0:
+        empty_responses = int(target.get("emptyResponses", -1))
+        if (
+            not 0 <= accuracy <= 1
+            or evaluated != sample_count
+            or correct < 0
+            or not 0 <= empty_responses <= evaluated
+            or correct + empty_responses > evaluated
+            or not is_iso_date(target.get("measuredAt"))
+        ):
             raise ValueError(f"invalid GSM8K result for {deployment_key(target)}")
         if not math.isclose(accuracy, correct / evaluated, abs_tol=1e-12):
             raise ValueError(

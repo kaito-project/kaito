@@ -209,56 +209,79 @@ prepare_benchmark_environment() {
 run_gsm8k() {
   # run_gsm8k <workspace> <model> <instance-type> <nodes> <artifact-dir>
   local ws="$1" model="$2" instance_type="$3" nodes="$4" artifact_dir="$5"
-  local served_model port forward_pid result=0 ready=false
+  local served_model port forward_pid result ready attempt evaluator_log forward_log
   served_model="$(printf '%s' "${model##*/}" | tr '[:upper:]' '[:lower:]')"
-  port="$($BENCHMARK_PYTHON - <<'PY'
+  for attempt in 1 2; do
+    result=0
+    ready=false
+    evaluator_log="${artifact_dir}/gsm8k-evaluator.log"
+    forward_log="${artifact_dir}/gsm8k-port-forward.log"
+    : >"$evaluator_log"
+    port="$($BENCHMARK_PYTHON - <<'PY'
 import socket
 with socket.socket() as sock:
     sock.bind(("127.0.0.1", 0))
     print(sock.getsockname()[1])
 PY
 )"
-  kubectl port-forward -n "$NAMESPACE" "service/${ws}" "${port}:80" \
-    >"${artifact_dir}/gsm8k-port-forward.log" 2>&1 &
-  forward_pid=$!
-  for _ in $(seq 1 30); do
-    if curl -fsS "http://127.0.0.1:${port}/v1/models" >/dev/null 2>&1; then
-      ready=true
-      break
-    fi
-    if ! kill -0 "$forward_pid" 2>/dev/null; then
+    kubectl port-forward -n "$NAMESPACE" "service/${ws}" "${port}:80" \
+      >"$forward_log" 2>&1 &
+    forward_pid=$!
+    for _ in $(seq 1 30); do
+      if curl -fsS "http://127.0.0.1:${port}/v1/models" >/dev/null 2>&1; then
+        ready=true
+        break
+      fi
+      if ! kill -0 "$forward_pid" 2>/dev/null; then
+        result=1
+        break
+      fi
+      sleep 1
+    done
+    if [[ "$ready" != true ]]; then
       result=1
-      break
+      jq -n \
+        --arg model "$model" \
+        --arg instanceType "$instance_type" \
+        --argjson nodes "$nodes" \
+        '{model: $model, instanceType: $instanceType, nodes: $nodes,
+          status: "correctness-invalid", passed: false,
+          error: "port-forward did not expose the inference endpoint within 30 seconds"}' \
+        >"${artifact_dir}/gsm8k-summary.json"
     fi
-    sleep 1
-  done
-  if [[ "$ready" != true ]]; then
-    result=1
-    jq -n \
-      --arg model "$model" \
-      --arg instanceType "$instance_type" \
-      --argjson nodes "$nodes" \
-      '{model: $model, instanceType: $instanceType, nodes: $nodes,
-        status: "correctness-invalid", passed: false,
-        error: "port-forward did not expose the inference endpoint within 30 seconds"}' \
-      >"${artifact_dir}/gsm8k-summary.json"
-  fi
 
-  if [[ "$result" -eq 0 ]]; then
-    "$BENCHMARK_PYTHON" .github/scripts/preset-regression-tests/preset_regression_gsm8k.py \
-      --model "$model" \
-      --served-model "$served_model" \
-      --endpoint "http://127.0.0.1:${port}/v1/chat/completions" \
-      --instance-type "$instance_type" \
-      --nodes "$nodes" \
-      --config "$GSM8K_CONFIG_FILE" \
-      --baselines "$GSM8K_BASELINES_FILE" \
-      --summary-output "${artifact_dir}/gsm8k-summary.json" \
-      --raw-output "${artifact_dir}/gsm8k-raw.json" \
-      > >(tee "${artifact_dir}/gsm8k-evaluator.log") 2>&1 || result=$?
-  fi
-  kill "$forward_pid" >/dev/null 2>&1 || true
-  wait "$forward_pid" >/dev/null 2>&1 || true
+    if [[ "$result" -eq 0 ]]; then
+      "$BENCHMARK_PYTHON" .github/scripts/preset-regression-tests/preset_regression_gsm8k.py \
+        --model "$model" \
+        --served-model "$served_model" \
+        --endpoint "http://127.0.0.1:${port}/v1/chat/completions" \
+        --instance-type "$instance_type" \
+        --nodes "$nodes" \
+        --config "$GSM8K_CONFIG_FILE" \
+        --baselines "$GSM8K_BASELINES_FILE" \
+        --summary-output "${artifact_dir}/gsm8k-summary.json" \
+        --raw-output "${artifact_dir}/gsm8k-raw.json" \
+        > >(tee "$evaluator_log") 2>&1 || result=$?
+    fi
+    kill "$forward_pid" >/dev/null 2>&1 || true
+    wait "$forward_pid" >/dev/null 2>&1 || true
+    if [[ "$result" -eq 0 ]]; then
+      return 0
+    fi
+    if [[ "$attempt" -eq 1 ]] && grep -Eq \
+      'ClientConnectorError|ServerDisconnectedError|lost connection to pod' \
+      "$evaluator_log" "$forward_log"; then
+      log "GSM8K tunnel disconnected for ${model}; retrying once with a new port-forward..."
+      if [[ -f "$evaluator_log" ]]; then
+        mv "$evaluator_log" "${artifact_dir}/gsm8k-evaluator-attempt-1.log"
+      fi
+      if [[ -f "$forward_log" ]]; then
+        mv "$forward_log" "${artifact_dir}/gsm8k-port-forward-attempt-1.log"
+      fi
+      continue
+    fi
+    break
+  done
   return "$result"
 }
 

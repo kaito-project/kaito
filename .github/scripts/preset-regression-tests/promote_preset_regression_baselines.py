@@ -35,6 +35,24 @@ def _load_summaries(
     return summaries
 
 
+def _load_aggregate_summaries(
+    artifact_roots: list[Path], field: str
+) -> list[tuple[Path, dict[str, Any]]]:
+    summaries: list[tuple[Path, dict[str, Any]]] = []
+    for root in artifact_roots:
+        for path in sorted(root.rglob("results-*.json")):
+            results = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(results, list):
+                raise ValueError(f"aggregate results must be a list: {path}")
+            for result in results:
+                if not isinstance(result, dict) or result.get("status") != "passed":
+                    continue
+                summary = result.get(field)
+                if isinstance(summary, dict):
+                    summaries.append((path, summary))
+    return summaries
+
+
 def _merge_targets(
     existing: dict[str, Any], additions: list[dict[str, Any]]
 ) -> dict[str, Any]:
@@ -48,34 +66,46 @@ def _merge_targets(
 
 
 def collect_gsm8k(artifact_roots: list[Path]) -> list[dict[str, Any]]:
-    additions: list[dict[str, Any]] = []
-    for path, summary in _load_summaries(artifact_roots, "gsm8k-summary.json"):
-        if not summary.get("passed") or summary.get("emptyResponses") != 0:
+    additions: dict[str, dict[str, Any]] = {}
+    summaries = _load_summaries(artifact_roots, "gsm8k-summary.json")
+    summaries.extend(_load_aggregate_summaries(artifact_roots, "correctness"))
+    for path, summary in summaries:
+        if not summary.get("passed"):
             continue
         evaluated = int(summary.get("evaluated", 0))
         correct = int(summary.get("correct", -1))
         accuracy = float(summary.get("accuracy", -1))
-        if evaluated <= 0 or correct < 0 or not 0 <= accuracy <= 1:
+        empty_responses = int(summary.get("emptyResponses", -1))
+        if (
+            evaluated <= 0
+            or correct < 0
+            or empty_responses < 0
+            or not 0 <= accuracy <= 1
+        ):
             raise ValueError(f"invalid GSM8K summary: {path}")
-        measured_at = datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat()
-        additions.append(
-            {
-                "model": str(summary["model"]),
-                "instanceType": str(summary["instanceType"]),
-                "nodes": int(summary["nodes"]),
-                "profile": str(summary["profile"]),
-                "accuracy": accuracy,
-                "correct": correct,
-                "evaluated": evaluated,
-                "measuredAt": measured_at,
-            }
+        measured_at = (
+            datetime.fromtimestamp(path.stat().st_mtime, UTC).date().isoformat()
         )
-    return additions
+        target = {
+            "model": str(summary["model"]),
+            "instanceType": str(summary["instanceType"]),
+            "nodes": int(summary["nodes"]),
+            "profile": str(summary["profile"]),
+            "accuracy": accuracy,
+            "correct": correct,
+            "evaluated": evaluated,
+            "emptyResponses": empty_responses,
+            "measuredAt": measured_at,
+        }
+        additions[deployment_key(target)] = target
+    return [additions[key] for key in sorted(additions)]
 
 
 def collect_guidellm(artifact_roots: list[Path]) -> list[dict[str, Any]]:
-    additions: list[dict[str, Any]] = []
-    for path, summary in _load_summaries(artifact_roots, "guidellm-summary.json"):
+    additions: dict[str, dict[str, Any]] = {}
+    summaries = _load_summaries(artifact_roots, "guidellm-summary.json")
+    summaries.extend(_load_aggregate_summaries(artifact_roots, "performance"))
+    for path, summary in summaries:
         if not summary.get("passed"):
             continue
         values = {
@@ -85,16 +115,15 @@ def collect_guidellm(artifact_roots: list[Path]) -> list[dict[str, Any]]:
         }
         if any(value <= 0 for value in values.values()):
             raise ValueError(f"invalid GuideLLM summary: {path}")
-        additions.append(
-            {
-                "model": str(summary["model"]),
-                "instanceType": str(summary["instanceType"]),
-                "nodes": int(summary["nodes"]),
-                "profile": str(summary["profile"]),
-                **values,
-            }
-        )
-    return additions
+        target = {
+            "model": str(summary["model"]),
+            "instanceType": str(summary["instanceType"]),
+            "nodes": int(summary["nodes"]),
+            "profile": str(summary["profile"]),
+            **values,
+        }
+        additions[deployment_key(target)] = target
+    return [additions[key] for key in sorted(additions)]
 
 
 def write_yaml(path: Path, value: dict[str, Any]) -> None:

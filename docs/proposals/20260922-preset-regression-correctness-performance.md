@@ -90,7 +90,7 @@ Operational settings and comparison tolerances belong to each benchmark's `confi
 
 ```yaml
 execution:
-  numConcurrent: 2
+  numConcurrent: 4
   requestTimeoutSeconds: 300
   timeoutSeconds: 1200
   maxRetries: 3
@@ -127,8 +127,6 @@ profiles:
     fewshotAsMultiturn: false
     temperature: 0
     maxGenTokens: 512
-    chatTemplateKwargs:
-      enable_thinking: false
     stopSequences:
       - "</s>"
       - "<|im_end|>"
@@ -142,12 +140,30 @@ profiles:
     stopSequences:
       - "</s>"
       - "<|im_end|>"
+  mistral-thinking-v1:
+    applyChatTemplate: true
+    fewshotAsMultiturn: false
+    temperature: 0
+    maxGenTokens: 8192
+    requestKwargs:
+      reasoning_effort: high
+    stopSequences:
+      - "</s>"
+      - "<|im_end|>"
 
 modelProfileOverrides:
-  "<model-requiring-nonthinking-chat>": chat-nonthinking-v1
+  "<model-rejecting-thinking-controls>": chat-nonthinking-v1
+
+modelExecutionOverrides:
+  "<slow-model>":
+    numConcurrent: 8
 ```
 
-Models absent from `modelProfileOverrides` use `chat-thinking-v1`. Changing benchmark identity or `defaultProfile` requires recollecting all affected defaulted baselines. Changing a profile definition or one model override requires recollecting only baselines that resolve to the changed profile. Runtime limits and tolerance changes do not.
+Models absent from `modelProfileOverrides` use `chat-thinking-v1`. `chat-nonthinking-v1` omits thinking controls for tokenizers that reject them. `modelExecutionOverrides` can change bounded runtime settings such as concurrency without changing the generation profile. Changing benchmark identity or `defaultProfile` requires recollecting all affected defaulted baselines. Changing a profile definition or one model override requires recollecting only baselines that resolve to the changed profile. Runtime limits and tolerance changes do not.
+
+`requestKwargs` contains top-level OpenAI chat-completion request fields. Mistral
+tokenizers reject Hugging Face-style `chat_template_kwargs`, so reasoning is
+enabled through the native `reasoning_effort: high` field instead.
 
 ## GSM8K baseline results schema
 
@@ -163,10 +179,16 @@ targets:
     accuracy: 0.84375
     correct: 108
     evaluated: 128
-    measuredAt: "2026-09-21T00:00:00Z"
+    emptyResponses: 0
+    measuredAt: "2026-09-21"
 ```
 
-`profile` records the effective profile selected when the baseline was measured. It must name a defined profile and match the profile currently resolved for the model by `defaultProfile` and `modelProfileOverrides`. `accuracy` must equal `correct / evaluated`, and `evaluated` must match the sample count in `benchmarks/gsm8k/config.yaml`. Storing the profile and numerator makes profile drift, accidental rounding, or denominator changes visible in review.
+`profile` records the effective profile selected when the baseline was measured. It must name a defined profile and match the profile currently resolved for the model by `defaultProfile` and `modelProfileOverrides`. `accuracy` must equal `correct / evaluated`, `evaluated` must match the sample count in `benchmarks/gsm8k/config.yaml`, and `emptyResponses` records how many evaluated samples produced no final content. Storing the profile, numerator, and empty-response count makes profile drift, accidental rounding, denominator changes, and reasoning-budget exhaustion visible in review.
+
+An empty final response is retained as an `empty-response` failed sample and
+contributes zero to accuracy. It does not invalidate the rest of the run, so a
+reviewed baseline can include models that exhaust their generation budget on a
+small number of ambiguous samples.
 
 The comparison is an absolute accuracy floor:
 
@@ -174,7 +196,7 @@ $$
 \text{minimumAccuracy} = \max(0, \text{baselineAccuracy} - \text{maxRegression})
 $$
 
-A candidate passes when its accuracy is at least `minimumAccuracy`. Improvements do not fail. The initial default tolerance is five percentage points; individual targets may use a reviewed override from `.github/preset-regression-config.json`.
+A candidate passes when its accuracy is at least `minimumAccuracy`. Improvements do not fail. The initial default tolerance is five percentage points; individual targets may use a reviewed override from `benchmarks/gsm8k/config.yaml`.
 
 Because the same examples and greedy decoding are used on every run, this threshold protects against deterministic output drift rather than compensating for random sample selection. Any profile, evaluator, dataset revision, or sample-selection change creates a new baseline contract and requires recollection.
 

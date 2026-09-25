@@ -19,8 +19,6 @@ profiles:
     fewshotAsMultiturn: false
     temperature: 0
     maxGenTokens: 512
-    chatTemplateKwargs:
-      enable_thinking: false
     stopSequences:
       - "</s>"
       - "<|im_end|>"
@@ -34,12 +32,33 @@ profiles:
     stopSequences:
       - "</s>"
       - "<|im_end|>"
+  mistral-thinking-v1:
+    applyChatTemplate: true
+    fewshotAsMultiturn: false
+    temperature: 0
+    maxGenTokens: 8192
+    requestKwargs:
+      reasoning_effort: high
+    stopSequences:
+      - "</s>"
+      - "<|im_end|>"
+
+modelProfileOverrides:
+  mistralai/Ministral-3-14B-Instruct-2512: chat-nonthinking-v1
+  mistralai/Mistral-Medium-3.5-128B: mistral-thinking-v1
+  mistralai/Mistral-Small-4-119B-2603: mistral-thinking-v1
 
 execution:
-  numConcurrent: 2
+  numConcurrent: 4
   requestTimeoutSeconds: 300
   timeoutSeconds: 1200
-  maxRetries: 3
+  maxRetries: 2
+
+modelExecutionOverrides:
+  google/gemma-4-12B-it:
+    numConcurrent: 16
+  Qwen/Qwen3.5-4B:
+    numConcurrent: 16
 
 comparison:
   defaultMaxRegression: 0.05

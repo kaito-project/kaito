@@ -1,0 +1,16 @@
+# Harness policy for the streaming ext_proc experiments (issue #2358).
+# Windowed scanning supports ban_substrings, secrets, and regex only.
+enabled: true
+scanners:
+  - type: ban_substrings
+    substrings:
+      - foo
+    action: redact
+    match_type: word
+  - type: ban_substrings
+    substrings:
+      - PROHIBITED
+    action: block
+    match_type: contains
+  - type: secrets
+    action: redact

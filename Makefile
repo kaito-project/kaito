@@ -156,6 +156,17 @@ tuning-metrics-server-test: ## Run Tuning Metrics Server tests with pytest.
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/workspace/tuning/text-generation/metrics
 
+.PHONY: guardrail-streaming-test
+guardrail-streaming-test: ## Run streaming output-guardrail (issue #2358) unit tests with pytest.
+	pip install -r ./examples/gateway-api-inference-extension/output-guardrail-streaming/extproc/requirements.txt
+	pip install pytest-cov
+	pytest -o log_cli=true -o log_cli_level=INFO \
+		examples/gateway-api-inference-extension/output-guardrail-streaming/extproc/test_stream_guard.py
+
+.PHONY: guardrail-streaming-experiments
+guardrail-streaming-experiments: ## Run the streaming guardrail experiments (needs the compose stack up).
+	python ./examples/gateway-api-inference-extension/output-guardrail-streaming/scripts/run_experiments.py
+
 ## --------------------------------------
 ## E2E Tests
 ## --------------------------------------

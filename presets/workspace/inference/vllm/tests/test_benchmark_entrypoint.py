@@ -267,27 +267,25 @@ kaito_max_concurrent_requests 128.0
 # ── _run_guidellm ─────────────────────────────────────────────────────────────
 
 
-def _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn):
+def _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn):
     """Build a sys.modules patch dict that injects mock guidellm packages."""
     bench_mod = MagicMock()
-    bench_mod.BenchmarkGenerativeTextArgs = mock_args_cls
-    entrypoints_mod = MagicMock()
-    entrypoints_mod.benchmark_generative_text = mock_benchmark_fn
+    bench_mod.BenchmarkScenario = mock_scenario_cls
+    bench_mod.benchmark_generative_text = mock_benchmark_fn
     return {
         "guidellm": MagicMock(),
         "guidellm.benchmark": bench_mod,
-        "guidellm.benchmark.entrypoints": entrypoints_mod,
     }
 
 
 def test_run_guidellm_success():
-    mock_args_cls = MagicMock()
+    mock_scenario_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     mock_report = MagicMock(name="report")
     with (
         patch("asyncio.run", return_value=(mock_report, {})) as mock_run,
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
         ),
     ):
         result = bm._run_guidellm("openai/phi-4", 256)
@@ -296,40 +294,72 @@ def test_run_guidellm_success():
 
 
 def test_run_guidellm_includes_processor():
-    mock_args_cls = MagicMock()
+    mock_scenario_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
         patch("asyncio.run", return_value=(MagicMock(), {})),
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
         ),
     ):
         bm._run_guidellm("mymodel/name", 128)
-    _, kwargs = mock_args_cls.call_args
-    assert kwargs.get("processor") == "mymodel/name"
+    _, kwargs = mock_scenario_cls.call_args
+    assert kwargs["spec"]["tokenizer"]["model"] == "mymodel/name"
 
 
-def test_run_guidellm_omits_processor_when_empty():
-    mock_args_cls = MagicMock()
+def test_run_guidellm_preserves_benchmark_configuration():
+    mock_scenario_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
         patch("asyncio.run", return_value=(MagicMock(), {})),
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+            sys.modules,
+            _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn),
+        ),
+        patch("time.time", return_value=1234),
+    ):
+        bm._run_guidellm("mymodel/name", 128)
+
+    _, kwargs = mock_scenario_cls.call_args
+    spec = kwargs["spec"]
+    assert spec["backend"]["request_format"] == "/v1/chat/completions"
+    assert spec["profile"] == {"kind": "throughput", "max_concurrency": 128}
+    assert spec["constraints"] == [
+        {"kind": "max_duration", "seconds": bm.BENCHMARK_DURATION}
+    ]
+    assert spec["data"] == [
+        {
+            "kind": "synthetic_text",
+            "prompt_tokens": bm.BENCHMARK_INPUT_LEN,
+            "output_tokens": bm.BENCHMARK_OUTPUT_LEN,
+        }
+    ]
+    assert spec["data_loader"] == {"kind": "pytorch", "num_workers": 0}
+    assert spec["seed"] == {"kind": "static", "value": 1234}
+    assert spec["outputs"] == []
+
+
+def test_run_guidellm_omits_processor_when_empty():
+    mock_scenario_cls = MagicMock()
+    mock_benchmark_fn = MagicMock()
+    with (
+        patch("asyncio.run", return_value=(MagicMock(), {})),
+        patch.dict(
+            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
         ),
     ):
         bm._run_guidellm("", 128)
-    _, kwargs = mock_args_cls.call_args
-    assert kwargs.get("processor") is None
+    _, kwargs = mock_scenario_cls.call_args
+    assert kwargs["spec"]["tokenizer"]["model"] is None
 
 
 def test_run_guidellm_failure():
-    mock_args_cls = MagicMock()
+    mock_scenario_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
         patch("asyncio.run", side_effect=RuntimeError("mock error")),
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
+            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
         ),
         patch.object(bm, "_log") as mock_log,
     ):
@@ -347,7 +377,6 @@ def test_run_guidellm_import_error():
             {
                 "guidellm": None,
                 "guidellm.benchmark": None,
-                "guidellm.benchmark.entrypoints": None,
             },
         ),
         patch.object(bm, "_log") as mock_log,

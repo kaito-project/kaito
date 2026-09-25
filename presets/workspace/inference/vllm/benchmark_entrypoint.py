@@ -33,6 +33,7 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 """
 
 import asyncio
+import importlib
 import json
 import math
 import os
@@ -489,25 +490,41 @@ def _run_guidellm(processor: str, max_concurrency: int):
     Returns the ``GenerativeBenchmarksReport`` on success, ``None`` on failure.
     """
     try:
-        from guidellm.benchmark import BenchmarkGenerativeTextArgs
-        from guidellm.benchmark.entrypoints import benchmark_generative_text
+        guidellm_benchmark = importlib.import_module("guidellm.benchmark")
+        BenchmarkScenario = guidellm_benchmark.BenchmarkScenario
+        benchmark_generative_text = guidellm_benchmark.benchmark_generative_text
     except ImportError as exc:
         _log(f"guidellm_import_failed: {exc}")
         return None
 
-    args = BenchmarkGenerativeTextArgs(
-        target=VLLM_BASE_URL,
-        data=[
-            f"prompt_tokens={BENCHMARK_INPUT_LEN},output_tokens={BENCHMARK_OUTPUT_LEN}"
-        ],
-        profile="throughput",
-        rate=[float(max_concurrency)],
-        max_seconds=BENCHMARK_DURATION,
-        processor=processor or None,
-        processor_args={"trust_remote_code": True},
-        data_num_workers=0,
-        random_seed=int(time.time()),
-        outputs=[],
+    args = BenchmarkScenario(
+        spec={
+            "backend": {
+                "kind": "openai_http",
+                "target": VLLM_BASE_URL,
+                "request_format": "/v1/chat/completions",
+            },
+            "profile": {
+                "kind": "throughput",
+                "max_concurrency": max_concurrency,
+            },
+            "constraints": [{"kind": "max_duration", "seconds": BENCHMARK_DURATION}],
+            "tokenizer": {
+                "kind": "huggingface_auto",
+                "model": processor or None,
+                "load_kwargs": {"trust_remote_code": True},
+            },
+            "data": [
+                {
+                    "kind": "synthetic_text",
+                    "prompt_tokens": BENCHMARK_INPUT_LEN,
+                    "output_tokens": BENCHMARK_OUTPUT_LEN,
+                }
+            ],
+            "data_loader": {"kind": "pytorch", "num_workers": 0},
+            "seed": {"kind": "static", "value": int(time.time())},
+            "outputs": [],
+        }
     )
 
     try:

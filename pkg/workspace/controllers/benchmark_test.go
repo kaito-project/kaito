@@ -85,12 +85,13 @@ func TestParseBenchmarkResult(t *testing.T) {
 			expectErr: true,
 		},
 		"config parsed from KAITO_BENCHMARK_CONFIG line": {
-			logs: "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
+			logs: "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"warmup_sec\":20,\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
 				"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:02Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
 			expectTPM:  "12345.67",
 			expectTTFT: "100",
 			expectTPOT: "50",
 			expectConfig: map[string]string{
+				"warmupSec":      "20",
 				"durationSec":    "60",
 				"inputTokens":    "2048",
 				"outputTokens":   "256",
@@ -142,7 +143,7 @@ func TestParseBenchmarkResult(t *testing.T) {
 // TestParseBenchmarkResultMergesRuntimeConfig verifies that the runtime metadata
 // config is recorded in the peak metric alongside any benchmark parameters.
 func TestParseBenchmarkResultMergesRuntimeConfig(t *testing.T) {
-	logs := "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
+	logs := "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"warmup_sec\":20,\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
 		"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:02Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n"
 	runtimeConfig := map[string]string{
 		ConfigKeyEngine:        "vllm",
@@ -155,6 +156,7 @@ func TestParseBenchmarkResultMergesRuntimeConfig(t *testing.T) {
 
 	m := result.Metrics[BenchmarkMetricPeakTPM]
 	// Benchmark parameters preserved.
+	assert.Equal(t, "20", m.Config["warmupSec"])
 	assert.Equal(t, "60", m.Config["durationSec"])
 	assert.Equal(t, "523", m.Config["maxConcurrency"])
 	// Runtime metadata merged in.

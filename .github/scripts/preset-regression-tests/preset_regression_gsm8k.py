@@ -16,11 +16,14 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
+import logging
 import re
 import signal
 import time
 import urllib.request
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
@@ -30,10 +33,40 @@ from preset_regression_benchmarks import (
     find_baseline,
     load_yaml,
     related_baselines,
+    resolve_gsm8k_execution,
     resolve_profile,
     target_policy_key,
     validate_gsm8k_data,
 )
+
+LOGGER = logging.getLogger(__name__)
+
+
+class EvaluationDeadlineExceeded(Exception):
+    pass
+
+
+def should_retry_api_error(
+    status: int | None, *, is_connection_error: bool, is_timeout: bool
+) -> bool:
+    if status is not None:
+        return status == 429 or status >= 500
+    return is_connection_error and not is_timeout
+
+
+async def request_or_empty(
+    request: Awaitable[list[str]],
+    response_count: int,
+    record_timeouts: Callable[[int], None],
+) -> list[str]:
+    try:
+        return await request
+    except TimeoutError as error:
+        record_timeouts(response_count)
+        LOGGER.warning(
+            "GSM8K request timed out and will be scored incorrect: %r", error
+        )
+        return [""] * response_count
 
 
 def extract_accuracy(results: dict[str, Any], task: str, metric: str) -> float:
@@ -125,6 +158,17 @@ def effective_max_gen_tokens(
     return min(configured_max, available_output_tokens)
 
 
+def generation_kwargs(profile: dict[str, Any]) -> dict[str, Any]:
+    kwargs = {
+        "until": profile.get("stopSequences", []),
+        "temperature": float(profile["temperature"]),
+        **profile.get("requestKwargs", {}),
+    }
+    if "chatTemplateKwargs" in profile:
+        kwargs["chat_template_kwargs"] = profile["chatTemplateKwargs"]
+    return kwargs
+
+
 def run_evaluation(
     served_model: str,
     endpoint: str,
@@ -134,42 +178,119 @@ def run_evaluation(
     request_timeout: int,
     max_retries: int,
     max_gen_tokens: int,
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], int]:
     import lm_eval.tasks
+    from aiohttp import (
+        ClientConnectionError,
+        ClientSession,
+        ClientTimeout,
+        TCPConnector,
+    )
     from lm_eval import evaluator
+    from lm_eval.models.openai_completions import LocalChatCompletion
+    from lm_eval.models.utils import chunks
+    from tenacity import (
+        retry,
+        retry_if_exception,
+        stop_after_attempt,
+        wait_exponential,
+    )
+    from tqdm.asyncio import tqdm_asyncio
+
+    class TimeoutTolerantLocalChatCompletion(LocalChatCompletion):
+        def __init__(self, **kwargs: Any) -> None:
+            super().__init__(**kwargs)
+            self.request_timeout_count = 0
+
+        def record_timeouts(self, count: int) -> None:
+            self.request_timeout_count += count
+
+        async def get_batched_requests(
+            self,
+            requests: list[Any],
+            cache_keys: list[Any],
+            *,
+            generate: bool = True,
+            ctxlens: list[int] | None = None,
+            **kwargs: Any,
+        ) -> list[list[str]]:
+            ctxlens = ctxlens or [None] * len(requests)
+            connector = TCPConnector(
+                limit=self._concurrent, ssl=self.verify_certificate
+            )
+            semaphore = asyncio.Semaphore(self._concurrent)
+            async with ClientSession(
+                connector=connector, timeout=ClientTimeout(total=self.timeout)
+            ) as session:
+                retry_request = retry(
+                    stop=stop_after_attempt(self.max_retries),
+                    wait=wait_exponential(multiplier=0.5, min=1, max=10),
+                    retry=retry_if_exception(
+                        lambda error: should_retry_api_error(
+                            getattr(error, "status", None),
+                            is_connection_error=isinstance(
+                                error, ClientConnectionError
+                            ),
+                            is_timeout=isinstance(error, TimeoutError),
+                        )
+                    ),
+                    reraise=True,
+                )(self.amodel_call)
+                tasks = []
+                for messages, keys, lengths in zip(
+                    chunks(requests, n=self._batch_size),
+                    chunks(cache_keys, n=self._batch_size),
+                    chunks(ctxlens, n=self._batch_size),
+                    strict=False,
+                ):
+                    tasks.append(
+                        asyncio.create_task(
+                            request_or_empty(
+                                retry_request(
+                                    session=session,
+                                    sem=semaphore,
+                                    messages=messages,
+                                    cache_keys=keys,
+                                    generate=generate,
+                                    ctxlens=lengths,
+                                    **kwargs,
+                                ),
+                                response_count=len(messages),
+                                record_timeouts=self.record_timeouts,
+                            )
+                        )
+                    )
+                return await tqdm_asyncio.gather(*tasks, desc="Requesting API")
 
     sample_count = int(benchmark["sampleSelection"]["count"])
     task_path = Path(lm_eval.tasks.__file__).parent / "gsm8k/gsm8k.yaml"
     task_config = yaml.safe_load(task_path.read_text(encoding="utf-8"))
     task_config["dataset_kwargs"] = {"revision": benchmark["datasetRevision"]}
-    return evaluator.simple_evaluate(
-        model="local-chat-completions",
-        model_args={
-            "model": served_model,
-            "base_url": endpoint,
-            "num_concurrent": num_concurrent,
-            "max_retries": max_retries,
-            "timeout": request_timeout,
-            "max_gen_toks": max_gen_tokens,
-            "tokenizer_backend": "none",
-            "tokenized_requests": False,
-        },
+    model = TimeoutTolerantLocalChatCompletion(
+        model=served_model,
+        base_url=endpoint,
+        num_concurrent=num_concurrent,
+        max_retries=max_retries,
+        timeout=request_timeout,
+        max_gen_toks=max_gen_tokens,
+        tokenizer_backend="none",
+        tokenized_requests=False,
+    )
+    results = evaluator.simple_evaluate(
+        model=model,
         tasks=[task_config],
         limit=sample_count,
         bootstrap_iters=0,
         log_samples=True,
         apply_chat_template=bool(profile["applyChatTemplate"]),
         fewshot_as_multiturn=bool(profile["fewshotAsMultiturn"]),
-        gen_kwargs={
-            "chat_template_kwargs": profile.get("chatTemplateKwargs", {}),
-            "until": profile.get("stopSequences", []),
-            "temperature": float(profile["temperature"]),
-        },
+        gen_kwargs=generation_kwargs(profile),
         random_seed=0,
         numpy_random_seed=1234,
         torch_random_seed=1234,
         fewshot_random_seed=1234,
     )
+    return results, model.request_timeout_count
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -202,7 +323,7 @@ def main() -> int:
     validate_gsm8k_data(config, baselines)
     profile_name, profile = resolve_profile(config, args.model)
     benchmark = config["benchmark"]
-    execution = config["execution"]
+    execution = resolve_gsm8k_execution(config, args.model)
     comparison_policy = config["comparison"]
     configured_max_gen_tokens = int(profile["maxGenTokens"])
     max_gen_tokens = effective_max_gen_tokens(
@@ -244,12 +365,14 @@ def main() -> int:
         return 1
 
     def deadline(*_: Any) -> None:
-        raise TimeoutError(f"GSM8K exceeded {int(execution['timeoutSeconds'])} seconds")
+        raise EvaluationDeadlineExceeded(
+            f"GSM8K exceeded {int(execution['timeoutSeconds'])} seconds"
+        )
 
     signal.signal(signal.SIGALRM, deadline)
     signal.alarm(int(execution["timeoutSeconds"]))
     try:
-        raw_results = run_evaluation(
+        raw_results, request_timeouts = run_evaluation(
             args.served_model,
             args.endpoint,
             benchmark,
@@ -264,15 +387,12 @@ def main() -> int:
         responses = responses_by_document(raw_results, benchmark["task"])
         failures = failed_samples(raw_results, benchmark["task"], benchmark["metric"])
         print_failed_samples(failures)
+        # lm-eval already scores empty final responses as incorrect. Keep their
+        # count and diagnostics without discarding the otherwise valid run.
         empty_responses = sum(
             not values or all(not value.strip() for value in values)
             for values in responses.values()
         )
-        if empty_responses:
-            raise ValueError(
-                f"{empty_responses} of {len(responses)} responses were empty; "
-                "increase the profile generation budget or inspect response parsing"
-            )
         comparison = compare_accuracy(
             accuracy,
             baseline,
@@ -298,6 +418,7 @@ def main() -> int:
             "accuracy": accuracy,
             "metric": benchmark["metric"],
             "emptyResponses": empty_responses,
+            "requestTimeouts": request_timeouts,
             "failedSampleCount": len(failures),
             "failedSamples": failures,
             "durationSeconds": round(time.monotonic() - started, 3),

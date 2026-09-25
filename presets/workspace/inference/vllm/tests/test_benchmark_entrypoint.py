@@ -323,9 +323,19 @@ def test_run_guidellm_preserves_benchmark_configuration():
     _, kwargs = mock_scenario_cls.call_args
     spec = kwargs["spec"]
     assert spec["backend"]["request_format"] == "/v1/chat/completions"
-    assert spec["profile"] == {"kind": "throughput", "max_concurrency": 128}
+    assert spec["profile"] == {
+        "kind": "throughput",
+        "max_concurrency": 128,
+        "warmup": {
+            "mode": "duration",
+            "value": bm.BENCHMARK_WARMUP_DURATION,
+        },
+    }
     assert spec["constraints"] == [
-        {"kind": "max_duration", "seconds": bm.BENCHMARK_DURATION}
+        {
+            "kind": "max_duration",
+            "seconds": bm.BENCHMARK_WARMUP_DURATION + bm.BENCHMARK_DURATION,
+        }
     ]
     assert spec["data"] == [
         {
@@ -390,19 +400,32 @@ def test_run_guidellm_import_error():
 # ── _extract_guidellm_metrics ────────────────────────────────────────────────
 
 
-def _mock_report(ttft_mean=42.123, tpot_mean=3.456):
-    """Build a mock guidellm report with the given TTFT/TPOT mean values."""
+def _mock_report(
+    tokens_per_second=509.6,
+    output_token_count=6000,
+    ttft_mean=42.123,
+    tpot_mean=3.456,
+):
+    """Build a mock GuideLLM report with throughput and latency values."""
     report = MagicMock()
     report.benchmarks = [MagicMock()]
     metrics = report.benchmarks[0].metrics
+    metrics.tokens_per_second.total.mean = tokens_per_second
+    metrics.output_tokens_per_second.total.count = output_token_count
     metrics.time_to_first_token_ms.total.mean = ttft_mean
     metrics.time_per_output_token_ms.total.mean = tpot_mean
     return report
 
 
 def test_extract_guidellm_metrics_success():
-    report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
-    ttft, tpot = bm._extract_guidellm_metrics(report)
+    report = _mock_report(
+        tokens_per_second=509.6,
+        output_token_count=6000,
+        ttft_mean=42.123,
+        tpot_mean=3.456,
+    )
+    tpm, ttft, tpot = bm._extract_guidellm_metrics(report)
+    assert tpm == 30576.0
     assert ttft == 42.12
     assert tpot == 3.46
 
@@ -410,15 +433,20 @@ def test_extract_guidellm_metrics_success():
 def test_extract_guidellm_metrics_empty_benchmarks():
     report = MagicMock()
     report.benchmarks = []
-    with pytest.raises(RuntimeError, match="failed to extract TTFT/TPOT"):
+    with pytest.raises(RuntimeError, match="failed to extract GuideLLM metrics"):
         bm._extract_guidellm_metrics(report)
 
 
 def test_extract_guidellm_metrics_none_total():
-    report = MagicMock()
-    report.benchmarks = [MagicMock()]
+    report = _mock_report()
     report.benchmarks[0].metrics.time_to_first_token_ms.total = None
-    with pytest.raises(RuntimeError, match="failed to extract TTFT/TPOT"):
+    with pytest.raises(RuntimeError, match="failed to extract GuideLLM metrics"):
+        bm._extract_guidellm_metrics(report)
+
+
+def test_extract_guidellm_metrics_requires_generation():
+    report = _mock_report(output_token_count=0)
+    with pytest.raises(RuntimeError, match="no generation"):
         bm._extract_guidellm_metrics(report)
 
 
@@ -426,35 +454,22 @@ def test_extract_guidellm_metrics_none_total():
 
 
 def test_run_benchmark_success(monkeypatch):
-    call_count = [0]
-
-    def read_counter(metric):
-        call_count[0] += 1
-        # First two calls return t0 values, next two return t1 values
-        if call_count[0] <= 2:
-            return 0
-        if metric == "vllm:generation_tokens_total":
-            return 6000
-        if metric == "vllm:prompt_tokens_total":
-            return 24576
-        return 0
-
-    mock_report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
+    mock_report = _mock_report(
+        tokens_per_second=509.6,
+        output_token_count=6000,
+        ttft_mean=42.123,
+        tpot_mean=3.456,
+    )
     with (
-        patch.object(bm, "_sum_counter_metric", side_effect=read_counter),
         patch.object(bm, "_resolve_processor", return_value="mymodel"),
         patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
-        patch(
-            "time.time",
-            side_effect=[0.0, 60.0],  # t0, t1 → 60 s elapsed
-        ),
+        patch("time.time", side_effect=[0.0, 80.0]),
     ):
         tpm, ttft, tpot, max_concurrency = bm._run_benchmark()
 
-    # (6000 + 24576) * 60 / 60 = 30576.0
     assert tpm == pytest.approx(30576.0)
     assert ttft == 42.12
     assert tpot == 3.46
@@ -462,23 +477,21 @@ def test_run_benchmark_success(monkeypatch):
 
 
 def test_run_benchmark_no_generation():
-    mock_report = _mock_report()
+    mock_report = _mock_report(output_token_count=0)
     with (
-        patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
-        patch("time.time", side_effect=[0.0, 60.0]),
-        pytest.raises(RuntimeError, match="no_generation"),
+        patch("time.time", side_effect=[0.0, 80.0]),
+        pytest.raises(RuntimeError, match="no generation"),
     ):
         bm._run_benchmark()
 
 
 def test_run_benchmark_guidellm_fails():
     with (
-        patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=None),

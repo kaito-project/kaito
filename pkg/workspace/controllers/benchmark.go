@@ -89,6 +89,7 @@ type benchmarkResultPayload struct {
 
 // benchmarkConfigPayload mirrors the KAITO_BENCHMARK_CONFIG JSON emitted by benchmark_entrypoint.py.
 type benchmarkConfigPayload struct {
+	WarmupSec      int32 `json:"warmup_sec"`
 	DurationSec    int32 `json:"duration_sec"`
 	InputTokens    int32 `json:"input_tokens"`
 	OutputTokens   int32 `json:"output_tokens"`
@@ -159,6 +160,7 @@ func parseBenchmarkResult(r io.Reader, runtimeConfig map[string]string) (*kaitov
 	if lastConfigPayload != "" {
 		var cfgPayload benchmarkConfigPayload
 		if err := json.Unmarshal([]byte(lastConfigPayload), &cfgPayload); err == nil {
+			config["warmupSec"] = strconv.Itoa(int(cfgPayload.WarmupSec))
 			config["durationSec"] = strconv.Itoa(int(cfgPayload.DurationSec))
 			config["inputTokens"] = strconv.Itoa(int(cfgPayload.InputTokens))
 			config["outputTokens"] = strconv.Itoa(int(cfgPayload.OutputTokens))

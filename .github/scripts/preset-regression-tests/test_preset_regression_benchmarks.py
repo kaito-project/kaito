@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import json
 import os
@@ -25,17 +26,22 @@ from preset_regression_benchmarks import (
     compare_accuracy,
     compare_performance,
     load_yaml,
+    resolve_gsm8k_execution,
     resolve_profile,
     validate_coverage,
     validate_gsm8k_data,
     validate_guidellm_data,
 )
 from preset_regression_gsm8k import (
+    EvaluationDeadlineExceeded,
     effective_max_gen_tokens,
     failed_samples,
+    generation_kwargs,
+    request_or_empty,
     responses_by_document,
+    should_retry_api_error,
 )
-from promote_preset_regression_baselines import collect_gsm8k, collect_guidellm
+from preset_regression_test_cli import collect_gsm8k, collect_guidellm
 
 ROOT = Path(__file__).resolve().parents[3]
 GSM_CONFIG = ROOT / "benchmarks/gsm8k/config.yaml"
@@ -46,6 +52,7 @@ GUIDELLM_BASELINES = ROOT / "benchmarks/guidellm/baselines.yaml"
 
 def workspace_metrics(tpm: float, ttft: float, tpot: float) -> dict:
     config = {
+        "warmupSec": "20",
         "durationSec": "60",
         "inputTokens": "2048",
         "outputTokens": "256",
@@ -93,11 +100,112 @@ class BenchmarkDataTest(unittest.TestCase):
         self.assertEqual("chat-thinking-v1", name)
         self.assertEqual(8192, profile["maxGenTokens"])
 
+    def test_timeout_prone_models_use_higher_concurrency(self):
+        config = load_yaml(GSM_CONFIG)
+        models = (
+            "google/gemma-4-26B-A4B-it",
+            "google/gemma-4-31B-it",
+            "Qwen/Qwen3.5-9B",
+            "Qwen/Qwen3.6-27B",
+            "Qwen/Qwen3.8-27B",
+            "mistralai/Mistral-Medium-3.5-128B",
+            "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+        )
+        for model in models:
+            with self.subTest(model=model):
+                self.assertEqual(
+                    32 if model == "mistralai/Mistral-Medium-3.5-128B" else 16,
+                    resolve_gsm8k_execution(config, model)["numConcurrent"],
+                )
+
+    def test_retry_policy_excludes_timeouts(self):
+        self.assertFalse(
+            should_retry_api_error(None, is_connection_error=True, is_timeout=True)
+        )
+        self.assertTrue(
+            should_retry_api_error(None, is_connection_error=True, is_timeout=False)
+        )
+        self.assertTrue(
+            should_retry_api_error(429, is_connection_error=False, is_timeout=False)
+        )
+        self.assertFalse(
+            should_retry_api_error(400, is_connection_error=False, is_timeout=False)
+        )
+        self.assertTrue(
+            should_retry_api_error(503, is_connection_error=False, is_timeout=False)
+        )
+
+    def test_request_timeout_becomes_empty_response(self):
+        timeout_count = 0
+
+        async def timeout():
+            raise TimeoutError("deadline")
+
+        def record_timeouts(count):
+            nonlocal timeout_count
+            timeout_count += count
+
+        result = asyncio.run(request_or_empty(timeout(), 1, record_timeouts))
+        self.assertEqual([""], result)
+        self.assertEqual(1, timeout_count)
+
+    def test_suite_deadline_is_not_converted_to_empty_response(self):
+        timeout_count = 0
+
+        async def deadline():
+            raise EvaluationDeadlineExceeded("suite deadline")
+
+        def record_timeouts(count):
+            nonlocal timeout_count
+            timeout_count += count
+
+        with self.assertRaises(EvaluationDeadlineExceeded):
+            asyncio.run(request_or_empty(deadline(), 1, record_timeouts))
+        self.assertEqual(0, timeout_count)
+
+    def test_model_profile_overrides(self):
+        config = load_yaml(GSM_CONFIG)
+        ministral_name, ministral = resolve_profile(
+            config, "mistralai/Ministral-3-14B-Instruct-2512"
+        )
+        mistral_name, mistral = resolve_profile(
+            config, "mistralai/Mistral-Medium-3.5-128B"
+        )
+        gemma_name, gemma = resolve_profile(config, "google/gemma-4-12B-it")
+        self.assertEqual("chat-nonthinking-v1", ministral_name)
+        self.assertNotIn("chatTemplateKwargs", ministral)
+        self.assertEqual("mistral-thinking-v1", mistral_name)
+        self.assertNotIn("chatTemplateKwargs", mistral)
+        self.assertEqual({"reasoning_effort": "high"}, mistral["requestKwargs"])
+        self.assertEqual("chat-thinking-v1", gemma_name)
+        self.assertEqual({"enable_thinking": True}, gemma["chatTemplateKwargs"])
+
+        nemotron_name, nemotron = resolve_profile(
+            config, "nvidia/NVIDIA-Nemotron-Nano-9B-v2"
+        )
+        self.assertEqual("chat-thinking-v1", nemotron_name)
+        self.assertEqual({"enable_thinking": True}, nemotron["chatTemplateKwargs"])
+
+    def test_mistral_thinking_uses_native_request_field(self):
+        _, profile = resolve_profile(
+            load_yaml(GSM_CONFIG), "mistralai/Mistral-Medium-3.5-128B"
+        )
+        kwargs = generation_kwargs(profile)
+        self.assertEqual("high", kwargs["reasoning_effort"])
+        self.assertNotIn("chat_template_kwargs", kwargs)
+
     def test_duplicate_baseline_identity_is_rejected(self):
         config = load_yaml(GSM_CONFIG)
         baselines = load_yaml(GSM_BASELINES)
         baselines["targets"].append(copy.deepcopy(baselines["targets"][0]))
         with self.assertRaisesRegex(ValueError, "unique"):
+            validate_gsm8k_data(config, baselines)
+
+    def test_missing_empty_response_count_is_rejected(self):
+        config = load_yaml(GSM_CONFIG)
+        baselines = load_yaml(GSM_BASELINES)
+        del baselines["targets"][0]["emptyResponses"]
+        with self.assertRaisesRegex(ValueError, "invalid GSM8K result"):
             validate_gsm8k_data(config, baselines)
 
     def test_accuracy_threshold_boundary(self):
@@ -159,14 +267,24 @@ class BenchmarkDataTest(unittest.TestCase):
                         "target": "work\n#### 4",
                         "doc": {"question": "What is two plus two?"},
                     },
+                    {
+                        "doc_id": 3,
+                        "filter": "flexible-extract",
+                        "exact_match": 0.0,
+                        "resps": [[""]],
+                        "filtered_resps": ["[invalid]"],
+                        "target": "work\n#### 4",
+                        "doc": {"question": "What is two plus two?"},
+                    },
                 ]
             }
         }
         failures = failed_samples(results, "gsm8k", "exact_match,flexible-extract")
-        self.assertEqual(2, len(failures))
+        self.assertEqual(3, len(failures))
         self.assertEqual("answer-extraction-failed", failures[0]["reason"])
         self.assertEqual("exact-match-failed", failures[1]["reason"])
         self.assertEqual("4", failures[1]["expectedAnswer"])
+        self.assertEqual("empty-response", failures[2]["reason"])
 
     def test_generation_ceiling_is_bounded_by_served_model(self):
         import preset_regression_gsm8k
@@ -242,8 +360,31 @@ class BenchmarkDataTest(unittest.TestCase):
         self.assertEqual("org/model", passing["model"])
         self.assertEqual("gpu", passing["instanceType"])
         self.assertEqual(1, passing["nodes"])
+        self.assertEqual([], passing["regressions"])
         self.assertFalse(failing["passed"])
         self.assertEqual("performance-regressed", failing["status"])
+        self.assertEqual(
+            ["TPM", "TTFT", "TPOT"],
+            [regression["displayName"] for regression in failing["regressions"]],
+        )
+        self.assertAlmostEqual(
+            16.0,
+            failing["regressions"][0]["percentRegression"],
+            places=5,
+        )
+        self.assertAlmostEqual(
+            1.190476,
+            failing["regressions"][0]["percentBeyondLimit"],
+            places=5,
+        )
+        self.assertIn(
+            "TPM regressed 16.00% vs baseline "
+            "(observed 84.00 tokens/min, baseline 100.00 tokens/min, "
+            "minimum 85.00 tokens/min; 1.19% beyond limit)",
+            failing["error"],
+        )
+        self.assertIn("TTFT regressed 21.00% vs baseline", failing["error"])
+        self.assertIn("TPOT regressed 15.20% vs baseline", failing["error"])
 
     def test_performance_topology_mismatch_is_distinct(self):
         config = load_yaml(GUIDELLM_CONFIG)
@@ -279,7 +420,7 @@ class BenchmarkDataTest(unittest.TestCase):
         self.assertEqual("baseline-config-mismatch", result["status"])
         self.assertEqual([2], result["baselineNodes"])
 
-    def test_matrix_coverage_is_computed(self):
+    def test_matrix_has_complete_baseline_coverage(self):
         targets = []
         for profile in ("standard", "8xh100"):
             targets.extend(
@@ -309,7 +450,7 @@ class BenchmarkDataTest(unittest.TestCase):
                 load_yaml(baseline_path),
                 config["comparison"]["requireBaselines"],
             )
-            self.assertGreater(len(gaps), 0)
+            self.assertEqual([], gaps)
 
     def test_stale_baseline_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "active matrix targets"):
@@ -334,7 +475,7 @@ class BenchmarkDataTest(unittest.TestCase):
                 json.dumps(
                     {
                         "passed": True,
-                        "emptyResponses": 0,
+                        "emptyResponses": 1,
                         "model": "org/model",
                         "instanceType": "gpu",
                         "nodes": 1,
@@ -362,7 +503,53 @@ class BenchmarkDataTest(unittest.TestCase):
                     }
                 )
             )
-            self.assertEqual(1, len(collect_gsm8k([root])))
+            gsm8k = collect_gsm8k([root])
+            self.assertEqual(1, len(gsm8k))
+            self.assertEqual(1, gsm8k[0]["emptyResponses"])
+            self.assertRegex(gsm8k[0]["measuredAt"], r"^\d{4}-\d{2}-\d{2}$")
+            self.assertEqual(1, len(collect_guidellm([root])))
+
+    def test_promotion_reads_aggregate_results(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "results-h100.json").write_text(
+                json.dumps(
+                    [
+                        {
+                            "status": "passed",
+                            "correctness": {
+                                "passed": True,
+                                "emptyResponses": 0,
+                                "model": "org/model",
+                                "instanceType": "gpu",
+                                "nodes": 1,
+                                "profile": "chat-thinking-v1",
+                                "accuracy": 0.75,
+                                "correct": 96,
+                                "evaluated": 128,
+                            },
+                            "performance": {
+                                "passed": True,
+                                "model": "org/model",
+                                "instanceType": "gpu",
+                                "nodes": 1,
+                                "profile": "stress-high-concurrency-v1",
+                                "peakTokensPerMinute": 100,
+                                "averageTimeToFirstToken": 10,
+                                "averageTimePerOutputToken": 5,
+                            },
+                        },
+                        {
+                            "status": "failed",
+                            "correctness": {"passed": True},
+                            "performance": {"passed": True},
+                        },
+                    ]
+                )
+            )
+            gsm8k = collect_gsm8k([root])
+            self.assertEqual(1, len(gsm8k))
+            self.assertEqual(0, gsm8k[0]["emptyResponses"])
             self.assertEqual(1, len(collect_guidellm([root])))
 
 

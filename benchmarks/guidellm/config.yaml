@@ -15,6 +15,7 @@ benchmark:
 profiles:
   stress-high-concurrency-v1:
     description: stress/high-concurrency
+    warmupSec: 20
     durationSec: 60
     inputTokens: 2048
     outputTokens: 256

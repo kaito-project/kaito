@@ -16,7 +16,7 @@
 No gRPC or Envoy imports here, so this module unit-tests on its own.
 
 * :class:`SSEAssembler` -- Envoy body chunks do not align with SSE events, so incomplete frames are buffered until a terminating ``\\n\\n`` arrives.
-* :class:`StreamGuard` -- a holdback window that only releases a text prefix once ``holdback_bytes`` of lookahead exists behind it. That lookahead is what makes a secret spanning two events detectable before it reaches the client. Released bytes cannot be unsent.
+* :class:`StreamGuard` -- a character-based holdback window that only releases a text prefix once ``holdback_chars`` of lookahead exists behind it. That lookahead is what makes a secret spanning two events detectable before it reaches the client. Released content cannot be unsent.
 * :func:`load_policy` -- reads the ``ban_substrings`` and ``secrets`` scanners from a guardrails policy file.
 
 ``ragengine.guardrails.guard_response()`` is deliberately not used: it wants a complete response, not a partial body. Detection in production should call the llm_guard scanner objects directly on the window text.
@@ -69,7 +69,7 @@ class ScanPolicy:
     default_action: str = "redact"
     substrings: list[SubstringRule] = field(default_factory=list)
     regexes: list[RegexRule] = field(default_factory=list)
-    secrets: bool = True
+    secrets: bool = False
 
     def is_pass_through(self) -> bool:
         return not self.enabled or (
@@ -258,7 +258,10 @@ def _extract_delta_content(obj: dict[str, Any]) -> str | None:
 
 
 def _encode_content_event(content: str, finish_reason: str | None = None) -> bytes:
-    """Re-encode a window slice of model text as a chat.completion.chunk SSE frame."""
+    """Encode a window slice as a synthetic chat.completion.chunk SSE frame.
+
+    This PoC rebuilds the frame and does not preserve the source metadata.
+    """
     payload = {
         "id": "chatcmpl-guard",
         "object": "chat.completion.chunk",
@@ -347,19 +350,19 @@ class StreamGuard:
 
     A secret split across two SSE events is only contiguous in the delta-content channel, so the guard reassembles frames, concatenates the text, scans that, and re-encodes the result as fresh ``chat.completion.chunk`` events.
 
-    Only the trailing ``holdback_bytes`` characters can still be rescanned, so a secret that *starts* beyond the window (deep inside a very large frame) is unrecoverable by the time its tail arrives. Keep ``holdback_bytes`` at or above the longest pattern that must never leak. Released bytes are gone.
+    Only the trailing ``holdback_chars`` characters can still be rescanned, so a secret that *starts* beyond the window (deep inside a very large frame) is unrecoverable by the time its tail arrives. Keep ``holdback_chars`` at or above the longest pattern that must never leak. Released content is gone.
 
-    A ``block`` action fails closed: one ``guardrails_block`` error frame goes out and nothing after it. A complete frame that is not a JSON delta (a ``[DONE]`` or a comment) passes through unscanned; a trailing frame that never got its blank-line terminator is scanned as raw text.
+    A ``block`` action fails closed for the remaining stream: one ``guardrails_block`` error frame goes out and nothing after it. Content already released cannot be recalled. A complete frame that is not a JSON delta (a ``[DONE]`` or a comment) passes through unscanned; a trailing frame that never got its blank-line terminator is scanned as raw text.
     """
 
     def __init__(
         self,
         policy: ScanPolicy,
-        holdback_bytes: int = 0,
+        holdback_chars: int = 0,
         scan_enabled: bool = True,
     ) -> None:
         self.policy = policy
-        self.holdback_bytes = max(0, holdback_bytes)
+        self.holdback_chars = max(0, holdback_chars)
         self.scan_enabled = scan_enabled and not policy.is_pass_through()
 
         self._assembler = SSEAssembler()
@@ -383,7 +386,7 @@ class StreamGuard:
 
     @property
     def held_chars(self) -> int:
-        return len(self._content_buf)
+        return len(self._content_buf.decode("utf-8", errors="replace"))
 
     def consume(self, chunk: bytes, end_of_stream: bool = False) -> Emit:
         """Feed one upstream body chunk and return the bytes to emit now."""
@@ -433,8 +436,8 @@ class StreamGuard:
             return Emit(_block_frame(self.policy.block_message), blocked=True)
 
         redacted = _apply_redactions(text, matches)
-        if self.holdback_bytes > 0:
-            release_chars = max(0, len(redacted) - self.holdback_bytes)
+        if self.holdback_chars > 0:
+            release_chars = max(0, len(redacted) - self.holdback_chars)
         else:
             release_chars = len(redacted)
         if release_chars <= 0:

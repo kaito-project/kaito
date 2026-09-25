@@ -29,8 +29,10 @@ import sys
 import time
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "client"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "extproc"))
 
 from sse_client import SseResult, fetch  # noqa: E402
+from stream_guard import load_policy  # noqa: E402
 
 CROSS_SECRET = "sk-1234567890abcdef"
 DIRECT_PORT = 18081
@@ -41,18 +43,31 @@ RUNTIME_PATH = pathlib.Path(
     / "extproc-config"
     / "stream_guard.json"
 )
+POLICY_PATH = RUNTIME_PATH.parent / "policy.yaml"
 
 RESULTS: list[dict] = []
 
 
-def set_runtime(scan_enabled: bool, holdback_bytes: int) -> None:
+def ensure_policy_available(scan_enabled: bool) -> None:
+    """Refuse scan experiments when the mounted policy cannot scan."""
+    if not scan_enabled:
+        return
+    policy = load_policy(str(POLICY_PATH))
+    if policy.is_pass_through():
+        raise RuntimeError(
+            f"guard policy is disabled or has no active scanners: {POLICY_PATH}"
+        )
+
+
+def set_runtime(scan_enabled: bool, holdback_chars: int) -> None:
     """Flip the guard's scan/holdback settings for the next requests.
 
     The runtime file is bind-mounted into the extproc container, which reloads it per stream on mtime change, so writing the host file is enough.
     """
+    ensure_policy_available(scan_enabled)
     payload = {
         "scan_enabled": bool(scan_enabled),
-        "holdback_bytes": int(holdback_bytes),
+        "holdback_chars": int(holdback_chars),
     }
     RUNTIME_PATH.write_text(json.dumps(payload), encoding="utf-8")
     now = time.time()
@@ -131,7 +146,7 @@ def run() -> None:
         f"slow_ttft={base_slow.ttft_ms}ms\n"
     )
 
-    set_runtime(scan_enabled=False, holdback_bytes=0)
+    set_runtime(scan_enabled=False, holdback_chars=0)
     res1 = fetch_envoy("normal")
     ok = res1.joined_text == base_normal.joined_text and res1.done
     record(
@@ -144,7 +159,7 @@ def run() -> None:
         note="pass-through" if ok else "content mismatch",
     )
 
-    set_runtime(scan_enabled=True, holdback_bytes=0)
+    set_runtime(scan_enabled=True, holdback_chars=0)
     res2 = fetch_envoy("aligned")
     ok = "foo" not in res2.joined_text and res2.done
     record(
@@ -170,7 +185,7 @@ def run() -> None:
         note=f"joined={res3.joined_text!r}",
     )
 
-    set_runtime(scan_enabled=True, holdback_bytes=64)
+    set_runtime(scan_enabled=True, holdback_chars=64)
     res4 = fetch_envoy("cross")
     ok = (
         CROSS_SECRET not in res4.joined_text
@@ -200,17 +215,18 @@ def run() -> None:
         note=f"guard_ttft={slow.ttft_ms}ms baseline_ttft={base_slow.ttft_ms}ms overhead={overhead:.1f}ms",
     )
 
-    set_runtime(scan_enabled=True, holdback_bytes=0)
+    set_runtime(scan_enabled=True, holdback_chars=0)
     res5b = fetch_envoy("block")
-    ok = res5b.blocked and "PROHIBITED" not in res5b.joined_text
+    prohibited_hidden = "PROHIBITED" not in res5b.joined_text
+    ok = res5b.blocked and prohibited_hidden
     record(
         "Exp5b",
         "block",
         0,
         res5b,
-        "block fail-closed",
+        "PROHIBITED absent from joined text",
         "PASS" if ok else "FAIL",
-        note=f"blocked={res5b.blocked} msg={res5b.block_message!r}",
+        note=f"blocked={res5b.blocked} prohibited_hidden={prohibited_hidden} msg={res5b.block_message!r}",
     )
 
     print("\n== results ==")

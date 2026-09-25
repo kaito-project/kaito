@@ -25,7 +25,7 @@ Scenarios (driven by issue #2358 experiments):
 * ``split``   -- a single long event written in several chunks so Envoy and ext_proc see it fragmented; the guard must reassemble it.
 * ``cross``   -- event N ends with ``sk-`` and event N+1 starts with the rest of the secret, so the secret spans two SSE events. A holdback of at least the secret length redacts it; without one the halves can be flushed separately and leak.
 * ``slow``    -- ``normal`` with an inter-write delay to measure TTFT/latency.
-* ``block``   -- an event containing the banned word ``PROHIBITED`` that the policy turns into a hard block (fail-closed).
+* ``block``   -- an event containing the banned word ``PROHIBITED`` that the policy turns into a hard block for the remaining stream; already-released content may remain.
 """
 
 import http.server

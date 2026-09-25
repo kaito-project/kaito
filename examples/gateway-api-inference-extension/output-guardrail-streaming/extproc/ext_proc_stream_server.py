@@ -16,7 +16,7 @@
 
 With ``response_body_mode: FULL_DUPLEX_STREAMED``, ``response_body`` requests arrive as partial chunks and replies carry ``streamed_response``. :func:`load_policy` supplies the rules; :class:`StreamGuard` reassembles the SSE frames and mutates complete events.
 
-A runtime file (``KAI_GUARD_RUNTIME``) toggles ``scan_enabled`` and ``holdback_bytes`` without a restart, which is how the experiments are driven.
+A runtime file (``KAI_GUARD_RUNTIME``) toggles ``scan_enabled`` and ``holdback_chars`` without a restart, which is how the experiments are driven.
 """
 
 import asyncio
@@ -30,7 +30,7 @@ from envoy.service.ext_proc.v3 import (
     external_processor_pb2_grpc,
 )
 from grpc import aio
-from stream_guard import Emit, StreamGuard, load_policy
+from stream_guard import Emit, StreamGuard, _block_frame, load_policy
 
 logging.basicConfig(
     level=os.getenv("KAI_GUARD_LOG", "INFO"),
@@ -81,10 +81,17 @@ class StreamExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer
     async def Process(self, request_iterator, context):
         policy = load_policy(self.policy_path)
         runtime = self._runtime_config()
+        scan_requested = bool(runtime.get("scan_enabled", True))
+        scan_unavailable = scan_requested and policy.is_pass_through()
+        if scan_unavailable:
+            logger.error(
+                "guard policy has no active scanners or is disabled; failing closed: path=%s",
+                self.policy_path,
+            )
         guard = StreamGuard(
             policy=policy,
-            holdback_bytes=int(runtime.get("holdback_bytes", 0) or 0),
-            scan_enabled=bool(runtime.get("scan_enabled", True)),
+            holdback_chars=int(runtime.get("holdback_chars", 0) or 0),
+            scan_enabled=scan_requested,
         )
 
         stream_calls = 0
@@ -100,6 +107,15 @@ class StreamExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer
                     yield external_processor_pb2.ProcessingResponse()
 
                 elif request.HasField("response_body"):
+                    if scan_unavailable:
+                        yield self._streamed_body_response(
+                            Emit(
+                                _block_frame(policy.block_message),
+                                end_stream=True,
+                                blocked=True,
+                            )
+                        )
+                        return
                     body = request.response_body.body
                     end_of_stream = request.response_body.end_of_stream
                     bytes_in += len(body)
@@ -118,6 +134,15 @@ class StreamExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer
                     yield self._streamed_body_response(emit)
 
                 elif request.HasField("response_trailers"):
+                    if scan_unavailable:
+                        yield self._streamed_body_response(
+                            Emit(
+                                _block_frame(policy.block_message),
+                                end_stream=True,
+                                blocked=True,
+                            )
+                        )
+                        return
                     # Trailers, not end_of_stream, close a full-duplex stream.
                     emit = guard.flush()
                     bytes_out += len(emit.body)
@@ -137,10 +162,16 @@ class StreamExtProcService(external_processor_pb2_grpc.ExternalProcessorServicer
                     return
                 if not guard.bytes_emitted:
                     logger.error(
-                        "guard error, restarting stream guard: %s", exc, exc_info=True
+                        "pre-stream guard error; failing closed: %s", exc, exc_info=True
                     )
-                    guard = StreamGuard(policy, holdback_bytes=0, scan_enabled=False)
-                    yield external_processor_pb2.ProcessingResponse()
+                    yield self._streamed_body_response(
+                        Emit(
+                            _block_frame(guard.policy.block_message),
+                            end_stream=True,
+                            blocked=True,
+                        )
+                    )
+                    return
                 else:
                     logger.error("mid-stream guard error: %s", exc, exc_info=True)
                     yield self._streamed_body_response(

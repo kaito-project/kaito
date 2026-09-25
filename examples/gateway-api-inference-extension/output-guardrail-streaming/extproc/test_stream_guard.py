@@ -20,6 +20,12 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
+
+try:
+    from ext_proc_stream_server import StreamExtProcService
+except ModuleNotFoundError:
+    StreamExtProcService = None
 
 from stream_guard import (
     DEFAULT_REDACT_MARKER,
@@ -85,7 +91,7 @@ def joined_content(capture):
     return "".join(parts)
 
 
-def policy_with(*, ban=("foo",), secret=True):
+def policy_with(*, ban=("foo",), secret=False):
     """Build a ScanPolicy mirroring the harness default policy."""
     return ScanPolicy(
         enabled=True,
@@ -107,18 +113,18 @@ def run_stream(guard, chunks):
 
 class TestWithinEventMutation(unittest.TestCase):
     def test_foo_redacted_in_event_content(self):
-        guard = StreamGuard(policy_with(), holdback_bytes=64)
+        guard = StreamGuard(policy_with(), holdback_chars=64)
         capture = run_stream(guard, [(sse(chunk("contains foo inside")), True)])
         self.assertNotIn("foo", joined_content(capture))
         self.assertIn(DEFAULT_REDACT_MARKER, joined_content(capture))
 
     def test_clean_event_preserves_content(self):
-        guard = StreamGuard(policy_with(), holdback_bytes=64)
+        guard = StreamGuard(policy_with(), holdback_chars=64)
         capture = run_stream(guard, [(sse(chunk("clean text")), True)])
         self.assertEqual(joined_content(capture), "clean text")
 
     def test_done_event_survives(self):
-        guard = StreamGuard(policy_with(), holdback_bytes=64)
+        guard = StreamGuard(policy_with(), holdback_chars=64)
         capture = run_stream(
             guard,
             [(sse(chunk("hi")), False), (done_event(), True)],
@@ -129,7 +135,7 @@ class TestWithinEventMutation(unittest.TestCase):
 
 class TestSplitEventReconstruction(unittest.TestCase):
     def test_event_reconstructed_across_chunks(self):
-        guard = StreamGuard(policy_with(), holdback_bytes=64)
+        guard = StreamGuard(policy_with(), holdback_chars=64)
         event = sse(chunk("reassembled across many writes"))
         third = len(event) // 3
         first, rest = event[:third], event[third:]
@@ -152,12 +158,12 @@ class TestCrossEventSecret(unittest.TestCase):
         ]
 
     def test_naive_no_holdback_leaks_secret(self):
-        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_bytes=0)
+        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_chars=0)
         capture = run_stream(guard, self._secret_events())
         self.assertIn(CROSS_SECRET, joined_content(capture), "naive path should leak")
 
     def test_holdback_redacts_secret_before_release(self):
-        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_bytes=64)
+        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_chars=64)
         capture = run_stream(guard, self._secret_events())
         joined = joined_content(capture)
         self.assertNotIn(CROSS_SECRET, joined, "secret must not leak")
@@ -165,14 +171,14 @@ class TestCrossEventSecret(unittest.TestCase):
         self.assertFalse(guard.blocked)
 
     def test_holdback_smaller_than_pattern_leaks_prefix(self):
-        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_bytes=2)
+        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_chars=2)
         capture = run_stream(guard, self._secret_events())
         self.assertIn(CROSS_SECRET, joined_content(capture))
 
 
 class TestWindowBoundary(unittest.TestCase):
     def test_secret_near_event_end_is_safe(self):
-        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_bytes=64)
+        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_chars=64)
         first = sse(chunk("The key is " + CROSS_SECRET[:3]))
         second = sse(chunk(CROSS_SECRET[3:] + " and that is all"))
         capture = run_stream(guard, [(first, False), (second, True)])
@@ -181,11 +187,21 @@ class TestWindowBoundary(unittest.TestCase):
         self.assertIn(DEFAULT_REDACT_MARKER, joined)
 
     def test_large_frame_prefix_leak_is_documented_limit(self):
-        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_bytes=64)
+        guard = StreamGuard(policy_with(ban=(), secret=True), holdback_chars=64)
         first = sse(chunk("A" * 400 + CROSS_SECRET[:3]))
         second = sse(chunk(CROSS_SECRET[3:] + " tail"))
         capture = run_stream(guard, [(first, False), (second, True)])
         self.assertIn(CROSS_SECRET, joined_content(capture))
+
+    def test_holdback_counts_characters_for_multibyte_text(self):
+        policy = ScanPolicy(
+            enabled=True,
+            substrings=[SubstringRule(value="not-present")],
+        )
+        guard = StreamGuard(policy, holdback_chars=2)
+        emit = guard.consume(sse(chunk("ééX")), end_of_stream=False)
+        self.assertEqual(joined_content(emit.body), "é")
+        self.assertEqual(guard.held_chars, 2)
 
 
 class TestBlockFailClosed(unittest.TestCase):
@@ -194,7 +210,7 @@ class TestBlockFailClosed(unittest.TestCase):
             enabled=True,
             substrings=[SubstringRule(value="PROHIBITED", action="block")],
         )
-        guard = StreamGuard(policy, holdback_bytes=0)
+        guard = StreamGuard(policy, holdback_chars=0)
         capture = run_stream(
             guard,
             [
@@ -210,7 +226,7 @@ class TestBlockFailClosed(unittest.TestCase):
 
 class TestPassThrough(unittest.TestCase):
     def test_scan_disabled_byte_exact_echo(self):
-        guard = StreamGuard(policy_with(), holdback_bytes=64, scan_enabled=True)
+        guard = StreamGuard(policy_with(), holdback_chars=64, scan_enabled=True)
         guard.scan_enabled = False
         data = sse(chunk("anything including foo"))
         capture = run_stream(guard, [(data, True)])
@@ -218,6 +234,11 @@ class TestPassThrough(unittest.TestCase):
 
 
 class TestPolicyLoading(unittest.TestCase):
+    def test_secrets_scanner_is_opt_in(self):
+        self.assertFalse(ScanPolicy().secrets)
+        self.assertEqual(collect_matches(CROSS_SECRET, ScanPolicy()), [])
+        self.assertTrue(collect_matches(CROSS_SECRET, ScanPolicy(secrets=True)))
+
     def test_invalid_policy_yields_disabled(self):
         with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as handle:
             handle.write("not: [valid\n")
@@ -232,11 +253,80 @@ class TestPolicyLoading(unittest.TestCase):
         policy = load_policy("/nonexistent/policy.yaml")
         self.assertFalse(policy.enabled)
 
+    def test_secrets_scanner_enables_policy(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as handle:
+            handle.write("enabled: true\nscanners:\n  - type: secrets\n")
+            path = handle.name
+        try:
+            policy = load_policy(path)
+        finally:
+            os.unlink(path)
+        self.assertTrue(policy.secrets)
+
     def test_ban_substrings_word_match(self):
         policy = ScanPolicy(enabled=True, substrings=[SubstringRule(value="foo")])
         matches = collect_matches("the foo word", policy)
         self.assertEqual([m.start for m in matches], [4])
         self.assertEqual(matches[0].replacement, DEFAULT_REDACT_MARKER)
+
+
+class TestServerFailClosed(unittest.IsolatedAsyncioTestCase):
+    async def test_pre_emit_error_returns_block(self):
+        if StreamExtProcService is None:
+            self.skipTest("ext_proc dependencies are not installed")
+        from envoy.service.ext_proc.v3 import external_processor_pb2
+
+        request = external_processor_pb2.ProcessingRequest()
+        request.response_body.body = b"data: ignored\n\n"
+        request.response_body.end_of_stream = True
+
+        async def requests():
+            yield request
+
+        service = StreamExtProcService("unused", "unused")
+        policy = ScanPolicy(
+            enabled=True,
+            substrings=[SubstringRule(value="foo")],
+        )
+        with (
+            patch("ext_proc_stream_server.load_policy", return_value=policy),
+            patch.object(StreamGuard, "consume", side_effect=RuntimeError("boom")),
+        ):
+            responses = [
+                response async for response in service.Process(requests(), None)
+            ]
+
+        self.assertEqual(len(responses), 1)
+        streamed = responses[0].response_body.response.body_mutation.streamed_response
+        self.assertTrue(streamed.end_of_stream)
+        self.assertIn(b"guardrails_block", streamed.body)
+
+    async def test_unavailable_policy_blocks_requested_scan(self):
+        if StreamExtProcService is None:
+            self.skipTest("ext_proc dependencies are not installed")
+        from envoy.service.ext_proc.v3 import external_processor_pb2
+
+        request = external_processor_pb2.ProcessingRequest()
+        request.response_body.body = b"data: ignored\n\n"
+        request.response_body.end_of_stream = True
+
+        async def requests():
+            yield request
+
+        for policy in (ScanPolicy(enabled=False), ScanPolicy()):
+            with self.subTest(policy=policy):
+                service = StreamExtProcService("unused", "unused")
+                with patch("ext_proc_stream_server.load_policy", return_value=policy):
+                    responses = [
+                        response async for response in service.Process(requests(), None)
+                    ]
+
+                self.assertEqual(len(responses), 1)
+                streamed = responses[
+                    0
+                ].response_body.response.body_mutation.streamed_response
+                self.assertTrue(streamed.end_of_stream)
+                self.assertIn(b"guardrails_block", streamed.body)
 
 
 if __name__ == "__main__":

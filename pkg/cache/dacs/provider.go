@@ -58,7 +58,6 @@ const (
 
 	ModelWarmerContainerName = "dacs-model-warmer"
 	ModelWarmerScriptPath    = "/usr/local/bin/dacs-model-warmer.py"
-	ModelWarmerPartitionsEnv = "KAITO_MODEL_WARMER_PARTITION_COUNT"
 
 	// runaiStreamerMarker identifies a workload that loads model weights through
 	// the run:ai model streamer (e.g. --load-format=runai_streamer). DACS's
@@ -117,8 +116,8 @@ type Config struct {
 	// otherwise the runai streamer will fail to dlopen the library at runtime.
 	ClientImage string
 
-	// ModelWarmerImage enables sidecars that partition the model's safetensor
-	// files across StatefulSet pods while vLLM performs its startup work.
+	// ModelWarmerImage enables an ordinal-0 sidecar that streams the model once
+	// through DACS while vLLM performs its non-streaming startup work.
 	ModelWarmerImage string
 
 	// KVCacheEnabled controls whether KV caching is supported.
@@ -454,12 +453,7 @@ func (p *Provider) modelWarmerSidecar(workload *appsv1.StatefulSet, dacsEnv []co
 		return corev1.Container{}, false
 	}
 
-	partitionCount := int32(1)
-	if workload.Spec.Replicas != nil {
-		partitionCount = *workload.Spec.Replicas
-	}
-
-	env := make([]corev1.EnvVar, 0, len(dacsEnv)+4)
+	env := make([]corev1.EnvVar, 0, len(dacsEnv)+3)
 	for _, item := range mainContainer.Env {
 		if item.Name == "AZURE_STORAGE_ACCOUNT_NAME" {
 			env = append(env, item)
@@ -469,7 +463,6 @@ func (p *Provider) modelWarmerSidecar(workload *appsv1.StatefulSet, dacsEnv []co
 	env = append(env, dacsEnv...)
 	env = append(env,
 		corev1.EnvVar{Name: "KAITO_MODEL_PATH", Value: modelPath},
-		corev1.EnvVar{Name: ModelWarmerPartitionsEnv, Value: strconv.Itoa(int(partitionCount))},
 		corev1.EnvVar{
 			Name: "POD_NAME",
 			ValueFrom: &corev1.EnvVarSource{

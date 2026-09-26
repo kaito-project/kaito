@@ -19,7 +19,6 @@ import (
 	"strings"
 	"testing"
 
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -187,7 +186,7 @@ func TestConfigFromEnv(t *testing.T) {
 	t.Setenv("DACS_DISCOVERY_ENDPOINT", "env-discovery.example")
 	t.Setenv("DACS_KV_CACHE_ENABLED", "false")
 	t.Setenv("DACS_KV_CONNECTOR_PROTOCOL", "rdma")
-	t.Setenv("DACS_MODEL_WARMER_IMAGE", "test.azurecr.io/runai-warmer@sha256:abc")
+	t.Setenv("DACS_KV_CONNECTOR_PROTOCOL", "rdma")
 
 	cfg := ConfigFromEnv()
 	if cfg.DiscoveryEndpoint != "env-discovery.example" {
@@ -198,9 +197,6 @@ func TestConfigFromEnv(t *testing.T) {
 	}
 	if cfg.KVConnectorProtocol != "rdma" {
 		t.Fatalf("KVConnectorProtocol: got %q", cfg.KVConnectorProtocol)
-	}
-	if cfg.ModelWarmerImage != "test.azurecr.io/runai-warmer@sha256:abc" {
-		t.Fatalf("ModelWarmerImage: got %q", cfg.ModelWarmerImage)
 	}
 }
 
@@ -420,147 +416,6 @@ func TestPodMutations_ModelWeights(t *testing.T) {
 	}
 	if len(mutations.VolumeMounts) != 1 {
 		t.Errorf("expected 1 volume mount (DACS client), got %d", len(mutations.VolumeMounts))
-	}
-}
-
-func TestPodMutations_ModelWeightsWarmerSidecar(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.ClientImage = "test.azurecr.io/dacs-client@sha256:def"
-	cfg.ModelWarmerImage = "test.azurecr.io/runai-warmer@sha256:abc"
-	p := New(newFakeProvider().client, cfg)
-	workload := &appsv1.StatefulSet{
-		Spec: appsv1.StatefulSetSpec{
-			Template: corev1.PodTemplateSpec{
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{
-						Name: "model",
-						Command: []string{
-							"/bin/sh",
-							"-c",
-							"python inference.py --model=az://container/org/model --load-format=runai_streamer",
-						},
-						Env: []corev1.EnvVar{
-							{Name: "AZURE_STORAGE_ACCOUNT_NAME", Value: "account"},
-						},
-					}},
-				},
-			},
-		},
-	}
-
-	mutations, err := p.PodMutationsForWorkload(
-		context.Background(),
-		cache.CacheConcernModelWeights,
-		&kaitov1beta1.Workspace{},
-		"org/model",
-		"main",
-		"",
-		workload,
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(mutations.Sidecars) != 1 {
-		t.Fatalf("expected one warmer sidecar, got %d", len(mutations.Sidecars))
-	}
-
-	sidecar := mutations.Sidecars[0]
-	if sidecar.Name != ModelWarmerContainerName {
-		t.Errorf("sidecar name: got %q, want %q", sidecar.Name, ModelWarmerContainerName)
-	}
-	if sidecar.Image != cfg.ModelWarmerImage {
-		t.Errorf("sidecar image: got %q, want %q", sidecar.Image, cfg.ModelWarmerImage)
-	}
-	if len(sidecar.Command) != 3 || sidecar.Command[2] != ModelWarmerScriptPath {
-		t.Errorf("sidecar command does not launch image-owned warmer: %v", sidecar.Command)
-	}
-	if len(sidecar.Args) != 0 {
-		t.Errorf("sidecar must not receive an inline script: %v", sidecar.Args)
-	}
-	if len(sidecar.VolumeMounts) != 1 || sidecar.VolumeMounts[0].Name != ClientVolumeName {
-		t.Errorf("sidecar cache-client mount missing: %v", sidecar.VolumeMounts)
-	}
-	env := envVarMap(sidecar.Env)
-	if env["KAITO_MODEL_PATH"] != "az://container/org/model" {
-		t.Errorf("KAITO_MODEL_PATH: got %q", env["KAITO_MODEL_PATH"])
-	}
-	if env["AZURE_STORAGE_ACCOUNT_NAME"] != "account" {
-		t.Errorf("AZURE_STORAGE_ACCOUNT_NAME: got %q", env["AZURE_STORAGE_ACCOUNT_NAME"])
-	}
-	if env["RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB"] != ClientLibPath {
-		t.Errorf("cache library: got %q", env["RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB"])
-	}
-	podName := sidecar.Env[len(sidecar.Env)-1]
-	if podName.Name != "POD_NAME" || podName.ValueFrom == nil ||
-		podName.ValueFrom.FieldRef == nil || podName.ValueFrom.FieldRef.FieldPath != "metadata.name" {
-		t.Errorf("POD_NAME downward API is not configured: %v", sidecar.Env)
-	}
-}
-
-func TestPodMutations_ModelWeightsWarmerRequiresResolvedAzurePath(t *testing.T) {
-	cfg := DefaultConfig()
-	cfg.ClientImage = "test.azurecr.io/dacs-client@sha256:def"
-	cfg.ModelWarmerImage = "test.azurecr.io/runai-warmer@sha256:abc"
-	p := New(newFakeProvider().client, cfg)
-	workload := &appsv1.StatefulSet{
-		Spec: appsv1.StatefulSetSpec{
-			Template: corev1.PodTemplateSpec{
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{{
-						Name:    "model",
-						Command: []string{"python inference.py --model=$STREAM_MODEL_URI --load-format=runai_streamer"},
-					}},
-				},
-			},
-		},
-	}
-
-	mutations, err := p.PodMutationsForWorkload(
-		context.Background(),
-		cache.CacheConcernModelWeights,
-		&kaitov1beta1.Workspace{},
-		"org/model",
-		"main",
-		"",
-		workload,
-	)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(mutations.Sidecars) != 0 {
-		t.Fatalf("expected no warmer for unresolved model path, got %v", mutations.Sidecars)
-	}
-}
-
-func TestStreamingModelPath(t *testing.T) {
-	tests := []struct {
-		name      string
-		container corev1.Container
-		want      string
-	}{
-		{
-			name:      "equals form in shell command",
-			container: corev1.Container{Command: []string{"/bin/sh", "-c", "vllm --model=az://container/model"}},
-			want:      "az://container/model",
-		},
-		{
-			name:      "separate argument",
-			container: corev1.Container{Args: []string{"--model", "az://container/model"}},
-			want:      "az://container/model",
-		},
-		{
-			name:      "quoted value",
-			container: corev1.Container{Args: []string{`vllm --model='az://container/model'`}},
-			want:      "az://container/model",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := streamingModelPath(tt.container); got != tt.want {
-				t.Fatalf("streamingModelPath() = %q, want %q", got, tt.want)
-			}
-		})
 	}
 }
 

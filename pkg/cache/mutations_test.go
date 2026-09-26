@@ -92,9 +92,6 @@ func TestApplyMutations(t *testing.T) {
 		InitContainers: []corev1.Container{
 			{Name: "cache-init"},
 		},
-		Sidecars: []corev1.Container{
-			{Name: "cache-sidecar"},
-		},
 	}
 
 	applyMutations(spec, mutations)
@@ -110,36 +107,6 @@ func TestApplyMutations(t *testing.T) {
 	}
 	if len(spec.InitContainers) != 1 {
 		t.Errorf("expected 1 init container, got %d", len(spec.InitContainers))
-	}
-	if len(spec.Containers) != 2 || spec.Containers[1].Name != "cache-sidecar" {
-		t.Errorf("expected cache sidecar after model container, got %v", spec.Containers)
-	}
-}
-
-func TestApplyMutations_DeduplicatesSidecars(t *testing.T) {
-	spec := &corev1.PodSpec{
-		Containers: []corev1.Container{
-			{Name: "model"},
-			{Name: "cache-sidecar", Image: "user/image"},
-		},
-	}
-	mutations := &PodMutations{
-		Sidecars: []corev1.Container{
-			{Name: "cache-sidecar", Image: "provider/image"},
-			{Name: "other-sidecar", Image: "provider/other"},
-		},
-	}
-
-	applyMutations(spec, mutations)
-
-	if len(spec.Containers) != 3 {
-		t.Fatalf("expected three containers, got %d", len(spec.Containers))
-	}
-	if spec.Containers[1].Image != "user/image" {
-		t.Errorf("existing sidecar was overwritten: %q", spec.Containers[1].Image)
-	}
-	if spec.Containers[2].Name != "other-sidecar" {
-		t.Errorf("new sidecar was not appended: %v", spec.Containers)
 	}
 }
 

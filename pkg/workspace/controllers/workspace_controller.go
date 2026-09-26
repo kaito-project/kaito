@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"sort"
 	"strconv"
@@ -84,10 +85,11 @@ type WorkspaceReconciler struct {
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 
-	klogger         klog.Logger
-	expectations    *utils.ControllerExpectations
-	Estimator       estimator.NodesEstimator
-	nodeProvisioner nodeprovision.NodeProvisioner
+	klogger             klog.Logger
+	expectations        *utils.ControllerExpectations
+	Estimator           estimator.NodesEstimator
+	nodeProvisioner     nodeprovision.NodeProvisioner
+	modelMetadataClient modelMetadataHTTPClient
 }
 
 func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log logr.Logger, Recorder record.EventRecorder,
@@ -95,14 +97,15 @@ func NewWorkspaceReconciler(client client.Client, scheme *runtime.Scheme, log lo
 	expectations := utils.NewControllerExpectations()
 
 	return &WorkspaceReconciler{
-		Client:          client,
-		Scheme:          scheme,
-		Log:             log,
-		klogger:         klog.NewKlogr().WithName("WorkspaceController"),
-		Recorder:        Recorder,
-		expectations:    expectations,
-		Estimator:       &nodesestimator.NodeEstimator{},
-		nodeProvisioner: provisioner,
+		Client:              client,
+		Scheme:              scheme,
+		Log:                 log,
+		klogger:             klog.NewKlogr().WithName("WorkspaceController"),
+		Recorder:            Recorder,
+		expectations:        expectations,
+		Estimator:           &nodesestimator.NodeEstimator{},
+		nodeProvisioner:     provisioner,
+		modelMetadataClient: &http.Client{Timeout: 2 * time.Second},
 	}
 }
 
@@ -823,6 +826,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
 
 	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
+	maxModelLen := c.collectActualMaxModelLen(ctx, wObj, inferenceReady)
 
 	return c.updateWorkspaceStatusIfChanged(ctx, key, func(status *kaitov1beta1.WorkspaceStatus) error {
 		if !wObj.DeletionTimestamp.IsZero() {
@@ -861,6 +865,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 		}
 
 		if wObj.Inference != nil {
+			status.MaxModelLen = maxModelLen
 			if modelstreaming.ModelStreamingEnabled(wObj) && wObj.Inference.Preset != nil {
 
 				mirrorKey := modelstreaming.ModelMirrorKey(wObj)

@@ -31,7 +31,7 @@ Each model entry in `model_catalog.yaml` contains the following fields:
 | `configFormat` | No | vLLM config format (only when not `auto`) |
 | `tokenizerMode` | No | vLLM tokenizer mode (only when not `auto`) |
 
-The `.github/scripts/preset-regression-matrix.sh` script assigns models to the `standard` auto-provisioned A10/A100/H100 profile or the shared pre-provisioned `8xh100` profile based on `modelFileSize`. Each pool selects a fixed GPU SKU and can block models that meet its size policy but are incompatible with that GPU family.
+The `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` script assigns models to the `standard` auto-provisioned A10/A100/H100 profile or the shared pre-provisioned `8xh100` profile based on `modelFileSize`. Each pool selects a fixed GPU SKU and can block models that meet its size policy but are incompatible with that GPU family.
 
 ## How to Onboard a New Model
 
@@ -62,7 +62,7 @@ The `.github/scripts/preset-regression-matrix.sh` script assigns models to the `
 
 2. **Review the generated entry.** **If the model has missing or non-standard HuggingFace metadata**, add an override entry in `presets/workspace/generator/generator.go` under the `catalogOverrides` map.
 
-3. **Check the generated regression targets.** Run `.github/scripts/preset-regression-matrix.sh` and confirm the size policy selects appropriate GPU pools and topology. Adjust the shared policy in `.github/preset-regression-config.json` only when the sizing tiers themselves need to change.
+3. **Check the generated regression targets.** Run `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` and confirm the size policy selects appropriate GPU pools and topology. Adjust the shared policy in `.github/preset-regression-config.json` only when the sizing tiers themselves need to change.
 
 4. **Add model-specific configurations to `presets/workspace/generator/generator.go` if necessary** (e.g. reasoning parser, tool call parser, etc).
 

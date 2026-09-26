@@ -107,8 +107,9 @@ just the import:
   runtime; KAITO disables the sampler + the allreduce-RMS fusion to avoid it.
 - **LMCache** (CPU KV offload): API and the abort-path bug both shift between
   versions; KAITO disables it for hybrid-KV / MIG models.
-- **guidellm** (startup benchmark): its `BenchmarkGenerativeTextArgs` API changed
-  across releases — verify `benchmark_entrypoint.py` still constructs it.
+- **guidellm** (startup benchmark): KAITO uses the `BenchmarkScenario` API added
+  in 0.7.x. Verify the synthetic data, throughput profile, duration constraint,
+  and reasoning-stream TTFT behavior in `benchmark_entrypoint.py`.
 
 ## 6. Test and validate
 

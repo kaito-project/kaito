@@ -479,7 +479,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				status.Performance.Metrics[controllers.BenchmarkMetricAggregatedPeakTPM] = kaitov1beta1.Metric{
 					Description: controllers.BenchmarkDesc,
 					Value:       strconv.FormatFloat(totalTPM, 'f', 2, 64),
-					Unit:        controllers.BenchmarkMetricUnit,
+					Unit:        controllers.BenchmarkMetricTPMUnit,
 					Config:      controllers.RuntimeMetadataConfig(runtimeName, presetName),
 				}
 			} else {

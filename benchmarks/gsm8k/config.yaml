@@ -1,0 +1,66 @@
+schemaVersion: 1
+benchmark:
+  dataset: openai/gsm8k
+  datasetRevision: 740312add88f781978c0658806c59bc2815b9866
+  split: test
+  evaluator: lm-eval
+  evaluatorVersion: 0.4.13
+  task: gsm8k
+  metric: exact_match,flexible-extract
+  sampleSelection:
+    strategy: first
+    count: 128
+  promptTokenReserve: 2048
+  defaultProfile: chat-thinking-v1
+
+profiles:
+  chat-nonthinking-v1:
+    applyChatTemplate: true
+    fewshotAsMultiturn: false
+    temperature: 0
+    maxGenTokens: 512
+    stopSequences:
+      - "</s>"
+      - "<|im_end|>"
+  chat-thinking-v1:
+    applyChatTemplate: true
+    fewshotAsMultiturn: false
+    temperature: 0
+    maxGenTokens: 8192
+    chatTemplateKwargs:
+      enable_thinking: true
+    stopSequences:
+      - "</s>"
+      - "<|im_end|>"
+  mistral-thinking-v1:
+    applyChatTemplate: true
+    fewshotAsMultiturn: false
+    temperature: 0
+    maxGenTokens: 8192
+    requestKwargs:
+      reasoning_effort: high
+    stopSequences:
+      - "</s>"
+      - "<|im_end|>"
+
+modelProfileOverrides:
+  mistralai/Ministral-3-14B-Instruct-2512: chat-nonthinking-v1
+  mistralai/Mistral-Medium-3.5-128B: mistral-thinking-v1
+  mistralai/Mistral-Small-4-119B-2603: mistral-thinking-v1
+
+execution:
+  numConcurrent: 4
+  requestTimeoutSeconds: 300
+  timeoutSeconds: 1200
+  maxRetries: 2
+
+modelExecutionOverrides:
+  google/gemma-4-12B-it:
+    numConcurrent: 16
+  Qwen/Qwen3.5-4B:
+    numConcurrent: 16
+
+comparison:
+  defaultMaxRegression: 0.05
+  maxRegressionOverrides: {}
+  requireBaselines: false

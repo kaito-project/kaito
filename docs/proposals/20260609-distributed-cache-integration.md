@@ -7,7 +7,7 @@ reviewers:
   - "@Fei-Guo"
   - "@chewong"
 creation-date: 2026-06-09
-last-updated: 2026-06-18
+last-updated: 2026-09-27
 status: provisional
 see-also:
   - "/docs/proposals/20250609-model-as-oci-artifacts.md"
@@ -36,7 +36,11 @@ see-also:
     - [Architecture](#architecture)
     - [Cache Scope](#cache-scope)
     - [API Changes](#api-changes)
-     - [CacheSpec (Workspace / InferenceSet Field)](#cachespec-workspace--inferenceset-field)
+     - [CacheClass](#cacheclass)
+     - [CacheClaim](#cacheclaim)
+     - [Workspace / InferenceSet Claim References](#workspace--inferenceset-claim-references)
+     - [MultiRoleInference Claim References](#multiroleinference-claim-references)
+     - [ModelMirror Claim Reference](#modelmirror-claim-reference)
      - [Cache Provider Interface](#cache-provider-interface)
      - [PodMutations](#podmutations)
     - [Implementation Details/Notes/Constraints](#implementation-detailsnotesconstraints)
@@ -57,8 +61,10 @@ see-also:
 
 ## Glossary
 
-- **Cache Provider**: An implementation of KAITO's cache interface that manages a specific caching backend (e.g., a distributed NVMe cache, a FUSE-based dataset cache, or an in-cluster object store proxy).
+- **Cache Provider**: An implementation compiled into KAITO that translates CacheClass and CacheClaim intent into a vendor-specific Cache CR and pod mutations. The vendor operator, not the KAITO provider, deploys and manages the cache infrastructure.
 - **Cache Controller**: A new KAITO controller that bridges workspace semantics with cache infrastructure, managing cache lifecycle and readiness signaling.
+- **CacheClass**: A cluster-scoped definition of a cache provider's supported capabilities and default configuration.
+- **CacheClaim**: A namespaced request to attach to or provision cache infrastructure through a CacheClass.
 - **PodMutations**: The set of changes (environment variables, volumes, volume mounts, init containers, labels) that a cache provider injects into model pods to enable cache access.
 - **Cache Warming**: The process of populating a cache with model weights, reducing cold-start latency. Occurs when ModelMirror downloader uses a cache-aware storage backend.
 
@@ -86,19 +92,19 @@ A distributed cache layer addresses both concerns: model weight caching for fast
 ### Goals
 
 - Enable KAITO workspaces to transparently benefit from distributed caching (both model weights and KV) without requiring users to understand cache backend internals.
-- Provide a declarative per-workspace cache configuration with independent control over model weight caching and KV caching.
+- Provide declarative, reusable cache configuration through CacheClasses and namespaced CacheClaims.
+- Support multi-tenant isolation by keeping CacheClaims, vendor Cache CRs, and workload references within the tenant namespace; only cluster-admin defaults in CacheClass are shared globally.
 - Support per-concern provider selection — different backends can be used for model weights vs. KV caching, or a single backend can serve both.
 - Define a provider interface that allows different cache backends to be plugged in, each managing its own infrastructure lifecycle.
 - Inject cache client configuration into model pods without modifying model images or inference code.
-- Degrade gracefully when a cache provider is not installed or the cache is unavailable.
+- Degrade gracefully when a vendor CRD/operator is unavailable or the cache cannot be provisioned.
 
 ### Non-Goals/Future Work
 
 - **Implementing a cache backend** — KAITO provides the integration framework; actual caching is delegated to external operators (e.g., [Fluid](https://github.com/fluid-cloudnative/fluid), distributed NVMe services, KV stores).
-- **Multi-tenant cache isolation** — Initial implementation assumes a single shared cache cluster per KAITO installation. Per-tenant cache partitioning is deferred.
 - **Cache rebalancing coordination** — Provider-specific rebalancing will be transparent to KAITO initially. Deeper integration (scale-event signaling, drain-gate awareness) is a future enhancement.
 - **Modifying KAITO model images** — Model images may need cache-specific client libraries. Image changes are tracked separately from this proposal.
-- **KV cache eviction policy tuning** — TTL, growth factors, and write modes are provider-specific configuration. Users can supply provider-specific settings via the `Config` ConfigMap field on `KVCacheSpec`; the provider validates and merges with its defaults from Helm values.
+- **KV cache eviction policy tuning** — TTL, growth factors, and write modes are provider-specific configuration supplied through CacheClass defaults and CacheClaim overrides.
 
 ## Proposal
 
@@ -120,10 +126,9 @@ spec:
   inference:
     preset:
       name: llama-3.3-70b-instruct
-  cache:
-    modelCache:
-      provider: "my-nvme-cache"
-      mode: Opportunistic
+  cacheClaims:
+    modelWeights:
+      name: llama-model-cache
 ```
 
 #### Story 2 — KV Cache for Prefix Reuse
@@ -142,10 +147,9 @@ spec:
   inference:
     preset:
       name: llama-3.3-70b-instruct
-  cache:
+  cacheClaims:
     kvCache:
-      provider: "my-kv-store"
-      mode: Required
+      name: chat-kv-cache
 ```
 
 #### Story 3 — Unified Provider for Both Concerns
@@ -164,13 +168,11 @@ spec:
   inference:
     preset:
       name: deepseek-v3
-  cache:
-    modelCache:
-      provider: "unified-cache"
-      mode: Required
+  cacheClaims:
+    modelWeights:
+      name: unified-model-cache
     kvCache:
-      provider: "unified-cache"
-      mode: Opportunistic
+      name: unified-kv-cache
 ```
 
 #### Story 4 — Mixed Providers
@@ -189,13 +191,11 @@ spec:
   inference:
     preset:
       name: llama-3.3-70b-instruct
-  cache:
-    modelCache:
-      provider: "fluid"
-      mode: Opportunistic
+  cacheClaims:
+    modelWeights:
+      name: fluid-model-cache
     kvCache:
-      provider: "flexkv"
-      mode: Required
+      name: flexkv-cache
 ```
 
 #### Story 5 — Graceful Degradation
@@ -214,10 +214,9 @@ spec:
   inference:
     preset:
       name: phi-4
-  cache:
-    modelCache:
-      provider: "my-cache"
-      mode: Opportunistic  # use if available, proceed without if not
+  cacheClaims:
+    modelWeights:
+      name: opportunistic-model-cache
 ```
 
 ### Architecture
@@ -262,207 +261,376 @@ spec:
 **Component Interactions:**
 
 1. The **Cache Backend Operator** (external, pre-installed) watches provider-specific Cache CRs and reconciles cache infrastructure (server pods, discovery service). Installed independently of KAITO.
-2. The **Cache Controller** creates and reconciles the backend's Cache CR from provider configuration (Helm values), and monitors its status for readiness. Scope: cluster-level cache infrastructure only.
-3. The **Workspace Controller** owns the per-workspace cache lifecycle: resolves providers per concern, queries readiness, gates inference pod creation on cache mode, and injects `PodMutations` into model pods.
-4. **Cache warming** occurs during the ModelMirror download — either transparently via a cache-aware CSI driver (StorageClass), or via webhook injection into the download pod. No separate warming Jobs are required.
+2. The **Cache Controller** resolves each CacheClaim through its CacheClass and invokes the selected in-repo provider. The provider attaches to an existing namespaced vendor Cache CR or creates one, then records the binding in CacheClaim status.
+3. The **Workspace Controller** resolves CacheClaim references per concern, gates inference pod creation on the claim mode and binding status, and injects `PodMutations` into model pods.
+4. The **ModelMirror Controller** resolves its model-weight CacheClaim and applies provider mutations to the download path, warming the bound cache with that model. No separate warming Jobs are required.
 5. **Model pods** use injected configuration (env vars, volumes, labels, or KV connector config) to access cache infrastructure.
 
 
 ### Cache Scope
 
-Cache infrastructure is inherently **model-scoped**: one set of cached weights serves all pods running the same model, regardless of how many Workspaces or InferenceSets reference it. This requires the cache configuration to be **shareable** across workloads without duplication.
+Model-weight cache is typically **model-scoped**: within one tenant namespace, a Shared CacheClaim or Shared vendor Cache CR can serve all Workspaces and InferenceSets using that model. An Exclusive claim remains dedicated to its own binding.
 
-**Options considered:**
+`CacheClass` is cluster-scoped and contains provider capabilities and default configuration managed by a cluster administrator. `CacheClaim` is namespaced and represents one requested model-weight or KV-cache attachment. Multiple workload instances may reference the same claim. A Shared claim may bind infrastructure used by other claims, while an Exclusive claim receives infrastructure dedicated to that claim.
 
-| Option | API Location | Sharing scope | Pros | Cons |
-|--------|-------------|---------------|------|------|
-| 1. Workspace only | `Workspace.Cache` inline | Single workspace | Simple; no new CRD | Duplicated across InferenceSet replicas; no cross-workspace sharing |
-| 2. InferenceSet + Workspace | `InferenceSetTemplate.Cache` inline, propagated to child Workspaces | All replicas of one InferenceSet | Single point per set; no new CRD; Workspace also supports standalone use | Cross-InferenceSet sharing requires duplicating config |
-| 3. Cluster-scoped CRD | New cluster-scoped CRD, referenced by name | Any workload using the same model | Maximum sharing; one definition, many consumers | New CRD; reference resolution complexity |
+The namespace is the tenant boundary: claims and workload references never resolve across namespaces, and Shared bindings are shared only within that boundary. A claim can name an existing vendor Cache CR in its namespace through `spec.cacheName`, or leave it empty so the provider resolves or creates a CR according to the binding rules. The vendor operator provisions the cache components, and KAITO records the bound CR name in `status.cacheName`.
 
-**Chosen approach: Option 2 — `CacheSpec` on InferenceSet + Workspace, with InferenceSet propagation.**
+**Attachment options:** Cache attachment can be declared at three workload levels:
 
-`CacheSpec` is defined on both `InferenceSetTemplate` and `Workspace`. When an InferenceSet creates child Workspaces, it propagates `Cache` config to each child (the same way it propagates `Resource` and `Inference`). A standalone Workspace can also specify `Cache` directly.
-
-**Inheritance chain:**
+| Option | API Location | Propagation | Use case |
+|--------|--------------|-------------|----------|
+| 1. Workspace | `Workspace.spec.cacheClaims` | The model-weight claim is copied to a managed ModelMirror created for the Workspace | Standalone Workspace attachment |
+| 2. InferenceSet | `InferenceSet.spec.template.cacheClaims` | Copied to every child Workspace; each model-weight claim is then copied to its managed ModelMirror | One declaration shared by all Workspace replicas |
+| 3. MultiRoleInference | `MultiRoleInference.spec.cacheClaims` | Copied to the prefill and decode InferenceSets, then to their child Workspaces | Shared model-weight and KV cache across both roles |
 
 ```
-InferenceSet.spec.template.cache         ← defined once per model/set
-     ↓ propagated to child Workspaces at creation time
-Workspace.cache                          ← inherited from InferenceSet, or specified directly
+InferenceSet.spec.template.cacheClaims
+     ↓ propagated to each child Workspace
+Workspace.spec.cacheClaims
+     ↓ modelWeights propagated when creating a managed ModelMirror
+ModelMirror.spec.cacheClaim
 ```
 
-See [Phase 3: Workspace Integration](#phase-3-workspace-integration) for propagation logic and resolution rules.
+For disaggregated inference, the propagation begins one level higher:
 
-**Why not a cluster-scoped CRD?**
-- Option 2 covers the dominant use case (N replicas of one model sharing one cache config) without introducing a new CRD.
-- A cluster-scoped CRD can be introduced as a **non-breaking future addition** if cross-InferenceSet sharing becomes a common requirement.
+```
+MultiRoleInference.spec.cacheClaims
+     ↓ propagated to prefill and decode InferenceSets
+InferenceSet.spec.template.cacheClaims
+     ↓ propagated to each child Workspace
+Workspace.spec.cacheClaims
+```
 
-**KV cache scope for disaggregated inference:** For `MultiRoleInference`, KV cache must be shared across prefill and decode roles (which are separate InferenceSets). Since the user creates the `MultiRoleInference` CR (not the InferenceSets directly), `MultiRoleInferenceSpec` will gain a `Cache *CacheSpec` field. The MultiRoleInference controller propagates the `kvCache` config to both role InferenceSets during `reconcileInferenceSet` (`pkg/controllers/multiroleinference/controller.go`), ensuring they connect to the same KV cache backend. This API addition to `MultiRoleInference` is deferred to when both the cache feature and MultiRoleInference reach beta, since MultiRoleInference is currently alpha and feature-gated.
+A standalone ModelMirror may also declare a model-weight CacheClaim directly. This binds the requested cache infrastructure and warms it while the model is downloaded, without requiring a Workspace or InferenceSet.
 
 ### API Changes
 
-#### CacheSpec (Workspace / InferenceSet Field)
+#### CacheClass
 
-`CacheSpec` appears on both `Workspace` and `InferenceSetTemplate`.
+`CacheClass` is cluster-scoped. It selects an in-KAITO provider, advertises the concerns, access modes, and operating modes it supports, and supplies provider-specific defaults. Claim parameters override class parameters.
 
 ```go
-// CacheSpec configures distributed caching for model workloads.
-// Cache is a top-level Workspace field, applicable to both inference and tuning.
-// Each concern (model weights, KV cache) is configured independently with its
-// own provider and mode, allowing different backends per concern.
-type CacheSpec struct {
-    // ModelCache configures caching of model weight files.
-    // +optional
-    ModelCache *ModelCacheSpec `json:"modelCache,omitempty"`
-
-    // KVCache configures caching of attention key/value tensors.
-    // +optional
-    KVCache *KVCacheSpec `json:"kvCache,omitempty"`
+// +kubebuilder:resource:scope=Cluster
+type CacheClass struct {
+    metav1.TypeMeta   `json:",inline"`
+    metav1.ObjectMeta `json:"metadata,omitempty"`
+    Spec              CacheClassSpec `json:"spec,omitempty"`
 }
 
-// ModelCacheSpec controls how model weight files are cached.
-type ModelCacheSpec struct {
-    // Provider selects the cache implementation for model weights.
+type CacheClassSpec struct {
+    // Provider selects a cache provider registered in KAITO.
     // +kubebuilder:validation:MinLength=1
     Provider CacheProvider `json:"provider"`
 
-    // Mode controls cache behavior.
-    // Required: block until cache is ready.
-    // Opportunistic: use cache if available, proceed without.
-    // Disabled: no cache interaction.
-    // +kubebuilder:default:="Opportunistic"
-    // +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
-    Mode CacheMode `json:"mode,omitempty"`
+    // +kubebuilder:validation:MinItems=1
+    // +kubebuilder:validation:UniqueItems=true
+    Concerns []CacheConcern `json:"concerns"`
 
-    // Config is the name of a ConfigMap in the same namespace containing
-    // provider-specific model cache configuration. The provider validates
-    // and merges this with its defaults from Helm values.
+    // +kubebuilder:validation:MinItems=1
+    // +kubebuilder:validation:UniqueItems=true
+    AccessModes []CacheAccessMode `json:"accessModes"`
+
+    // +kubebuilder:validation:MinItems=1
+    // +kubebuilder:validation:UniqueItems=true
+    Modes []CacheMode `json:"modes"`
+
+    // Provider-specific defaults, validated by the selected provider.
     // +optional
-    Config string `json:"config,omitempty"`
-
-    // CleanupOnDelete invalidates cached model data when workspace is deleted.
-    // +optional
-    CleanupOnDelete bool `json:"cleanupOnDelete,omitempty"`
-}
-
-// KVCacheSpec controls how attention KV tensors are cached.
-type KVCacheSpec struct {
-    // Provider selects the cache implementation for KV tensors.
-    // +kubebuilder:validation:MinLength=1
-    Provider CacheProvider `json:"provider"`
-
-    // Mode controls cache behavior.
-    // Required: block until KV cache service is ready.
-    // Opportunistic: use KV cache if available, proceed without.
-    // Disabled: no KV cache interaction.
-    // +kubebuilder:default:="Opportunistic"
-    // +kubebuilder:validation:Enum=Required;Opportunistic;Disabled
-    Mode CacheMode `json:"mode,omitempty"`
-
-    // Config is the name of a ConfigMap in the same namespace containing
-    // provider-specific KV cache configuration (e.g., cache size, TTL,
-    // eviction policy). The provider validates and merges this with its
-    // defaults from Helm values.
-    // +optional
-    Config string `json:"config,omitempty"`
+    Parameters apiextensionsv1.JSON `json:"parameters,omitempty"`
 }
 
 type CacheProvider string
-
+type CacheConcern string
+type CacheAccessMode string
 type CacheMode string
-
-const (
-    CacheModeRequired      CacheMode = "Required"
-    CacheModeOpportunistic CacheMode = "Opportunistic"
-    CacheModeDisabled      CacheMode = "Disabled"
-)
+type CacheClaimPhase string
 ```
 
-The `Workspace` struct gains a new optional field:
+KAITO installation creates a default DACS CacheClass for model-weight caching:
+
+```yaml
+apiVersion: cache.kaito.sh/v1alpha1
+kind: CacheClass
+metadata:
+  name: dacs
+spec:
+  provider: dacs
+  concerns: [ModelWeights]
+  accessModes: [Shared, Exclusive]
+  modes: [Required, Opportunistic]
+  parameters:
+    protocol: runai-streamer
+```
+
+#### CacheClaim
+
+`CacheClaim` is namespaced. `cacheClassName` selects the in-repo provider and defaults. `cacheName` optionally names an existing vendor Cache CR in the same namespace; when omitted, the provider resolves or creates a CR according to the Shared or Exclusive binding rules.
 
 ```go
+// +kubebuilder:resource:scope=Namespaced
+// +kubebuilder:subresource:status
+type CacheClaim struct {
+    metav1.TypeMeta   `json:",inline"`
+    metav1.ObjectMeta `json:"metadata,omitempty"`
+    Spec              CacheClaimSpec   `json:"spec,omitempty"`
+    Status            CacheClaimStatus `json:"status,omitempty"`
+}
+
+type CacheClaimSpec struct {
+    // CacheClassName references a cluster-scoped CacheClass.
+    CacheClassName string `json:"cacheClassName"`
+
+    // CacheName identifies an existing vendor Cache CR in this namespace.
+    // If omitted, the provider resolves or creates one per the binding rules.
+    // +optional
+    CacheName string `json:"cacheName,omitempty"`
+
+    // +kubebuilder:validation:Enum=ModelWeights;KVCache
+    Concern CacheConcern `json:"concern"`
+
+    // +kubebuilder:validation:Enum=Shared;Exclusive
+    AccessMode CacheAccessMode `json:"accessMode"`
+
+    // +kubebuilder:default:="Opportunistic"
+    // +kubebuilder:validation:Enum=Required;Opportunistic
+    Mode CacheMode `json:"mode,omitempty"`
+
+    // Provider-specific overrides merged over CacheClass parameters.
+    // +optional
+    Parameters apiextensionsv1.JSON `json:"parameters,omitempty"`
+
+    // Used when provider-specific cache infrastructure must be created.
+    // +optional
+    NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+}
+
+type CacheClaimStatus struct {
+    // +kubebuilder:validation:Enum=Pending;Bound;Failed
+    Phase CacheClaimPhase `json:"phase,omitempty"`
+
+    // CacheName is the vendor Cache CR attached or created by the provider.
+    CacheName string `json:"cacheName,omitempty"`
+
+    // AccessMode records the mode accepted for this binding.
+    AccessMode CacheAccessMode `json:"accessMode,omitempty"`
+
+    Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+```
+
+```yaml
+apiVersion: cache.kaito.sh/v1alpha1
+kind: CacheClaim
+metadata:
+  name: llama-model-cache
+  namespace: team-a
+spec:
+  cacheClassName: dacs
+  cacheName: shared-dacs
+  concern: ModelWeights
+  accessMode: Shared
+  mode: Opportunistic
+  parameters:
+    protocol: runai-streamer
+  nodeSelector:
+    accelerator: nvidia
+status:
+  phase: Bound
+  cacheName: shared-dacs
+```
+
+For an Exclusive claim, omit `cacheName` to have the provider create its deterministic vendor Cache CR and trigger dedicated infrastructure provisioning:
+
+```yaml
+apiVersion: cache.kaito.sh/v1alpha1
+kind: CacheClaim
+metadata:
+  name: dedicated-model-cache
+  namespace: team-a
+spec:
+  cacheClassName: dacs
+  concern: ModelWeights
+  accessMode: Exclusive
+  mode: Required
+  nodeSelector:
+    accelerator: nvidia
+```
+
+For a Shared claim, omitting `cacheName` does not always create a private CR. Automatic discovery is scoped to the selected provider and CacheClaim namespace. If that scope contains exactly one vendor Cache CR annotated `cache.kaito.sh/access-mode: Shared`, the provider binds that cache. If none exists, it creates the claim's deterministic CR. If multiple Shared caches exist, the claim fails with `AmbiguousSharedCache` and the user must set `cacheName`.
+
+The Cache Controller validates that the requested concern, access mode, and mode are supported by the CacheClass before invoking the provider. A missing CacheClass leaves the claim unprocessed with an explanatory condition.
+
+**Binding and reclaim rules:**
+
+- The provider serializes CacheClaim reconciliation within each namespace. The first claim successfully bound to a vendor Cache CR establishes its access mode.
+- When the first claim creates or adopts a vendor Cache CR, the provider writes `cache.kaito.sh/access-mode: Shared|Exclusive` on that CR. Later claims validate this annotation before binding.
+- The intended invariant is one automatically discoverable Shared vendor Cache CR per provider per namespace. `AmbiguousSharedCache` guards externally introduced or explicitly named configurations that violate this invariant; it is not the normal omitted-name path.
+- Additional Shared claims may bind when the cache is already Shared.
+- An Exclusive claim fails with an `AccessModeConflict` condition when any claim is already bound to that cache.
+- A Shared claim fails with an `AccessModeConflict` condition when an Exclusive claim is already bound to that cache.
+- When `spec.cacheName` is omitted, the provider first checks for the deterministic name `kaito-<CacheClaim UID>` so retries reuse a previously created CR.
+- Otherwise, a Shared claim reuses the selected provider's only Shared vendor Cache CR in the namespace, creates its deterministic CR when none exists, or fails with `AmbiguousSharedCache` when multiple candidates exist.
+- When `spec.cacheName` is omitted on an Exclusive claim, the provider always uses `kaito-<CacheClaim UID>`.
+- Deterministic get-or-create ensures a retry resolves the same vendor CR even if the prior status update failed.
+- Deleting a CacheClaim releases its binding but does not delete the vendor Cache CR, including CRs created by KAITO. The CR and its cache components are retained until the tenant namespace is deleted.
+
+#### Workspace / InferenceSet Claim References
+
+Workspace and InferenceSet reference existing CacheClaims in their namespace. Separate fields make the two concerns unique by construction.
+
+```go
+type CacheClaimReferences struct {
+    // +optional
+    ModelWeights *corev1.LocalObjectReference `json:"modelWeights,omitempty"`
+
+    // +optional
+    KVCache *corev1.LocalObjectReference `json:"kvCache,omitempty"`
+}
+
 type Workspace struct {
     // ...existing fields...
-    Resource  ResourceSpec   `json:"resource"`
-    Inference *InferenceSpec `json:"inference,omitempty"`
-    Tuning    *TuningSpec    `json:"tuning,omitempty"`
 
-    // Cache configures distributed caching for this workspace's workloads.
-    // Applies to both inference and tuning when specified.
+    // CacheClaims references model-weight and KV CacheClaims in this namespace.
     // +optional
-    Cache *CacheSpec `json:"cache,omitempty"`
+    CacheClaims *CacheClaimReferences `json:"cacheClaims,omitempty"`
 }
-```
 
-The `InferenceSetTemplate` struct also gains a `Cache` field for propagation:
-
-```go
 type InferenceSetTemplate struct {
-    metav1.ObjectMeta `json:"metadata,omitempty"`
-    Resource  InferenceSetResourceSpec   `json:"resource"`
-    Inference kaitov1beta1.InferenceSpec `json:"inference"`
+    // ...existing fields...
 
-    // Cache configures distributed caching for all Workspaces created by this InferenceSet.
-    // Propagated to child Workspaces at creation time.
+    // CacheClaims is propagated to every child Workspace.
     // +optional
-    Cache *kaitov1beta1.CacheSpec `json:"cache,omitempty"`
+    CacheClaims *kaitov1beta1.CacheClaimReferences `json:"cacheClaims,omitempty"`
 }
 ```
 
-The `MultiRoleInferenceSpec` struct also gains a `Cache` field (deferred to beta, see [Cache Scope](#cache-scope)):
+For example, one InferenceSet declaration attaches every Workspace replica to the same claims:
+
+```yaml
+apiVersion: kaito.sh/v1alpha1
+kind: InferenceSet
+metadata:
+  name: llama
+  namespace: team-a
+spec:
+  replicas: 3
+  template:
+    cacheClaims:
+      modelWeights:
+        name: llama-model-cache
+      kvCache:
+        name: llama-kv-cache
+    inference:
+      preset:
+        name: llama-3.3-70b-instruct
+    resource:
+      instanceType: Standard_ND96isr_H100_v5
+```
+
+The InferenceSet controller copies `template.cacheClaims` to every child Workspace. The Workspace controller verifies that each referenced claim is in `Bound` phase and that its `spec.concern` matches the corresponding field. A `Required` claim blocks workload creation until bound and ready; an `Opportunistic` claim allows the workload to proceed without cache mutations.
+
+#### MultiRoleInference Claim References
+
+`MultiRoleInferenceSpec` gains the same claim references. Its controller copies them to both the prefill and decode InferenceSet templates so all role Workspaces resolve the same model-weight and KV claims.
 
 ```go
 type MultiRoleInferenceSpec struct {
-    // ...existing fields (Model, Roles, LabelSelector)...
+    // ...existing fields...
 
-    // Cache configures distributed caching for all roles in this MultiRoleInference.
-    // The controller propagates kvCache config to both prefill and decode role
-    // InferenceSets, ensuring they connect to the same KV cache backend.
+    // CacheClaims is propagated to the prefill and decode InferenceSets.
     // +optional
-    Cache *kaitov1beta1.CacheSpec `json:"cache,omitempty"`
+    CacheClaims *kaitov1beta1.CacheClaimReferences `json:"cacheClaims,omitempty"`
 }
 ```
+
+The KV claim must be shared by both roles because it is the transfer layer between prefill and decode. The model-weight claim is also propagated to both roles so their managed ModelMirrors warm and serve the same model through the selected cache binding.
+
+#### ModelMirror Claim Reference
+
+A managed ModelMirror may reference one model-weight CacheClaim in its namespace. The reference causes the provider to create or attach the claim's cache infrastructure and inject the write-path configuration into the download Job, warming that cache with the ModelMirror's model.
+
+```go
+type ModelMirrorSpec struct {
+    // ...existing fields...
+
+    // CacheClaim references a ModelWeights CacheClaim in this namespace.
+    // Supported only for Managed ModelMirrors.
+    // +optional
+    CacheClaim *corev1.LocalObjectReference `json:"cacheClaim,omitempty"`
+}
+```
+
+```yaml
+apiVersion: kaito.sh/v1alpha1
+kind: ModelMirror
+metadata:
+  name: llama-model
+  namespace: team-a
+spec:
+  mode: Managed
+  source:
+    registry: huggingface
+    modelID: meta-llama/Llama-3.3-70B-Instruct
+  storage:
+    size: 150Gi
+  cacheClaim:
+    name: llama-model-cache
+```
+
+The ModelMirror controller resolves the reference in the ModelMirror namespace and requires the claim's concern to be `ModelWeights`. `cacheClaim` is invalid for a Static ModelMirror because no download occurs. In Required mode, the controller waits for the claim to bind before starting the download. In Opportunistic mode, it may download directly when the claim is unavailable. When a Workspace controller creates a managed ModelMirror, it propagates `workspace.spec.cacheClaims.modelWeights` to `ModelMirror.spec.cacheClaim`.
 
 #### Cache Provider Interface
 
 ```go
-// CacheConcern identifies which cache concern a provider is being asked about.
-type CacheConcern string
-
 const (
     CacheConcernModelWeights CacheConcern = "ModelWeights"
     CacheConcernKVCache      CacheConcern = "KVCache"
 )
 
+type CacheBinding struct {
+    CacheName string
+}
+
+type ModelMirrorMutations struct {
+    StorageClassName *string
+    PodMutations     PodMutations
+}
+
 // Provider defines the interface that cache implementations must satisfy.
 type Provider interface {
-    // Name returns the provider identifier (e.g., "fluid", "nvme-cache").
+    // Name returns the CacheClass provider identifier (e.g., "dacs").
     Name() string
 
     // IsAvailable reports whether the cache infrastructure is installed
     // and the provider can operate (e.g., CRD exists, operator running).
     IsAvailable(ctx context.Context) (bool, error)
 
-    // IsReady reports whether the cache is warmed and ready to serve.
+    // EnsureCache attaches to the named vendor Cache CR or creates one in the
+    // CacheClaim namespace.
+    EnsureCache(ctx context.Context, class *cachev1alpha1.CacheClass, claim *cachev1alpha1.CacheClaim) (*CacheBinding, error)
+
+    // IsReady reports whether the bound cache infrastructure is ready.
     // Returns (ready, reason, error).
-    IsReady(ctx context.Context) (bool, string, error)
+    IsReady(ctx context.Context, claim *cachev1alpha1.CacheClaim) (bool, string, error)
 
-    // PodMutations returns the pod-level changes needed for a specific cache
-    // concern (ModelWeights or KVCache).
-    PodMutations(ctx context.Context, concern CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision string) (*PodMutations, error)
+    // PodMutations returns the pod-level changes needed for a bound claim.
+    PodMutations(ctx context.Context, claim *cachev1alpha1.CacheClaim, workspace *kaitov1beta1.Workspace, modelName, modelRevision string) (*PodMutations, error)
 
-    // Cleanup invalidates cached data for the specified model.
-    Cleanup(ctx context.Context, workspace *kaitov1beta1.Workspace, modelName string) error
+    // ModelMirrorMutations returns the storage and download-pod changes needed
+    // to warm a bound model-weight claim.
+    ModelMirrorMutations(ctx context.Context, claim *cachev1alpha1.CacheClaim, mirror *kaitov1alpha1.ModelMirror) (*ModelMirrorMutations, error)
+
+    // Release removes provider-side state for a deleted binding. It does not
+    // delete the vendor Cache CR.
+    Release(ctx context.Context, claim *cachev1alpha1.CacheClaim) error
 }
 ```
 
-**Note on provider lifecycle vs pod-mutation:** The `Provider` interface above covers the **pod-facing contract** — what changes to inject into model pods. Providers also have a **lifecycle/reconciliation responsibility**: creating and managing backend-specific resources (Cache CRs, ConfigMaps, discovery Services) that the pod-level mutations depend on. This lifecycle is driven by the Cache Controller (Phase 2) and is internal to each provider implementation, not expressed in this interface. See [Phase 2: Cache Controller](#phase-2-cache-controller) for details on resource ownership.
-```
+**Note on provider lifecycle vs pod-mutation:** Provider implementations are compiled into KAITO. `EnsureCache` creates or resolves the vendor Cache CR, while the independently installed vendor operator owns the resulting cache components. After the Cache Controller records the CR binding in CacheClaim status, `PodMutations` provides the serving-pod integration and `ModelMirrorMutations` provides the warming-path integration. See [Phase 2: Cache Controller](#phase-2-cache-controller) for resource ownership.
 
 #### PodMutations
 
-The Workspace controller calls `provider.PodMutations()` after resolving the effective cache config from the Workspace's `Cache` fields (see [Phase 3: Workspace Integration](#phase-3-workspace-integration) for the resolution flow). The returned `PodMutations` are merged into the model pod spec.
+The Workspace controller calls `provider.PodMutations()` after resolving a bound CacheClaim and its CacheClass. The returned `PodMutations` are merged into the model pod spec.
 
 ```go
 // PodMutations describes all pod-level changes needed to enable cache access.
@@ -482,133 +650,98 @@ type PodMutations struct {
     InitContainers []corev1.Container
 }
 ```
-```
 
 ### Implementation Details/Notes/Constraints
 
 #### Installation Model
 
-Cache providers are installed as **conditional Helm subchart dependencies** within KAITO's workspace chart. This follows the same pattern used for existing optional components (Flux2, gpu-feature-discovery, local-csi-driver).
+The integration has two distinct layers:
 
-Each cache provider contributes:
-1. **A Helm subchart** — listed in `Chart.yaml` with a `condition` field gating installation
-2. **CRDs** — installed via the subchart's `crds/` directory for reliable ordering (CRDs install before templates)
-3. **Operator deployment** — the provider's controller/operator deployed into a dedicated namespace
-4. **Provider-specific values** — exposed under a provider key in `values.yaml`
+1. **KAITO provider adapter** — ships as part of KAITO and is registered in the in-process provider registry. It understands the vendor CR schema, creates or reads vendor Cache CRs, and generates pod mutations.
+2. **Vendor cache control plane** — the vendor's CRD and operator are installed independently of KAITO. The operator watches namespaced Cache CRs and provisions the cache infrastructure components for each CR.
 
-Example `Chart.yaml` dependency entry for a cache provider:
-```yaml
-dependencies:
-  # ...existing dependencies...
-  - name: my-cache-provider
-    version: "1.x.x"
-    repository: "oci://registry.example.com/charts"
-    condition: cache.providers.myCacheProvider.enabled
-```
+For example, DACS installs its Cache CRD and operator independently. Creating a DACS Cache CR in a namespace causes the DACS operator to provision the cache components for that namespace; KAITO does not deploy those components directly.
 
-Example `values.yaml` structure:
-```yaml
-cache:
-  enabled: false
-  providers:
-    myCacheProvider:
-      enabled: false
-      namespace: "cache-system"
-      # Provider-specific infrastructure configuration
-      nodeSelector:
-        key: "node-type"
-        value: "gpu-nvme"
-      serverSizeInGB: 800
-      scaling:
-        minServers: 1
-        maxServers: 32
-```
+The attachment flow is:
 
-This model ensures:
-- **Single `helm install`** — users get KAITO + cache infrastructure in one deployment
-- **CRD ordering** — provider CRDs are available before KAITO's controllers attempt to use them
-- **Conditional install** — cache providers are only deployed when explicitly enabled
-- **Version pinning** — chart version in `Chart.yaml` pins the compatible provider version
-- **Independence** — providers can also be installed standalone (e.g., for pre-existing clusters) and KAITO will discover them at runtime via `IsAvailable()`
+- **Existing cache in the claim namespace**: `CacheClaim.spec.cacheName` names an existing vendor Cache CR. The in-repo provider reads and validates that CR and its `cache.kaito.sh/access-mode` annotation, then records its name in `CacheClaim.status.cacheName`.
+- **No cache name on a Shared claim**: The provider first reuses its deterministic CR when present. Otherwise, it binds the sole Shared vendor Cache CR for the selected provider in the namespace, creates `kaito-<CacheClaim UID>` when none exists, or reports `AmbiguousSharedCache` when multiple candidates require explicit selection.
+- **No cache name on an Exclusive claim**: The provider uses `kaito-<CacheClaim UID>` to get or create a dedicated vendor Cache CR.
 
-For clusters where the cache backend is already deployed externally (not via KAITO's Helm chart), KAITO's Cache Controller discovers it at runtime through the provider's `IsAvailable()` check and reconciles provider-specific resources from configuration. The subchart dependency is not required in this case — only the feature gate and provider configuration need to be set.
+When creating the CR, the provider applies the merged provider, CacheClass, and CacheClaim configuration and annotates its access mode. The vendor operator then provisions the namespace's cache components, and KAITO records the resolved CR name in claim status.
+
+KAITO installation creates its CacheClass defaults, including the DACS model-weight CacheClass. The matching vendor CRD and operator must already be installed before claims using that class can bind. `Provider.IsAvailable()` verifies those prerequisites and reports an unbound claim condition when they are missing.
 
 #### Phase 1: Foundation
 
 - Add `FeatureFlagDistributedCache` constant (`pkg/utils/consts/consts.go`) and register it in `pkg/featuregates/featuregates.go` (default: `false`).
 - Create `pkg/cache/` package with provider interface, `PodMutations` type, and provider registry.
-- Implement no-op provider (`pkg/cache/noop/`) for testing and disabled mode.
-- Add `cache` configuration section to `values.yaml`:
-  ```yaml
-  cache:
-    enabled: false
-    providers:
-      myProvider:
-        enabled: false
-        namespace: ""          # namespace where backend is deployed
-        nodeSelector: {}       # label selector for cache-eligible nodes
-        # Provider-specific settings here
-  ```
-- Add startup provider discovery check (validate configured providers are registered and available).
+- Implement supported provider adapters, including DACS, in `pkg/cache/`; providers are compiled into KAITO rather than installed as runtime plugins.
+- Add the cluster-scoped CacheClass and namespaced CacheClaim APIs under `cache.kaito.sh/v1alpha1`, including CacheClaim status and conditions.
+- Implement no-op provider (`pkg/cache/noop/`) for testing.
+- Install a default DACS CacheClass for model weights with the KAITO chart.
+- Add startup validation for duplicate provider registrations.
 
 #### Phase 2: Cache Controller
 
 Create `pkg/cache/controller.go` with the Cache Controller:
 
-- **Provider Discovery**: At startup, resolve the configured provider via the registry. If unavailable, enter degraded state (log warning, emit event) without crashing.
-- **Node Watching**: Watch eligible nodes (Ready, schedulable, matching configured label selector) to inform providers about cache topology.
-- **Provider Lifecycle**: Once `IsAvailable()` confirms the backend is installed, reconcile provider-specific resources from Helm values configuration (e.g., Cache CRs, ConfigMaps, discovery Services). Providers manage their own backend-specific resources internally; the Cache Controller drives the lifecycle. This provisioning step is where providers create the resources that `PodMutations` later references — for example, a ConfigMap containing KV connector configuration that is then mounted into model pods via `PodMutations.Volumes`.
-- **Readiness Monitoring**: Periodically call `provider.IsReady()` and expose a `CacheReady` condition. Workspace controllers query this before injecting PodMutations in Required mode.
+- **Provider Discovery**: Resolve `CacheClaim.spec.cacheClassName` to `CacheClass.spec.provider`, then select the compiled-in provider from the registry. If the class or provider is unavailable, leave the claim unbound and set a clear condition without crashing.
+- **Claim Validation**: Validate the requested concern, access mode, and mode against the CacheClass. Merge parameters in this order: CacheClaim overrides, CacheClass defaults, provider defaults.
+- **Node Watching**: Watch eligible nodes (Ready, schedulable, matching the claim's node selector) to inform providers about cache topology.
+- **Provider Lifecycle**: Serialize CacheClaim reconciliation within the namespace, then call `EnsureCache()`. An explicit `spec.cacheName` selects that vendor Cache CR. Without a name, a Shared claim reuses its deterministic CR, the selected provider's sole CR annotated Shared in that namespace, or creates its deterministic CR when none exists; multiple Shared candidates produce `AmbiguousSharedCache`. An Exclusive claim always uses its deterministic CR. The first successful binding records `cache.kaito.sh/access-mode` on the vendor CR, and incompatible later claims fail with `AccessModeConflict`.
+- **Claim Status**: Record `Pending`, `Bound`, or `Failed`, the resolved cache name, accepted access mode, and detailed conditions in `CacheClaim.status`.
+- **Readiness Monitoring**: Periodically call `provider.IsReady()` for bound claims and expose infrastructure readiness in claim conditions. Workspace and ModelMirror controllers query this before applying provider mutations.
 - **RBAC**: Extend KAITO's ClusterRole with rules for provider-specific Cache CRs (get/list/watch/create/update), core API (nodes for topology, events for status). Provider-specific resource types are configurable per provider.
 
 Register the controller in `cmd/workspace/main.go` behind the feature gate.
 
 #### Phase 3: Workspace Integration
 
-- Add `Cache *CacheSpec` to the `Workspace` struct in `api/v1beta1/workspace_types.go`.
-- Add `Cache *CacheSpec` to `InferenceSetTemplate` in `api/v1alpha1/inferenceset_types.go`.
-- Modify InferenceSet controller to propagate `Cache` to child Workspaces (at `inferenceset_controller.go:311+`):
-  - At Workspace creation time, copy `template.cache` into `workspaceObj.Cache`.
-  - The child Workspace carries the full cache config and is **self-contained** — it does not depend on the parent InferenceSet at runtime for cache resolution.
+- Add `CacheClaims *CacheClaimReferences` to the `Workspace` struct in `api/v1beta1/workspace_types.go`.
+- Add `CacheClaims *CacheClaimReferences` to `InferenceSetTemplate` in `api/v1alpha1/inferenceset_types.go`.
+- Add `CacheClaims *CacheClaimReferences` to `MultiRoleInferenceSpec` in `api/v1alpha1/multiroleinference_types.go`.
+- Modify the MultiRoleInference controller to propagate `cacheClaims` to both the prefill and decode InferenceSet templates.
+- Modify the InferenceSet controller to propagate `template.cacheClaims` to every child Workspace (at `inferenceset_controller.go:311+`).
+- When creating a managed ModelMirror, propagate the Workspace's `modelWeights` claim to `ModelMirror.spec.cacheClaim`.
 - Cache resolution rules (applied by the Workspace controller):
-  1. If `workspace.Cache` has `ModelCache`/`KVCache` fields → use them.
-  2. If no `Cache` on the Workspace and no parent InferenceSet → caching disabled (no-op).
+  1. Resolve each reference to a CacheClaim in the Workspace namespace.
+  2. Verify the claim is `Bound` and its concern matches the reference field.
+  3. Resolve the provider through the claim's CacheClass.
+  4. If a reference is absent, caching for that concern is disabled (no-op).
 - Modify workspace controller reconciliation to process each concern independently:
-  - For `modelCache` (if configured):
-    - Resolve provider via registry (`cache.Get(workspace.Cache.ModelCache.Provider)`)
-    - Check `IsAvailable()` and `IsReady()`
-    - Apply mode: `Required` blocks, `Opportunistic` proceeds, `Disabled` skips
-    - Call `PodMutations()` and collect results
-  - For `kvCache` (if configured):
-    - Resolve provider via registry (`cache.Get(workspace.Cache.KVCache.Provider)`)
-    - Check `IsAvailable()` and `IsReady()`
-    - Apply mode independently from model weights
-    - Call `PodMutations()` and collect results
+  - For `modelWeights`, resolve the referenced claim, apply its Required or Opportunistic mode, and collect `PodMutations()`.
+  - For `kvCache`, independently resolve the referenced claim, apply its mode, and collect `PodMutations()`.
   - Merge all PodMutations (deduplicate env vars if same provider used for both)
   - Inject merged mutations into model pod specs
 - Add validation webhook rules:
-  - Each sub-config's `mode` must be a valid enum value
-  - Each sub-config's `provider` must be a registered provider
+  - Each claim reference must use the matching concern.
+  - The same claim cannot be used for incompatible concerns.
 - Add conditions to `WorkspaceStatus`: `ModelCacheReady`, `KVCacheReady`.
 
 #### Phase 4: ModelMirror Integration (Cache Warming)
 
-Cache warming is a side-effect of ModelMirror's model download, not a separate lifecycle phase. When a cache provider is installed, downloads write through to both persistent storage and the distributed cache simultaneously.
+Cache warming is a side-effect of a managed ModelMirror's model download, not a separate lifecycle phase. `ModelMirror.spec.cacheClaim` explicitly selects the model-weight claim to create or attach and warm. The ModelMirror controller resolves the bound claim and calls `provider.ModelMirrorMutations()` before creating the PVC and download Job.
+
+- Validate that the claim exists in the ModelMirror namespace, has concern `ModelWeights`, and is backed by an available CacheClass.
+- Reject `cacheClaim` on Static ModelMirrors.
+- Surface binding and warming progress through ModelMirror conditions, including provider errors. Set `CacheWarm=True` only after the provider-mutated download completes successfully.
+- If provider-selected storage conflicts with an explicitly configured `spec.storage.storageClassName`, report the conflict instead of silently overriding either value.
 
 **CSI Driver Path (preferred):**
 
-The cache provider exposes a CSI driver and registers a StorageClass. The workspace controller sets this StorageClass on the ModelMirror CR via `spec.storage.storageClassName`. All writes to the PVC flow through the CSI driver, which populates the distributed cache transparently.
+The cache provider exposes a CSI driver and registers a StorageClass. `ModelMirrorMutations.StorageClassName` selects that class for the ModelMirror PVC. All writes to the PVC flow through the CSI driver, which populates the distributed cache transparently.
 
 **Webhook Path (alternative):**
 
-For providers without a CSI driver, a mutating admission webhook intercepts ModelMirror download pods. The webhook matches pods using existing ModelMirror labels (e.g., `objectSelector` matching `kaito.sh/model-mirror` labels set by the ModelMirror controller). When matched, the webhook injects the cache interception layer (env vars, volumes, init containers) into the download pod. No changes to the ModelMirror API are required — the webhook targets labels the controller already sets.
+For providers without a CSI driver, `ModelMirrorMutations.PodMutations` adds the provider's labels, environment variables, volumes, or init containers to the download Job. A provider webhook may use those labels to inject its cache interception layer.
 
 **Mode interaction:**
 
-- `Required`: Workspace controller gates inference pod creation on both ModelMirror reaching `Ready` AND `provider.IsReady()` confirming cache is warm.
-- `Opportunistic`: Workspace controller gates only on ModelMirror `Ready`. If the cache is not yet warm, inference proceeds — the model streamer falls back to persistent storage and the cache warms lazily on first read.
+- `Required`: The ModelMirror controller waits for the claim to bind and become ready before starting the download. The Workspace controller gates inference pod creation on both ModelMirror reaching `Ready` and its `CacheWarm=True` condition.
+- `Opportunistic`: If the claim is unavailable, ModelMirror downloads to persistent storage without cache mutations. Inference may proceed when ModelMirror is `Ready`, and the cache can warm lazily on first read.
 
-**Cleanup:** On Workspace deletion with `cleanupOnDelete: true`, a finalizer calls `provider.Cleanup()` to invalidate cached model data. Cleanup is bounded by a timeout to prevent blocking deletion indefinitely.
+**Reclaim:** CacheClaim deletion releases its logical binding but never deletes the vendor Cache CR. This applies to both pre-existing CRs and CRs created by KAITO. The namespaced CR and its cache components are retained for reuse and are deleted with the tenant namespace.
 
 #### Phase 5: Observability
 
@@ -692,7 +825,7 @@ The in-pod consumer of cached model weights is the **[run:ai model streamer](htt
 │                ├─ HIT ──► Distributed Cache                      │
 │                └─ MISS ──► Blob Storage (transparent fallback)   │
 │                                                                  │
-│  Cache disabled (no provider / mode: Disabled):                  │
+│  Cache disabled (no CacheClaim reference):                       │
 │       └──► Blob Storage directly (existing behavior)             │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -737,11 +870,11 @@ KAITO's existing KV optimization uses [LMCache](https://docs.lmcache.ai/) for **
 
 **Provider-injected configuration** (via `PodMutations` volumes):
 
-The provider creates a runtime ConfigMap by merging admin defaults (from Helm values) with user-provided settings (from `KVCacheSpec.Config` ConfigMap, if specified). The result is mounted into the model pod:
+The provider creates a runtime ConfigMap by merging provider defaults, CacheClass parameters, and CacheClaim overrides. The result is mounted into the model pod:
 
 ```yaml
 # ConfigMap: kv-cache-config (created by provider during lifecycle reconciliation)
-# Merges Helm defaults + user's Config ConfigMap
+# Merges provider defaults + CacheClass defaults + CacheClaim overrides
 data:
   lmcache_config.yaml: |
     storage_backend: "remote"
@@ -773,14 +906,16 @@ This allows providers to deliver connector configs, endpoint discovery, TLS cert
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Cache provider not installed when feature gate enabled | Controller cannot verify cache readiness | Provider discovery check at startup + graceful degradation to `Unavailable` state; clear error events |
+| CacheClass or its provider is unavailable | CacheClaim cannot bind | Leave the claim unbound and report a clear condition; `Opportunistic` workloads may proceed without cache mutations |
+| Vendor CRD or operator is unavailable | KAITO cannot create or observe the namespaced vendor Cache CR | `Provider.IsAvailable()` checks vendor prerequisites and reports a claim condition without attempting fallback infrastructure |
+| Concurrent Shared and Exclusive claims target one cache | Access-mode policy becomes nondeterministic | Provider serializes reconciliation within the namespace; first successful binding wins and incompatible claims fail with `AccessModeConflict` |
 | Cache unavailable in `Required` mode blocks workspace indefinitely | Model deployment stuck | Configurable timeout with clear condition messaging; recommend `Opportunistic` mode for non-critical workloads |
 | Provider-specific client library not in model image | Cache configured but model cannot use it | Document image requirements per provider; emit warning event if cache is enabled but provider reports incompatibility |
 | Cache-eligible nodes not labelled correctly | Cache pods cannot schedule | Cache Controller's Node Watching labels eligible nodes automatically; emit event listing expected vs. found labels |
 | Provider resource drift (manual edits to managed resources) | Cache Controller overwrites manual changes on next reconcile | Document which resources are managed; support annotation to opt out of reconciliation |
 | Provider API incompatibility after upgrade | PodMutations generation fails | Pin provider versions in config; use unstructured client for CRD-based providers for forward compatibility |
 | Cache rebalancing causes transient misses during scale events | Elevated latency during topology changes | Transparent to initial integration; future: surface `DegradedWarmup` status via provider |
-| ModelMirror labels change in future releases | Webhook stops matching download pods | Pin expected labels in provider config; emit warning event if webhook receives no matching pods within expected timeframe |
+| ModelMirror cache mutation conflicts with explicit storage configuration | Download cannot safely use both paths | Report a ModelMirror condition and require the user to select one compatible storage path |
 
 ## Alternatives
 
@@ -807,18 +942,18 @@ Inject a sidecar container running the cache client instead of relying on in-pro
 
 ### Option 4 (Chosen): Provider Interface + External Operator
 
-KAITO defines a provider interface; concrete providers manage their own backend-specific resources. KAITO injects client configuration into pods via `PodMutations`.
+KAITO defines a provider interface with vendor adapters compiled into the repository. An adapter creates or resolves the vendor's namespaced Cache CR and injects client configuration through `PodMutations`; the external vendor operator reconciles that CR into cache infrastructure.
 
-**Pros:** Clear separation of concerns; minimal code in KAITO; each provider leverages its battle-tested operator; automatic benefit from upstream improvements; extensible to new backends.
-**Cons:** Runtime dependency on external operator; cross-namespace coordination; requires provider discovery logic.
+**Pros:** Clear separation of concerns; KAITO owns attachment semantics while each vendor operator owns its infrastructure; automatic benefit from vendor improvements; extensible through additional in-repo adapters.
+**Cons:** Runtime dependency on the vendor CRD and operator; each supported vendor requires a KAITO adapter and compatible RBAC.
 
 ## Upgrade Strategy
 
-- **New installations**: Enable via `cache.enabled=true` in Helm values. Feature gate `FeatureFlagDistributedCache` must also be set to `true`. Add `cache` config to InferenceSet or Workspace specs to enable caching for workloads.
-- **Existing installations**: No breaking changes. `Cache` field on Workspace and InferenceSetTemplate is optional; existing workspaces without it behave identically to today.
-- **Provider upgrades**: Each provider manages its own versioning. KAITO pins compatible provider versions in documentation and validates at startup.
+- **New installations**: Install the vendor CRD and operator independently, enable `FeatureFlagDistributedCache`, and install KAITO's default CacheClasses. Create CacheClaims and reference them from InferenceSet, Workspace, or managed ModelMirror specs.
+- **Existing installations**: No breaking changes. CacheClaim references on Workspace, InferenceSetTemplate, and ModelMirror are optional; existing resources without references behave identically to today.
+- **Provider upgrades**: KAITO provider adapters version with KAITO. Vendor CRDs and operators version independently; KAITO documents compatible versions and validates availability at runtime.
 - **Feature gate promotion**: Once stable, promote `FeatureFlagDistributedCache` to default-on (beta), then remove the gate (GA).
-- **Provider interface stability**: The `Provider` interface is internal to KAITO initially. Once external providers are supported, version the interface with a compatibility guarantee.
+- **Provider interface stability**: The `Provider` interface remains internal to KAITO; new vendors are added as in-repo adapters.
 
 ## Additional Details
 
@@ -826,10 +961,17 @@ KAITO defines a provider interface; concrete providers manage their own backend-
 
 | Category | Scope | Approach |
 |----------|-------|----------|
-| Unit tests | Provider interface, CacheSpec validation, PodMutations generation | Standard Go table-driven tests with mock provider |
-| Unit tests | Cache controller reconciliation logic | envtest with mock provider |
-| Integration tests | End-to-end cache lifecycle (create workspace → cache ready → pods injected) | envtest with fake provider CRD; verify PodMutations applied |
-| Integration tests | Graceful degradation (provider absent, cache not ready) | envtest without provider; verify workspace proceeds in Opportunistic mode |
+| Unit tests | Provider interface, CacheClass/CacheClaim validation, parameter merging, PodMutations generation | Standard Go table-driven tests with mock provider |
+| Unit tests | CacheClaim reconciliation and status transitions | envtest with mock provider |
+| Unit tests | First-come access-mode arbitration | Reconcile concurrent Shared/Exclusive combinations in one namespace; verify only compatible claims reach `Bound` |
+| Unit tests | Shared cache discovery | Verify omitted `cacheName` behavior for zero, one, and multiple annotated Shared CRs, including deterministic retry preference |
+| Unit tests | MultiRoleInference → InferenceSet → Workspace → ModelMirror claim propagation | Table-driven controller tests covering absent, model-weight-only, KV-only, and dual-concern references |
+| Integration tests | Existing and new namespace cache attachment | envtest with a fake vendor CRD; verify attachment to a named CR and creation of a CR in the CacheClaim namespace |
+| Integration tests | Deterministic create retry and reclaim | Fail the first status write; verify retry reuses `kaito-<CacheClaim UID>`, and claim deletion retains the vendor CR |
+| Integration tests | Multi-tenant namespace isolation | Create identical claim and vendor CR names in two namespaces; verify each workload resolves only its namespace's binding |
+| Integration tests | End-to-end cache lifecycle (create class and claim → claim bound → workspace pods injected) | envtest with fake provider CRD; verify status and PodMutations |
+| Integration tests | ModelMirror create/attach and warming | envtest with a fake provider; verify claim resolution, storage/download mutations, and conditions |
+| Integration tests | Graceful degradation (class/provider absent, claim not ready) | envtest without provider; verify workspace proceeds in Opportunistic mode |
 | E2E tests | Full stack with a real cache backend | Cluster with NVMe SKU; deploy cache provider + KAITO; verify model loads from cache |
 | E2E tests | Mode behavior (Required blocks, Opportunistic proceeds) | Same cluster; test both modes with cache available/unavailable |
 

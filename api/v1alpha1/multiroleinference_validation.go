@@ -24,8 +24,8 @@ import (
 	"knative.dev/pkg/apis"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
 
 func (m *MultiRoleInference) SupportedVerbs() []admissionregistrationv1.OperationType {
@@ -201,22 +201,39 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 // Workspace. Gating at MRI admission avoids surfacing a valid MRI whose
 // generated workspaces would silently drop speculative decoding.
 func (m *MultiRoleInference) validateSpeculativeDecoding() (errs *apis.FieldError) {
+	val, present := m.GetAnnotations()[AnnotationEnableSpeculativeDecoding]
+	if !present {
+		return nil
+	}
+	if val == "false" {
+		return nil
+	}
+	if val != "true" {
+		return errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, val),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
+
 	// Preset must be set (MRI's shared model).
 	presetName := m.Spec.Model.Name
-	runtime := EffectiveInferenceRuntime(m.Annotations)
+	if presetName == "" {
+		return errs.Also(apis.ErrGeneric(
+			"kaito.sh/enable-speculative-decoding requires spec.model.name",
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
 
-	errs = speculativedecoding.ValidateOptIn(m.GetAnnotations(), speculativedecoding.ValidationOptions{
-		AnnotationKey:        AnnotationEnableSpeculativeDecoding,
-		AnnotationPath:       fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		PresetName:           presetName,
-		MissingPresetMessage: "kaito.sh/enable-speculative-decoding requires spec.model.name",
-		Runtime:              runtime,
-		RuntimeMismatchMessage: fmt.Sprintf(
-			"kaito.sh/enable-speculative-decoding requires the vLLM runtime; "+
-				"effective runtime resolves to %q (preset %q)",
-			runtime, presetName,
-		),
-	})
+	runtime := EffectiveInferenceRuntime(m.Annotations)
+	if runtime != model.RuntimeNameVLLM {
+		return errs.Also(apis.ErrGeneric(
+			fmt.Sprintf(
+				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; effective runtime resolves to %q (preset %q)",
+				runtime, presetName,
+			),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	}
 
 	// Any preset is accepted: presets registered in generator.speculativeDecodingByPreset
 	// get their preset-tuned config (e.g. mtp for DeepSeek R1/V3/V3.2); everything else

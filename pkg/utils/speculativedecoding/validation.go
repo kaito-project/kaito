@@ -13,49 +13,19 @@
 
 package speculativedecoding
 
-import (
-	"fmt"
-
-	"knative.dev/pkg/apis"
-
-	"github.com/kaito-project/kaito/pkg/model"
-)
-
-// ValidationOptions captures the resource-specific fields needed to validate
-// kaito.sh/enable-speculative-decoding while sharing the annotation/preset/
-// runtime policy across API versions and resource kinds.
-type ValidationOptions struct {
-	AnnotationKey          string
-	AnnotationPath         string
-	PresetName             string
-	MissingPresetMessage   string
-	Runtime                model.RuntimeName
-	RuntimeMismatchMessage string
-}
-
-// ValidateOptIn validates the common admission policy for the speculative
-// decoding annotation. Callers remain responsible for extracting the
-// resource-specific preset name, effective runtime, and field-path messages.
-func ValidateOptIn(annotations map[string]string, opts ValidationOptions) *apis.FieldError {
-	val, present := annotations[opts.AnnotationKey]
+// ValidateOptIn validates only the boolean annotation shape. It returns
+// enabled=true when the annotation is explicitly set to "true". For absent
+// or explicit "false", it returns enabled=false with no invalid value. When
+// the annotation is present but not a valid boolean opt-in, invalidValue is
+// set to the raw value so the caller can build the resource-specific field
+// error and path.
+func ValidateOptIn(annotations map[string]string, annotationKey string) (enabled bool, invalidValue string) {
+	val, present := annotations[annotationKey]
 	if !present || val == "false" {
-		return nil
+		return false, ""
 	}
 	if val != "true" {
-		return apis.ErrInvalidValue(
-			fmt.Sprintf(
-				"annotation %s has invalid value %q; expected \"true\" or \"false\"",
-				opts.AnnotationKey,
-				val,
-			),
-			opts.AnnotationPath,
-		)
+		return false, val
 	}
-	if opts.PresetName == "" {
-		return apis.ErrGeneric(opts.MissingPresetMessage, opts.AnnotationPath)
-	}
-	if opts.Runtime != model.RuntimeNameVLLM {
-		return apis.ErrGeneric(opts.RuntimeMismatchMessage, opts.AnnotationPath)
-	}
-	return nil
+	return true, ""
 }

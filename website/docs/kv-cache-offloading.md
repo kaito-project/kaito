@@ -2,7 +2,10 @@
 title: KV Cache Offloading
 ---
 
-KV cache offloading extends vLLM's GPU KV cache with host memory, which can improve prefix reuse and reduce GPU KV-cache pressure for workloads with repeated prompt prefixes.. [LMCache](https://lmcache.ai/) is a KV-cache storage and transfer layer for LLM inference engines. KAITO runs an LMCache server in the inference container and connects vLLM to it through `LMCacheMPConnector`, allowing reusable KV blocks to be stored in CPU memory and loaded back into GPU memory when needed.
+KV cache offloading extends vLLM's GPU KV cache with host memory, which can improve prefix reuse and reduce GPU KV-cache pressure for workloads with repeated prompt prefixes. [LMCache](https://lmcache.ai/) is a KV-cache storage and transfer layer for LLM inference engines. KAITO runs an LMCache server as a native sidecar and connects vLLM to it through `LMCacheMPConnector`, allowing reusable KV blocks to be stored in CPU memory and loaded back into GPU memory when needed.
+
+## Prerequisites
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html)
 
 
 ## Current Limitations
@@ -97,14 +100,13 @@ kubectl get pods -l kaito.sh/workspace=<workspace-name>
 Check the logs for LMCache startup and allocation:
 
 ```bash
-kubectl logs <pod-name> | grep -E "Offload KV cache|LMCache MP server|LazyMemoryAllocator"
+kubectl logs <pod-name> -c lmcache-mp-server | grep -E "Offload KV cache|LazyMemoryAllocator"
 ```
 
 Expected output includes the initial and final L1 sizes, followed by background expansion progress:
 
 ```text
-Offload KV cache to LMCache MP server: 1.00 GB initial, 100.00 GB final
-LMCache MP server is ready on 127.0.0.1:5555
+Offload KV cache to LMCache MP server: 1.00 GB initial, 100.00 GB final (utilization=0.5, tp=2)
 LazyMemoryAllocator: Expanded ... pinned memory ... (100.0%)
 ```
 

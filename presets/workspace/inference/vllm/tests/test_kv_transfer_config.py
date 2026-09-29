@@ -17,16 +17,15 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 # Add parent directory to sys.path for inference_api imports
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, parent_dir)
 
-from inference_api import (  # noqa: E402, I001
+from vllm_kv_transfer import (  # noqa: E402, I001
+    record_lmcache_server_generation,
     set_kv_transfer_config_if_applicable,
-    start_lmcache_mp_server,
-    stop_lmcache_mp_server,
 )
 
 
@@ -74,19 +73,30 @@ class TestSetKvTransferConfig:
             set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config is None
 
-    def test_lmcache_default_when_offload_enabled_no_role(self):
-        """When CPU offload is enabled, use the local LMCache MP connector."""
+    def test_no_managed_connector_without_sidecar_mode(self):
         args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
         with patch.dict(os.environ, {}, clear=True):
             os.environ.pop("KAITO_INFERENCE_ROLE", None)
-            use_local_server = set_kv_transfer_config_if_applicable(args)
-        assert use_local_server is True
+            set_kv_transfer_config_if_applicable(args)
+        assert args.kv_transfer_config is None
+
+    def test_lmcache_sidecar_uses_isolated_ipc_without_local_server(self):
+        args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
+        with patch.dict(
+            os.environ,
+            {"KAITO_LMCACHE_DEPLOYMENT_MODE": "sidecar"},
+            clear=True,
+        ):
+            set_kv_transfer_config_if_applicable(args)
+
         assert args.kv_transfer_config == {
             "kv_connector": "LMCacheMPConnector",
+            "kv_connector_module_path": "lmcache.integration.vllm.lmcache_mp_connector",
             "kv_role": "kv_both",
             "kv_connector_extra_config": {
                 "lmcache.mp.host": "tcp://127.0.0.1",
                 "lmcache.mp.port": 5555,
+                "lmcache.mp.isolated_ipc": True,
             },
         }
 
@@ -102,72 +112,26 @@ class TestSetKvTransferConfig:
         user_config = {"kv_connector": "CustomConnector", "kv_role": "kv_both"}
         args = _make_args(kv_transfer_config=user_config)
         with patch.dict(os.environ, {"KAITO_INFERENCE_ROLE": "decode"}):
-            use_local_server = set_kv_transfer_config_if_applicable(args)
-        assert use_local_server is False
+            set_kv_transfer_config_if_applicable(args)
         assert args.kv_transfer_config == user_config
 
 
 class TestLMCacheMPServer:
-    """Tests for the local LMCache MP server lifecycle."""
-
-    def test_start_waits_for_server(self):
-        args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
-        memory = argparse.Namespace(total=100 * 1024**3, used=20 * 1024**3)
-        process = MagicMock()
-        process.poll.return_value = None
+    def test_record_sidecar_generation(self, tmp_path):
+        server_generation = tmp_path / "server-generation"
+        client_generation = tmp_path / "client-generation"
+        server_generation.write_text("generation-1")
 
         with (
-            patch("inference_api.psutil.virtual_memory", return_value=memory),
-            patch("inference_api.subprocess.Popen", return_value=process) as popen,
-            patch("inference_api.socket.create_connection"),
+            patch(
+                "vllm_kv_transfer.LMCACHE_SERVER_GENERATION_FILE",
+                str(server_generation),
+            ),
+            patch(
+                "vllm_kv_transfer.LMCACHE_CLIENT_GENERATION_FILE",
+                str(client_generation),
+            ),
         ):
-            assert start_lmcache_mp_server(args) is process
+            record_lmcache_server_generation(timeout_seconds=1)
 
-        popen.assert_called_once_with(
-            [
-                "lmcache",
-                "server",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                "5555",
-                "--chunk-size",
-                "256",
-                "--l1-use-lazy",
-                "--l1-init-size-gb",
-                "1",
-                "--l1-size-gb",
-                "40.0",
-                "--eviction-policy",
-                "LRU",
-            ]
-        )
-
-    def test_start_scales_l1_size_by_tensor_parallel_size(self):
-        args = _make_args(
-            kaito_kv_cache_cpu_memory_utilization=0.5,
-            tensor_parallel_size=2,
-        )
-        memory = argparse.Namespace(total=500 * 1024**3, used=50 * 1024**3)
-        process = MagicMock()
-        process.poll.return_value = None
-
-        with (
-            patch("inference_api.psutil.virtual_memory", return_value=memory),
-            patch("inference_api.subprocess.Popen", return_value=process) as popen,
-            patch("inference_api.socket.create_connection"),
-        ):
-            assert start_lmcache_mp_server(args) is process
-
-        command = popen.call_args.args[0]
-        assert command[command.index("--l1-init-size-gb") + 1] == "1"
-        assert command[command.index("--l1-size-gb") + 1] == "112.5"
-
-    def test_stop_terminates_server(self):
-        process = MagicMock()
-        process.poll.return_value = None
-
-        stop_lmcache_mp_server(process)
-
-        process.terminate.assert_called_once_with()
-        process.wait.assert_called_once_with(timeout=10)
+        assert client_generation.read_text() == "generation-1"

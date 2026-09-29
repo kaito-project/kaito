@@ -20,23 +20,21 @@ import subprocess
 import sys
 import threading
 import time
-from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from typing import Any
 
-import psutil
 import rate_limit
 import uvloop
 import vllm.entrypoints.launchers.api_server.entry as api_server_entry
 import vllm.entrypoints.launchers.cli_args as launcher_cli_args
-import yaml
 from _workarounds import model_asset_prefetch
 from huggingface_hub import HfFileSystem, scan_cache_dir
+from kaito_inference_config import KaitoInferenceConfig
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from vllm.entrypoints.openai.models.protocol import LoRAModulePath
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 from vllm.v1.metrics.prometheus import get_prometheus_registry
+from vllm_kv_transfer import configure_kv_transfer_and_lmcache
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -66,12 +64,6 @@ kaito_max_concurrent_requests = Gauge(
     "Resolved vLLM maximum number of concurrent sequences",
     registry=_registry,
 )
-
-# Under MP model with lazy allocation LMCache will synchronously allocate
-# l1-init-size-gb memory and expand it to l1-size-gb in a background thread.
-# Setting l1-init-size-gb to 1 GiB to minimize the impact of synchronous memory
-# on startup latency. https://docs.lmcache.ai/mp/configuration.html#l1-memory-manager
-LMCACHE_L1_INITIAL_SIZE_GB = 1
 
 
 class KAITOArgumentParser(argparse.ArgumentParser):
@@ -152,7 +144,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
 
         # Load KAITO config
         if kaito_args.kaito_config_file:
-            file_config = KaitoConfig.from_yaml(kaito_args.kaito_config_file)
+            file_config = KaitoInferenceConfig.from_yaml(kaito_args.kaito_config_file)
             if kaito_args.kaito_max_probe_steps is None:
                 kaito_args.kaito_max_probe_steps = file_config.max_probe_steps
             if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
@@ -177,34 +169,6 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         super().print_help(file)
         print("\norignal vLLM server arguments:\n")
         self.vllm_parser.print_help(file)
-
-
-@dataclass
-class KaitoConfig:
-    # Extra arguments for the vllm serving server, will be forwarded to the vllm server.
-    # This should be in key-value format.
-    vllm: dict[str, Any]
-
-    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
-    max_probe_steps: int
-
-    # Optional: CPU memory utilization for the vllm engine in kv cache offload mode. (default: 0.5, set to 0 to disable)
-    kv_cache_cpu_memory_utilization: float
-
-    @staticmethod
-    def from_yaml(yaml_file: str) -> "KaitoConfig":
-        with open(yaml_file) as file:
-            config_data = yaml.safe_load(file)
-        return KaitoConfig(
-            vllm=config_data.get("vllm", {}),
-            max_probe_steps=config_data.get("max_probe_steps", 6),
-            kv_cache_cpu_memory_utilization=config_data.get(
-                "kv_cache_cpu_memory_utilization", 0.5
-            ),
-        )
-
-    def to_yaml(self) -> str:
-        return yaml.dump(self.__dict__)
 
 
 def _model_repo_path(model_id: str | None, cache_dir: str) -> str | None:
@@ -516,111 +480,6 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
-def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> bool:
-    """
-    Set KV transfer config and optionally enable KV cache offloading to CPU RAM.
-    - When KAITO_INFERENCE_ROLE is set: use NixlConnector (kv_both + fail policy).
-    - When kaito_kv_cache_cpu_memory_utilization is set: use LMCacheMPConnector with CPU offload.
-
-    Returns True when KAITO selected LMCacheMPConnector and should launch its
-    local server process. User-provided KV transfer configs own their server lifecycle.
-    """
-    # Configure kv_transfer_config for P/D disaggregation using NixlConnector.
-    inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
-    if args.kv_transfer_config is None and inference_role in ("prefill", "decode"):
-        args.kv_transfer_config = {
-            "kv_connector": "NixlConnector",
-            "kv_role": "kv_both",
-            "kv_load_failure_policy": "fail",
-        }
-
-    if (
-        args.kaito_kv_cache_cpu_memory_utilization is None
-        or args.kaito_kv_cache_cpu_memory_utilization <= 0
-    ):
-        logger.info(
-            "kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."
-        )
-        return False
-
-    # Default to the HMA-capable multiprocess connector when CPU offload is enabled.
-    if args.kv_transfer_config is None:
-        args.kv_transfer_config = {
-            "kv_connector": "LMCacheMPConnector",
-            "kv_role": "kv_both",
-            "kv_connector_extra_config": {
-                "lmcache.mp.host": "tcp://127.0.0.1",
-                "lmcache.mp.port": 5555,
-            },
-        }
-        return True
-    return False
-
-
-def start_lmcache_mp_server(args: argparse.Namespace) -> subprocess.Popen:
-    """Start the local LMCache MP server and wait until its TCP listener is ready."""
-    available_memory_gb = (
-        psutil.virtual_memory().total - psutil.virtual_memory().used
-    ) / (1024**3)
-    cache_size_gb = (
-        available_memory_gb
-        * args.kaito_kv_cache_cpu_memory_utilization
-        / args.tensor_parallel_size
-    )
-    logger.info(
-        "Offload KV cache to LMCache MP server: %.2f GB initial, %.2f GB final",
-        LMCACHE_L1_INITIAL_SIZE_GB,
-        cache_size_gb,
-    )
-    process = subprocess.Popen(
-        [
-            "lmcache",
-            "server",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            "5555",
-            "--chunk-size",
-            "256",
-            "--l1-use-lazy",
-            "--l1-init-size-gb",
-            str(LMCACHE_L1_INITIAL_SIZE_GB),
-            "--l1-size-gb",
-            str(cache_size_gb),
-            "--eviction-policy",
-            "LRU",
-        ]
-    )
-
-    deadline = time.monotonic() + 30
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise RuntimeError(
-                f"LMCache MP server exited during startup with code {process.returncode}"
-            )
-        try:
-            with socket.create_connection(("127.0.0.1", 5555), timeout=0.5):
-                logger.info("LMCache MP server is ready on 127.0.0.1:5555")
-                return process
-        except OSError:
-            time.sleep(0.1)
-
-    stop_lmcache_mp_server(process)
-    raise TimeoutError("LMCache MP server did not become ready within 30 seconds")
-
-
-def stop_lmcache_mp_server(process: subprocess.Popen | None) -> None:
-    """Stop a local LMCache MP server process, escalating if it does not exit."""
-    if process is None or process.poll() is not None:
-        return
-    process.terminate()
-    try:
-        process.wait(timeout=10)
-    except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait()
-
-
 def configure_middlewares(args: argparse.Namespace) -> None:
     """Register KAITO middleware according to the parsed opt-out flags."""
     args.middleware = list(args.middleware or [])
@@ -646,10 +505,7 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-    use_local_lmcache_mp_server = set_kv_transfer_config_if_applicable(args)
-    lmcache_mp_server = (
-        start_lmcache_mp_server(args) if use_local_lmcache_mp_server else None
-    )
+    configure_kv_transfer_and_lmcache(args)
 
     logger.info(f"Starting server on port {args.port}")
 
@@ -770,7 +626,4 @@ if __name__ == "__main__":
     model_asset_prefetch.prefetch_model_assets(args)
 
     # See https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html
-    try:
-        uvloop.run(api_server_entry.run_server(args))
-    finally:
-        stop_lmcache_mp_server(lmcache_mp_server)
+    uvloop.run(api_server_entry.run_server(args))

@@ -684,13 +684,13 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 func (p *PresetParam) isLMCacheDisabled() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		// These hybrid architectures require per-model configuration or are known
-		// to be incompatible with LMCache's hybrid KV cache handling.
-		// https://docs.lmcache.ai/recipes/qwen3_5.html. Disabling LMCache for these models for now.
+		// These hybrid architectures require per-model configuration, e.g. https://docs.lmcache.ai/recipes/qwen3_5.html.
+		// Disabling LMCache for these models for now.
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
 			"Qwen4ExpForCausalLM", "Qwen4ExpForConditionalGeneration",
-			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel":
+			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",
+			"DeepseekV4ForCausalLM", "DeepseekV41ForCausalLM", "DeepseekV32ForCausalLM":
 			return true
 		}
 	}

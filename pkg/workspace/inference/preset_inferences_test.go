@@ -22,7 +22,9 @@ import (
 	"time"
 
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -389,6 +391,20 @@ func TestGeneratePresetInference(t *testing.T) {
 			if len(expectedEnvVars) > 0 && expectedEnvVars[0] == flashInferSamplerEnvVar {
 				withDefaults := []corev1.EnvVar{flashInferSamplerEnvVar, deepGEMMEnvVar, wsl2PinMemoryEnvVar}
 				expectedEnvVars = append(withDefaults, expectedEnvVars[1:]...)
+			}
+			hasLMCacheSidecar := false
+			for i := range statefulset.Spec.Template.Spec.InitContainers {
+				container := &statefulset.Spec.Template.Spec.InitContainers[i]
+				if container.Name == lmCacheSidecarName && container.RestartPolicy != nil &&
+					*container.RestartPolicy == corev1.ContainerRestartPolicyAlways {
+					hasLMCacheSidecar = true
+					break
+				}
+			}
+			if hasLMCacheSidecar {
+				expectedEnvVars = append(expectedEnvVars, corev1.EnvVar{
+					Name: lmCacheDeploymentModeEnvName, Value: lmCacheDeploymentModeSidecar,
+				})
 			}
 
 			if !reflect.DeepEqual(envVars, expectedEnvVars) {
@@ -1846,6 +1862,146 @@ func TestInjectRoutingSidecar(t *testing.T) {
 					t.Errorf("main container should have containerPort %d", consts.PortDecodeVLLM)
 				}
 			}
+		})
+	}
+}
+
+func TestInjectLMCacheSidecar(t *testing.T) {
+	spec := &corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name:    "workspace",
+			Image:   GetBaseImageName(),
+			Command: []string{"/bin/sh", "-c", "python3 /workspace/vllm/inference_api.py --tensor-parallel-size=2"},
+			VolumeMounts: []corev1.VolumeMount{{
+				Name: "config-volume", MountPath: utils.DefaultConfigMapMountPath,
+			}},
+		}},
+	}
+
+	injectLMCacheSidecar(spec, "workspace", "2")
+
+	assert.Nil(t, spec.RuntimeClassName)
+	require.Len(t, spec.InitContainers, 1)
+	sidecar := spec.InitContainers[0]
+	assert.Equal(t, lmCacheSidecarName, sidecar.Name)
+	assert.Equal(t, GetBaseImageName(), sidecar.Image)
+	require.NotNil(t, sidecar.RestartPolicy)
+	assert.Equal(t, corev1.ContainerRestartPolicyAlways, *sidecar.RestartPolicy)
+	assert.Empty(t, sidecar.Resources.Requests)
+	assert.Contains(t, sidecar.Env, corev1.EnvVar{Name: "NVIDIA_VISIBLE_DEVICES", Value: "all"})
+	assert.Contains(t, sidecar.Env, corev1.EnvVar{Name: "NVIDIA_DRIVER_CAPABILITIES", Value: "compute,utility"})
+	assert.Contains(t, sidecar.Args, "--isolated-ipc")
+	assert.Contains(t, sidecar.Args, "--tensor-parallel-size=2")
+	assert.Contains(t, sidecar.Args, "--config-file=/mnt/config/inference_config.yaml")
+	assert.Empty(t, sidecar.Ports)
+	require.NotNil(t, sidecar.StartupProbe.Exec)
+	assert.Contains(t, sidecar.StartupProbe.Exec.Command, "--server-health-check")
+	assert.EqualValues(t, lmCacheProbeTimeoutSeconds, sidecar.StartupProbe.TimeoutSeconds)
+	require.NotNil(t, sidecar.ReadinessProbe.Exec)
+	assert.Contains(t, sidecar.ReadinessProbe.Exec.Command, "--server-health-check")
+	assert.EqualValues(t, lmCacheProbeTimeoutSeconds, sidecar.ReadinessProbe.TimeoutSeconds)
+	require.NotNil(t, sidecar.LivenessProbe)
+	require.NotNil(t, sidecar.LivenessProbe.Exec)
+	assert.Contains(t, sidecar.LivenessProbe.Exec.Command, "--server-health-check")
+	assert.EqualValues(t, 10, sidecar.LivenessProbe.PeriodSeconds)
+	assert.EqualValues(t, lmCacheProbeTimeoutSeconds, sidecar.LivenessProbe.TimeoutSeconds)
+	assert.EqualValues(t, 3, sidecar.LivenessProbe.FailureThreshold)
+
+	main := spec.Containers[0]
+	assert.Contains(t, main.Env, corev1.EnvVar{Name: lmCacheDeploymentModeEnvName, Value: lmCacheDeploymentModeSidecar})
+	require.NotNil(t, main.LivenessProbe.Exec)
+	assert.Contains(t, main.LivenessProbe.Exec.Command, "--health-check")
+	assert.EqualValues(t, lmCacheProbeTimeoutSeconds, main.LivenessProbe.TimeoutSeconds)
+}
+
+func TestLMCacheWorkloadEligibility(t *testing.T) {
+	workspace := &v1beta1.Workspace{}
+	runParams := map[string]string{"tensor-parallel-size": "1"}
+
+	eligible, reason := isLMCacheWorkloadEligible(workspace, pkgmodel.RuntimeNameVLLM, runParams)
+	assert.True(t, eligible, reason)
+
+	runParams["kaito-kv-cache-cpu-memory-utilization"] = "0.5"
+	eligible, reason = isLMCacheWorkloadEligible(workspace, pkgmodel.RuntimeNameVLLM, runParams)
+	assert.True(t, eligible, reason)
+
+	runParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
+	eligible, reason = isLMCacheWorkloadEligible(workspace, pkgmodel.RuntimeNameVLLM, runParams)
+	assert.False(t, eligible)
+	assert.Equal(t, "CPU KV offload is disabled", reason)
+	delete(runParams, "kaito-kv-cache-cpu-memory-utilization")
+
+	runParams["kv-transfer-config"] = `{"kv_connector":"Custom"}`
+	eligible, reason = isLMCacheWorkloadEligible(workspace, pkgmodel.RuntimeNameVLLM, runParams)
+	assert.False(t, eligible)
+	assert.Equal(t, "custom KV connector configuration owns its server lifecycle", reason)
+	delete(runParams, "kv-transfer-config")
+
+	runParams["data-parallel-size"] = "2"
+	eligible, reason = isLMCacheWorkloadEligible(workspace, pkgmodel.RuntimeNameVLLM, runParams)
+	assert.False(t, eligible)
+	assert.Equal(t, "data parallelism is unsupported", reason)
+	delete(runParams, "data-parallel-size")
+
+	runParams["pipeline-parallel-size"] = "2"
+	eligible, reason = isLMCacheWorkloadEligible(workspace, pkgmodel.RuntimeNameVLLM, runParams)
+	assert.False(t, eligible)
+	assert.Equal(t, "multi-node pipeline parallelism is unsupported", reason)
+	delete(runParams, "pipeline-parallel-size")
+
+	workspace.Resource.Partition = &v1beta1.PartitionSpec{Mode: v1beta1.PartitionModeMIG}
+	eligible, reason = isLMCacheWorkloadEligible(workspace, pkgmodel.RuntimeNameVLLM, runParams)
+	assert.False(t, eligible)
+	assert.Equal(t, "MIG is unsupported", reason)
+}
+
+func TestConfigureLMCacheSidecarReturnsConfigErrors(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		configData string
+		getErr     error
+		wantErr    string
+	}{
+		{
+			name:    "ConfigMap read failure",
+			getErr:  fmt.Errorf("temporary API failure"),
+			wantErr: "get inference config ConfigMap test-ns/test-config: temporary API failure",
+		},
+		{
+			name:       "invalid inference config",
+			configData: "vllm: [",
+			wantErr:    "parse inference config ConfigMap test-ns/test-config",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockClient := test.NewClient()
+			mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).
+				Return(tc.getErr)
+			if tc.getErr == nil {
+				mockClient.CreateOrUpdateObjectInMap(&corev1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{Name: "test-config", Namespace: "test-ns"},
+					Data:       map[string]string{utils.InferenceConfigKey: tc.configData},
+				})
+			}
+
+			workspace := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "workspace", Namespace: "test-ns"},
+				Inference:  &v1beta1.InferenceSpec{Config: "test-config"},
+			}
+			spec := &corev1.PodSpec{Containers: []corev1.Container{{Name: "workspace"}}}
+			modifier := ConfigureLMCacheSidecar(&lmCacheResolvedConfig{
+				runtimeName: pkgmodel.RuntimeNameVLLM,
+				runParams:   map[string]string{"tensor-parallel-size": "1"},
+			})
+
+			err := modifier(&generator.WorkspaceGeneratorContext{
+				Ctx:        t.Context(),
+				KubeClient: mockClient,
+				Workspace:  workspace,
+			}, spec)
+
+			assert.ErrorContains(t, err, tc.wantErr)
+			assert.Empty(t, spec.InitContainers)
 		})
 	}
 }

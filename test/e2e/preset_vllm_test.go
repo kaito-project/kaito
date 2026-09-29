@@ -15,6 +15,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -117,7 +118,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should store and retrieve KV cache through LMCache MP on gpt-oss-20b", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -137,7 +138,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
+		validateLMCacheMP(workspaceObj)
 	})
 
 	It("should create a qwen3.8-27b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
@@ -1500,6 +1501,158 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
+}
+
+// validateLMCacheMP verifies the native LMCache sidecar topology and its data path
+// by storing a long prompt in L1, restarting only vLLM, and confirming that replaying
+// the prompt reads cached chunks and reports external cache-hit tokens.
+func validateLMCacheMP(workspaceObj *kaitov1beta1.Workspace) {
+	const (
+		sidecarName     = "lmcache-mp-server"
+		writeMetricName = "lmcache_mp_l1_write_chunks_total"
+		readMetricName  = "lmcache_mp_l1_read_chunks_total"
+		hitMetricName   = "lmcache_mp_lookup_hit_tokens_total"
+	)
+
+	By("Validating the LMCache native sidecar topology", func() {
+		Eventually(func() error {
+			statefulSet := &appsv1.StatefulSet{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(workspaceObj), statefulSet); err != nil {
+				return err
+			}
+			for _, container := range statefulSet.Spec.Template.Spec.InitContainers {
+				if container.Name == sidecarName && container.RestartPolicy != nil &&
+					*container.RestartPolicy == corev1.ContainerRestartPolicyAlways {
+					return nil
+				}
+			}
+			return fmt.Errorf("StatefulSet does not contain native sidecar %q", sidecarName)
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed())
+	})
+
+	coreClient, err := utils.GetK8sClientset()
+	Expect(err).NotTo(HaveOccurred())
+	k8sConfig, err := utils.GetK8sConfig()
+	Expect(err).NotTo(HaveOccurred())
+	podName := workspaceObj.Name + "-0"
+	modelName := getModelName(string(workspaceObj.Inference.Preset.Name))
+
+	prefix := strings.Repeat("Kubernetes controllers continuously reconcile declared desired state with observed cluster state. ", 384)
+	payload, err := json.Marshal(map[string]any{
+		"model": modelName,
+		"messages": []map[string]string{{
+			"role":    "user",
+			"content": prefix + " Summarize the repeated statement in one sentence.",
+		}},
+		"max_tokens":  8,
+		"temperature": 0,
+	})
+	Expect(err).NotTo(HaveOccurred())
+	encodedPayload := base64.StdEncoding.EncodeToString(payload)
+	requestCommand := fmt.Sprintf(
+		`printf '%%s' '%s' | base64 -d | curl -fsS --max-time 120 -H 'Content-Type: application/json' --data-binary @- http://127.0.0.1:5000/v1/chat/completions | grep -q '"object":"chat.completion'`,
+		encodedPayload,
+	)
+
+	execMain := func(command string) (string, error) {
+		execCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+		return utils.ExecSync(execCtx, k8sConfig, coreClient, workspaceObj.Namespace, podName, corev1.PodExecOptions{
+			Command:   []string{"sh", "-c", command},
+			Container: workspaceObj.Name,
+			Stdout:    true,
+			Stderr:    true,
+		})
+	}
+	readMetric := func(name string) (float64, error) {
+		metrics, err := execMain("curl -fsS --max-time 10 http://127.0.0.1:8080/metrics")
+		if err != nil {
+			return 0, err
+		}
+		return sumPrometheusMetric(metrics, name)
+	}
+
+	writesBefore, err := readMetric(writeMetricName)
+	Expect(err).NotTo(HaveOccurred())
+	By("Populating LMCache L1 with a long prompt", func() {
+		Eventually(func() error {
+			_, err := execMain(requestCommand)
+			return err
+		}, 5*time.Minute, utils.PollInterval).Should(Succeed())
+		Eventually(func() float64 {
+			value, _ := readMetric(writeMetricName)
+			return value
+		}, 2*time.Minute, utils.PollInterval).Should(BeNumerically(">", writesBefore))
+	})
+
+	pod, err := coreClient.CoreV1().Pods(workspaceObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
+	Expect(err).NotTo(HaveOccurred())
+	restartsBefore := int32(0)
+	for _, status := range pod.Status.ContainerStatuses {
+		if status.Name == workspaceObj.Name {
+			restartsBefore = status.RestartCount
+			break
+		}
+	}
+
+	By("Restarting vLLM while preserving the LMCache sidecar", func() {
+		_, _ = execMain("kill 1")
+		Eventually(func() bool {
+			pod, getErr := coreClient.CoreV1().Pods(workspaceObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
+			if getErr != nil {
+				return false
+			}
+			for _, status := range pod.Status.ContainerStatuses {
+				if status.Name == workspaceObj.Name {
+					return status.RestartCount > restartsBefore && status.Ready
+				}
+			}
+			return false
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue())
+	})
+
+	readsBefore, err := readMetric(readMetricName)
+	Expect(err).NotTo(HaveOccurred())
+	hitsBefore, err := readMetric(hitMetricName)
+	Expect(err).NotTo(HaveOccurred())
+	By("Replaying the prompt from LMCache L1", func() {
+		Eventually(func() error {
+			_, err := execMain(requestCommand)
+			return err
+		}, 5*time.Minute, utils.PollInterval).Should(Succeed())
+		Eventually(func() bool {
+			reads, readErr := readMetric(readMetricName)
+			hits, hitErr := readMetric(hitMetricName)
+			return readErr == nil && hitErr == nil && reads > readsBefore && hits > hitsBefore
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "LMCache must read chunks and report external hit tokens")
+	})
+}
+
+func sumPrometheusMetric(metrics, name string) (float64, error) {
+	found := false
+	total := 0.0
+	for line := range strings.SplitSeq(metrics, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) < 2 || (fields[0] != name && !strings.HasPrefix(fields[0], name+"{")) {
+			continue
+		}
+		value, err := strconv.ParseFloat(fields[len(fields)-1], 64)
+		if err != nil {
+			return 0, fmt.Errorf("parse metric %s value %q: %w", name, fields[len(fields)-1], err)
+		}
+		total += value
+		found = true
+	}
+	if !found {
+		// LMCache registers some counters lazily on their first event. An absent
+		// counter therefore has the same initial value as an exported zero.
+		return 0, nil
+	}
+	return total, nil
 }
 
 func createNemotronNano9BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {

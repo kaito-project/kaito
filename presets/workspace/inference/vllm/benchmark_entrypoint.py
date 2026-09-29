@@ -33,7 +33,6 @@ own sys.stdout if /proc/1/fd/1 is not accessible.
 """
 
 import asyncio
-import importlib
 import json
 import math
 import os
@@ -48,7 +47,6 @@ from huggingface_hub.constants import HF_HUB_CACHE
 from prometheus_client.parser import text_string_to_metric_families
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-BENCHMARK_WARMUP_DURATION = 20
 BENCHMARK_DURATION = 60
 BENCHMARK_INPUT_LEN = 2048
 BENCHMARK_OUTPUT_LEN = 256
@@ -478,10 +476,7 @@ def _predownload_processor(processor: str) -> str:
 # ── guidellm runner ───────────────────────────────────────────────────────────
 
 
-def _run_guidellm(
-    processor: str,
-    max_concurrency: int,
-):
+def _run_guidellm(processor: str, max_concurrency: int):
     """Run guidellm via its Python API as the load generator.
 
     Uses ``benchmark_generative_text`` directly rather than a subprocess so there
@@ -494,50 +489,25 @@ def _run_guidellm(
     Returns the ``GenerativeBenchmarksReport`` on success, ``None`` on failure.
     """
     try:
-        guidellm_benchmark = importlib.import_module("guidellm.benchmark")
-        BenchmarkScenario = guidellm_benchmark.BenchmarkScenario
-        benchmark_generative_text = guidellm_benchmark.benchmark_generative_text
+        from guidellm.benchmark import BenchmarkGenerativeTextArgs
+        from guidellm.benchmark.entrypoints import benchmark_generative_text
     except ImportError as exc:
         _log(f"guidellm_import_failed: {exc}")
         return None
 
-    args = BenchmarkScenario(
-        spec={
-            "backend": {
-                "kind": "openai_http",
-                "target": VLLM_BASE_URL,
-                "request_format": "/v1/chat/completions",
-            },
-            "profile": {
-                "kind": "throughput",
-                "max_concurrency": max_concurrency,
-                "warmup": {
-                    "mode": "duration",
-                    "value": BENCHMARK_WARMUP_DURATION,
-                },
-            },
-            "constraints": [
-                {
-                    "kind": "max_duration",
-                    "seconds": BENCHMARK_WARMUP_DURATION + BENCHMARK_DURATION,
-                }
-            ],
-            "tokenizer": {
-                "kind": "huggingface_auto",
-                "model": processor or None,
-                "load_kwargs": {"trust_remote_code": True},
-            },
-            "data": [
-                {
-                    "kind": "synthetic_text",
-                    "prompt_tokens": BENCHMARK_INPUT_LEN,
-                    "output_tokens": BENCHMARK_OUTPUT_LEN,
-                }
-            ],
-            "data_loader": {"kind": "pytorch", "num_workers": 0},
-            "seed": {"kind": "static", "value": int(time.time())},
-            "outputs": [],
-        }
+    args = BenchmarkGenerativeTextArgs(
+        target=VLLM_BASE_URL,
+        data=[
+            f"prompt_tokens={BENCHMARK_INPUT_LEN},output_tokens={BENCHMARK_OUTPUT_LEN}"
+        ],
+        profile="throughput",
+        rate=[float(max_concurrency)],
+        max_seconds=BENCHMARK_DURATION,
+        processor=processor or None,
+        processor_args={"trust_remote_code": True},
+        data_num_workers=0,
+        random_seed=int(time.time()),
+        outputs=[],
     )
 
     try:
@@ -549,27 +519,26 @@ def _run_guidellm(
 
 
 def _extract_guidellm_metrics(report) -> tuple:
-    """Extract total TPM, TTFT, and TPOT from a guidellm report.
+    """Extract TTFT and TPOT averages from a guidellm report.
 
-    GuideLLM scopes these metrics to its active measurement window, excluding the
-    native warmup phase. Uses the ``.total`` distribution bucket, which includes
-    successful and incomplete requests.
+    Uses the ``.total`` distribution bucket which includes both successful and
+    incomplete requests, ensuring metrics are available even when requests are
+    cancelled before completion (guidellm streams tokens, so per-token timestamps
+    exist for partial responses too).
 
-    Returns ``(total_tpm, ttft_avg_ms, tpot_avg_ms)``. Raises ``RuntimeError``
-    if no output tokens were generated during the active window or report fields
-    are unavailable.
+    Returns ``(ttft_avg_ms, tpot_avg_ms)``.  Raises ``RuntimeError`` if the
+    report structure is empty or the fields are unavailable so the caller can
+    fail the benchmark cleanly.
     """
     try:
         metrics = report.benchmarks[0].metrics
-        output_tokens = metrics.output_tokens_per_second.total.count
-        if output_tokens <= 0:
-            raise RuntimeError("guidellm reported no generation")
-        tpm = metrics.tokens_per_second.total.mean * 60
         ttft = metrics.time_to_first_token_ms.total.mean
         tpot = metrics.time_per_output_token_ms.total.mean
-        return (round(tpm, 2), round(ttft, 2), round(tpot, 2))
+        return (round(ttft, 2), round(tpot, 2))
     except (IndexError, AttributeError, TypeError) as exc:
-        raise RuntimeError(f"failed to extract GuideLLM metrics: {exc}") from exc
+        raise RuntimeError(
+            f"failed to extract TTFT/TPOT from guidellm report: {exc}"
+        ) from exc
 
 
 # ── Core benchmark sequence ───────────────────────────────────────────────────
@@ -578,8 +547,10 @@ def _extract_guidellm_metrics(report) -> tuple:
 def _run_benchmark() -> tuple:
     """Run the full benchmark sequence.
 
-    GuideLLM runs a native warmup before its active measurement window and reports
-    total TPM, TTFT, and TPOT for that active window.
+    Snapshots vLLM Prometheus counters before and after the guidellm load run, then
+    computes total TPM from the delta.  Extracts TTFT and TPOT averages from the
+    guidellm report (using the ``total`` bucket which includes both successful and
+    incomplete requests).
 
     Returns ``(tpm, ttft_avg_ms, tpot_avg_ms)``.
     Raises ``RuntimeError`` on any failure so the caller can log it and fall back
@@ -590,20 +561,41 @@ def _run_benchmark() -> tuple:
 
     max_concurrency = _compute_max_concurrency(processor)
     _log(
-        f'{{"warmup_sec":{BENCHMARK_WARMUP_DURATION},'
-        f'"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
+        f'{{"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
         f'"output_tokens":{BENCHMARK_OUTPUT_LEN},"max_concurrency":{max_concurrency}}}',
         tag="KAITO_BENCHMARK_CONFIG",
     )
 
-    _log(f"benchmark_start epoch={time.time():.1f}")
+    t0_gen = _sum_counter_metric("vllm:generation_tokens_total")
+    t0_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
+    t0_epoch = time.time()
+    _log(f"benchmark_start epoch={t0_epoch:.1f} t0_gen={t0_gen} t0_prompt={t0_prompt}")
 
     report = _run_guidellm(processor, max_concurrency)
     if report is None:
         raise RuntimeError("guidellm exited non-zero")
 
-    tpm, ttft_ms, tpot_ms = _extract_guidellm_metrics(report)
-    _log(f"benchmark_end epoch={time.time():.1f}")
+    ttft_ms, tpot_ms = _extract_guidellm_metrics(report)
+
+    t1_epoch = time.time()
+    t1_gen = _sum_counter_metric("vllm:generation_tokens_total")
+    t1_prompt = _sum_counter_metric("vllm:prompt_tokens_total")
+    _log(f"benchmark_end epoch={t1_epoch:.1f} t1_gen={t1_gen} t1_prompt={t1_prompt}")
+
+    delta_gen = t1_gen - t0_gen
+    # Require at least one generated token.  Zero generation means the load did not
+    # reach the model (e.g. wrong endpoint, auth failure, all requests are prefill-only).
+    if delta_gen == 0:
+        raise RuntimeError(
+            "benchmark_no_generation delta_gen=0 — model produced no output tokens"
+        )
+
+    elapsed = t1_epoch - t0_epoch
+    _log(
+        f"benchmark_window elapsed_sec={elapsed:.1f} "
+        f"delta_gen={delta_gen} delta_prompt={t1_prompt - t0_prompt}"
+    )
+    tpm = round((delta_gen + (t1_prompt - t0_prompt)) * 60.0 / elapsed, 2)
     return tpm, ttft_ms, tpot_ms, max_concurrency
 
 
@@ -674,8 +666,7 @@ def main() -> None:
     # tail-log window read by the controller.
     if max_concurrency > 0:
         _log(
-            f'{{"warmup_sec":{BENCHMARK_WARMUP_DURATION},'
-            f'"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
+            f'{{"duration_sec":{BENCHMARK_DURATION},"input_tokens":{BENCHMARK_INPUT_LEN},'
             f'"output_tokens":{BENCHMARK_OUTPUT_LEN},"max_concurrency":{max_concurrency}}}',
             tag="KAITO_BENCHMARK_CONFIG",
         )

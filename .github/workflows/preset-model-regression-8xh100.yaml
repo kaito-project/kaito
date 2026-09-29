@@ -28,7 +28,6 @@ on:
       - ".github/scripts/preset-regression-tests/**"
       - ".github/preset-regression-config.json"
       - "benchmarks/gsm8k/**"
-      - "benchmarks/guidellm/**"
       - "presets/workspace/models/model_catalog.yaml"
   workflow_dispatch:
     inputs:
@@ -158,6 +157,7 @@ jobs:
         run: |
           python3 -m pip install --disable-pip-version-check --quiet PyYAML==6.0.3
           PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_benchmarks.py
+          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_test_cli.py
 
       - name: Azure CLI login and cluster credentials
         run: |

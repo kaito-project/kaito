@@ -20,7 +20,6 @@ from pathlib import Path
 
 from preset_regression_test_cli import (
     DEFAULT_GSM8K_BASELINES,
-    DEFAULT_GUIDELLM_BASELINES,
     build_parser,
     promote_baselines,
 )
@@ -29,11 +28,8 @@ from preset_regression_test_cli import (
 class PresetRegressionTestCLITest(unittest.TestCase):
     def test_defaults_to_repository_baselines(self):
         args = build_parser().parse_args(["--artifacts", "artifacts"])
-        self.assertEqual("all", args.suite)
         self.assertEqual(DEFAULT_GSM8K_BASELINES, args.gsm8k_baselines)
-        self.assertEqual(DEFAULT_GUIDELLM_BASELINES, args.guidellm_baselines)
         self.assertFalse(args.dry_run)
-        self.assertFalse(args.include_regressions)
 
     def test_dry_run_accepts_direct_aggregate_file(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -44,40 +40,37 @@ class PresetRegressionTestCLITest(unittest.TestCase):
                     [
                         {
                             "status": "passed",
-                            "performance": {
+                            "correctness": {
                                 "passed": True,
+                                "emptyResponses": 1,
                                 "model": "org/model",
                                 "instanceType": "gpu",
                                 "nodes": 1,
-                                "profile": "stress-high-concurrency-v1",
-                                "peakTokensPerMinute": 100,
-                                "averageTimeToFirstToken": 10,
-                                "averageTimePerOutputToken": 5,
+                                "profile": "chat-thinking-v1",
+                                "accuracy": 0.75,
+                                "correct": 96,
+                                "evaluated": 128,
                             },
                         }
                     ]
                 )
             )
-            guidellm_baselines = root / "guidellm.yaml"
+            gsm8k_baselines = root / "gsm8k.yaml"
             original = "schemaVersion: 1\ntargets: []\n"
-            guidellm_baselines.write_text(original)
+            gsm8k_baselines.write_text(original)
 
             result = promote_baselines(
                 artifact_roots=[aggregate],
-                suite="guidellm",
-                gsm8k_baselines=root / "unused.yaml",
-                guidellm_baselines=guidellm_baselines,
+                gsm8k_baselines=gsm8k_baselines,
                 dry_run=True,
             )
 
             self.assertTrue(result["dryRun"])
-            self.assertFalse(result["includedRegressions"])
-            self.assertEqual(0, result["gsm8kPromoted"])
-            self.assertEqual(1, result["guidellmPromoted"])
-            self.assertEqual("org/model", result["candidates"]["guidellm"][0]["model"])
-            self.assertEqual(original, guidellm_baselines.read_text())
+            self.assertEqual(1, result["gsm8kPromoted"])
+            self.assertEqual("org/model", result["candidates"][0]["model"])
+            self.assertEqual(original, gsm8k_baselines.read_text())
 
-    def test_regressions_require_explicit_opt_in(self):
+    def test_failed_results_are_not_promoted(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             aggregate = root / "results.json"
@@ -86,47 +79,28 @@ class PresetRegressionTestCLITest(unittest.TestCase):
                     [
                         {
                             "status": "failed",
-                            "performance": {
-                                "status": "performance-regressed",
+                            "correctness": {
+                                "status": "correctness-regressed",
                                 "passed": False,
                                 "model": "org/model",
                                 "instanceType": "gpu",
                                 "nodes": 1,
-                                "profile": "stress-high-concurrency-v1",
-                                "peakTokensPerMinute": 100,
-                                "averageTimeToFirstToken": 10,
-                                "averageTimePerOutputToken": 5,
+                                "profile": "chat-thinking-v1",
+                                "accuracy": 0.7,
+                                "correct": 90,
+                                "evaluated": 128,
+                                "emptyResponses": 1,
                             },
                         }
                     ]
                 )
             )
-            guidellm_baselines = root / "guidellm.yaml"
-            original = "schemaVersion: 1\ntargets: []\n"
-            guidellm_baselines.write_text(original)
-
             with self.assertRaisesRegex(ValueError, "no valid benchmark summaries"):
                 promote_baselines(
                     artifact_roots=[aggregate],
-                    suite="guidellm",
                     gsm8k_baselines=root / "unused.yaml",
-                    guidellm_baselines=guidellm_baselines,
                     dry_run=True,
                 )
-
-            result = promote_baselines(
-                artifact_roots=[aggregate],
-                suite="guidellm",
-                gsm8k_baselines=root / "unused.yaml",
-                guidellm_baselines=guidellm_baselines,
-                dry_run=True,
-                include_regressions=True,
-            )
-
-            self.assertTrue(result["includedRegressions"])
-            self.assertEqual(1, result["guidellmPromoted"])
-            self.assertEqual("org/model", result["candidates"]["guidellm"][0]["model"])
-            self.assertEqual(original, guidellm_baselines.read_text())
 
 
 if __name__ == "__main__":

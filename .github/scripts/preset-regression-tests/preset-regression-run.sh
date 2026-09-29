@@ -57,8 +57,6 @@ MODEL_CATALOG_FILE="${MODEL_CATALOG_FILE:-presets/workspace/models/model_catalog
 REGRESSION_CONFIG_FILE="${REGRESSION_CONFIG_FILE:-.github/preset-regression-config.json}"
 GSM8K_CONFIG_FILE="${GSM8K_CONFIG_FILE:-benchmarks/gsm8k/config.yaml}"
 GSM8K_BASELINES_FILE="${GSM8K_BASELINES_FILE:-benchmarks/gsm8k/baselines.yaml}"
-GUIDELLM_CONFIG_FILE="${GUIDELLM_CONFIG_FILE:-benchmarks/guidellm/config.yaml}"
-GUIDELLM_BASELINES_FILE="${GUIDELLM_BASELINES_FILE:-benchmarks/guidellm/baselines.yaml}"
 REGRESSION_PROFILE="${REGRESSION_PROFILE:-standard}"
 RESULTS_FILE="${RESULTS_FILE:-results-${GPU}.json}"
 ARTIFACT_DIR="${ARTIFACT_DIR:-artifacts/${GPU}}"
@@ -106,8 +104,8 @@ results_file="${WORKDIR}/results.ndjson"
 : >"$results_file"
 
 record() {
-  # record <target-json> <status> <reason> <duration> <actual-nodes> <peak-tpm> <artifacts> [correctness-json] [performance-json]
-  local correctness="${8:-null}" performance="${9:-null}"
+  # record <target-json> <status> <reason> <duration> <actual-nodes> <peak-tpm> <artifacts> [correctness-json]
+  local correctness="${8:-null}"
   jq -c -n \
     --argjson target "$1" \
     --arg status "$2" \
@@ -117,7 +115,6 @@ record() {
     --arg peakTPM "$6" \
     --arg artifacts "$7" \
     --argjson correctness "$correctness" \
-    --argjson performance "$performance" \
     '$target + {
        status: $status,
        reason: $reason,
@@ -125,7 +122,6 @@ record() {
        actualNodes: $actualNodes,
        peakTPM: $peakTPM,
       correctness: $correctness,
-      performance: $performance,
        artifacts: $artifacts
      }' >>"$results_file"
 }
@@ -179,14 +175,10 @@ nodeclaim_failure_reason() {
 # Mirrors validateWorkspaceBenchmarkCompleted in test/e2e/preset_vllm_test.go.
 benchmark_metrics_valid() {
   jq -e '
-    ["peakTokensPerMinute", "averageTimeToFirstToken", "averageTimePerOutputToken"] as $names
-    | [ $names[] as $name
-        | (.status.performance.metrics[$name] // {}) as $m
-        | (($m.value // "") | tonumber? // 0) > 0
-          and (((["durationSec", "inputTokens", "outputTokens", "maxConcurrency"])
-                 - (($m.config // {}) | keys)) | length) == 0
-      ]
-    | all
+    (.status.performance.metrics.peakTokensPerMinute // {}) as $m
+    | (($m.value // "") | tonumber? // 0) > 0
+      and (((["durationSec", "inputTokens", "outputTokens", "maxConcurrency"])
+             - (($m.config // {}) | keys)) | length) == 0
   ' "$1" >/dev/null 2>&1
 }
 
@@ -283,18 +275,6 @@ PY
     break
   done
   return "$result"
-}
-
-compare_guidellm() {
-  # compare_guidellm <workspace-json> <model> <instance-type> <nodes> <output>
-  "$BENCHMARK_PYTHON" .github/scripts/preset-regression-tests/preset_regression_benchmarks.py \
-    --workspace "$1" \
-    --model "$2" \
-    --instance-type "$3" \
-    --nodes "$4" \
-    --config "$GUIDELLM_CONFIG_FILE" \
-    --baselines "$GUIDELLM_BASELINES_FILE" \
-    --output "$5"
 }
 
 # Prints a non-empty reason when the Workspace reports a transient failure. Add
@@ -659,7 +639,7 @@ EOF
   local resource_deadline=$((start_epoch + RESOURCE_READY_TIMEOUT_MINUTES * 60))
 
   local status="failed" actual_nodes="" peak_tpm=""
-  local correctness_result="null" performance_result="null"
+  local correctness_result="null"
   local reason="timed out waiting for WorkspaceSucceeded and BenchmarkCompleted"
   local ws_json="${WORKDIR}/ws.json"
   local stuck_reason="" stuck_since=0
@@ -688,7 +668,7 @@ EOF
         reason=""
         break
       else
-        log "  BenchmarkCompleted=True; waiting for TPM, TTFT, and TPOT status metrics to propagate..."
+        log "  BenchmarkCompleted=True; waiting for peak TPM status metric to propagate..."
       fi
     fi
 
@@ -784,17 +764,6 @@ EOF
   fi
 
   if [[ "$status" == "passed" ]]; then
-    kubectl get workspace "$ws" -n "$NAMESPACE" -o json >"$ws_json"
-    if compare_guidellm "$ws_json" "$model" "$instance_type" "$actual_nodes" "${artifact_dir}/guidellm-summary.json"; then
-      performance_result="$(jq -c . "${artifact_dir}/guidellm-summary.json")"
-    else
-      performance_result="$(jq -c . "${artifact_dir}/guidellm-summary.json" 2>/dev/null || printf 'null')"
-      status="failed"
-      reason="GuideLLM performance check failed: $(jq -r '.error // .status // "comparison failed"' "${artifact_dir}/guidellm-summary.json" 2>/dev/null || printf 'comparison failed')"
-    fi
-  fi
-
-  if [[ "$status" == "passed" ]]; then
     log "PASSED in $((($(date +%s) - start_epoch) / 60))m (peak TPM ${peak_tpm:-n/a}, GSM8K $(jq -r '.accuracy // "baseline pending"' <<<"$correctness_result"))"
     if [[ "$KEEP_SUCCESS_ARTIFACTS" != "true" ]]; then
       rm -rf "$artifact_dir"
@@ -814,7 +783,7 @@ EOF
   fi
 
   record "$target" "$status" "$reason" "$(($(date +%s) - overall_start_epoch))" \
-    "$actual_nodes" "$peak_tpm" "$artifact_dir" "$correctness_result" "$performance_result"
+    "$actual_nodes" "$peak_tpm" "$artifact_dir" "$correctness_result"
   teardown "$ws"
   return 0
 }

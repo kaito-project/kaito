@@ -1659,7 +1659,7 @@ func validateWorkspaceBenchmarkCompleted(workspaceObj *kaitov1beta1.Workspace) {
 			if err != nil || tpm <= 0 {
 				return false
 			}
-			for _, key := range []string{"warmupSec", "durationSec", "inputTokens", "outputTokens", "maxConcurrency"} {
+			for _, key := range []string{"durationSec", "inputTokens", "outputTokens", "maxConcurrency"} {
 				if _, hasKey := m.Config[key]; !hasKey {
 					return false
 				}

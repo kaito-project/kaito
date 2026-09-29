@@ -52,20 +52,11 @@ const (
 	// BenchmarkMetricPeakTPM is the metric key for peak tokens per minute on a workspace.
 	BenchmarkMetricPeakTPM = "peakTokensPerMinute"
 
-	// BenchmarkMetricAverageTTFT is the metric key for average time to first token.
-	BenchmarkMetricAverageTTFT = "averageTimeToFirstToken"
-
-	// BenchmarkMetricAverageTPOT is the metric key for average time per output token.
-	BenchmarkMetricAverageTPOT = "averageTimePerOutputToken"
-
 	// BenchmarkMetricAggregatedPeakTPM is the metric key for aggregated peak tokens per minute on an InferenceSet.
 	BenchmarkMetricAggregatedPeakTPM = "aggregatedPeakTokensPerMinute"
 
-	// BenchmarkMetricTPMUnit is the unit for TPM metrics.
-	BenchmarkMetricTPMUnit = "tokens/min"
-
-	// BenchmarkMetricLatencyUnit is the unit for latency metrics.
-	BenchmarkMetricLatencyUnit = "ms"
+	// BenchmarkMetricUnit is the unit for TPM metrics.
+	BenchmarkMetricUnit = "tokens/min"
 
 	// ConfigKeyEngine is the Metric.Config key for the serving engine name
 	// (e.g. "vllm" or "transformers").
@@ -83,13 +74,14 @@ const (
 // benchmarkResultPayload mirrors the JSON emitted by benchmark_entrypoint.py.
 type benchmarkResultPayload struct {
 	VLLMTotalTPM float64 `json:"vllm_total_tpm"`
-	TTFTAvgMs    float64 `json:"ttft_avg_ms"`
-	TPOTAvgMs    float64 `json:"tpot_avg_ms"`
+	// TTFTAvgMs (time-to-first-token, ms) and TPOTAvgMs (time-per-output-token, ms) are parsed
+	// from the benchmark output but not yet surfaced in Performance. Reserved for future use.
+	TTFTAvgMs float64 `json:"ttft_avg_ms"`
+	TPOTAvgMs float64 `json:"tpot_avg_ms"`
 }
 
 // benchmarkConfigPayload mirrors the KAITO_BENCHMARK_CONFIG JSON emitted by benchmark_entrypoint.py.
 type benchmarkConfigPayload struct {
-	WarmupSec      int32 `json:"warmup_sec"`
 	DurationSec    int32 `json:"duration_sec"`
 	InputTokens    int32 `json:"input_tokens"`
 	OutputTokens   int32 `json:"output_tokens"`
@@ -145,11 +137,10 @@ func parseBenchmarkResult(r io.Reader, runtimeConfig map[string]string) (*kaitov
 	if err := json.Unmarshal([]byte(lastResultPayload), &payload); err != nil {
 		return nil, fmt.Errorf("parsing benchmark result JSON %q: %w", lastResultPayload, err)
 	}
-	// The Python script emits -1.0 for all metrics on failure. All three values are
-	// required for regression comparison, so none may be missing or non-positive.
-	if payload.VLLMTotalTPM <= 0 || payload.TTFTAvgMs <= 0 || payload.TPOTAvgMs <= 0 {
-		return nil, fmt.Errorf("benchmark failed: required metrics must be positive (TPM=%v, TTFT=%vms, TPOT=%vms)",
-			payload.VLLMTotalTPM, payload.TTFTAvgMs, payload.TPOTAvgMs)
+	// The Python script emits -1.0 for all metrics on failure. Treat any non-positive
+	// TPM as a failed run so it doesn't pollute aggregation or set BenchmarkCompleted=True.
+	if payload.VLLMTotalTPM <= 0 {
+		return nil, fmt.Errorf("benchmark failed: TPM value %v indicates a failed or incomplete run", payload.VLLMTotalTPM)
 	}
 
 	result := &kaitov1beta1.Performance{
@@ -160,7 +151,6 @@ func parseBenchmarkResult(r io.Reader, runtimeConfig map[string]string) (*kaitov
 	if lastConfigPayload != "" {
 		var cfgPayload benchmarkConfigPayload
 		if err := json.Unmarshal([]byte(lastConfigPayload), &cfgPayload); err == nil {
-			config["warmupSec"] = strconv.Itoa(int(cfgPayload.WarmupSec))
 			config["durationSec"] = strconv.Itoa(int(cfgPayload.DurationSec))
 			config["inputTokens"] = strconv.Itoa(int(cfgPayload.InputTokens))
 			config["outputTokens"] = strconv.Itoa(int(cfgPayload.OutputTokens))
@@ -171,30 +161,15 @@ func parseBenchmarkResult(r io.Reader, runtimeConfig map[string]string) (*kaitov
 	// of the benchmark metric so external systems can read it.
 	maps.Copy(config, runtimeConfig)
 
-	result.Metrics[BenchmarkMetricPeakTPM] = kaitov1beta1.Metric{
+	metric := kaitov1beta1.Metric{
 		Description: BenchmarkDesc,
 		Value:       strconv.FormatFloat(payload.VLLMTotalTPM, 'f', -1, 64),
-		Unit:        BenchmarkMetricTPMUnit,
-		Config:      config,
+		Unit:        BenchmarkMetricUnit,
 	}
-	result.Metrics[BenchmarkMetricAverageTTFT] = kaitov1beta1.Metric{
-		Description: BenchmarkDesc,
-		Value:       strconv.FormatFloat(payload.TTFTAvgMs, 'f', -1, 64),
-		Unit:        BenchmarkMetricLatencyUnit,
-		Config:      config,
+	if len(config) > 0 {
+		metric.Config = config
 	}
-	result.Metrics[BenchmarkMetricAverageTPOT] = kaitov1beta1.Metric{
-		Description: BenchmarkDesc,
-		Value:       strconv.FormatFloat(payload.TPOTAvgMs, 'f', -1, 64),
-		Unit:        BenchmarkMetricLatencyUnit,
-		Config:      config,
-	}
-	if len(config) == 0 {
-		for key, metric := range result.Metrics {
-			metric.Config = nil
-			result.Metrics[key] = metric
-		}
-	}
+	result.Metrics[BenchmarkMetricPeakTPM] = metric
 	return result, nil
 }
 

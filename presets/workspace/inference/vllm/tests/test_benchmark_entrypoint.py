@@ -267,25 +267,27 @@ kaito_max_concurrent_requests 128.0
 # ── _run_guidellm ─────────────────────────────────────────────────────────────
 
 
-def _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn):
+def _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn):
     """Build a sys.modules patch dict that injects mock guidellm packages."""
     bench_mod = MagicMock()
-    bench_mod.BenchmarkScenario = mock_scenario_cls
-    bench_mod.benchmark_generative_text = mock_benchmark_fn
+    bench_mod.BenchmarkGenerativeTextArgs = mock_args_cls
+    entrypoints_mod = MagicMock()
+    entrypoints_mod.benchmark_generative_text = mock_benchmark_fn
     return {
         "guidellm": MagicMock(),
         "guidellm.benchmark": bench_mod,
+        "guidellm.benchmark.entrypoints": entrypoints_mod,
     }
 
 
 def test_run_guidellm_success():
-    mock_scenario_cls = MagicMock()
+    mock_args_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     mock_report = MagicMock(name="report")
     with (
         patch("asyncio.run", return_value=(mock_report, {})) as mock_run,
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
         ),
     ):
         result = bm._run_guidellm("openai/phi-4", 256)
@@ -294,82 +296,40 @@ def test_run_guidellm_success():
 
 
 def test_run_guidellm_includes_processor():
-    mock_scenario_cls = MagicMock()
+    mock_args_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
         patch("asyncio.run", return_value=(MagicMock(), {})),
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
         ),
     ):
         bm._run_guidellm("mymodel/name", 128)
-    _, kwargs = mock_scenario_cls.call_args
-    assert kwargs["spec"]["tokenizer"]["model"] == "mymodel/name"
-
-
-def test_run_guidellm_preserves_benchmark_configuration():
-    mock_scenario_cls = MagicMock()
-    mock_benchmark_fn = MagicMock()
-    with (
-        patch("asyncio.run", return_value=(MagicMock(), {})),
-        patch.dict(
-            sys.modules,
-            _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn),
-        ),
-        patch("time.time", return_value=1234),
-    ):
-        bm._run_guidellm("mymodel/name", 128)
-
-    _, kwargs = mock_scenario_cls.call_args
-    spec = kwargs["spec"]
-    assert spec["backend"]["request_format"] == "/v1/chat/completions"
-    assert spec["profile"] == {
-        "kind": "throughput",
-        "max_concurrency": 128,
-        "warmup": {
-            "mode": "duration",
-            "value": bm.BENCHMARK_WARMUP_DURATION,
-        },
-    }
-    assert spec["constraints"] == [
-        {
-            "kind": "max_duration",
-            "seconds": bm.BENCHMARK_WARMUP_DURATION + bm.BENCHMARK_DURATION,
-        }
-    ]
-    assert spec["data"] == [
-        {
-            "kind": "synthetic_text",
-            "prompt_tokens": bm.BENCHMARK_INPUT_LEN,
-            "output_tokens": bm.BENCHMARK_OUTPUT_LEN,
-        }
-    ]
-    assert spec["data_loader"] == {"kind": "pytorch", "num_workers": 0}
-    assert spec["seed"] == {"kind": "static", "value": 1234}
-    assert spec["outputs"] == []
+    _, kwargs = mock_args_cls.call_args
+    assert kwargs.get("processor") == "mymodel/name"
 
 
 def test_run_guidellm_omits_processor_when_empty():
-    mock_scenario_cls = MagicMock()
+    mock_args_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
         patch("asyncio.run", return_value=(MagicMock(), {})),
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
         ),
     ):
         bm._run_guidellm("", 128)
-    _, kwargs = mock_scenario_cls.call_args
-    assert kwargs["spec"]["tokenizer"]["model"] is None
+    _, kwargs = mock_args_cls.call_args
+    assert kwargs.get("processor") is None
 
 
 def test_run_guidellm_failure():
-    mock_scenario_cls = MagicMock()
+    mock_args_cls = MagicMock()
     mock_benchmark_fn = MagicMock()
     with (
         patch("asyncio.run", side_effect=RuntimeError("mock error")),
         patch.dict(
-            sys.modules, _guidellm_sys_modules(mock_scenario_cls, mock_benchmark_fn)
+            sys.modules, _guidellm_sys_modules(mock_args_cls, mock_benchmark_fn)
         ),
         patch.object(bm, "_log") as mock_log,
     ):
@@ -387,6 +347,7 @@ def test_run_guidellm_import_error():
             {
                 "guidellm": None,
                 "guidellm.benchmark": None,
+                "guidellm.benchmark.entrypoints": None,
             },
         ),
         patch.object(bm, "_log") as mock_log,
@@ -400,32 +361,19 @@ def test_run_guidellm_import_error():
 # ── _extract_guidellm_metrics ────────────────────────────────────────────────
 
 
-def _mock_report(
-    tokens_per_second=509.6,
-    output_token_count=6000,
-    ttft_mean=42.123,
-    tpot_mean=3.456,
-):
-    """Build a mock GuideLLM report with throughput and latency values."""
+def _mock_report(ttft_mean=42.123, tpot_mean=3.456):
+    """Build a mock guidellm report with the given TTFT/TPOT mean values."""
     report = MagicMock()
     report.benchmarks = [MagicMock()]
     metrics = report.benchmarks[0].metrics
-    metrics.tokens_per_second.total.mean = tokens_per_second
-    metrics.output_tokens_per_second.total.count = output_token_count
     metrics.time_to_first_token_ms.total.mean = ttft_mean
     metrics.time_per_output_token_ms.total.mean = tpot_mean
     return report
 
 
 def test_extract_guidellm_metrics_success():
-    report = _mock_report(
-        tokens_per_second=509.6,
-        output_token_count=6000,
-        ttft_mean=42.123,
-        tpot_mean=3.456,
-    )
-    tpm, ttft, tpot = bm._extract_guidellm_metrics(report)
-    assert tpm == 30576.0
+    report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
+    ttft, tpot = bm._extract_guidellm_metrics(report)
     assert ttft == 42.12
     assert tpot == 3.46
 
@@ -433,20 +381,15 @@ def test_extract_guidellm_metrics_success():
 def test_extract_guidellm_metrics_empty_benchmarks():
     report = MagicMock()
     report.benchmarks = []
-    with pytest.raises(RuntimeError, match="failed to extract GuideLLM metrics"):
+    with pytest.raises(RuntimeError, match="failed to extract TTFT/TPOT"):
         bm._extract_guidellm_metrics(report)
 
 
 def test_extract_guidellm_metrics_none_total():
-    report = _mock_report()
+    report = MagicMock()
+    report.benchmarks = [MagicMock()]
     report.benchmarks[0].metrics.time_to_first_token_ms.total = None
-    with pytest.raises(RuntimeError, match="failed to extract GuideLLM metrics"):
-        bm._extract_guidellm_metrics(report)
-
-
-def test_extract_guidellm_metrics_requires_generation():
-    report = _mock_report(output_token_count=0)
-    with pytest.raises(RuntimeError, match="no generation"):
+    with pytest.raises(RuntimeError, match="failed to extract TTFT/TPOT"):
         bm._extract_guidellm_metrics(report)
 
 
@@ -454,22 +397,35 @@ def test_extract_guidellm_metrics_requires_generation():
 
 
 def test_run_benchmark_success(monkeypatch):
-    mock_report = _mock_report(
-        tokens_per_second=509.6,
-        output_token_count=6000,
-        ttft_mean=42.123,
-        tpot_mean=3.456,
-    )
+    call_count = [0]
+
+    def read_counter(metric):
+        call_count[0] += 1
+        # First two calls return t0 values, next two return t1 values
+        if call_count[0] <= 2:
+            return 0
+        if metric == "vllm:generation_tokens_total":
+            return 6000
+        if metric == "vllm:prompt_tokens_total":
+            return 24576
+        return 0
+
+    mock_report = _mock_report(ttft_mean=42.123, tpot_mean=3.456)
     with (
+        patch.object(bm, "_sum_counter_metric", side_effect=read_counter),
         patch.object(bm, "_resolve_processor", return_value="mymodel"),
         patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
-        patch("time.time", side_effect=[0.0, 80.0]),
+        patch(
+            "time.time",
+            side_effect=[0.0, 60.0],  # t0, t1 → 60 s elapsed
+        ),
     ):
         tpm, ttft, tpot, max_concurrency = bm._run_benchmark()
 
+    # (6000 + 24576) * 60 / 60 = 30576.0
     assert tpm == pytest.approx(30576.0)
     assert ttft == 42.12
     assert tpot == 3.46
@@ -477,21 +433,23 @@ def test_run_benchmark_success(monkeypatch):
 
 
 def test_run_benchmark_no_generation():
-    mock_report = _mock_report(output_token_count=0)
+    mock_report = _mock_report()
     with (
+        patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_predownload_processor", side_effect=lambda p: p),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=mock_report),
         patch.object(bm, "_log"),
-        patch("time.time", side_effect=[0.0, 80.0]),
-        pytest.raises(RuntimeError, match="no generation"),
+        patch("time.time", side_effect=[0.0, 60.0]),
+        pytest.raises(RuntimeError, match="no_generation"),
     ):
         bm._run_benchmark()
 
 
 def test_run_benchmark_guidellm_fails():
     with (
+        patch.object(bm, "_sum_counter_metric", return_value=0),
         patch.object(bm, "_resolve_processor", return_value=""),
         patch.object(bm, "_compute_max_concurrency", return_value=128),
         patch.object(bm, "_run_guidellm", return_value=None),

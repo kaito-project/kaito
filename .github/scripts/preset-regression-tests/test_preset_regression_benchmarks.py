@@ -24,13 +24,11 @@ from pathlib import Path
 
 from preset_regression_benchmarks import (
     compare_accuracy,
-    compare_performance,
     load_yaml,
     resolve_gsm8k_execution,
     resolve_profile,
     validate_coverage,
     validate_gsm8k_data,
-    validate_guidellm_data,
 )
 from preset_regression_gsm8k import (
     EvaluationDeadlineExceeded,
@@ -41,57 +39,16 @@ from preset_regression_gsm8k import (
     responses_by_document,
     should_retry_api_error,
 )
-from preset_regression_test_cli import collect_gsm8k, collect_guidellm
+from preset_regression_test_cli import collect_gsm8k
 
 ROOT = Path(__file__).resolve().parents[3]
 GSM_CONFIG = ROOT / "benchmarks/gsm8k/config.yaml"
 GSM_BASELINES = ROOT / "benchmarks/gsm8k/baselines.yaml"
-GUIDELLM_CONFIG = ROOT / "benchmarks/guidellm/config.yaml"
-GUIDELLM_BASELINES = ROOT / "benchmarks/guidellm/baselines.yaml"
-
-
-def workspace_metrics(tpm: float, ttft: float, tpot: float) -> dict:
-    config = {
-        "warmupSec": "20",
-        "durationSec": "60",
-        "inputTokens": "2048",
-        "outputTokens": "256",
-        "maxConcurrency": "128",
-    }
-    return {
-        "status": {
-            "performance": {
-                "metrics": {
-                    "peakTokensPerMinute": {
-                        "description": "stress/high-concurrency",
-                        "value": str(tpm),
-                        "unit": "tokens/min",
-                        "config": config,
-                    },
-                    "averageTimeToFirstToken": {
-                        "description": "stress/high-concurrency",
-                        "value": str(ttft),
-                        "unit": "ms",
-                        "config": config,
-                    },
-                    "averageTimePerOutputToken": {
-                        "description": "stress/high-concurrency",
-                        "value": str(tpot),
-                        "unit": "ms",
-                        "config": config,
-                    },
-                }
-            }
-        }
-    }
 
 
 class BenchmarkDataTest(unittest.TestCase):
     def test_repository_manifests_are_valid(self):
         validate_gsm8k_data(load_yaml(GSM_CONFIG), load_yaml(GSM_BASELINES))
-        validate_guidellm_data(
-            load_yaml(GUIDELLM_CONFIG), load_yaml(GUIDELLM_BASELINES)
-        )
 
     def test_models_use_large_default_thinking_profile(self):
         name, profile = resolve_profile(
@@ -315,111 +272,6 @@ class BenchmarkDataTest(unittest.TestCase):
             preset_regression_gsm8k.urllib.request.urlopen = original_urlopen
             preset_regression_gsm8k.json.load = original_json_load
 
-    def test_performance_bounds_are_directional(self):
-        config = load_yaml(GUIDELLM_CONFIG)
-        baselines = {
-            "schemaVersion": 1,
-            "targets": [
-                {
-                    "model": "org/model",
-                    "instanceType": "gpu",
-                    "nodes": 1,
-                    "profile": "stress-high-concurrency-v1",
-                    "tpm": 100,
-                    "ttftMs": 10,
-                    "tpotMs": 5,
-                }
-            ],
-        }
-        tolerances = {
-            "peakTokensPerMinute": 0.15,
-            "averageTimeToFirstToken": 0.2,
-            "averageTimePerOutputToken": 0.15,
-        }
-        passing = compare_performance(
-            workspace_metrics(85, 12, 5.75),
-            "org/model",
-            "gpu",
-            1,
-            config,
-            baselines,
-            tolerances,
-            True,
-        )
-        failing = compare_performance(
-            workspace_metrics(84, 12.1, 5.76),
-            "org/model",
-            "gpu",
-            1,
-            config,
-            baselines,
-            tolerances,
-            True,
-        )
-        self.assertTrue(passing["passed"])
-        self.assertEqual("org/model", passing["model"])
-        self.assertEqual("gpu", passing["instanceType"])
-        self.assertEqual(1, passing["nodes"])
-        self.assertEqual([], passing["regressions"])
-        self.assertFalse(failing["passed"])
-        self.assertEqual("performance-regressed", failing["status"])
-        self.assertEqual(
-            ["TPM", "TTFT", "TPOT"],
-            [regression["displayName"] for regression in failing["regressions"]],
-        )
-        self.assertAlmostEqual(
-            16.0,
-            failing["regressions"][0]["percentRegression"],
-            places=5,
-        )
-        self.assertAlmostEqual(
-            1.190476,
-            failing["regressions"][0]["percentBeyondLimit"],
-            places=5,
-        )
-        self.assertIn(
-            "TPM regressed 16.00% vs baseline "
-            "(observed 84.00 tokens/min, baseline 100.00 tokens/min, "
-            "minimum 85.00 tokens/min; 1.19% beyond limit)",
-            failing["error"],
-        )
-        self.assertIn("TTFT regressed 21.00% vs baseline", failing["error"])
-        self.assertIn("TPOT regressed 15.20% vs baseline", failing["error"])
-
-    def test_performance_topology_mismatch_is_distinct(self):
-        config = load_yaml(GUIDELLM_CONFIG)
-        baselines = {
-            "schemaVersion": 1,
-            "targets": [
-                {
-                    "model": "org/model",
-                    "instanceType": "gpu",
-                    "nodes": 2,
-                    "profile": "stress-high-concurrency-v1",
-                    "tpm": 100,
-                    "ttftMs": 10,
-                    "tpotMs": 5,
-                }
-            ],
-        }
-        result = compare_performance(
-            workspace_metrics(100, 10, 5),
-            "org/model",
-            "gpu",
-            1,
-            config,
-            baselines,
-            {
-                "peakTokensPerMinute": 0.15,
-                "averageTimeToFirstToken": 0.2,
-                "averageTimePerOutputToken": 0.15,
-            },
-            True,
-        )
-        self.assertFalse(result["passed"])
-        self.assertEqual("baseline-config-mismatch", result["status"])
-        self.assertEqual([2], result["baselineNodes"])
-
     def test_matrix_has_complete_baseline_coverage(self):
         targets = []
         for profile in ("standard", "8xh100"):
@@ -440,17 +292,13 @@ class BenchmarkDataTest(unittest.TestCase):
                     )
                 )
             )
-        for config_path, baseline_path in (
-            (GSM_CONFIG, GSM_BASELINES),
-            (GUIDELLM_CONFIG, GUIDELLM_BASELINES),
-        ):
-            config = load_yaml(config_path)
-            gaps = validate_coverage(
-                targets,
-                load_yaml(baseline_path),
-                config["comparison"]["requireBaselines"],
-            )
-            self.assertEqual([], gaps)
+        config = load_yaml(GSM_CONFIG)
+        gaps = validate_coverage(
+            targets,
+            load_yaml(GSM_BASELINES),
+            config["comparison"]["requireBaselines"],
+        )
+        self.assertEqual([], gaps)
 
     def test_stale_baseline_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "active matrix targets"):
@@ -489,25 +337,10 @@ class BenchmarkDataTest(unittest.TestCase):
             (invalid / "gsm8k-summary.json").write_text(
                 json.dumps({"passed": False, "emptyResponses": 1})
             )
-            (valid / "guidellm-summary.json").write_text(
-                json.dumps(
-                    {
-                        "passed": True,
-                        "model": "org/model",
-                        "instanceType": "gpu",
-                        "nodes": 1,
-                        "profile": "stress-high-concurrency-v1",
-                        "peakTokensPerMinute": 100,
-                        "averageTimeToFirstToken": 10,
-                        "averageTimePerOutputToken": 5,
-                    }
-                )
-            )
             gsm8k = collect_gsm8k([root])
             self.assertEqual(1, len(gsm8k))
             self.assertEqual(1, gsm8k[0]["emptyResponses"])
             self.assertRegex(gsm8k[0]["measuredAt"], r"^\d{4}-\d{2}-\d{2}$")
-            self.assertEqual(1, len(collect_guidellm([root])))
 
     def test_promotion_reads_aggregate_results(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -528,21 +361,10 @@ class BenchmarkDataTest(unittest.TestCase):
                                 "correct": 96,
                                 "evaluated": 128,
                             },
-                            "performance": {
-                                "passed": True,
-                                "model": "org/model",
-                                "instanceType": "gpu",
-                                "nodes": 1,
-                                "profile": "stress-high-concurrency-v1",
-                                "peakTokensPerMinute": 100,
-                                "averageTimeToFirstToken": 10,
-                                "averageTimePerOutputToken": 5,
-                            },
                         },
                         {
                             "status": "failed",
                             "correctness": {"passed": True},
-                            "performance": {"passed": True},
                         },
                     ]
                 )
@@ -550,7 +372,6 @@ class BenchmarkDataTest(unittest.TestCase):
             gsm8k = collect_gsm8k([root])
             self.assertEqual(1, len(gsm8k))
             self.assertEqual(0, gsm8k[0]["emptyResponses"])
-            self.assertEqual(1, len(collect_guidellm([root])))
 
 
 if __name__ == "__main__":

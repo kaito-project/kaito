@@ -26,29 +26,21 @@ func TestParseBenchmarkResult(t *testing.T) {
 		logs         string
 		expectErr    bool
 		expectTPM    string
-		expectTTFT   string
-		expectTPOT   string
 		expectConfig map[string]string
 	}{
 		"single result line": {
-			logs:       "some startup log\nKAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
-			expectTPM:  "12345.67",
-			expectTTFT: "100",
-			expectTPOT: "50",
+			logs:      "some startup log\nKAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
+			expectTPM: "12345.67",
 		},
 		"takes last of multiple result lines": {
 			// First line has -1 (failed probe), second is the successful result.
 			logs: "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":-1,\"ttft_avg_ms\":-1,\"tpot_avg_ms\":-1}\n" +
 				"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:01Z {\"vllm_total_tpm\":99999,\"ttft_avg_ms\":10,\"tpot_avg_ms\":5}\n",
-			expectTPM:  "99999",
-			expectTTFT: "10",
-			expectTPOT: "5",
+			expectTPM: "99999",
 		},
 		"result embedded in noisy log lines": {
-			logs:       "2026/01/01 vllm startup\n[info] model loaded\nKAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":200,\"tpot_avg_ms\":80}\n[info] ready\n",
-			expectTPM:  "500",
-			expectTTFT: "200",
-			expectTPOT: "80",
+			logs:      "2026/01/01 vllm startup\n[info] model loaded\nKAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":200,\"tpot_avg_ms\":80}\n[info] ready\n",
+			expectTPM: "500",
 		},
 		"tag present but no space after timestamp": {
 			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z\n",
@@ -63,10 +55,8 @@ func TestParseBenchmarkResult(t *testing.T) {
 			expectErr: true,
 		},
 		"integer tpm value": {
-			logs:       "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":1000000,\"ttft_avg_ms\":50,\"tpot_avg_ms\":10}\n",
-			expectTPM:  "1000000",
-			expectTTFT: "50",
-			expectTPOT: "10",
+			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":1000000,\"ttft_avg_ms\":50,\"tpot_avg_ms\":10}\n",
+			expectTPM: "1000000",
 		},
 		"zero tpm treated as failure": {
 			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":0,\"ttft_avg_ms\":0,\"tpot_avg_ms\":0}\n",
@@ -76,22 +66,11 @@ func TestParseBenchmarkResult(t *testing.T) {
 			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":-1,\"ttft_avg_ms\":-1,\"tpot_avg_ms\":-1}\n",
 			expectErr: true,
 		},
-		"zero ttft treated as failure": {
-			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":0,\"tpot_avg_ms\":10}\n",
-			expectErr: true,
-		},
-		"zero tpot treated as failure": {
-			logs:      "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":10,\"tpot_avg_ms\":0}\n",
-			expectErr: true,
-		},
 		"config parsed from KAITO_BENCHMARK_CONFIG line": {
-			logs: "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"warmup_sec\":20,\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
+			logs: "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
 				"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:02Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n",
-			expectTPM:  "12345.67",
-			expectTTFT: "100",
-			expectTPOT: "50",
+			expectTPM: "12345.67",
 			expectConfig: map[string]string{
-				"warmupSec":      "20",
 				"durationSec":    "60",
 				"inputTokens":    "2048",
 				"outputTokens":   "256",
@@ -99,10 +78,8 @@ func TestParseBenchmarkResult(t *testing.T) {
 			},
 		},
 		"config absent when KAITO_BENCHMARK_CONFIG not logged": {
-			logs:         "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":20,\"tpot_avg_ms\":10}\n",
+			logs:         "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":0,\"tpot_avg_ms\":0}\n",
 			expectTPM:    "500",
-			expectTTFT:   "20",
-			expectTPOT:   "10",
 			expectConfig: nil,
 		},
 	}
@@ -122,20 +99,8 @@ func TestParseBenchmarkResult(t *testing.T) {
 			require.True(t, ok, "expected %q key in Metrics map", BenchmarkMetricPeakTPM)
 			assert.Equal(t, tc.expectTPM, m.Value)
 			assert.Equal(t, BenchmarkDesc, m.Description)
-			assert.Equal(t, BenchmarkMetricTPMUnit, m.Unit)
+			assert.Equal(t, BenchmarkMetricUnit, m.Unit)
 			assert.Equal(t, tc.expectConfig, m.Config)
-
-			ttft, ok := result.Metrics[BenchmarkMetricAverageTTFT]
-			require.True(t, ok, "expected %q key in Metrics map", BenchmarkMetricAverageTTFT)
-			assert.Equal(t, tc.expectTTFT, ttft.Value)
-			assert.Equal(t, BenchmarkMetricLatencyUnit, ttft.Unit)
-			assert.Equal(t, tc.expectConfig, ttft.Config)
-
-			tpot, ok := result.Metrics[BenchmarkMetricAverageTPOT]
-			require.True(t, ok, "expected %q key in Metrics map", BenchmarkMetricAverageTPOT)
-			assert.Equal(t, tc.expectTPOT, tpot.Value)
-			assert.Equal(t, BenchmarkMetricLatencyUnit, tpot.Unit)
-			assert.Equal(t, tc.expectConfig, tpot.Config)
 		})
 	}
 }
@@ -143,7 +108,7 @@ func TestParseBenchmarkResult(t *testing.T) {
 // TestParseBenchmarkResultMergesRuntimeConfig verifies that the runtime metadata
 // config is recorded in the peak metric alongside any benchmark parameters.
 func TestParseBenchmarkResultMergesRuntimeConfig(t *testing.T) {
-	logs := "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"warmup_sec\":20,\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
+	logs := "KAITO_BENCHMARK_CONFIG 2026-01-01T00:00:00Z {\"duration_sec\":60,\"input_tokens\":2048,\"output_tokens\":256,\"max_concurrency\":523}\n" +
 		"KAITO_BENCHMARK_RESULT 2026-01-01T00:00:02Z {\"vllm_total_tpm\":12345.67,\"ttft_avg_ms\":100,\"tpot_avg_ms\":50}\n"
 	runtimeConfig := map[string]string{
 		ConfigKeyEngine:        "vllm",
@@ -156,7 +121,6 @@ func TestParseBenchmarkResultMergesRuntimeConfig(t *testing.T) {
 
 	m := result.Metrics[BenchmarkMetricPeakTPM]
 	// Benchmark parameters preserved.
-	assert.Equal(t, "20", m.Config["warmupSec"])
 	assert.Equal(t, "60", m.Config["durationSec"])
 	assert.Equal(t, "523", m.Config["maxConcurrency"])
 	// Runtime metadata merged in.
@@ -168,7 +132,7 @@ func TestParseBenchmarkResultMergesRuntimeConfig(t *testing.T) {
 // TestParseBenchmarkResultRuntimeConfigOnly verifies the runtime metadata is
 // recorded even when no KAITO_BENCHMARK_CONFIG line is present.
 func TestParseBenchmarkResultRuntimeConfigOnly(t *testing.T) {
-	logs := "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":20,\"tpot_avg_ms\":10}\n"
+	logs := "KAITO_BENCHMARK_RESULT 2026-01-01T00:00:00Z {\"vllm_total_tpm\":500,\"ttft_avg_ms\":0,\"tpot_avg_ms\":0}\n"
 	runtimeConfig := map[string]string{ConfigKeyEngine: "transformers", ConfigKeyEngineVersion: "5.6.0"}
 
 	result, err := parseBenchmarkResult(strings.NewReader(logs), runtimeConfig)

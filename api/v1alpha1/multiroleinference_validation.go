@@ -24,7 +24,6 @@ import (
 	"knative.dev/pkg/apis"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
@@ -202,28 +201,30 @@ func (m *MultiRoleInference) validateRoles() (errs *apis.FieldError) {
 // Workspace. Gating at MRI admission avoids surfacing a valid MRI whose
 // generated workspaces would silently drop speculative decoding.
 func (m *MultiRoleInference) validateSpeculativeDecoding() (errs *apis.FieldError) {
-	enabled, invalidValue := speculativedecoding.ValidateOptIn(m.GetAnnotations(), AnnotationEnableSpeculativeDecoding)
-	if invalidValue != "" {
+	// Preset must be set (MRI's shared model).
+	presetName := m.Spec.Model.Name
+	runtime := EffectiveInferenceRuntime(m.Annotations)
+
+	status, invalidValue := speculativedecoding.ValidateOptIn(
+		m.GetAnnotations(),
+		AnnotationEnableSpeculativeDecoding,
+		presetName,
+		runtime,
+	)
+	switch status {
+	case speculativedecoding.OptInDisabled:
+		return nil
+	case speculativedecoding.OptInInvalidValue:
 		return errs.Also(apis.ErrInvalidValue(
 			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, invalidValue),
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
 		))
-	}
-	if !enabled {
-		return nil
-	}
-
-	// Preset must be set (MRI's shared model).
-	presetName := m.Spec.Model.Name
-	if presetName == "" {
+	case speculativedecoding.OptInMissingPreset:
 		return errs.Also(apis.ErrGeneric(
 			"kaito.sh/enable-speculative-decoding requires spec.model.name",
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
 		))
-	}
-
-	runtime := EffectiveInferenceRuntime(m.Annotations)
-	if runtime != model.RuntimeNameVLLM {
+	case speculativedecoding.OptInRuntimeMismatch:
 		return errs.Also(apis.ErrGeneric(
 			fmt.Sprintf(
 				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; effective runtime resolves to %q (preset %q)",

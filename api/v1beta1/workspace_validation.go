@@ -169,28 +169,31 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 }
 
 func (w *Workspace) validateSpeculativeDecoding(ctx context.Context) (errs *apis.FieldError) {
-	enabled, invalidValue := speculativedecoding.ValidateOptIn(w.GetAnnotations(), AnnotationEnableSpeculativeDecoding)
-	if invalidValue != "" {
-		return errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, invalidValue),
-			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
-		))
-	}
-	if !enabled {
-		return nil
-	}
-
 	presetName := ""
 	if w.Inference != nil && w.Inference.Preset != nil {
 		presetName = string(w.Inference.Preset.Name)
 	}
-	if presetName == "" {
+
+	status, invalidValue := speculativedecoding.ValidateOptIn(
+		w.GetAnnotations(),
+		AnnotationEnableSpeculativeDecoding,
+		presetName,
+		GetWorkspaceRuntimeName(w),
+	)
+	switch status {
+	case speculativedecoding.OptInDisabled:
+		return nil
+	case speculativedecoding.OptInInvalidValue:
+		return errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("annotation %s has invalid value %q; expected \"true\" or \"false\"", AnnotationEnableSpeculativeDecoding, invalidValue),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
+		))
+	case speculativedecoding.OptInMissingPreset:
 		return errs.Also(apis.ErrGeneric(
 			"kaito.sh/enable-speculative-decoding requires a preset inference; remove the annotation or set inference.preset.name",
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationEnableSpeculativeDecoding),
 		))
-	}
-	if GetWorkspaceRuntimeName(w) != model.RuntimeNameVLLM {
+	case speculativedecoding.OptInRuntimeMismatch:
 		return errs.Also(apis.ErrGeneric(
 			fmt.Sprintf(
 				"kaito.sh/enable-speculative-decoding requires the vLLM runtime; preset %q is configured for a different runtime",

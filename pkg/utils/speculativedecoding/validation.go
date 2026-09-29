@@ -13,19 +13,33 @@
 
 package speculativedecoding
 
-// ValidateOptIn validates only the boolean annotation shape. It returns
-// enabled=true when the annotation is explicitly set to "true". For absent
-// or explicit "false", it returns enabled=false with no invalid value. When
-// the annotation is present but not a valid boolean opt-in, invalidValue is
-// set to the raw value so the caller can build the resource-specific field
-// error and path.
-func ValidateOptIn(annotations map[string]string, annotationKey string) (enabled bool, invalidValue string) {
+import "github.com/kaito-project/kaito/pkg/model"
+
+type OptInStatus int
+
+const (
+	OptInDisabled OptInStatus = iota
+	OptInInvalidValue
+	OptInMissingPreset
+	OptInRuntimeMismatch
+	OptInEnabled
+)
+
+// ValidateOptIn validates the common speculative-decoding opt-in flow while
+// leaving resource-specific field paths and error messages to the caller.
+func ValidateOptIn(annotations map[string]string, annotationKey, presetName string, runtime model.RuntimeName) (OptInStatus, string) {
 	val, present := annotations[annotationKey]
 	if !present || val == "false" {
-		return false, ""
+		return OptInDisabled, ""
 	}
 	if val != "true" {
-		return false, val
+		return OptInInvalidValue, val
 	}
-	return true, ""
+	if presetName == "" {
+		return OptInMissingPreset, ""
+	}
+	if runtime != model.RuntimeNameVLLM {
+		return OptInRuntimeMismatch, ""
+	}
+	return OptInEnabled, ""
 }

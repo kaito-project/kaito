@@ -13,7 +13,11 @@
 
 package speculativedecoding
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/kaito-project/kaito/pkg/model"
+)
 
 func TestValidateOptIn(t *testing.T) {
 	annotationKey := "kaito.sh/enable-speculative-decoding"
@@ -21,34 +25,54 @@ func TestValidateOptIn(t *testing.T) {
 	tests := []struct {
 		name             string
 		annotations      map[string]string
-		wantEnabled      bool
+		presetName       string
+		runtime          model.RuntimeName
+		wantStatus       OptInStatus
 		wantInvalidValue string
 	}{
 		{
 			name:        "annotation absent",
 			annotations: nil,
+			wantStatus:  OptInDisabled,
 		},
 		{
 			name:        "annotation false",
 			annotations: map[string]string{annotationKey: "false"},
+			wantStatus:  OptInDisabled,
 		},
 		{
 			name:             "annotation invalid",
 			annotations:      map[string]string{annotationKey: "yes"},
+			wantStatus:       OptInInvalidValue,
 			wantInvalidValue: "yes",
+		},
+		{
+			name:        "missing preset",
+			annotations: map[string]string{annotationKey: "true"},
+			runtime:     model.RuntimeNameVLLM,
+			wantStatus:  OptInMissingPreset,
+		},
+		{
+			name:        "runtime mismatch",
+			annotations: map[string]string{annotationKey: "true"},
+			presetName:  "deepseek-r1-0528",
+			runtime:     model.RuntimeNameHuggingfaceTransformers,
+			wantStatus:  OptInRuntimeMismatch,
 		},
 		{
 			name:        "valid opt-in",
 			annotations: map[string]string{annotationKey: "true"},
-			wantEnabled: true,
+			presetName:  "deepseek-r1-0528",
+			runtime:     model.RuntimeNameVLLM,
+			wantStatus:  OptInEnabled,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			enabled, invalidValue := ValidateOptIn(tc.annotations, annotationKey)
-			if enabled != tc.wantEnabled {
-				t.Fatalf("ValidateOptIn() enabled=%v want=%v", enabled, tc.wantEnabled)
+			status, invalidValue := ValidateOptIn(tc.annotations, annotationKey, tc.presetName, tc.runtime)
+			if status != tc.wantStatus {
+				t.Fatalf("ValidateOptIn() status=%v want=%v", status, tc.wantStatus)
 			}
 			if invalidValue != tc.wantInvalidValue {
 				t.Fatalf("ValidateOptIn() invalidValue=%q want=%q", invalidValue, tc.wantInvalidValue)

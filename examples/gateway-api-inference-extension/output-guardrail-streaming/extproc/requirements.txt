@@ -1,0 +1,4 @@
+grpcio==1.75.0
+protobuf==6.31.1
+xds-protos==1.81.1
+PyYAML==6.0.2

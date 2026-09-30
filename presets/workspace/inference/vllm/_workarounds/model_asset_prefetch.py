@@ -11,18 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Prefetch Run:ai object-storage model assets onto every Ray node.
+"""Prefetch non-weight model assets onto every Ray node.
 
-TEMPORARY WORKAROUND. vLLM pulls a remote model's non-weight files only where
-``ModelConfig`` is built and then hands the resolved node-local path to remote
-workers without populating their filesystems, so multi-node workers start
-against an empty directory. Delete this module and its three call sites in
-inference_api.py (``import``, ``register_args``, ``prefetch_model_assets``) once
-KAITO bundles the upstream fix: https://github.com/vllm-project/vllm/issues/50616
+TEMPORARY WORKAROUND. vLLM resolves model metadata and tokenizers on the driver,
+but Model Runner V2 also constructs model components on remote Ray workers.
+Populate each node's Run:ai and Hugging Face caches before engine startup.
 """
 
 import argparse
 import logging
+import multiprocessing
 import os
 import time
 from typing import TypedDict
@@ -61,13 +59,36 @@ _ALL_NON_WEIGHT_PATTERNS: PullPatterns = {
     "ignore_pattern": ["*.pt", "*.safetensors", "*.bin", "*.tensors", "*.pth"]
 }
 
+_HF_NON_WEIGHT_PATTERNS = [
+    "*.json",
+    "*.py",
+    "*.model",
+    "*.tiktoken",
+    "*.txt",
+    "*.jinja",
+    "*.jinja2",
+]
 
-def _prefetch_model_assets_on_node(assets: dict[str, PullPatterns]) -> None:
-    """Mirror one node's Run:ai object-storage cache. Runs as a Ray task."""
+
+def _prefetch_model_assets_on_node(
+    assets: dict[str, PullPatterns],
+    hf_assets: list[tuple[str, str | None]] | None = None,
+) -> None:
+    """Mirror one node's remote model caches. Runs as a Ray task."""
     from vllm.transformers_utils.runai_utils import ObjectStorageModel
 
     for uri, patterns in assets.items():
         ObjectStorageModel(url=uri).pull_files(uri, **patterns)
+
+    if hf_assets:
+        from huggingface_hub import snapshot_download
+
+        for repo_id, revision in hf_assets:
+            snapshot_download(
+                repo_id=repo_id,
+                revision=revision,
+                allow_patterns=_HF_NON_WEIGHT_PATTERNS,
+            )
 
 
 def _remote_model_assets(args: argparse.Namespace) -> dict[str, PullPatterns]:
@@ -91,8 +112,44 @@ def _remote_model_assets(args: argparse.Namespace) -> dict[str, PullPatterns]:
     return assets
 
 
-def prefetch_model_assets(args: argparse.Namespace) -> None:
-    """Populate node-local Run:ai assets on every Ray node before serving.
+def _is_hf_repo_id(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and value.count("/") == 1
+        and "://" not in value
+        and not os.path.isabs(value)
+        and not value.startswith((".", "~"))
+        and not os.path.exists(value)
+    )
+
+
+def _remote_hf_assets(args: argparse.Namespace) -> list[tuple[str, str | None]]:
+    """Map Hugging Face repositories to the revisions workers must cache."""
+    assets: list[tuple[str, str | None]] = []
+
+    def add(repo_id: object, revision: str | None) -> None:
+        asset = (repo_id, revision)
+        if _is_hf_repo_id(repo_id) and asset not in assets:
+            assets.append(asset)
+
+    if _is_hf_repo_id(args.model):
+        add(args.model, getattr(args, "revision", None))
+
+    tokenizer = getattr(args, "tokenizer", None) or args.model
+    add(
+        tokenizer,
+        (getattr(args, "tokenizer_revision", None) or getattr(args, "revision", None)),
+    )
+
+    speculative_config = getattr(args, "speculative_config", None)
+    if isinstance(speculative_config, dict):
+        draft_model = speculative_config.get("model")
+        add(draft_model, speculative_config.get("revision"))
+    return assets
+
+
+def _prefetch_model_assets(args: argparse.Namespace) -> None:
+    """Populate node-local model assets on every Ray node before serving.
 
     vLLM pulls a remote model's non-weight files (config, tokenizer, processor,
     ``trust_remote_code`` modules) only where ``ModelConfig`` is built, then ships
@@ -109,7 +166,8 @@ def prefetch_model_assets(args: argparse.Namespace) -> None:
         return
 
     assets = _remote_model_assets(args)
-    if not assets:
+    hf_assets = _remote_hf_assets(args)
+    if not assets and not hf_assets:
         return
 
     timeout = args.kaito_model_asset_prefetch_timeout
@@ -124,10 +182,6 @@ def prefetch_model_assets(args: argparse.Namespace) -> None:
     if not ray.is_initialized():
         # address="auto" attaches to the head started by multi-node-serving.sh and
         # raises if it is absent; it never silently forms a leader-only cluster.
-        # Note: because the driver is now attached, vLLM's initialize_ray_cluster
-        # takes its "already initialized" path and skips applying
-        # parallel_config.ray_runtime_env. KAITO never sets that field; wire it in
-        # below if it ever does.
         ray.init(address="auto")
 
     # Keep the driver's runtime environment (working_dir, pip, env_vars). Do not
@@ -153,7 +207,9 @@ def prefetch_model_assets(args: argparse.Namespace) -> None:
         raise RuntimeError("Ray cluster does not include the API leader")
 
     logger.info(
-        "Prefetching model assets %s on %d Ray nodes", sorted(assets), len(nodes)
+        "Prefetching model assets %s on %d Ray nodes",
+        sorted(set(assets) | {repo_id for repo_id, _ in hf_assets}),
+        len(nodes),
     )
     download = ray.remote(num_cpus=0, num_gpus=0, max_retries=0, max_calls=1)(
         _prefetch_model_assets_on_node
@@ -161,14 +217,14 @@ def prefetch_model_assets(args: argparse.Namespace) -> None:
     refs = []
     try:
         for node_id in nodes:
-            refs.append(
-                download.options(
-                    scheduling_strategy=NodeAffinitySchedulingStrategy(
-                        node_id, soft=False
-                    ),
-                    runtime_env=runtime_env,
-                ).remote(assets)
+            task = download.options(
+                scheduling_strategy=NodeAffinitySchedulingStrategy(node_id, soft=False),
+                runtime_env=runtime_env,
             )
+            if hf_assets:
+                refs.append(task.remote(assets, hf_assets))
+            else:
+                refs.append(task.remote(assets))
         ray.get(refs, timeout=max(0, deadline - time.monotonic()))
         if {node["NodeID"] for node in ray.nodes() if node["Alive"]} != set(nodes):
             raise RuntimeError("Ray cluster membership changed during asset prefetch")
@@ -182,3 +238,35 @@ def prefetch_model_assets(args: argparse.Namespace) -> None:
                 logger.warning("Failed to cancel asset-prefetch task", exc_info=True)
         raise
     logger.info("Model assets are ready on all %d Ray nodes", len(nodes))
+
+
+def prefetch_model_assets(args: argparse.Namespace) -> None:
+    """Run the Ray prefetch barrier without contaminating EngineCore state."""
+    if args.distributed_executor_backend != "ray":
+        return
+
+    timeout = args.kaito_model_asset_prefetch_timeout
+    if timeout <= 0:
+        raise ValueError("--kaito-model-asset-prefetch-timeout must be positive")
+
+    # vLLM spawns EngineCore after this function returns. Initializing Ray in the
+    # API process leaks client state into EngineCore and can deadlock multi-node
+    # placement-group creation. A spawned child has a fresh interpreter and exits
+    # after the barrier, leaving the API process Ray-clean.
+    context = multiprocessing.get_context("spawn")
+    process = context.Process(target=_prefetch_model_assets, args=(args,))
+    process.start()
+    process.join(timeout + 30)
+    if process.is_alive():
+        process.terminate()
+        process.join(10)
+        if process.is_alive():
+            process.kill()
+            process.join()
+        raise TimeoutError(
+            f"model asset prefetch process exceeded {timeout + 30} seconds"
+        )
+    if process.exitcode != 0:
+        raise RuntimeError(
+            f"model asset prefetch process exited with code {process.exitcode}"
+        )

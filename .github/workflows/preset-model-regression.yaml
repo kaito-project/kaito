@@ -124,7 +124,13 @@ jobs:
             | map({
                 gpu: .,
                 region: $pools[.].region,
-                fallback_region: ($pools[.].fallbackRegion // "")
+                fallback_region: ($pools[.].fallbackRegion // ""),
+                system_pool_vm_size: ($pools[.].systemPoolVmSize // "Standard_D4d_v4"),
+                fallback_system_pool_vm_size: (
+                  $pools[.].fallbackSystemPoolVmSize
+                  // $pools[.].systemPoolVmSize
+                  // "Standard_D4d_v4"
+                )
               })
             | { include: . }
           ' "$TARGETS_FILE")
@@ -158,6 +164,8 @@ jobs:
       GPU: ${{ matrix.gpu }}
       AZURE_LOCATION: ${{ matrix.region }}
       FALLBACK_LOCATION: ${{ matrix.fallback_region }}
+      SYSTEM_POOL_VM_SIZE: ${{ matrix.system_pool_vm_size }}
+      FALLBACK_SYSTEM_POOL_VM_SIZE: ${{ matrix.fallback_system_pool_vm_size }}
       SUBSCRIPTION: ${{ inputs.subscription || 'AKS Upstream E2E' }}
       MODEL_FILTER: ${{ inputs.models || '' }}
       KARPENTER_NAMESPACE: "karpenter"
@@ -331,18 +339,20 @@ jobs:
         run: |
           set -euo pipefail
           create_cluster() {
+            local location="$1"
+            local vm_size="$2"
             # Pin the node resource group: the default MC_<rg>_<cluster>_<region>
             # exceeds the 80-char limit once rg and cluster share a long name.
             az aks create --name "$CLUSTER_NAME" --resource-group "$CLUSTER_NAME" \
               --node-resource-group "MC_${CLUSTER_NAME}" \
-              --location "$1" --node-vm-size Standard_D4d_v4 --node-count 2 \
+              --location "$location" --node-vm-size "$vm_size" --node-count 2 \
               --generate-ssh-keys \
               --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
               --enable-managed-identity --enable-workload-identity --enable-oidc-issuer -o none
           }
 
           set +e
-          create_cluster "$AZURE_LOCATION"
+          create_cluster "$AZURE_LOCATION" "$SYSTEM_POOL_VM_SIZE"
           rc=$?
           set -e
           if [ $rc -ne 0 ]; then
@@ -350,8 +360,8 @@ jobs:
               echo "::error::AKS creation failed in ${AZURE_LOCATION} and no fallback region is configured for ${GPU}"
               exit 1
             fi
-            echo "::warning::AKS creation failed in ${AZURE_LOCATION} (rc=${rc}); retrying in ${FALLBACK_LOCATION}"
-            create_cluster "$FALLBACK_LOCATION"
+            echo "::warning::AKS creation failed in ${AZURE_LOCATION} (rc=${rc}); retrying in ${FALLBACK_LOCATION} with ${FALLBACK_SYSTEM_POOL_VM_SIZE}"
+            create_cluster "$FALLBACK_LOCATION" "$FALLBACK_SYSTEM_POOL_VM_SIZE"
             echo "AZURE_LOCATION=${FALLBACK_LOCATION}" >> "$GITHUB_ENV"
           fi
 

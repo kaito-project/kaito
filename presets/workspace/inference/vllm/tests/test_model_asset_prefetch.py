@@ -33,6 +33,8 @@ def make_args(**overrides):
     values = {
         "model": "az://container/model",
         "tokenizer": None,
+        "revision": None,
+        "tokenizer_revision": None,
         "speculative_config": None,
         "distributed_executor_backend": "ray",
         "pipeline_parallel_size": 2,
@@ -70,7 +72,7 @@ def test_parser_accepts_prefetch_timeout(monkeypatch, argv, timeout):
         inference_api.KAITOArgumentParser, "vllm_parser", argparse.ArgumentParser()
     )
     monkeypatch.setattr(
-        inference_api.api_server, "make_arg_parser", lambda parser: parser
+        inference_api.launcher_cli_args, "make_arg_parser", lambda parser: parser
     )
     monkeypatch.setattr(inference_api, "get_max_gpu_memory_utilization", lambda: 0.9)
     args = inference_api.KAITOArgumentParser().parse_args(argv)
@@ -110,7 +112,7 @@ def runtime(monkeypatch):
 
 def test_prefetches_every_alive_node_with_hard_affinity(runtime):
     ray, strategy, _, _ = runtime
-    model_asset_prefetch.prefetch_model_assets(make_args())
+    model_asset_prefetch._prefetch_model_assets(make_args())
     ray.init.assert_called_once_with(address="auto")
     ray.remote.assert_called_once_with(
         num_cpus=0, num_gpus=0, max_retries=0, max_calls=1
@@ -134,14 +136,41 @@ def test_prefetches_every_alive_node_with_hard_affinity(runtime):
         {"distributed_executor_backend": "mp"},
         {"distributed_executor_backend": None},
         {"model": "/local/model"},
-        {"model": "org/model"},
     ],
 )
 def test_unaffected_launches_do_not_connect_ray(runtime, overrides):
     ray, _, _, _ = runtime
-    model_asset_prefetch.prefetch_model_assets(make_args(**overrides))
+    model_asset_prefetch._prefetch_model_assets(make_args(**overrides))
     ray.init.assert_not_called()
     ray.remote.assert_not_called()
+
+
+def test_prefetches_huggingface_assets_on_every_node(runtime):
+    ray, strategy, _, _ = runtime
+    args = make_args(
+        model="Qwen/Qwen3.6-35B-A3B",
+        revision="model-revision",
+        tokenizer_revision="tokenizer-revision",
+    )
+    model_asset_prefetch._prefetch_model_assets(args)
+    strategy.assert_has_calls([call("leader", soft=False), call("worker", soft=False)])
+    download = ray.remote.return_value.return_value
+    assert download.options.return_value.remote.call_args_list == [
+        call(
+            {},
+            [
+                ("Qwen/Qwen3.6-35B-A3B", "model-revision"),
+                ("Qwen/Qwen3.6-35B-A3B", "tokenizer-revision"),
+            ],
+        ),
+        call(
+            {},
+            [
+                ("Qwen/Qwen3.6-35B-A3B", "model-revision"),
+                ("Qwen/Qwen3.6-35B-A3B", "tokenizer-revision"),
+            ],
+        ),
+    ]
 
 
 @pytest.mark.parametrize("scheme", ["az", "s3", "gs"])
@@ -149,7 +178,7 @@ def test_uses_helper_supported_remote_schemes(runtime, scheme):
     ray, _, _, _ = runtime
     uri = f"{scheme}://container/exact-prefix/"
     args = make_args(model=uri)
-    model_asset_prefetch.prefetch_model_assets(args)
+    model_asset_prefetch._prefetch_model_assets(args)
     ray.remote.return_value.return_value.options.return_value.remote.assert_called_with(
         {uri: ALL_NON_WEIGHT}
     )
@@ -159,7 +188,7 @@ def test_uses_helper_supported_remote_schemes(runtime, scheme):
 
 def test_separate_tokenizer_and_draft_assets(runtime):
     ray, _, _, _ = runtime
-    model_asset_prefetch.prefetch_model_assets(
+    model_asset_prefetch._prefetch_model_assets(
         make_args(
             tokenizer="az://container/tokenizer",
             speculative_config={"model": "az://container/draft"},
@@ -178,7 +207,7 @@ def test_separate_tokenizer_and_draft_assets(runtime):
 def test_unusable_speculative_config_is_ignored(runtime, speculative_config):
     """--speculative-config may arrive unparsed; never crash the launch on it."""
     ray, _, _, _ = runtime
-    model_asset_prefetch.prefetch_model_assets(
+    model_asset_prefetch._prefetch_model_assets(
         make_args(speculative_config=speculative_config)
     )
     ray.remote.return_value.return_value.options.return_value.remote.assert_called_with(
@@ -191,7 +220,7 @@ def test_missing_optional_vllm_args_do_not_crash(runtime):
     args = make_args()
     del args.tokenizer
     del args.speculative_config
-    model_asset_prefetch.prefetch_model_assets(args)
+    model_asset_prefetch._prefetch_model_assets(args)
     ray.remote.return_value.return_value.options.return_value.remote.assert_called_with(
         {"az://container/model": ALL_NON_WEIGHT}
     )
@@ -199,7 +228,7 @@ def test_missing_optional_vllm_args_do_not_crash(runtime):
 
 def test_remote_tokenizer_with_local_model(runtime):
     ray, _, _, _ = runtime
-    model_asset_prefetch.prefetch_model_assets(
+    model_asset_prefetch._prefetch_model_assets(
         make_args(model="/model", tokenizer="az://container/tokenizer")
     )
     ray.remote.return_value.return_value.options.return_value.remote.assert_called_with(
@@ -209,7 +238,7 @@ def test_remote_tokenizer_with_local_model(runtime):
 
 def test_local_tokenizer_does_not_download_remote_tokenizer_assets(runtime):
     ray, _, _, _ = runtime
-    model_asset_prefetch.prefetch_model_assets(make_args(tokenizer="/tokenizer"))
+    model_asset_prefetch._prefetch_model_assets(make_args(tokenizer="/tokenizer"))
     ray.remote.return_value.return_value.options.return_value.remote.assert_called_with(
         {"az://container/model": MODEL_ONLY}
     )
@@ -248,6 +277,33 @@ def test_worker_propagates_download_failure(runtime):
         )
 
 
+def test_worker_prefetches_huggingface_nonweight_assets(runtime, monkeypatch):
+    huggingface_hub = ModuleType("huggingface_hub")
+    huggingface_hub.snapshot_download = MagicMock()
+    monkeypatch.setitem(sys.modules, "huggingface_hub", huggingface_hub)
+
+    model_asset_prefetch._prefetch_model_assets_on_node(
+        {},
+        [
+            ("Qwen/Qwen3.6-35B-A3B", "model-revision"),
+            ("org/tokenizer", None),
+        ],
+    )
+
+    assert huggingface_hub.snapshot_download.call_args_list == [
+        call(
+            repo_id="Qwen/Qwen3.6-35B-A3B",
+            revision="model-revision",
+            allow_patterns=model_asset_prefetch._HF_NON_WEIGHT_PATTERNS,
+        ),
+        call(
+            repo_id="org/tokenizer",
+            revision=None,
+            allow_patterns=model_asset_prefetch._HF_NON_WEIGHT_PATTERNS,
+        ),
+    ]
+
+
 @pytest.mark.parametrize(
     "credential",
     ["AZURE_STORAGE_SAS_TOKEN", "AZURE_FEDERATED_TOKEN_FILE"],
@@ -264,7 +320,7 @@ def test_cache_and_runtime_env_preserved_without_copying_leader_credentials(
     }
     envs.VLLM_ASSETS_CACHE = "relative/assets"
     monkeypatch.setenv(credential, "leader-only")
-    model_asset_prefetch.prefetch_model_assets(make_args())
+    model_asset_prefetch._prefetch_model_assets(make_args())
     ray.init.assert_not_called()
     options = ray.remote.return_value.return_value.options.call_args.kwargs
     assert options["runtime_env"] == {
@@ -284,7 +340,7 @@ def test_cache_and_runtime_env_preserved_without_copying_leader_credentials(
 def test_nonpositive_timeout_fails_before_connecting(runtime, timeout):
     ray, _, _, _ = runtime
     with pytest.raises(ValueError, match="must be positive"):
-        model_asset_prefetch.prefetch_model_assets(
+        model_asset_prefetch._prefetch_model_assets(
             make_args(kaito_model_asset_prefetch_timeout=timeout)
         )
     ray.init.assert_not_called()
@@ -294,7 +350,7 @@ def test_missing_cluster_fails_without_starting_local_ray(runtime):
     ray, _, _, _ = runtime
     ray.init.side_effect = ConnectionError("missing cluster")
     with pytest.raises(ConnectionError, match="missing cluster"):
-        model_asset_prefetch.prefetch_model_assets(make_args())
+        model_asset_prefetch._prefetch_model_assets(make_args())
     ray.init.assert_called_once_with(address="auto")
     ray.remote.assert_not_called()
 
@@ -307,7 +363,7 @@ def test_discovers_all_nodes_without_a_separate_cluster_size(runtime):
         node("extra"),
         node("dead", False),
     ]
-    model_asset_prefetch.prefetch_model_assets(make_args())
+    model_asset_prefetch._prefetch_model_assets(make_args())
     assert ray.remote.return_value.return_value.options.call_count == 3
     assert len(ray.get.call_args.args[0]) == 3
 
@@ -315,7 +371,7 @@ def test_discovers_all_nodes_without_a_separate_cluster_size(runtime):
 def test_single_node_ray_cluster_prefetches_without_count_argument(runtime):
     ray, _, _, _ = runtime
     ray.nodes.return_value = [node("leader")]
-    model_asset_prefetch.prefetch_model_assets(make_args(pipeline_parallel_size=1))
+    model_asset_prefetch._prefetch_model_assets(make_args(pipeline_parallel_size=1))
     assert ray.remote.return_value.return_value.options.call_count == 1
 
 
@@ -327,7 +383,7 @@ def test_cluster_without_the_leader_fails(runtime, nodes):
     ray, _, _, _ = runtime
     ray.nodes.return_value = nodes
     with pytest.raises(RuntimeError, match="API leader"):
-        model_asset_prefetch.prefetch_model_assets(make_args())
+        model_asset_prefetch._prefetch_model_assets(make_args())
     ray.remote.assert_not_called()
 
 
@@ -335,7 +391,7 @@ def test_gpu_topology_is_left_to_vllm(runtime):
     """vLLM only warns when GPUs look short; the prefetch must not hard-fail."""
     ray, _, _, _ = runtime
     ray.nodes.return_value = [node("leader", gpus=0), node("worker", gpus=0)]
-    model_asset_prefetch.prefetch_model_assets(make_args(tensor_parallel_size=8))
+    model_asset_prefetch._prefetch_model_assets(make_args(tensor_parallel_size=8))
     assert ray.remote.return_value.return_value.options.call_count == 2
 
 
@@ -345,7 +401,7 @@ def test_driver_cache_setting_wins_and_is_pinned(runtime, monkeypatch):
     ray.get_runtime_context.return_value.runtime_env = {
         "env_vars": {"VLLM_ASSETS_CACHE": "/stale/assets"}
     }
-    model_asset_prefetch.prefetch_model_assets(make_args())
+    model_asset_prefetch._prefetch_model_assets(make_args())
     options = ray.remote.return_value.return_value.options.call_args.kwargs
     assert options["runtime_env"]["env_vars"]["VLLM_ASSETS_CACHE"] == "/cache/assets"
     assert os.environ["VLLM_ASSETS_CACHE"] == "/cache/assets"
@@ -356,7 +412,7 @@ def test_barrier_failure_cancels_tasks_and_propagates(runtime, error):
     ray, _, _, _ = runtime
     ray.get.side_effect = error
     with pytest.raises(type(error), match=str(error)):
-        model_asset_prefetch.prefetch_model_assets(make_args())
+        model_asset_prefetch._prefetch_model_assets(make_args())
     assert ray.cancel.call_count == 2
     assert all(c.kwargs == {"force": True} for c in ray.cancel.call_args_list)
 
@@ -368,7 +424,7 @@ def test_node_replacement_during_download_fails(runtime):
         [node("leader"), node("replacement")],
     ]
     with pytest.raises(RuntimeError, match="membership changed"):
-        model_asset_prefetch.prefetch_model_assets(make_args())
+        model_asset_prefetch._prefetch_model_assets(make_args())
 
 
 def test_partial_submission_failure_cancels_started_tasks(runtime):
@@ -378,7 +434,7 @@ def test_partial_submission_failure_cancels_started_tasks(runtime):
         RuntimeError("submission"),
     ]
     with pytest.raises(RuntimeError, match="submission"):
-        model_asset_prefetch.prefetch_model_assets(make_args())
+        model_asset_prefetch._prefetch_model_assets(make_args())
     ray.cancel.assert_called_once_with("first-ref", force=True)
 
 
@@ -387,7 +443,45 @@ def test_cancellation_failure_does_not_hide_download_error(runtime):
     ray.get.side_effect = RuntimeError("download")
     ray.cancel.side_effect = RuntimeError("cancellation")
     with pytest.raises(RuntimeError, match="download"):
-        model_asset_prefetch.prefetch_model_assets(make_args())
+        model_asset_prefetch._prefetch_model_assets(make_args())
+
+
+def test_public_prefetch_uses_spawned_process(monkeypatch):
+    process = MagicMock(exitcode=0)
+    process.is_alive.return_value = False
+    context = MagicMock()
+    context.Process.return_value = process
+    monkeypatch.setattr(
+        model_asset_prefetch.multiprocessing,
+        "get_context",
+        MagicMock(return_value=context),
+    )
+    args = make_args(model="org/model")
+
+    model_asset_prefetch.prefetch_model_assets(args)
+
+    model_asset_prefetch.multiprocessing.get_context.assert_called_once_with("spawn")
+    context.Process.assert_called_once_with(
+        target=model_asset_prefetch._prefetch_model_assets,
+        args=(args,),
+    )
+    process.start.assert_called_once_with()
+    process.join.assert_called_once_with(630)
+
+
+def test_public_prefetch_propagates_child_failure(monkeypatch):
+    process = MagicMock(exitcode=7)
+    process.is_alive.return_value = False
+    context = MagicMock()
+    context.Process.return_value = process
+    monkeypatch.setattr(
+        model_asset_prefetch.multiprocessing,
+        "get_context",
+        MagicMock(return_value=context),
+    )
+
+    with pytest.raises(RuntimeError, match="exited with code 7"):
+        model_asset_prefetch.prefetch_model_assets(make_args(model="org/model"))
 
 
 def test_prefetch_precedes_server_construction():

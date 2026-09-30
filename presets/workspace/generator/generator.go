@@ -70,27 +70,36 @@ var (
 	mistralRegex    = regexp.MustCompile(`consolidated.*\.safetensors`)
 	// source: https://github.com/vllm-project/vllm/blob/main/vllm/reasoning/__init__.py
 	reasoningParserModeNamePrefixMap = map[string]string{
-		"deepseek-r1":  "deepseek_r1",
-		"deepseek-v3":  "deepseek_v3",
-		"deepseek-v4":  "deepseek_v4",
-		"ernie-4.5":    "ernie45",
-		"gemma-4":      "gemma4",
-		"glm-4.5":      "glm45",
-		"granite-3.2":  "granite",
-		"holo2":        "holo2",
-		"hunyuan-a13b": "hunyuan_a13b",
-		"kimi-k2":      "kimi_k2",
-		"laguna":       "poolside_v1",
-		"minimax-m2":   "minimax_m2_append_think",
-		"minimax-m3":   "minimax_m3",
-		"mimo":         "mimo",
-		"mistral":      "mistral",
-		"olmo-3":       "olmo3",
-		"qwen3":        "qwen3",
-		"qwq-32b":      "deepseek_r1",
-		"step3":        "step3",
+		"deepseek-r1":   "deepseek_r1",
+		"deepseek-v3":   "deepseek_v3",
+		"deepseek-v4":   "deepseek_v4",
+		"deepseek-v4.1": "deepseek_v41",
+		"ernie-4.5":     "ernie45",
+		"gemma-4":       "gemma4",
+		"glm-4.5":       "glm45",
+		"granite-3.2":   "granite",
+		"holo2":         "holo2",
+		"hunyuan-a13b":  "hunyuan_a13b",
+		"hy-v4":         "hy_v4",
+		"inkling":       "inkling",
+		"k2-horizon":    "k2_horizon",
+		"kimi-k2":       "kimi_k2",
+		"kimi-k3":       "kimi_k3",
+		"laguna":        "poolside_v1",
+		"minimax-m2":    "minimax_m2_append_think",
+		"minimax-m3":    "minimax_m3",
+		"mimo":          "mimo",
+		"mistral":       "mistral",
+		"muse-glimmer":  "muse_glimmer",
+		"olmo-3":        "olmo3",
+		"qwen3":         "qwen3",
+		"qwq-32b":       "deepseek_r1",
+		"step3":         "step3",
 	}
 	reasoningParserArchMap = map[string]string{
+		"DeepseekV41ForCausalLM":                  "deepseek_v41",
+		"DeepseekV4ForCausalLM":                   "deepseek_v4",
+		"DeepseekV4ForConditionalGeneration":      "deepseek_v4",
 		"DeepseekV3ForCausalLM":                   "deepseek_v3",
 		"Ernie4_5_VLMoeForConditionalGeneration":  "ernie45",
 		"Ernie4_5_MoeForCausalLM":                 "ernie45",
@@ -107,6 +116,11 @@ var (
 		"MiniMaxM3SparseForConditionalGeneration": "minimax_m3",
 		"MiMoForCausalLM":                         "mimo",
 		"HYV3ForCausalLM":                         "hy_v3",
+		"HYV4ForCausalLM":                         "hy_v4",
+		"InklingForCausalLM":                      "inkling",
+		"InklingForConditionalGeneration":         "inkling",
+		"K2HorizonForCausalLM":                    "k2_horizon",
+		"KimiK3ForConditionalGeneration":          "kimi_k3",
 		"LagunaForCausalLM":                       "poolside_v1",
 		"Mistral3ForConditionalGeneration":        "mistral",
 		"MistralForCausalLM":                      "mistral",
@@ -116,8 +130,12 @@ var (
 		"OlmoForCausalLM":                         "olmo3",
 		"Qwen3ForCausalLM":                        "qwen3",
 		"Qwen3MoeForCausalLM":                     "qwen3",
+		"Qwen3_5ForCausalLM":                      "qwen3",
 		"Qwen3_5ForConditionalGeneration":         "qwen3",
+		"Qwen3_5MoeForCausalLM":                   "qwen3",
 		"Qwen3_5MoeForConditionalGeneration":      "qwen3",
+		"MuseGlimmerForCausalLM":                  "muse_glimmer",
+		"MuseGlimmerForConditionalGeneration":     "muse_glimmer",
 		"GptOssForCausalLM":                       "openai_gptoss",
 		"Step3TextForCausalLM":                    "step3",
 		"Step3VLForConditionalGeneration":         "step3",
@@ -164,8 +182,13 @@ var (
 		"deepseek-v3.1":       "deepseek_v31",
 		"deepseek-v3.2":       "deepseek_v32",
 		"deepseek-v4":         "deepseek_v4",
+		"deepseek-v4.1":       "deepseek_v41",
 		"kimi_k2":             "kimi_k2",
+		"kimi-k3":             "kimi_k3",
+		"k2-horizon":          "k2_horizon",
 		"hunyuan-a13b":        "hunyuan_a13b",
+		"hy-v4":               "hy_v4",
+		"inkling":             "inkling",
 		"longcat":             "longcat",
 		"glm-4":               "glm45",
 		"glm-4.7":             "glm47",
@@ -175,6 +198,7 @@ var (
 		"qwen3.6":             "qwen3_coder",
 		"qwen3.8":             "qwen3_coder",
 		"olmo-3":              "olmo3",
+		"muse-glimmer":        "muse_glimmer",
 		"gigachat3":           "gigachat3",
 		"ernie-4.5":           "ernie45",
 		"phi4-mini":           "phi4_mini_json",
@@ -187,6 +211,9 @@ var (
 
 	// key is model architecture name, value is ToolCallParser mode name
 	toolCallParserArchMap = map[string]string{
+		"DeepseekV41ForCausalLM":                  "deepseek_v41",
+		"DeepseekV4ForCausalLM":                   "deepseek_v4",
+		"DeepseekV4ForConditionalGeneration":      "deepseek_v4",
 		"MistralForCausalLM":                      "mistral",
 		"MistralLarge3ForCausalLM":                "mistral",
 		"LlamaForCausalLM":                        "llama3_json",
@@ -200,13 +227,20 @@ var (
 		"Qwen2ForCausalLM":                        "hermes",
 		"Qwen3ForCausalLM":                        "hermes",
 		"Qwen3MoeForCausalLM":                     "qwen3_xml",
+		"Qwen3_5ForCausalLM":                      "qwen3_coder",
 		"Qwen3_5ForConditionalGeneration":         "qwen3_coder",
+		"Qwen3_5MoeForCausalLM":                   "qwen3_coder",
 		"Qwen3_5MoeForConditionalGeneration":      "qwen3_coder",
 		"MiniMaxM2ForCausalLM":                    "minimax_m2",
 		"MiniMaxM3SparseForCausalLM":              "minimax_m3",
 		"MiniMaxM3SparseForConditionalGeneration": "minimax_m3",
 		"MiMoForCausalLM":                         "mimo",
 		"HYV3ForCausalLM":                         "hy_v3",
+		"HYV4ForCausalLM":                         "hy_v4",
+		"InklingForCausalLM":                      "inkling",
+		"InklingForConditionalGeneration":         "inkling",
+		"K2HorizonForCausalLM":                    "k2_horizon",
+		"KimiK3ForConditionalGeneration":          "kimi_k3",
 		"LagunaForCausalLM":                       "poolside_v1",
 		"Lfm2ForCausalLM":                         "lfm2",
 		"Lfm2MoeForCausalLM":                      "lfm2",
@@ -234,6 +268,8 @@ var (
 		"KimiK2ForCausalLM":                       "kimi_k2",
 		"KimiK25ForConditionalGeneration":         "kimi_k2",
 		"GigaChat3ForCausalLM":                    "gigachat3",
+		"MuseGlimmerForCausalLM":                  "muse_glimmer",
+		"MuseGlimmerForConditionalGeneration":     "muse_glimmer",
 	}
 
 	// chatTemplatePrefixMap maps model name prefixes to vllm-customized chat templates.
@@ -616,6 +652,25 @@ func getString(config map[string]interface{}, keys []string) string {
 	return ""
 }
 
+func parserForModelPrefix(modelName string, parserByPrefix map[string]string) string {
+	prefixes := make([]string, 0, len(parserByPrefix))
+	for prefix := range parserByPrefix {
+		prefixes = append(prefixes, prefix)
+	}
+	sort.Slice(prefixes, func(i, j int) bool {
+		if len(prefixes[i]) == len(prefixes[j]) {
+			return prefixes[i] > prefixes[j]
+		}
+		return len(prefixes[i]) > len(prefixes[j])
+	})
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(modelName, prefix) {
+			return parserByPrefix[prefix]
+		}
+	}
+	return ""
+}
+
 func (g *Generator) ParseModelMetadata() {
 	maxPos := getInt(g.ModelConfig, configKeyMap["modelTokenLimit"], DefaultModelTokenLimit)
 
@@ -641,12 +696,7 @@ func (g *Generator) ParseModelMetadata() {
 
 	// set reasoning parser based on model name prefix
 	if !nonReasoningModels[g.Param.Metadata.Name] {
-		for prefix, parser := range reasoningParserModeNamePrefixMap {
-			if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-				g.Param.Metadata.ReasoningParser = parser
-				break
-			}
-		}
+		g.Param.Metadata.ReasoningParser = parserForModelPrefix(g.Param.Metadata.Name, reasoningParserModeNamePrefixMap)
 
 		// set reasoning parser based on model architecture if not set by name prefix
 		if g.Param.Metadata.ReasoningParser == "" {
@@ -659,21 +709,8 @@ func (g *Generator) ParseModelMetadata() {
 		}
 	}
 
-	// set ToolCallParser based on model name prefix
-	// sort the keys of toolCallParserModeNamePrefixMap in reverse alphabetical order and then iterate
-	// this is to ensure that longer (more specific) prefixes are matched first
-	prefixes := make([]string, 0, len(toolCallParserModeNamePrefixMap))
-	for prefix := range toolCallParserModeNamePrefixMap {
-		prefixes = append(prefixes, prefix)
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(prefixes)))
-
-	for _, prefix := range prefixes {
-		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			g.Param.Metadata.ToolCallParser = toolCallParserModeNamePrefixMap[prefix]
-			break
-		}
-	}
+	// Set ToolCallParser based on the most-specific model name prefix.
+	g.Param.Metadata.ToolCallParser = parserForModelPrefix(g.Param.Metadata.Name, toolCallParserModeNamePrefixMap)
 
 	// set ToolCallParser based on model architecture if not set by name prefix
 	if g.Param.Metadata.ToolCallParser == "" {

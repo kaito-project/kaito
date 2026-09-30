@@ -160,10 +160,10 @@ func validateModelMirrorResources(modelID, namespace string) {
 }
 
 // validateStreamingPodShape asserts the inference pod streams from az:// (workspace pod).
-func validateStreamingPodShape(workspaceObj *kaitov1beta1.Workspace, modelID string, distributed bool) {
+func validateStreamingPodShape(workspaceObj *kaitov1beta1.Workspace, modelID string, multiNode, distributedLoader bool) {
 	By(fmt.Sprintf("Checking streaming pod shape for %s", workspaceObj.Name), func() {
 		Eventually(func() error {
-			return assertStreamingPod(workspaceObj.Namespace, workspaceObj.Name, modelID, distributed)
+			return assertStreamingPod(workspaceObj.Namespace, workspaceObj.Name, modelID, multiNode, distributedLoader)
 		}, 5*time.Minute, utils.PollInterval).Should(Succeed())
 	})
 }
@@ -188,12 +188,12 @@ func streamingPodName(coreClient *kubernetes.Clientset, namespace, workspaceName
 }
 
 // assertStreamingPod returns nil when the pod for workspaceName in namespace has streaming shape.
-func assertStreamingPod(namespace, workspaceName, modelID string, distributed bool) error {
+func assertStreamingPod(namespace, workspaceName, modelID string, multiNode, distributedLoader bool) error {
 	coreClient, err := utils.GetK8sClientset()
 	if err != nil {
 		return err
 	}
-	podName, err := streamingPodName(coreClient, namespace, workspaceName, distributed)
+	podName, err := streamingPodName(coreClient, namespace, workspaceName, multiNode)
 	if err != nil {
 		return err
 	}
@@ -237,16 +237,20 @@ func assertStreamingPod(namespace, workspaceName, modelID string, distributed bo
 			return fmt.Errorf("pod %s unexpectedly mounts /workspace/weights (streaming should not)", podName)
 		}
 	}
-	if distributed {
+	if multiNode {
 		if !strings.Contains(cmd, "tensor-parallel-size") {
 			return fmt.Errorf("pod %s missing tensor-parallel-size (distributed)", podName)
 		}
 		if !strings.Contains(cmd, "distributed-executor-backend=ray") {
 			return fmt.Errorf("pod %s missing distributed-executor-backend=ray (multi-node)", podName)
 		}
+	}
+	if distributedLoader {
 		if !strings.Contains(cmd, `{"distributed": true}`) {
 			return fmt.Errorf("pod %s missing distributed loader config", podName)
 		}
+	} else if strings.Contains(cmd, `{"distributed": true}`) {
+		return fmt.Errorf("pod %s unexpectedly enables distributed loader config", podName)
 	}
 	return nil
 }

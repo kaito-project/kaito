@@ -53,8 +53,11 @@ _starlette_responses.JSONResponse = _StubJSONResponse
 _STUBS = {
     "vllm": MagicMock(),
     "vllm.entrypoints": MagicMock(),
+    "vllm.entrypoints.launchers": MagicMock(),
+    "vllm.entrypoints.launchers.api_server": MagicMock(),
+    "vllm.entrypoints.launchers.api_server.entry": MagicMock(),
+    "vllm.entrypoints.launchers.cli_args": MagicMock(),
     "vllm.entrypoints.openai": MagicMock(),
-    "vllm.entrypoints.openai.api_server": MagicMock(),
     "vllm.entrypoints.openai.models": MagicMock(),
     "vllm.entrypoints.openai.models.protocol": MagicMock(),
     "vllm.utils": MagicMock(),
@@ -545,6 +548,18 @@ class TestGpuMemoryUtilization:
 
 
 class TestConfigureMiddlewares:
+    def test_server_hooks_target_launcher_entry_module(self):
+        if isinstance(inference_api.api_server_entry, MagicMock):
+            pytest.skip("vLLM is not installed in the lightweight test environment")
+
+        assert (
+            inference_api.api_server_entry.__name__
+            == "vllm.entrypoints.launchers.api_server.entry"
+        )
+        assert inference_api.api_server_entry.run_server.__globals__ is vars(
+            inference_api.api_server_entry
+        )
+
     @pytest.mark.parametrize(
         ("cli_args", "expected"),
         [([], False), (["--kaito-disable-benchmark-control"], True)],
@@ -553,7 +568,7 @@ class TestConfigureMiddlewares:
         self, monkeypatch, cli_args, expected
     ):
         monkeypatch.setattr(
-            inference_api.api_server,
+            inference_api.launcher_cli_args,
             "make_arg_parser",
             lambda _parser: argparse.ArgumentParser(add_help=False),
         )

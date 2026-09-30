@@ -41,6 +41,7 @@ const sidebars = {
             collapsed: false,
             items: [
                 'inference',
+                'speculative-decoding',
                 'workspace',
                 'multi-node-inference',
                 'model-mirror-streaming',

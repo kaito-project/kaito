@@ -4,6 +4,10 @@ title: Speculative Decoding
 
 KAITO supports an **annotation-driven speculative decoding opt-in** for vLLM-based preset inference.
 
+:::info Availability
+This feature is supported starting in **KAITO v0.13.0**.
+:::
+
 When enabled, KAITO injects a vLLM `--speculative-config` automatically for the workload:
 
 - for a small set of presets with KAITO-tuned speculative decoding, KAITO injects a preset-specific **`mtp`** config

@@ -143,7 +143,13 @@ spec:
 
 If you already manage speculative decoding explicitly in your inference ConfigMap, KAITO does **not** overwrite it.
 
-For example, if `inference_config.yaml` already contains `vllm.speculative-config`, KAITO skips auto-injection:
+For the override to take effect, the workload must actually reference that ConfigMap:
+
+- **Workspace**: `inference.config`
+- **InferenceSet**: `spec.template.inference.config`
+- **MultiRoleInference**: `spec.roles[*].runtimeConfig`
+
+For example, if `inference_config.yaml` already contains `vllm.speculative-config`, KAITO skips auto-injection for a referenced Workspace config:
 
 ```yaml
 apiVersion: v1
@@ -154,6 +160,22 @@ data:
   inference_config.yaml: |
     vllm:
       speculative-config: '{"method":"ngram","num_speculative_tokens":8,"prompt_lookup_max":6}'
+---
+apiVersion: kaito.sh/v1beta1
+kind: Workspace
+metadata:
+  name: workspace-phi-4-mini
+  annotations:
+    kaito.sh/enable-speculative-decoding: "true"
+resource:
+  instanceType: "Standard_NC24ads_A100_v4"
+  labelSelector:
+    matchLabels:
+      apps: workspace-phi-4-mini
+inference:
+  preset:
+    name: "microsoft/Phi-4-mini-instruct"
+  config: my-inference-config
 ```
 
 This lets you use KAITO's annotation-based default when you want the simple path, and switch to a fully explicit vLLM configuration when you need more control.

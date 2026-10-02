@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Manage GSM8K preset regression baselines from validated artifacts."""
+"""Update GSM8K preset regression baselines from validated artifacts."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from preset_regression_benchmarks import deployment_key, load_yaml
+from preset_regression_test_utils import deployment_key, load_yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_GSM8K_BASELINES = REPO_ROOT / "benchmarks/gsm8k/baselines.yaml"

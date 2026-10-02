@@ -102,8 +102,9 @@ jobs:
       - name: Test benchmark configuration and comparison
         run: |
           python3 -m pip install --disable-pip-version-check --quiet PyYAML==6.0.3
-          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_benchmarks.py
-          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_test_cli.py
+          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_gsm8k.py
+          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_preset_regression_test_utils.py
+          PYTHONPATH=.github/scripts/preset-regression-tests python3 .github/scripts/preset-regression-tests/test_update_preset_regression_baselines.py
 
       - name: Build GPU pool matrix
         id: plan

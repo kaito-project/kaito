@@ -83,7 +83,7 @@ The promotion CLI accepts artifact directories, individual `gsm8k-summary.json` 
 Preview all candidates without modifying files:
 
 ```bash
-python3 .github/scripts/preset-regression-tests/preset_regression_test_cli.py \
+python3 .github/scripts/preset-regression-tests/update_preset_regression_baselines.py \
   --artifacts /tmp/preset-regression/artifacts/a10 \
   --artifacts /tmp/preset-regression/results-a100.json \
   --dry-run
@@ -92,7 +92,7 @@ python3 .github/scripts/preset-regression-tests/preset_regression_test_cli.py \
 Promote reviewed correctness results from downloaded workflow artifacts:
 
 ```bash
-python3 .github/scripts/preset-regression-tests/preset_regression_test_cli.py \
+python3 .github/scripts/preset-regression-tests/update_preset_regression_baselines.py \
   --artifacts /path/to/preset-regression-a10 \
   --artifacts /path/to/preset-regression-a100 \
   --artifacts /path/to/preset-regression-h100

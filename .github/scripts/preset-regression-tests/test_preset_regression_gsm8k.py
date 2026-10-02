@@ -18,35 +18,30 @@ import copy
 import json
 import os
 import subprocess
-import tempfile
 import unittest
 from pathlib import Path
 
-from preset_regression_benchmarks import (
-    compare_accuracy,
-    load_yaml,
-    resolve_gsm8k_execution,
-    resolve_profile,
-    validate_coverage,
-    validate_gsm8k_data,
-)
 from preset_regression_gsm8k import (
     EvaluationDeadlineExceeded,
+    compare_accuracy,
     effective_max_gen_tokens,
     failed_samples,
     generation_kwargs,
     request_or_empty,
+    resolve_gsm8k_execution,
+    resolve_profile,
     responses_by_document,
     should_retry_api_error,
+    validate_gsm8k_data,
 )
-from preset_regression_test_cli import collect_gsm8k
+from preset_regression_test_utils import load_yaml, validate_coverage
 
 ROOT = Path(__file__).resolve().parents[3]
 GSM_CONFIG = ROOT / "benchmarks/gsm8k/config.yaml"
 GSM_BASELINES = ROOT / "benchmarks/gsm8k/baselines.yaml"
 
 
-class BenchmarkDataTest(unittest.TestCase):
+class PresetRegressionGSM8KTest(unittest.TestCase):
     def test_repository_manifests_are_valid(self):
         validate_gsm8k_data(load_yaml(GSM_CONFIG), load_yaml(GSM_BASELINES))
 
@@ -299,79 +294,6 @@ class BenchmarkDataTest(unittest.TestCase):
             config["comparison"]["requireBaselines"],
         )
         self.assertEqual([], gaps)
-
-    def test_stale_baseline_is_rejected(self):
-        with self.assertRaisesRegex(ValueError, "active matrix targets"):
-            validate_coverage(
-                [{"model": "org/current", "instanceType": "gpu"}],
-                {
-                    "targets": [
-                        {"model": "org/removed", "instanceType": "gpu", "nodes": 1}
-                    ]
-                },
-                False,
-            )
-
-    def test_promotion_uses_only_valid_passed_summaries(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            valid = root / "valid"
-            invalid = root / "invalid"
-            valid.mkdir()
-            invalid.mkdir()
-            (valid / "gsm8k-summary.json").write_text(
-                json.dumps(
-                    {
-                        "passed": True,
-                        "emptyResponses": 1,
-                        "model": "org/model",
-                        "instanceType": "gpu",
-                        "nodes": 1,
-                        "profile": "chat-thinking-v1",
-                        "accuracy": 0.75,
-                        "correct": 96,
-                        "evaluated": 128,
-                    }
-                )
-            )
-            (invalid / "gsm8k-summary.json").write_text(
-                json.dumps({"passed": False, "emptyResponses": 1})
-            )
-            gsm8k = collect_gsm8k([root])
-            self.assertEqual(1, len(gsm8k))
-            self.assertEqual(1, gsm8k[0]["emptyResponses"])
-            self.assertRegex(gsm8k[0]["measuredAt"], r"^\d{4}-\d{2}-\d{2}$")
-
-    def test_promotion_reads_aggregate_results(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / "results-h100.json").write_text(
-                json.dumps(
-                    [
-                        {
-                            "status": "passed",
-                            "correctness": {
-                                "passed": True,
-                                "emptyResponses": 0,
-                                "model": "org/model",
-                                "instanceType": "gpu",
-                                "nodes": 1,
-                                "profile": "chat-thinking-v1",
-                                "accuracy": 0.75,
-                                "correct": 96,
-                                "evaluated": 128,
-                            },
-                        },
-                        {
-                            "status": "failed",
-                            "correctness": {"passed": True},
-                        },
-                    ]
-                )
-            )
-            gsm8k = collect_gsm8k([root])
-            self.assertEqual(1, len(gsm8k))
-            self.assertEqual(0, gsm8k[0]["emptyResponses"])
 
 
 if __name__ == "__main__":

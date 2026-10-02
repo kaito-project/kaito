@@ -18,14 +18,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from preset_regression_test_cli import (
+from update_preset_regression_baselines import (
     DEFAULT_GSM8K_BASELINES,
     build_parser,
+    collect_gsm8k,
     promote_baselines,
 )
 
 
-class PresetRegressionTestCLITest(unittest.TestCase):
+class UpdatePresetRegressionBaselinesTest(unittest.TestCase):
     def test_defaults_to_repository_baselines(self):
         args = build_parser().parse_args(["--artifacts", "artifacts"])
         self.assertEqual(DEFAULT_GSM8K_BASELINES, args.gsm8k_baselines)
@@ -101,6 +102,38 @@ class PresetRegressionTestCLITest(unittest.TestCase):
                     gsm8k_baselines=root / "unused.yaml",
                     dry_run=True,
                 )
+
+    def test_collects_only_passed_summary_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            valid = root / "valid"
+            invalid = root / "invalid"
+            valid.mkdir()
+            invalid.mkdir()
+            (valid / "gsm8k-summary.json").write_text(
+                json.dumps(
+                    {
+                        "passed": True,
+                        "emptyResponses": 1,
+                        "model": "org/model",
+                        "instanceType": "gpu",
+                        "nodes": 1,
+                        "profile": "chat-thinking-v1",
+                        "accuracy": 0.75,
+                        "correct": 96,
+                        "evaluated": 128,
+                    }
+                )
+            )
+            (invalid / "gsm8k-summary.json").write_text(
+                json.dumps({"passed": False, "emptyResponses": 1})
+            )
+
+            additions = collect_gsm8k([root])
+
+            self.assertEqual(1, len(additions))
+            self.assertEqual(1, additions[0]["emptyResponses"])
+            self.assertRegex(additions[0]["measuredAt"], r"^\d{4}-\d{2}-\d{2}$")
 
 
 if __name__ == "__main__":

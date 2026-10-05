@@ -176,7 +176,7 @@ jobs:
               --resource-group "${RG}" \
               --cluster-name "${CLUSTER}" \
               --name byonode \
-              --node-vm-size "Standard_NC24ads_A100_v4" \
+              --node-vm-size "Standard_NV36ads_A10_v5" \
               --node-count 1 \
               --labels apps=byo 2>&1)
             status=$?

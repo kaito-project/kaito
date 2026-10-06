@@ -497,3 +497,19 @@ models:
   mambaStateBytesPerLayer: 3207168
   numFullAttnLayers: 16
   numLinearLayers: 48
+- name: zai-org/GLM-5.3
+  description: https://huggingface.co/zai-org/GLM-5.3
+  license: glm-5.3
+  pipelineTag: text-generation
+  modelFileSize: 703.75Gi
+  architectures:
+  - GlmMoeDsaForCausalLM
+  modelTokenLimit: 1048576
+  hiddenSize: 6144
+  numHiddenLayers: 78
+  numAttentionHeads: 64
+  numKeyValueHeads: 64
+  headDim: 192
+  kvLoraRank: 512
+  qkRopeHeadDim: 64
+  quantMethod: fp8

@@ -77,6 +77,7 @@ var (
 		"ernie-4.5":     "ernie45",
 		"gemma-4":       "gemma4",
 		"glm-4.5":       "glm45",
+		"glm-5.3":       "glm47",
 		"granite-3.2":   "granite",
 		"holo2":         "holo2",
 		"hunyuan-a13b":  "hunyuan_a13b",
@@ -313,6 +314,8 @@ var (
 		// footprint (enabling its full context window).
 		// source: https://recipes.vllm.ai/zai-org/GLM-5.2
 		"glm-5.2-fp8": "fp8",
+		// source: https://recipes.vllm.ai/zai-org/GLM-5.3
+		"glm-5.3": "fp8",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.

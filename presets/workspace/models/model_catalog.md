@@ -30,7 +30,7 @@ Each model entry in `model_catalog.yaml` contains the following fields:
 | `loadFormat` | No | vLLM load format (only when not `auto`) |
 | `configFormat` | No | vLLM config format (only when not `auto`) |
 | `tokenizerMode` | No | vLLM tokenizer mode (only when not `auto`) |
-| `mambaStateBytesPerSeq` | No | Total per-sequence Mamba state-cache size in bytes for a single tensor-parallel rank in hybrid models |
+| `mambaStateBytesPerSeq` | No | Total per-sequence recurrent state-cache size in bytes for a single tensor-parallel rank in hybrid Mamba or linear-attention models |
 | `mambaStateBytesPerLayer` | No | Per-linear-layer state-cache size in bytes for a single tensor-parallel rank in hybrid models |
 | `numFullAttnLayers` | No | Number of full-attention layers in a hybrid model |
 | `numLinearLayers` | No | Number of linear-attention or Mamba layers in a hybrid model |

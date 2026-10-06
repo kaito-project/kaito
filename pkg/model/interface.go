@@ -112,8 +112,8 @@ type Metadata struct {
 	// +optional
 	BytesPerToken int `yaml:"bytesPerToken,omitempty"`
 
-	// MambaStateBytesPerSeq is the per-sequence Mamba-2 state cache size in bytes
-	// (single TP rank) for hybrid Mamba/Attention models (e.g. NemotronH). vLLM
+	// MambaStateBytesPerSeq is the per-sequence recurrent state cache size in bytes
+	// (single TP rank) for hybrid Mamba/linear-attention models. vLLM
 	// allocates this for every running sequence on top of the attention KV cache,
 	// so the node estimator reserves it. Zero for pure-attention models.
 	// +optional
@@ -772,6 +772,7 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
+			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",
 			"DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM":
 			return true
 		}
@@ -808,6 +809,11 @@ func (p *PresetParam) RequiresDeepGEMM() bool {
 
 // RequiresFlashInfer returns true for models which require JIT-compilation with nvcc at runtime.
 func (p *PresetParam) RequiresFlashInfer() bool {
+	for _, arch := range p.Architectures {
+		if arch == "Glm5NextForCausalLM" || arch == "Glm5NextForConditionalGeneration" {
+			return true
+		}
+	}
 	switch p.Name {
 	case "kimi-k2.6",
 		"kimi-k2.7-code",

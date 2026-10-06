@@ -653,6 +653,23 @@ func TestLoadFromCatalog(t *testing.T) {
 	}
 }
 
+func TestKVCacheDtypeUsesMostSpecificPrefix(t *testing.T) {
+	for _, tc := range []struct {
+		modelRepo string
+		want      string
+	}{
+		{"zai-org/GLM-5.3", "fp8"},
+		{"zai-org/GLM-5.3-Flash", "auto"},
+		{"zai-org/GLM-5.3-Flash-BF16", "auto"},
+	} {
+		t.Run(tc.modelRepo, func(t *testing.T) {
+			gen := NewGenerator(tc.modelRepo, "")
+			gen.FinalizeParams()
+			assert.Equal(t, tc.want, gen.Param.VLLM.ModelRunParams["kv-cache-dtype"])
+		})
+	}
+}
+
 func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	catalogData, err := os.ReadFile("../models/model_catalog.yaml")
 	assert.NoError(t, err)

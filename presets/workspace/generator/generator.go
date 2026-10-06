@@ -108,6 +108,8 @@ var (
 		"Gemma4UnifiedForConditionalGeneration":   "gemma4",
 		"Glm4MoeForCausalLM":                      "glm45",
 		"GlmMoeDsaForCausalLM":                    "glm45",
+		"Glm5NextForCausalLM":                     "glm47",
+		"Glm5NextForConditionalGeneration":        "glm47",
 		"HunYuanMoEV1ForCausalLM":                 "hunyuan_a13b",
 		"GraniteForCausalLM":                      "granite",
 		"KimiK2ForCausalLM":                       "kimi_k2",
@@ -254,6 +256,8 @@ var (
 		"Glm4MoeForCausalLM":                      "glm45",
 		"Glm47MoeForCausalLM":                     "glm47",
 		"GlmMoeDsaForCausalLM":                    "glm47",
+		"Glm5NextForCausalLM":                     "glm47",
+		"Glm5NextForConditionalGeneration":        "glm47",
 		"Gemma3ForCausalLM":                       "functiongemma",
 		"Gemma4ForConditionalGeneration":          "gemma4",
 		"Gemma4UnifiedForConditionalGeneration":   "gemma4",
@@ -316,6 +320,9 @@ var (
 		"glm-5.2-fp8": "fp8",
 		// source: https://recipes.vllm.ai/zai-org/GLM-5.3
 		"glm-5.3": "fp8",
+		// Hopper requires BF16 KV cache for Flash; "auto" uses the model dtype.
+		// source: https://recipes.vllm.ai/zai-org/GLM-5.3-Flash
+		"glm-5.3-flash": "auto",
 	}
 
 	// vllmGdnPrefillBackendPrefixMap maps model name prefixes to their vLLM GDN prefill backend.
@@ -334,7 +341,8 @@ var (
 	// by the quantization block size.
 	// source: https://docs.vllm.ai/en/latest/configuration/engine_args/#-enable-expert-parallel
 	vllmExpertParallelEnabled = map[string]bool{
-		"minimax-m2": true,
+		"minimax-m2":    true,
+		"glm-5.3-flash": true,
 	}
 
 	// vllmDisableFlashInferAutotunePrefixMap disables vLLM's FlashInfer kernel autotuning
@@ -342,6 +350,8 @@ var (
 		// DeepSeek-V3.2's recipe requires disabling it explicitly.
 		// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V3.2
 		"deepseek-v3.2": true,
+		// source: https://recipes.vllm.ai/zai-org/GLM-5.3-Flash
+		"glm-5.3-flash": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -800,7 +810,7 @@ func (g *Generator) calculateKVCacheTokenSize() (int, string) {
 	return tokenSize, attnType
 }
 
-// MambaLayerInfo describes the hybrid (Mamba-2 / Gated DeltaNet) state footprint of
+// MambaLayerInfo describes the hybrid (Mamba-2 / Gated DeltaNet / KDA) state footprint of
 // a model. PerLayerBytes and NumLinearLayers give the total per-sequence state that
 // the node estimator reserves; PerLayerBytes together with NumFullAttnLayers lets the
 // launcher estimate vLLM's Mamba-cache-block ceiling that bounds --max-num-seqs.
@@ -885,14 +895,33 @@ func gatedDeltaNetStatePerLayer(config map[string]interface{}) int {
 	numKHeads := getInt(config, []string{"linear_num_key_heads"}, 0)
 	numVHeads := getInt(config, []string{"linear_num_value_heads"}, 0)
 	convKernel := getInt(config, []string{"linear_conv_kernel_dim"}, 0)
-	if headKDim == 0 || headVDim == 0 || numKHeads == 0 || numVHeads == 0 || convKernel <= 1 {
-		return 0
-	}
-	const convDtypeBytes = 2 // model dtype (bf16)
-	ssmDtypeBytes := 4       // vLLM keeps the SSM temporal state in float32 by default
+	ssmDtypeBytes := 4 // vLLM keeps the SSM temporal state in float32 by default
 	if d, _ := config["mamba_ssm_dtype"].(string); d == "bfloat16" || d == "float16" {
 		ssmDtypeBytes = 2
 	}
+	return linearAttentionStatePerLayer(headKDim, headVDim, numKHeads, numVHeads, convKernel, ssmDtypeBytes)
+}
+
+// kdaStatePerLayer mirrors vLLM's KDA state shapes for GLM-5.3-Flash.
+func kdaStatePerLayer(config map[string]interface{}) int {
+	linearConfig, ok := config["linear_attn_config"].(map[string]interface{})
+	if !ok {
+		return 0
+	}
+	if _, kda := linearConfig["kda_layers"]; !kda {
+		return 0
+	}
+	numHeads := getInt(linearConfig, []string{"num_heads"}, 0)
+	headDim := getInt(linearConfig, []string{"head_dim"}, 0)
+	convKernel := getInt(linearConfig, []string{"short_conv_kernel_size"}, 4)
+	return linearAttentionStatePerLayer(headDim, headDim, numHeads, numHeads, convKernel, 4)
+}
+
+func linearAttentionStatePerLayer(headKDim, headVDim, numKHeads, numVHeads, convKernel, ssmDtypeBytes int) int {
+	if headKDim == 0 || headVDim == 0 || numKHeads == 0 || numVHeads == 0 || convKernel <= 1 {
+		return 0
+	}
+	const convDtypeBytes = 2
 	convDim := headKDim*numKHeads*2 + headVDim*numVHeads
 	convStateBytes := convDim * (convKernel - 1) * convDtypeBytes
 	temporalStateBytes := numVHeads * headVDim * headKDim * ssmDtypeBytes
@@ -900,12 +929,15 @@ func gatedDeltaNetStatePerLayer(config map[string]interface{}) int {
 }
 
 // computeMambaLayerInfo returns the hybrid state footprint for a model, handling both
-// Mamba-2 (NemotronH) and Gated DeltaNet (Qwen3.5+) architectures. Returns a zero value
+// Mamba-2 (NemotronH), Gated DeltaNet (Qwen3.5+), and KDA (GLM-5.3-Flash) architectures. Returns a zero value
 // for pure-attention models.
 func computeMambaLayerInfo(config map[string]interface{}) MambaLayerInfo {
 	perLayer := mamba2StatePerLayer(config)
 	if perLayer == 0 {
 		perLayer = gatedDeltaNetStatePerLayer(config)
+	}
+	if perLayer == 0 {
+		perLayer = kdaStatePerLayer(config)
 	}
 	if perLayer == 0 {
 		return MambaLayerInfo{}
@@ -960,11 +992,8 @@ func (g *Generator) FinalizeParams() {
 	}
 
 	// Set kv-cache-dtype based on model name prefix
-	for prefix, dtype := range vllmKVCacheDtypePrefixMap {
-		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {
-			g.Param.VLLM.ModelRunParams["kv-cache-dtype"] = dtype
-			break
-		}
+	if dtype := parserForModelPrefix(g.Param.Metadata.Name, vllmKVCacheDtypePrefixMap); dtype != "" {
+		g.Param.VLLM.ModelRunParams["kv-cache-dtype"] = dtype
 	}
 
 	// Set GDN prefill backend based on model name prefix

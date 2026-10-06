@@ -585,3 +585,12 @@ targets:
   evaluated: 128
   emptyResponses: 4
   measuredAt: '2026-10-06'
+- model: zai-org/GLM-5.3-Flash
+  instanceType: Standard_ND96isr_H100_v5
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.9375
+  correct: 120
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-06'

@@ -513,3 +513,21 @@ models:
   kvLoraRank: 512
   qkRopeHeadDim: 64
   quantMethod: fp8
+- name: zai-org/GLM-5.3-Flash
+  description: https://huggingface.co/zai-org/GLM-5.3-Flash
+  license: mit
+  pipelineTag: image-text-to-text
+  modelFileSize: 305.80Gi
+  architectures:
+  - Glm5NextForConditionalGeneration
+  modelTokenLimit: 1048576
+  hiddenSize: 4096
+  numHiddenLayers: 45
+  numAttentionHeads: 64
+  numKeyValueHeads: 64
+  kvLoraRank: 512
+  quantMethod: fp8
+  mambaStateBytesPerSeq: 147619840
+  mambaStateBytesPerLayer: 4341760
+  numFullAttnLayers: 11
+  numLinearLayers: 34

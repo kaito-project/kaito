@@ -40,6 +40,7 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | Qwen/Qwen3.8-27B | https://huggingface.co/Qwen/Qwen3.8-27B | Apache-2.0 |
 | Qwen/Qwen3.8-27B-FP8 | https://huggingface.co/Qwen/Qwen3.8-27B-FP8 | Apache-2.0 |
 | zai-org/GLM-5.3 | https://huggingface.co/zai-org/GLM-5.3 | GLM-5.3 |
+| zai-org/GLM-5.3-Flash | https://huggingface.co/zai-org/GLM-5.3-Flash | MIT |
 
 ## Generic HuggingFace Models
 **NOTE: Generic HuggingFace models support is best-effort only. Please file an issue under https://github.com/kaito-project/kaito/issues/ if your targeted model doesn't work in KAITO.**

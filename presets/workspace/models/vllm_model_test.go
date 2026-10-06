@@ -20,10 +20,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
@@ -758,23 +761,50 @@ func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
 	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
-// TestGetModelByName_GLM52FP8 verifies GLM-5.2-FP8 resolves offline from the
-// embedded catalog, wires the glm45 reasoning parser and glm47 tool-call parser,
-// uses an fp8 kv-cache per its recipe, and is flagged as requiring DeepGEMM.
-func TestGetModelByName_GLM52FP8(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.2-FP8", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
+func TestGetModelByName_GLM53Flash(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
+	var catalog generator.ModelCatalog
+	require.NoError(t, yaml.Unmarshal(modelCatalogYAML, &catalog))
+	catalogNames := make([]string, 0, len(catalog.Models))
+	for _, entry := range catalog.Models {
+		catalogNames = append(catalogNames, entry.Name)
+	}
+	require.Contains(t, catalogNames, "zai-org/GLM-5.3-Flash")
+
+	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.3-Flash", "")
+	require.NoError(t, err)
 	params := m.GetInferenceParameters()
-	runParams := params.RuntimeParam.VLLM.ModelRunParams
-	assert.Equal(t, "glm45", runParams["reasoning-parser"])
+	assert.Equal(t, "305.80Gi", params.TotalSafeTensorFileSize)
+	assert.Equal(t, 1048576, params.ModelTokenLimit)
+	assert.Equal(t, 4341760, params.MambaStateBytesPerLayer)
+	assert.Equal(t, 147619840, params.MambaStateBytesPerSeq)
+	assert.Equal(t, 34, params.NumLinearLayers)
+	assert.Equal(t, 11, params.NumFullAttnLayers)
+	assert.True(t, params.RequiresFlashInfer())
+	assert.True(t, params.RequiresCUDAToolkit())
+
+	runParams := params.VLLM.ModelRunParams
+	assert.Equal(t, "glm47", runParams["reasoning-parser"])
 	assert.Equal(t, "glm47", runParams["tool-call-parser"])
-	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
-	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
-	assert.True(t, params.RequiresDeepGEMM())
+	assert.Equal(t, "auto", runParams["kv-cache-dtype"])
+	assert.Equal(t, "False", runParams["kernel-config.enable_flashinfer_autotune"])
+	assert.Contains(t, runParams, "enable-auto-tool-choice")
+	assert.Contains(t, runParams, "enable-expert-parallel")
+
+	gpuConfig, err := sku.GetGPUConfigBySKU("Standard_ND96isr_H100_v5")
+	require.NoError(t, err)
+	assert.NotEmpty(t, params.GetInferenceCommand(model.RuntimeContext{
+		RuntimeName: model.RuntimeNameVLLM,
+		GPUConfig:   gpuConfig,
+		SKUNumGPUs:  gpuConfig.GPUCount,
+		NumNodes:    1,
+		MaxModelLen: model.MaxModelLenAuto,
+	}))
+	assert.Equal(t, "8", runParams["tensor-parallel-size"])
+	assert.NotContains(t, runParams, "pipeline-parallel-size")
+	assert.NotContains(t, runParams, "distributed-executor-backend")
+	assert.Equal(t, "0", runParams["kaito-kv-cache-cpu-memory-utilization"])
 }
 
 // TestGetModelByName_DeepSeekV4FlashNVFP4 verifies the NVIDIA NVFP4 variant

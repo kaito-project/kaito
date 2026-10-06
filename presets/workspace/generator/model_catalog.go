@@ -46,8 +46,8 @@ type CatalogEntry struct {
 	QKRopeHeadDim     int      `yaml:"qkRopeHeadDim,omitempty"`
 	QuantMethod       string   `yaml:"quantMethod,omitempty"`
 	QuantBits         int      `yaml:"quantBits,omitempty"`
-	// MambaStateBytesPerSeq is the per-sequence Mamba-2 state cache size in bytes
-	// (single TP rank) for hybrid Mamba/Attention models (e.g. NemotronH).
+	// MambaStateBytesPerSeq is the per-sequence recurrent state cache size in bytes
+	// (single TP rank) for hybrid Mamba/linear-attention models.
 	MambaStateBytesPerSeq int `yaml:"mambaStateBytesPerSeq,omitempty"`
 	// MambaStateBytesPerLayer is the per-linear-layer, single-TP-rank hybrid state
 	// cache size; with the layer counts below it bounds vLLM's Mamba-cache-block count.

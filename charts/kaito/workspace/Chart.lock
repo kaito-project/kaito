@@ -4,12 +4,12 @@ dependencies:
   version: 2.19.1
 - name: gpu-feature-discovery
   repository: https://nvidia.github.io/k8s-device-plugin
-  version: 0.17.4
+  version: 0.20.1
 - name: local-csi-driver
   repository: oci://localcsidriver.azurecr.io/acstor/charts
   version: 0.3.0
 - name: productionstack
   repository: oci://mcr.microsoft.com/aks/kaito/helm
-  version: 0.4.0
-digest: sha256:39e192a8a02aedf3e4b23e3fd945f44aa0bfeb1c72a19c3e8883560824e7d54e
-generated: "2026-10-06T01:10:00.026642196Z"
+  version: 0.4.2
+digest: sha256:9bc569667c1bcd1aedb4e9d3867016604a6b3d09548405690370add99ac53065
+generated: "2026-10-06T02:15:24Z"

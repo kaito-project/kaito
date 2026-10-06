@@ -29,22 +29,33 @@ import os
 import re
 import tempfile
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any, ClassVar
 
 import llm_guard.input_scanners as llm_guard_input_scanners
 import llm_guard.output_scanners as llm_guard_output_scanners
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
-from llm_guard.input_scanners.ban_substrings import (
-    MatchType as BanSubstringsMatchType,
-)
-from llm_guard.input_scanners.regex import MatchType as RegexMatchType
 
-# Allowed match_type values, mirrored from llm_guard's enum *values* (not names).
-# Keeping these here lets us reject invalid policies at parse time instead of
-# letting the error surface only when the scanner is built.
-_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(m.value for m in BanSubstringsMatchType)
-_REGEX_MATCH_TYPES = frozenset(m.value for m in RegexMatchType)
+
+# KAITO-owned guardrails enums (independent of llm-guard)
+class BanSubstringsMatchType(StrEnum):
+    """KAITO match types for BanSubstrings scanner."""
+
+    WORD = "word"
+    STR = "str"
+
+
+class RegexMatchType(StrEnum):
+    """KAITO match types for Regex scanner."""
+
+    SEARCH = "search"
+    FULL_MATCH = "full_match"
+
+
+# Allowed match_type values
+_BAN_SUBSTRINGS_MATCH_TYPES = frozenset({"word", "str"})
+_REGEX_MATCH_TYPES = frozenset({"search", "full_match"})
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
 _DEFAULT_SENSITIVE_DETECTORS = ("email", "phone", "credit_card", "ip_address")
 _SENSITIVE_DETECTORS = frozenset(_DEFAULT_SENSITIVE_DETECTORS)
@@ -226,6 +237,110 @@ class TokenLimitOutputAdapter:
         return sanitized_output, is_valid, score
 
 
+class NativeBanSubstringsScanner:
+    """KAITO-owned BanSubstrings scanner using substring matching."""
+
+    def __init__(
+        self,
+        substrings: list[str],
+        match_type: str = "word",
+        case_sensitive: bool = False,
+        contains_all: bool = False,
+        redact: bool = False,
+    ) -> None:
+        self.substrings = substrings
+        self.match_type = match_type
+        self.case_sensitive = case_sensitive
+        self.contains_all = contains_all
+        self.redact = redact
+
+    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
+        del prompt
+        if output.strip() == "":
+            return output, True, -1.0
+
+        found_substrings = []
+        search_text = output if self.case_sensitive else output.lower()
+
+        for substring in self.substrings:
+            search_str = substring if self.case_sensitive else substring.lower()
+
+            if self.match_type == "word":
+                pattern = r"\b" + re.escape(search_str) + r"\b"
+                if re.search(pattern, search_text):
+                    found_substrings.append(substring)
+            elif self.match_type == "str":
+                if search_str in search_text:
+                    found_substrings.append(substring)
+
+        if self.contains_all and len(found_substrings) < len(self.substrings):
+            return output, True, -1.0
+
+        if found_substrings:
+            if self.redact:
+                sanitized = output
+                for substring in found_substrings:
+                    # Case-insensitive replace: use regex to preserve original case
+                    pattern = re.compile(
+                        re.escape(substring),
+                        re.IGNORECASE if not self.case_sensitive else 0,
+                    )
+                    sanitized = pattern.sub("[REDACTED]", sanitized)
+                return sanitized, False, 1.0
+            else:
+                return output, False, 1.0
+
+        return output, True, -1.0
+
+
+class NativeRegexScanner:
+    """KAITO-owned Regex scanner using compiled patterns."""
+
+    def __init__(
+        self,
+        patterns: list[str],
+        is_blocked: bool = True,
+        match_type: str = "search",
+        redact: bool = False,
+    ) -> None:
+        self.patterns = [re.compile(p) for p in patterns]
+        self.is_blocked = is_blocked
+        self.match_type = match_type
+        self.redact = redact
+
+    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
+        del prompt
+        if output.strip() == "":
+            return output, True, -1.0
+
+        matches = []
+        for pattern in self.patterns:
+            if self.match_type == "search":
+                # Find ALL matches, not just first
+                matches.extend(pattern.finditer(output))
+            else:  # full_match
+                found = pattern.fullmatch(output)
+                if found:
+                    matches.append(found)
+
+        if not matches:
+            return output, True, -1.0
+
+        if not self.is_blocked:
+            return output, True, -1.0
+
+        if self.redact:
+            sanitized = output
+            # Sort by position descending to avoid offset issues
+            for match in sorted(matches, key=lambda m: m.start(), reverse=True):
+                sanitized = (
+                    sanitized[: match.start()] + "[REDACTED]" + sanitized[match.end() :]
+                )
+            return sanitized, False, 1.0
+        else:
+            return output, False, 1.0
+
+
 @dataclass
 class BanSubstringsConfig:
     supports_redact: ClassVar[bool] = True
@@ -259,9 +374,9 @@ class BanSubstringsConfig:
         )
 
     def build(self, action_on_hit: str) -> Any:
-        return llm_guard_output_scanners.BanSubstrings(
+        return NativeBanSubstringsScanner(
             substrings=list(self.substrings),
-            match_type=BanSubstringsMatchType(self.match_type),
+            match_type=self.match_type,
             case_sensitive=self.case_sensitive,
             contains_all=self.contains_all,
             redact=(action_on_hit == "redact"),
@@ -302,10 +417,10 @@ class RegexConfig:
         )
 
     def build(self, action_on_hit: str) -> Any:
-        return llm_guard_output_scanners.Regex(
+        return NativeRegexScanner(
             patterns=list(self.patterns),
             is_blocked=self.is_blocked,
-            match_type=RegexMatchType(self.match_type),
+            match_type=self.match_type,
             redact=(action_on_hit == "redact"),
         )
 

@@ -11,6 +11,7 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | deepseek-ai/DeepSeek-V3.2 | https://huggingface.co/deepseek-ai/DeepSeek-V3.2 | MIT |
 | deepseek-ai/DeepSeek-V4-Flash-0731 | https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731 | MIT |
 | deepseek-ai/DeepSeek-V4-Pro | https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro | MIT |
+| deepseek-ai/DeepSeek-V4.1-Flash | https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash | MIT |
 | google/gemma-4-12B-it | https://huggingface.co/google/gemma-4-12B-it | Apache-2.0 |
 | google/gemma-4-26B-A4B-it | https://huggingface.co/google/gemma-4-26B-A4B-it | Apache-2.0 |
 | google/gemma-4-31B-it | https://huggingface.co/google/gemma-4-31B-it | Apache-2.0 |

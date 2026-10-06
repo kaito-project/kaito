@@ -653,19 +653,38 @@ func TestLoadFromCatalog(t *testing.T) {
 	}
 }
 
-func TestKVCacheDtypeUsesMostSpecificPrefix(t *testing.T) {
+func TestKVCacheDtypeByArchitecture(t *testing.T) {
 	for _, tc := range []struct {
-		modelRepo string
-		want      string
+		architecture string
+		want         string
 	}{
-		{"zai-org/GLM-5.3", "fp8"},
-		{"zai-org/GLM-5.3-Flash", "auto"},
-		{"zai-org/GLM-5.3-Flash-BF16", "auto"},
+		{"GlmMoeDsaForCausalLM", "fp8"},
+		{"DeepseekV4ForCausalLM", "fp8"},
 	} {
-		t.Run(tc.modelRepo, func(t *testing.T) {
-			gen := NewGenerator(tc.modelRepo, "")
+		t.Run(tc.architecture, func(t *testing.T) {
+			gen := NewGenerator("test/model", "")
+			gen.Param.Metadata.Architectures = []string{tc.architecture}
 			gen.FinalizeParams()
 			assert.Equal(t, tc.want, gen.Param.VLLM.ModelRunParams["kv-cache-dtype"])
+		})
+	}
+}
+
+func TestTokenizerModeByArchitecture(t *testing.T) {
+	for _, tc := range []struct {
+		architecture string
+		want         string
+	}{
+		{"DeepseekV3ForCausalLM", "deepseek_v32"},
+		{"DeepseekV32ForCausalLM", "deepseek_v32"},
+		{"DeepseekV4ForCausalLM", "deepseek_v4"},
+		{"DeepseekV41ForCausalLM", "deepseek_v41"},
+	} {
+		t.Run(tc.architecture, func(t *testing.T) {
+			gen := NewGenerator("test/model", "")
+			gen.Param.Metadata.Architectures = []string{tc.architecture}
+			gen.FinalizeParams()
+			assert.Equal(t, tc.want, gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
 		})
 	}
 }

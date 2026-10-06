@@ -531,3 +531,18 @@ models:
   mambaStateBytesPerLayer: 4341760
   numFullAttnLayers: 11
   numLinearLayers: 34
+- name: deepseek-ai/DeepSeek-V4.1-Flash
+  description: https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash
+  license: mit
+  pipelineTag: image-text-to-text
+  modelFileSize: 475.26Gi
+  architectures:
+  - DeepseekV41ForCausalLM
+  modelTokenLimit: 1048576
+  hiddenSize: 5120
+  numHiddenLayers: 40
+  numAttentionHeads: 64
+  numKeyValueHeads: 1
+  headDim: 512
+  qkRopeHeadDim: 64
+  quantMethod: fp8

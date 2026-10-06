@@ -463,6 +463,9 @@ var cudagraphModeByModelAndGPU = map[modelGPUKey]string{
 	{modelName: "deepseek-v4-flash-0731"}: "PIECEWISE",
 	// V4 Pro exhausts memory in PIECEWISE capture after DeepGEMM warmup under vllm 0.30.0
 	{modelName: "deepseek-v4-pro"}: "FULL_DECODE_ONLY",
+	// V4.1 Flash exhausts H100 memory in FULL_AND_PIECEWISE capture, while
+	// PIECEWISE initializes but the first chat request hits a CUDA illegal access.
+	{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}: "FULL_DECODE_ONLY",
 }
 
 // linearBackendByModelAndGPU overrides vLLM's default selection of linear backend.
@@ -773,7 +776,7 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
 			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",
-			"DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM":
+			"DeepseekV4ForCausalLM", "DeepseekV41ForCausalLM", "DeepseekV32ForCausalLM":
 			return true
 		}
 	}
@@ -800,7 +803,7 @@ func (p *PresetParam) isLMCacheDisabled() bool {
 func (p *PresetParam) RequiresDeepGEMM() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
-		case "DeepseekV4ForCausalLM", "DeepseekV32ForCausalLM", "GlmMoeDsaForCausalLM":
+		case "DeepseekV4ForCausalLM", "DeepseekV41ForCausalLM", "DeepseekV32ForCausalLM", "GlmMoeDsaForCausalLM":
 			return true
 		}
 	}
@@ -810,15 +813,19 @@ func (p *PresetParam) RequiresDeepGEMM() bool {
 // RequiresFlashInfer returns true for models which require JIT-compilation with nvcc at runtime.
 func (p *PresetParam) RequiresFlashInfer() bool {
 	for _, arch := range p.Architectures {
-		if arch == "Glm5NextForCausalLM" || arch == "Glm5NextForConditionalGeneration" {
+		switch arch {
+		case "Glm5NextForCausalLM",
+			"Glm5NextForConditionalGeneration",
+			"KimiK25ForConditionalGeneration",
+			"MiniMaxM2ForCausalLM":
 			return true
 		}
 	}
+	// These checkpoints share Mistral3ForConditionalGeneration and
+	// NemotronHForCausalLM with models that do not require FlashInfer, so matching
+	// those architectures would unnecessarily enable runtime CUDA compilation.
 	switch p.Name {
-	case "kimi-k2.6",
-		"kimi-k2.7-code",
-		"minimax-m2.7",
-		"mistral-small-4-119b-2603",
+	case "mistral-small-4-119b-2603",
 		"nvidia-nemotron-3-ultra-550b-a55b-nvfp4":
 		return true
 	}

@@ -787,7 +787,7 @@ func TestGetModelByName_GLM53Flash(t *testing.T) {
 	runParams := params.VLLM.ModelRunParams
 	assert.Equal(t, "glm47", runParams["reasoning-parser"])
 	assert.Equal(t, "glm47", runParams["tool-call-parser"])
-	assert.Equal(t, "auto", runParams["kv-cache-dtype"])
+	assert.NotContains(t, runParams, "kv-cache-dtype")
 	assert.Equal(t, "False", runParams["kernel-config.enable_flashinfer_autotune"])
 	assert.Contains(t, runParams, "enable-auto-tool-choice")
 	assert.Contains(t, runParams, "enable-expert-parallel")

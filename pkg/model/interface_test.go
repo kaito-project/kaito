@@ -331,6 +331,13 @@ func TestGetInferenceCommandVLLMHardwareOverrides(t *testing.T) {
 			wantMemory:    "0.92",
 		},
 		{
+			name:          "DeepSeek V4.1 Flash uses decode-only graphs on H100",
+			modelName:     "deepseek-v4.1-flash",
+			gpuModel:      "NVIDIA-H100-80GB-HBM3",
+			wantGraphMode: "FULL_DECODE_ONLY",
+			wantMemory:    "0.92",
+		},
+		{
 			name:        "Ministral on A100",
 			modelName:   "ministral-3-14b-instruct-2512",
 			gpuModel:    "NVIDIA A100",
@@ -624,7 +631,10 @@ func TestMultiNodeRayCommandRequiresReadyCluster(t *testing.T) {
 
 func TestMultiNodeRayCommandExtendsTimeoutForCUDAToolkit(t *testing.T) {
 	p := &PresetParam{
-		Metadata: Metadata{Name: "minimax-m2.7"},
+		Metadata: Metadata{
+			Name:          "minimax-m2.7",
+			Architectures: []string{"MiniMaxM2ForCausalLM"},
+		},
 		RuntimeParam: RuntimeParam{VLLM: VLLMParam{
 			BaseCommand:          "vllm serve",
 			ModelRunParams:       map[string]string{},

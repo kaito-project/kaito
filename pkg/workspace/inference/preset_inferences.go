@@ -817,6 +817,20 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 			Name:  consts.VLLMWSL2EnablePinMemoryEnvName,
 			Value: "1",
 		})
+		for _, arch := range inferenceParam.Architectures {
+			if arch == "DeepseekV41ForCausalLM" {
+				// V4.1 Flash cold starts load a 475 GiB checkpoint, offload the
+				// Engram tables, and compile sparse-attention kernels. Follow the
+				// upstream recipe's one-hour wait so the API process does not give
+				// up on EngineCore before that initialization finishes.
+				// https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash
+				env = append(env, corev1.EnvVar{
+					Name:  "VLLM_ENGINE_READY_TIMEOUT_S",
+					Value: "3600",
+				})
+				break
+			}
+		}
 	}
 
 	// A bring-your-own model is sized and configured from an operator-supplied

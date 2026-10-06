@@ -180,6 +180,15 @@ targets:
   evaluated: 128
   emptyResponses: 1
   measuredAt: '2026-09-28'
+- model: deepseek-ai/DeepSeek-V4.1-Flash
+  instanceType: Standard_ND96isr_H100_v5
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.9609375
+  correct: 123
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-07'
 - model: google/gemma-4-12B-it
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1

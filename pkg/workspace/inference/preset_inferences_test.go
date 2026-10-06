@@ -34,6 +34,7 @@ import (
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -1228,6 +1229,23 @@ func toParameterMap(in []string) map[string]string {
 		}
 	}
 	return ret
+}
+
+func TestV41ExtendsVLLMEngineReadyTimeout(t *testing.T) {
+	params := &pkgmodel.PresetParam{
+		Metadata: pkgmodel.Metadata{
+			Architectures: []string{"DeepseekV41ForCausalLM"},
+		},
+	}
+	var timeout string
+	for _, variable := range buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, params, "", "") {
+		if variable.Name == "VLLM_ENGINE_READY_TIMEOUT_S" {
+			timeout = variable.Value
+		}
+	}
+	if timeout != "3600" {
+		t.Fatalf("VLLM_ENGINE_READY_TIMEOUT_S = %q, want 3600", timeout)
+	}
 }
 
 func TestApplyInferenceRoleEnv(t *testing.T) {

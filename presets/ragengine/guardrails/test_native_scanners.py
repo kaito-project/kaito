@@ -1,0 +1,144 @@
+# Copyright (c) KAITO authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Unit tests for native KAITO guardrails scanners."""
+
+from .scanner_schemas import NativeBanSubstringsScanner, NativeRegexScanner
+
+
+class TestNativeBanSubstringsScanner:
+    """Test native BanSubstrings scanner."""
+
+    def test_case_sensitive_exact(self):
+        """Test exact case-sensitive matching."""
+        scanner = NativeBanSubstringsScanner(substrings=["secret"], case_sensitive=True)
+        output, valid, score = scanner.scan("", "This contains secret")
+        assert not valid
+        assert output == "This contains secret"
+
+    def test_case_insensitive_detection(self):
+        """Test case-insensitive detection."""
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret"], case_sensitive=False
+        )
+        output, valid, score = scanner.scan("", "This contains SECRET")
+        assert not valid
+
+    def test_case_insensitive_redaction(self):
+        """Test case-insensitive redaction."""
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret"], case_sensitive=False, redact=True
+        )
+        output, valid, score = scanner.scan("", "This contains SECRET")
+        assert output == "This contains [REDACTED]"
+        assert not valid
+
+    def test_word_match_type(self):
+        """Test word boundary matching."""
+        scanner = NativeBanSubstringsScanner(substrings=["secret"], match_type="word")
+        output, valid, score = scanner.scan("", "This contains secrets")
+        assert valid  # "secrets" is not "secret" as word
+
+    def test_str_match_type(self):
+        """Test substring matching."""
+        scanner = NativeBanSubstringsScanner(substrings=["secret"], match_type="str")
+        output, valid, score = scanner.scan("", "This contains secrets")
+        assert not valid  # "secret" is in "secrets"
+
+    def test_multiple_substrings_any(self):
+        """Test multiple substrings (any match fails)."""
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret", "password"], contains_all=False
+        )
+        output, valid, score = scanner.scan("", "This has secret")
+        assert not valid
+
+    def test_multiple_substrings_all(self):
+        """Test multiple substrings (all required)."""
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret", "password"], contains_all=True
+        )
+        output, valid, score = scanner.scan("", "This has secret but not pass")
+        assert valid  # Only one substring found, need all
+
+    def test_empty_output(self):
+        """Test empty output."""
+        scanner = NativeBanSubstringsScanner(substrings=["secret"])
+        output, valid, score = scanner.scan("", "")
+        assert valid
+        assert output == ""
+
+    def test_redact_multiple_occurrences(self):
+        """Test redacting multiple occurrences."""
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret"], redact=True, case_sensitive=False
+        )
+        output, valid, score = scanner.scan("", "secret and SECRET both secret")
+        # All occurrences should be redacted
+        assert output == "[REDACTED] and [REDACTED] both [REDACTED]"
+
+
+class TestNativeRegexScanner:
+    """Test native Regex scanner."""
+
+    def test_simple_pattern_found(self):
+        """Test simple pattern matching."""
+        scanner = NativeRegexScanner(patterns=[r"\d{3}-\d{4}"])
+        output, valid, score = scanner.scan("", "Call 123-4567 now")
+        assert not valid
+
+    def test_pattern_not_found(self):
+        """Test pattern not found."""
+        scanner = NativeRegexScanner(patterns=[r"\d{3}-\d{4}"])
+        output, valid, score = scanner.scan("", "Call me tomorrow")
+        assert valid
+
+    def test_multiple_matches_redaction(self):
+        """Test redacting multiple matches."""
+        scanner = NativeRegexScanner(patterns=[r"\d{3}"], redact=True)
+        output, valid, score = scanner.scan("", "123 and 456 and 789")
+        # All matches should be redacted
+        assert output == "[REDACTED] and [REDACTED] and [REDACTED]"
+        assert not valid
+
+    def test_search_vs_fullmatch(self):
+        """Test search vs fullmatch modes."""
+        pattern = r"\d+"
+        scanner_search = NativeRegexScanner(patterns=[pattern], match_type="search")
+        scanner_full = NativeRegexScanner(patterns=[pattern], match_type="full_match")
+
+        output_s, valid_s, _ = scanner_search.scan("", "abc123def")
+        output_f, valid_f, _ = scanner_full.scan("", "abc123def")
+
+        assert not valid_s  # search finds the number
+        assert valid_f  # fullmatch requires entire string to match
+
+    def test_is_blocked_false(self):
+        """Test is_blocked=False allows matching patterns."""
+        scanner = NativeRegexScanner(patterns=[r"\d+"], is_blocked=False)
+        output, valid, score = scanner.scan("", "has 123 number")
+        assert valid  # Pattern found but is_blocked=False so still valid
+
+    def test_empty_output(self):
+        """Test empty output."""
+        scanner = NativeRegexScanner(patterns=[r"\d+"])
+        output, valid, score = scanner.scan("", "")
+        assert valid
+
+    def test_overlapping_matches(self):
+        """Test overlapping pattern matches."""
+        scanner = NativeRegexScanner(patterns=[r"\d\d\d"], redact=True)
+        # Pattern overlaps: 1234 contains both 123 and 234
+        output, valid, score = scanner.scan("", "1234")
+        assert "[REDACTED]" in output
+        assert not valid

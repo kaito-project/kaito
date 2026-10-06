@@ -257,7 +257,22 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 	require.Len(t, cmdA10, 3)
 	assert.Contains(t, cmdA10[2], "--gpu-memory-utilization=0.82")
 
-	// A100 and nil GPUConfig fall back to the default 0.92.
+	// MIG slices have no GPUModel to key a safety cap off, so the controller
+	// must keep forcing the estimator's planning value (0.92): small profiles
+	// (e.g. 1g.5gb) can resolve a runtime default below what the estimator
+	// assumed was available, which would under-provision the node.
+	cmdMIG := p.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		GPUConfig:   &sku.GPUConfig{IsMIG: true},
+	})
+	require.Len(t, cmdMIG, 3)
+	assert.Contains(t, cmdMIG[2], "--gpu-memory-utilization=0.92")
+
+	// A100 and nil GPUConfig have no safety cap: the controller must not inject
+	// --gpu-memory-utilization at all, leaving vLLM's own free-memory-based
+	// default in effect.
 	p2 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}}}}
 	cmdA100 := p2.GetInferenceCommand(RuntimeContext{
 		RuntimeName: RuntimeNameVLLM,
@@ -266,7 +281,7 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A100"},
 	})
 	require.Len(t, cmdA100, 3)
-	assert.Contains(t, cmdA100[2], "--gpu-memory-utilization=0.92")
+	assert.NotContains(t, cmdA100[2], "--gpu-memory-utilization")
 
 	p3 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{}}}}
 	cmdNil := p3.GetInferenceCommand(RuntimeContext{
@@ -275,7 +290,20 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 		NumNodes:    1,
 	})
 	require.Len(t, cmdNil, 3)
-	assert.Contains(t, cmdNil[2], "--gpu-memory-utilization=0.92")
+	assert.NotContains(t, cmdNil[2], "--gpu-memory-utilization")
+
+	// An explicit user override (e.g. via preset ModelRunParams) is preserved.
+	p4 := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{BaseCommand: "vllm serve", ModelRunParams: map[string]string{
+		"gpu-memory-utilization": "0.75",
+	}}}}
+	cmdOverride := p4.GetInferenceCommand(RuntimeContext{
+		RuntimeName: RuntimeNameVLLM,
+		SKUNumGPUs:  1,
+		NumNodes:    1,
+		GPUConfig:   &sku.GPUConfig{GPUModel: "NVIDIA A100"},
+	})
+	require.Len(t, cmdOverride, 3)
+	assert.Contains(t, cmdOverride[2], "--gpu-memory-utilization=0.75")
 }
 
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {

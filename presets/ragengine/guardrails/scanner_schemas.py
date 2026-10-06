@@ -29,22 +29,36 @@ import os
 import re
 import tempfile
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, ClassVar
 
-import llm_guard.input_scanners as llm_guard_input_scanners
-import llm_guard.output_scanners as llm_guard_output_scanners
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
-from llm_guard.input_scanners.ban_substrings import (
-    MatchType as BanSubstringsMatchType,
-)
-from llm_guard.input_scanners.regex import MatchType as RegexMatchType
 
-# Allowed match_type values, mirrored from llm_guard's enum *values* (not names).
-# Keeping these here lets us reject invalid policies at parse time instead of
-# letting the error surface only when the scanner is built.
-_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(m.value for m in BanSubstringsMatchType)
-_REGEX_MATCH_TYPES = frozenset(m.value for m in RegexMatchType)
+# KAITO-owned guardrails types (independent of llm-guard)
+@dataclass(frozen=True)
+class ScanResult:
+    """Result of a guardrail scan."""
+    output: str  # Original or modified output
+    valid: bool  # Whether output passed the scan
+    score: float | None = None  # Optional severity/confidence score (0.0-1.0)
+
+
+class BanSubstringsMatchType(str, Enum):
+    """KAITO match types for BanSubstrings scanner."""
+    WORD = "word"
+    STR = "str"
+
+
+class RegexMatchType(str, Enum):
+    """KAITO match types for Regex scanner."""
+    SEARCH = "search"
+    FULL_MATCH = "full_match"
+
+
+# Allowed match_type values
+_BAN_SUBSTRINGS_MATCH_TYPES = frozenset({"word", "str"})
+_REGEX_MATCH_TYPES = frozenset({"search", "full_match"})
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
 _DEFAULT_SENSITIVE_DETECTORS = ("email", "phone", "credit_card", "ip_address")
 _SENSITIVE_DETECTORS = frozenset(_DEFAULT_SENSITIVE_DETECTORS)

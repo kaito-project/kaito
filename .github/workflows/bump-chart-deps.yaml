@@ -36,8 +36,8 @@ jobs:
         id: deps
         run: |
           matrix="$(for f in charts/kaito/*/Chart.yaml; do
-            CHART="$(dirname "${f}")" yq -o=json -I=0 \
-              '[.dependencies[]?.name | {"chart": strenv(CHART), "dependency": .}]' "${f}"
+            CHART="$(dirname "${f}")" CHART_NAME="$(basename "$(dirname "${f}")")" yq -o=json -I=0 \
+              '[.dependencies[]?.name | {"chart": strenv(CHART), "chart_name": strenv(CHART_NAME), "dependency": .}]' "${f}"
           done | jq -c -s 'add // []')"
           echo "matrix=${matrix}" >> "${GITHUB_OUTPUT}"
           echo "${matrix}"
@@ -81,7 +81,8 @@ jobs:
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           token: ${{ github.token }}
-          branch: chore/bump-${{ matrix.dependency }}-in-${{ matrix.chart }}
+          # The all-branches repo ruleset only allows GITHUB_TOKEN to create branches matching automation/**.
+          branch: automation/bump-${{ matrix.chart_name }}-${{ matrix.dependency }}
           add-paths: ${{ matrix.chart }}
           signoff: true
           sign-commits: true

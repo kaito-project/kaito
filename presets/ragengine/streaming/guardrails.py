@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from fastapi import HTTPException
-from llm_guard import scan_output
 
 from ragengine.guardrails import OutputGuardrails
 from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
@@ -234,15 +233,11 @@ class _LLMGuardWindowScanner:
                     )
                 continue
 
-            scanner_output, results_valid, _ = scan_output(
-                [scanner],
-                self._prompt,
-                sanitized_text,
-                fail_fast=False,
-            )
+            scanner_output, is_valid, _ = scanner.scan(self._prompt, sanitized_text)
+results_valid = {"scan": is_valid}
             if not isinstance(scanner_output, str):
                 return WindowScanResult(blocked=True)
-            if not all(results_valid.values()):
+            if not is_valid:
                 if scanner_output == sanitized_text:
                     return WindowScanResult(blocked=True)
                 sanitized_text = scanner_output
@@ -263,15 +258,11 @@ class _LLMGuardWindowScanner:
                     return WindowScanResult(blocked=True)
                 continue
 
-            scanner_output, results_valid, _ = scan_output(
-                [scanner],
-                self._prompt,
-                sanitized_text,
-                fail_fast=False,
-            )
+            scanner_output, is_valid, _ = scanner.scan(self._prompt, sanitized_text)
+results_valid = {"scan": is_valid}
             if not isinstance(scanner_output, str):
                 return WindowScanResult(blocked=True)
-            if not all(results_valid.values()):
+            if not is_valid:
                 return WindowScanResult(blocked=True)
 
         if sanitized_text == text:
@@ -346,27 +337,23 @@ def _redact_match_spans(text: str, spans: tuple[tuple[int, int], ...]) -> str:
 
 
 def _redact_secrets_and_verify(scanner: Any, prompt: str, text: str) -> str | None:
-    sanitized, results_valid, _ = scan_output([scanner], prompt, text, fail_fast=False)
+    sanitized, is_valid, _ = scanner.scan(prompt, text)
     if not isinstance(sanitized, str):
         return None
-    if all(results_valid.values()):
+    if is_valid:
         return text if sanitized == text else None
     if sanitized == text or len(sanitized) > len(text):
         return None
 
-    verified, verified_valid, _ = scan_output(
-        [scanner], prompt, sanitized, fail_fast=False
-    )
+    verified, verified_valid, _ = scanner.scan(prompt, sanitized)
     if (
         not isinstance(verified, str)
         or verified != sanitized
-        or not all(verified_valid.values())
+        or verified_valid
     ):
         return None
 
     return sanitized
-
-
 async def _flush_window_or_block(
     window: StreamingBufferWindow,
     guardrails: OutputGuardrails,

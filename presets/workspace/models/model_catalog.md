@@ -30,6 +30,10 @@ Each model entry in `model_catalog.yaml` contains the following fields:
 | `loadFormat` | No | vLLM load format (only when not `auto`) |
 | `configFormat` | No | vLLM config format (only when not `auto`) |
 | `tokenizerMode` | No | vLLM tokenizer mode (only when not `auto`) |
+| `mambaStateBytesPerSeq` | No | Total per-sequence Mamba state-cache size in bytes for a single tensor-parallel rank in hybrid models |
+| `mambaStateBytesPerLayer` | No | Per-linear-layer state-cache size in bytes for a single tensor-parallel rank in hybrid models |
+| `numFullAttnLayers` | No | Number of full-attention layers in a hybrid model |
+| `numLinearLayers` | No | Number of linear-attention or Mamba layers in a hybrid model |
 
 The `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` script assigns models to the `standard` auto-provisioned A10/A100/H100 profile or the shared pre-provisioned `8xh100` profile based on `modelFileSize`. Each pool selects a fixed GPU SKU and can block models that meet its size policy but are incompatible with that GPU family.
 
@@ -62,15 +66,15 @@ The `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` script
 
 2. **Review the generated entry.** **If the model has missing or non-standard HuggingFace metadata**, add an override entry in `presets/workspace/generator/generator.go` under the `catalogOverrides` map.
 
-3. **Check the generated regression targets.** Run `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` and confirm the size policy selects appropriate GPU pools and topology. Adjust the shared policy in `.github/preset-regression-config.json` only when the sizing tiers themselves need to change.
+3. **Add model-specific configurations to `presets/workspace/generator/generator.go` if necessary** (e.g. reasoning parser, tool call parser, etc).
 
-4. **Add model-specific configurations to `presets/workspace/generator/generator.go` if necessary** (e.g. reasoning parser, tool call parser, etc).
+4. **Check the generated regression targets.** Run `.github/scripts/preset-regression-tests/preset-regression-matrix.sh` and confirm the size policy selects appropriate GPU pools and topology. Adjust the shared policy in `.github/preset-regression-config.json` only when the sizing tiers themselves need to change.
 
-5. **Deploy and verify with MT-Bench.** Deploy the model as a KAITO Workspace CR and run the MT-Bench evaluation following `benchmarks/mt_bench/README.md`. Record the scores in `presets/workspace/models/model_catalog_mtbench_scores.md`.
+5. **Collect GSM8K baselines on compatible GPU types.** Deploy the model as a KAITO Workspace CR on each compatible GPU type, run the GSM8K evaluation following `.github/scripts/preset-regression-tests/preset-regression-test.md`, and record the reviewed measurements in `benchmarks/gsm8k/baselines.yaml`.
 
 6. **Add the model to the supported models documentation.** Add a row for the new model to the table in `website/docs/presets.md` with its HuggingFace repo ID, model URL, and license.
 
-7. **Submit a pull request** with the updated `model_catalog.yaml`, `model_catalog_mtbench_scores.md`, `website/docs/presets.md` and other necessary changes.
+7. **Submit a pull request** with the updated `model_catalog.yaml`, `benchmarks/gsm8k/baselines.yaml`, `website/docs/presets.md` and other necessary changes.
 
 ## Refreshing All Existing Entries
 

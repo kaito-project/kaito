@@ -14,9 +14,7 @@
 package models
 
 import (
-	"bufio"
 	"context"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -1157,68 +1155,6 @@ func TestLegacyBuiltinAliasesResolveToCanonicalIDs(t *testing.T) {
 			assert.Equal(t, hfName, plugin.ResolveHFModelID(strings.ToUpper(shortName)))
 		})
 	}
-}
-
-// TestCatalogModelsHaveMTBenchScores ensures every model in model_catalog.yaml
-// has a corresponding score entry in model_catalog_mtbench_scores.md.
-func TestCatalogModelsHaveMTBenchScores(t *testing.T) {
-	// Parse the model catalog.
-	var catalog generator.ModelCatalog
-	err := yaml.Unmarshal(modelCatalogYAML, &catalog)
-	if err != nil {
-		t.Fatalf("Failed to parse model_catalog.yaml: %v", err)
-	}
-
-	// Parse scored model names from the markdown table.
-	scoredModels := parseMTBenchScores(t, "model_catalog_mtbench_scores.md")
-
-	// Check each catalog model has a score.
-	for _, entry := range catalog.Models {
-		t.Run(entry.Name, func(t *testing.T) {
-			_, found := scoredModels[strings.ToLower(entry.Name)]
-			assert.True(t, found,
-				"model %q has no MT-bench score in model_catalog_mtbench_scores.md",
-				entry.Name)
-		})
-	}
-}
-
-// parseMTBenchScores reads the markdown scores file and returns a set of
-// lowercase model names that have score entries.
-func parseMTBenchScores(t *testing.T, filename string) map[string]bool {
-	t.Helper()
-	f, err := os.Open(filename)
-	if err != nil {
-		t.Fatalf("Failed to open %s: %v", filename, err)
-	}
-	defer f.Close()
-
-	scores := make(map[string]bool)
-	scanner := bufio.NewScanner(f)
-	headerSkipped := false
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if !strings.HasPrefix(line, "|") {
-			continue
-		}
-		// Skip the header row and separator row.
-		if !headerSkipped {
-			headerSkipped = true
-			continue // "| Model | Runtime | ..."
-		}
-		if strings.Contains(line, "---") {
-			continue // separator row
-		}
-		cols := strings.Split(line, "|")
-		if len(cols) < 3 {
-			continue
-		}
-		modelName := strings.TrimSpace(cols[1])
-		if modelName != "" {
-			scores[strings.ToLower(modelName)] = true
-		}
-	}
-	return scores
 }
 
 // TestGetModelByName_DeepSeekR10528_SpeculativeDecodingMTP asserts that the

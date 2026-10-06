@@ -50,7 +50,8 @@ class RegexMatchType(StrEnum):
     """KAITO match types for Regex scanner."""
 
     SEARCH = "search"
-    FULL_MATCH = "full_match"
+    FULL_MATCH = "fullmatch"
+    ALL = "all"
 
 
 # Allowed match_type values derived from enums
@@ -276,7 +277,7 @@ class NativeBanSubstringsScanner:
                     found_substrings.append(substring)
 
         if self.contains_all and len(found_substrings) < len(self.substrings):
-            return output, True, -1.0
+            return output, True, 0.0
 
         if found_substrings:
             if self.redact:
@@ -318,19 +319,33 @@ class NativeRegexScanner:
         matches = []
         for pattern in self.patterns:
             if self.match_type == RegexMatchType.SEARCH:
-                # Find ALL matches, not just first
+                # Search: only first match per pattern
+                match = pattern.search(output)
+                if match:
+                    matches.append(match)
+            elif self.match_type == RegexMatchType.FULL_MATCH:
+                match = pattern.fullmatch(output)
+                if match:
+                    matches.append(match)
+            else:  # ALL
+                # Find ALL matches per pattern
                 matches.extend(pattern.finditer(output))
-            else:  # full_match
-                found = pattern.fullmatch(output)
-                if found:
-                    matches.append(found)
 
         if not matches:
-            return output, True, -1.0
+            # No matches found
+            if self.is_blocked:
+                # Block-list: no block patterns matched = valid
+                return output, True, -1.0
+            else:
+                # Allow-list: no allowed patterns matched = invalid
+                return output, False, 0.0
 
+        # Matches found
         if not self.is_blocked:
-            return output, True, -1.0
+            # Allow-list: pattern matched = valid
+            return output, True, 1.0
 
+        # Block-list: pattern matched = invalid
         if self.redact:
             sanitized = output
             # Sort by position descending to avoid offset issues

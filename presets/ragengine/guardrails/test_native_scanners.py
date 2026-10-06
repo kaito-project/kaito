@@ -105,53 +105,65 @@ class TestNativeRegexScanner:
         scanner = NativeRegexScanner(patterns=[r"\d{3}-\d{4}"])
         output, valid, score = scanner.scan("", "Call 123-4567 now")
         assert not valid
+        assert score == 1.0
 
     def test_pattern_not_found(self):
         """Test pattern not found."""
         scanner = NativeRegexScanner(patterns=[r"\d{3}-\d{4}"])
         output, valid, score = scanner.scan("", "Call me tomorrow")
         assert valid
+        assert score == -1.0
 
-    def test_multiple_matches_redaction(self):
-        """Test redacting multiple matches."""
-        scanner = NativeRegexScanner(patterns=[r"\d{3}"], redact=True)
+    def test_search_single_match(self):
+        """Test SEARCH mode finds only first match."""
+        scanner = NativeRegexScanner(
+            patterns=[r"\d+"], match_type=RegexMatchType.SEARCH, redact=True
+        )
         output, valid, score = scanner.scan("", "123 and 456 and 789")
-        # All matches should be redacted
+        # SEARCH should only redact first match
+        assert output == "[REDACTED] and 456 and 789"
+        assert not valid
+
+    def test_all_multiple_matches(self):
+        """Test ALL mode finds all matches."""
+        scanner = NativeRegexScanner(
+            patterns=[r"\d+"], match_type=RegexMatchType.ALL, redact=True
+        )
+        output, valid, score = scanner.scan("", "123 and 456 and 789")
+        # ALL should redact all matches
         assert output == "[REDACTED] and [REDACTED] and [REDACTED]"
         assert not valid
 
-    def test_search_vs_fullmatch(self):
-        """Test search vs fullmatch modes."""
+    def test_fullmatch_entire_string(self):
+        """Test FULL_MATCH requires entire string match."""
         pattern = r"\d+"
-        scanner_search = NativeRegexScanner(
-            patterns=[pattern], match_type=RegexMatchType.SEARCH
-        )
-        scanner_full = NativeRegexScanner(
+        scanner = NativeRegexScanner(
             patterns=[pattern], match_type=RegexMatchType.FULL_MATCH
         )
 
-        output_s, valid_s, _ = scanner_search.scan("", "abc123def")
-        output_f, valid_f, _ = scanner_full.scan("", "abc123def")
+        output, valid, score = scanner.scan("", "123")
+        assert not valid  # entire string is "123"
 
-        assert not valid_s  # search finds the number
-        assert valid_f  # fullmatch requires entire string to match
+        output, valid, score = scanner.scan("", "abc123def")
+        assert valid  # entire string doesn't match \d+
 
-    def test_is_blocked_false(self):
-        """Test is_blocked=False allows matching patterns."""
+    def test_is_blocked_false_allow_list_match(self):
+        """Test is_blocked=False (allow-list) with match found."""
         scanner = NativeRegexScanner(patterns=[r"\d+"], is_blocked=False)
         output, valid, score = scanner.scan("", "has 123 number")
-        assert valid  # Pattern found but is_blocked=False so still valid
+        assert valid  # Pattern matched in allow-list = valid
+        assert score == 1.0
+
+    def test_is_blocked_false_allow_list_no_match(self):
+        """Test is_blocked=False (allow-list) with no match."""
+        scanner = NativeRegexScanner(patterns=[r"\d+"], is_blocked=False)
+        output, valid, score = scanner.scan("", "no numbers here")
+        assert not valid  # No pattern match in allow-list = invalid
+        assert score == 0.0
 
     def test_empty_output(self):
         """Test empty output."""
         scanner = NativeRegexScanner(patterns=[r"\d+"])
         output, valid, score = scanner.scan("", "")
         assert valid
-
-    def test_overlapping_matches(self):
-        """Test overlapping pattern matches."""
-        scanner = NativeRegexScanner(patterns=[r"\d\d\d"], redact=True)
-        # Pattern overlaps: 1234 contains both 123 and 234
-        output, valid, score = scanner.scan("", "1234")
-        assert "[REDACTED]" in output
-        assert not valid
+        assert score == -1.0

@@ -454,6 +454,8 @@ type modelGPUKey struct {
 
 // cudagraphModeByModelAndGPU overrides vLLM's default FULL_AND_PIECEWISE mode
 // for known incompatibilities. An empty GPU model applies the mode to every GPU.
+// Inference performance may degrade compared with the default FULL_AND_PIECEWISE mode.
+// TODO: Remove these overrides once default FULL_AND_PIECEWISE mode is supported in vLLM.
 var cudagraphModeByModelAndGPU = map[modelGPUKey]string{
 	// FULL_AND_PIECEWISE mode Cuda graph capture OOMs for Nemotron models under vllm 0.30.0
 	{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: "NVIDIA A10"}:     "FULL_DECODE_ONLY",

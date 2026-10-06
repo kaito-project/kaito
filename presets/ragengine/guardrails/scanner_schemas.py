@@ -53,9 +53,11 @@ class RegexMatchType(StrEnum):
     FULL_MATCH = "full_match"
 
 
-# Allowed match_type values
-_BAN_SUBSTRINGS_MATCH_TYPES = frozenset({"word", "str"})
-_REGEX_MATCH_TYPES = frozenset({"search", "full_match"})
+# Allowed match_type values derived from enums
+_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(
+    match_type.value for match_type in BanSubstringsMatchType
+)
+_REGEX_MATCH_TYPES = frozenset(match_type.value for match_type in RegexMatchType)
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
 _DEFAULT_SENSITIVE_DETECTORS = ("email", "phone", "credit_card", "ip_address")
 _SENSITIVE_DETECTORS = frozenset(_DEFAULT_SENSITIVE_DETECTORS)
@@ -243,7 +245,7 @@ class NativeBanSubstringsScanner:
     def __init__(
         self,
         substrings: list[str],
-        match_type: str = "word",
+        match_type: BanSubstringsMatchType = BanSubstringsMatchType.WORD,
         case_sensitive: bool = False,
         contains_all: bool = False,
         redact: bool = False,
@@ -265,11 +267,11 @@ class NativeBanSubstringsScanner:
         for substring in self.substrings:
             search_str = substring if self.case_sensitive else substring.lower()
 
-            if self.match_type == "word":
+            if self.match_type == BanSubstringsMatchType.WORD:
                 pattern = r"\b" + re.escape(search_str) + r"\b"
                 if re.search(pattern, search_text):
                     found_substrings.append(substring)
-            elif self.match_type == "str":
+            elif self.match_type == BanSubstringsMatchType.STR:
                 if search_str in search_text:
                     found_substrings.append(substring)
 
@@ -300,7 +302,7 @@ class NativeRegexScanner:
         self,
         patterns: list[str],
         is_blocked: bool = True,
-        match_type: str = "search",
+        match_type: RegexMatchType = RegexMatchType.SEARCH,
         redact: bool = False,
     ) -> None:
         self.patterns = [re.compile(p) for p in patterns]
@@ -315,7 +317,7 @@ class NativeRegexScanner:
 
         matches = []
         for pattern in self.patterns:
-            if self.match_type == "search":
+            if self.match_type == RegexMatchType.SEARCH:
                 # Find ALL matches, not just first
                 matches.extend(pattern.finditer(output))
             else:  # full_match
@@ -345,7 +347,7 @@ class NativeRegexScanner:
 class BanSubstringsConfig:
     supports_redact: ClassVar[bool] = True
     substrings: list[str]
-    match_type: str = "word"
+    match_type: BanSubstringsMatchType = BanSubstringsMatchType.WORD
     case_sensitive: bool = False
     contains_all: bool = False
 
@@ -356,15 +358,15 @@ class BanSubstringsConfig:
             raise ValueError(
                 "ban_substrings requires 'substrings' to be a non-empty list of strings"
             )
-        match_type = str(raw.get("match_type", "word")).lower()
-        if match_type not in _BAN_SUBSTRINGS_MATCH_TYPES:
+        match_type_str = str(raw.get("match_type", "word")).lower()
+        if match_type_str not in _BAN_SUBSTRINGS_MATCH_TYPES:
             raise ValueError(
                 f"ban_substrings 'match_type' must be one of "
-                f"{sorted(_BAN_SUBSTRINGS_MATCH_TYPES)}, got {match_type!r}"
+                f"{sorted(_BAN_SUBSTRINGS_MATCH_TYPES)}, got {match_type_str!r}"
             )
         return cls(
             substrings=substrings,
-            match_type=match_type,
+            match_type=BanSubstringsMatchType(match_type_str),
             case_sensitive=_coerce_bool(
                 raw.get("case_sensitive"), False, field="case_sensitive"
             ),
@@ -388,7 +390,7 @@ class RegexConfig:
     supports_redact: ClassVar[bool] = True
     patterns: list[str]
     is_blocked: bool = True
-    match_type: str = "search"
+    match_type: RegexMatchType = RegexMatchType.SEARCH
 
     @classmethod
     def from_dict(cls, raw: dict) -> "RegexConfig":
@@ -404,16 +406,16 @@ class RegexConfig:
                 raise ValueError(
                     f"regex pattern {pattern!r} is not a valid regular expression: {exc}"
                 ) from exc
-        match_type = str(raw.get("match_type", "search")).lower()
-        if match_type not in _REGEX_MATCH_TYPES:
+        match_type_str = str(raw.get("match_type", "search")).lower()
+        if match_type_str not in _REGEX_MATCH_TYPES:
             raise ValueError(
                 f"regex 'match_type' must be one of "
-                f"{sorted(_REGEX_MATCH_TYPES)}, got {match_type!r}"
+                f"{sorted(_REGEX_MATCH_TYPES)}, got {match_type_str!r}"
             )
         return cls(
             patterns=patterns,
             is_blocked=_coerce_bool(raw.get("is_blocked"), True, field="is_blocked"),
-            match_type=match_type,
+            match_type=RegexMatchType(match_type_str),
         )
 
     def build(self, action_on_hit: str) -> Any:

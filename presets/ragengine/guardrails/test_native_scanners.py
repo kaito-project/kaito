@@ -13,7 +13,12 @@
 
 """Unit tests for native KAITO guardrails scanners."""
 
-from .scanner_schemas import NativeBanSubstringsScanner, NativeRegexScanner
+from .scanner_schemas import (
+    BanSubstringsMatchType,
+    NativeBanSubstringsScanner,
+    NativeRegexScanner,
+    RegexMatchType,
+)
 
 
 class TestNativeBanSubstringsScanner:
@@ -45,13 +50,17 @@ class TestNativeBanSubstringsScanner:
 
     def test_word_match_type(self):
         """Test word boundary matching."""
-        scanner = NativeBanSubstringsScanner(substrings=["secret"], match_type="word")
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret"], match_type=BanSubstringsMatchType.WORD
+        )
         output, valid, score = scanner.scan("", "This contains secrets")
         assert valid  # "secrets" is not "secret" as word
 
     def test_str_match_type(self):
         """Test substring matching."""
-        scanner = NativeBanSubstringsScanner(substrings=["secret"], match_type="str")
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret"], match_type=BanSubstringsMatchType.STR
+        )
         output, valid, score = scanner.scan("", "This contains secrets")
         assert not valid  # "secret" is in "secrets"
 
@@ -114,8 +123,12 @@ class TestNativeRegexScanner:
     def test_search_vs_fullmatch(self):
         """Test search vs fullmatch modes."""
         pattern = r"\d+"
-        scanner_search = NativeRegexScanner(patterns=[pattern], match_type="search")
-        scanner_full = NativeRegexScanner(patterns=[pattern], match_type="full_match")
+        scanner_search = NativeRegexScanner(
+            patterns=[pattern], match_type=RegexMatchType.SEARCH
+        )
+        scanner_full = NativeRegexScanner(
+            patterns=[pattern], match_type=RegexMatchType.FULL_MATCH
+        )
 
         output_s, valid_s, _ = scanner_search.scan("", "abc123def")
         output_f, valid_f, _ = scanner_full.scan("", "abc123def")

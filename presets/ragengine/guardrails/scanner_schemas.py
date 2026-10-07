@@ -36,9 +36,16 @@ import llm_guard.output_scanners as llm_guard_output_scanners
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
 
+from guardrails.native_scanners import (
+    BanSubstringsMatchType,
+    RegexMatchType,
+)
+
 # Allowed match_type values derived from enums in guardrails.native_scanners
-_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(("word", "str"))
-_REGEX_MATCH_TYPES = frozenset(("search", "fullmatch", "all"))
+_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(
+    match_type.value for match_type in BanSubstringsMatchType
+)
+_REGEX_MATCH_TYPES = frozenset(match_type.value for match_type in RegexMatchType)
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
 _DEFAULT_SENSITIVE_DETECTORS = ("email", "phone", "credit_card", "ip_address")
 _SENSITIVE_DETECTORS = frozenset(_DEFAULT_SENSITIVE_DETECTORS)
@@ -238,8 +245,6 @@ class BanSubstringsConfig:
 
     @classmethod
     def from_dict(cls, raw: dict) -> "BanSubstringsConfig":
-        from guardrails.native_scanners import BanSubstringsMatchType
-
         substrings = _coerce_string_list(raw.get("substrings"))
         if not substrings:
             raise ValueError(
@@ -291,8 +296,6 @@ class RegexConfig:
 
     @classmethod
     def from_dict(cls, raw: dict) -> "RegexConfig":
-        from guardrails.native_scanners import RegexMatchType
-
         patterns = _coerce_string_list(raw.get("patterns"))
         if not patterns:
             raise ValueError(

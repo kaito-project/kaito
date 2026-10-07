@@ -951,7 +951,11 @@ def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_sca
 
     assert len(scanners) == 2
     # Native scanners don't have the adapter wrapper pattern
-    from guardrail_core.native_scanners import NativeInvisibleTextScanner, NativeTokenLimitScanner
+    from guardrail_core.native_scanners import (
+        NativeInvisibleTextScanner,
+        NativeTokenLimitScanner,
+    )
+
     assert isinstance(scanners[0], NativeInvisibleTextScanner)
     assert isinstance(scanners[1], NativeTokenLimitScanner)
     assert scanners[1].limit == 32
@@ -974,6 +978,7 @@ def test_build_scanners_forwards_token_limit_model_name(fake_llm_guard_scanners)
 
     assert len(scanners) == 1
     from guardrail_core.native_scanners import NativeTokenLimitScanner
+
     assert isinstance(scanners[0], NativeTokenLimitScanner)
     assert scanners[0].model_name == "gpt-4"
 
@@ -990,7 +995,11 @@ def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
     scanners = guardrails._build_scanners()
 
     assert len(scanners) == 2
-    from guardrail_core.native_scanners import NativeJSONScanner, NativeReadingTimeScanner
+    from guardrail_core.native_scanners import (
+        NativeJSONScanner,
+        NativeReadingTimeScanner,
+    )
+
     assert isinstance(scanners[0], NativeJSONScanner)
     assert scanners[0].required_elements == 2
     assert scanners[0].repair is False

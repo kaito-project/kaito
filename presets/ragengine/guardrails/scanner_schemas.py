@@ -226,132 +226,6 @@ class TokenLimitOutputAdapter:
         return sanitized_output, is_valid, score
 
 
-class NativeInvisibleTextScanner:
-    """KAITO-owned scanner for detecting invisible/non-printable Unicode characters."""
-
-    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
-        del prompt
-        if output.strip() == "":
-            return output, True, -1.0
-
-        # Detect invisible characters (common Unicode categories for hidden text)
-        invisible_chars = []
-        for i, char in enumerate(output):
-            # Detect zero-width chars, directional marks, variation selectors
-            if char in ('​', '‌', '‍', '‎', '‏',
-                       '﻿', '‪', '‫', '‬', '‭', '‮',
-                       '؜', '᠎', '⁤', '⁦', '⁧', '⁨', '⁩'):
-                invisible_chars.append(i)
-
-        if invisible_chars:
-            # Remove invisible characters
-            sanitized = ''.join(c for i, c in enumerate(output) if i not in invisible_chars)
-            return sanitized, False, 1.0
-
-        return output, True, -1.0
-
-
-class NativeJSONScanner:
-    """KAITO-owned JSON validator and optional repairer."""
-
-    def __init__(self, required_elements: int = 0, repair: bool = True) -> None:
-        self.required_elements = required_elements
-        self.repair = repair
-
-    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
-        del prompt
-        if output.strip() == "":
-            return output, True, -1.0
-
-        import json
-        try:
-            obj = json.loads(output)
-            # Check required elements if applicable
-            if self.required_elements > 0 and isinstance(obj, dict):
-                if len(obj) < self.required_elements:
-                    return output, False, 0.5
-            return output, True, -1.0
-        except json.JSONDecodeError:
-            if self.repair:
-                # Attempt simple repair: try wrapping in object or array
-                try:
-                    json.loads(f'[{output}]')
-                    return f'[{output}]', False, 0.5
-                except json.JSONDecodeError:
-                    pass
-                try:
-                    json.loads('{' + output + '}')
-                    return '{' + output + '}', False, 0.5
-                except json.JSONDecodeError:
-                    pass
-            return output, False, 1.0
-
-
-class NativeReadingTimeScanner:
-    """KAITO-owned reading time limiter based on word count."""
-
-    def __init__(self, max_time: float = 5.0, truncate: bool = False) -> None:
-        self.max_time = max_time  # in minutes
-        self.truncate = truncate
-
-    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
-        del prompt
-        if output.strip() == "":
-            return output, True, -1.0
-
-        # Average reading speed: 200 words per minute
-        words = len(output.split())
-        reading_time_minutes = words / 200.0
-
-        if reading_time_minutes > self.max_time:
-            if self.truncate:
-                # Truncate to fit within max_time
-                max_words = int(self.max_time * 200)
-                truncated = ' '.join(output.split()[:max_words])
-                return truncated, False, 1.0
-            else:
-                return output, False, reading_time_minutes / self.max_time
-
-        return output, True, -1.0
-
-
-class NativeTokenLimitScanner:
-    """KAITO-owned token counter using tiktoken."""
-
-    def __init__(
-        self,
-        limit: int = 4096,
-        encoding_name: str = "cl100k_base",
-        model_name: str | None = None,
-    ) -> None:
-        self.limit = limit
-        self.encoding_name = encoding_name
-        self.model_name = model_name
-        try:
-            import tiktoken
-            self.encoding = tiktoken.get_encoding(encoding_name)
-        except Exception:
-            # Fallback: rough estimate (1 token ≈ 4 chars)
-            self.encoding = None
-
-    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
-        del prompt
-        if output.strip() == "":
-            return output, True, -1.0
-
-        if self.encoding:
-            token_count = len(self.encoding.encode(output))
-        else:
-            # Fallback estimation
-            token_count = len(output) // 4
-
-        if token_count > self.limit:
-            return output, False, min(1.0, token_count / self.limit)
-
-        return output, True, -1.0
-
-
-
 @dataclass
 class BanSubstringsConfig:
     supports_redact: ClassVar[bool] = True
@@ -449,6 +323,8 @@ class InvisibleTextConfig:
         return cls()
 
     def build(self, action_on_hit: str) -> Any:
+        from guardrail_core.native_scanners import NativeInvisibleTextScanner
+
         return NativeInvisibleTextScanner()
 
 
@@ -483,6 +359,8 @@ class TokenLimitConfig:
         return cls(limit=limit, encoding_name=encoding_name, model_name=model_name)
 
     def build(self, action_on_hit: str) -> Any:
+        from guardrail_core.native_scanners import NativeTokenLimitScanner
+
         return NativeTokenLimitScanner(
             limit=self.limit,
             encoding_name=self.encoding_name,
@@ -506,6 +384,8 @@ class JSONConfig:
         return cls(required_elements=required_elements, repair=repair)
 
     def build(self, action_on_hit: str) -> Any:
+        from guardrail_core.native_scanners import NativeJSONScanner
+
         return NativeJSONScanner(
             required_elements=self.required_elements,
             repair=self.repair,
@@ -535,6 +415,8 @@ class ReadingTimeConfig:
         return cls(max_time=float(max_time), truncate=truncate)
 
     def build(self, action_on_hit: str) -> Any:
+        from guardrail_core.native_scanners import NativeReadingTimeScanner
+
         return NativeReadingTimeScanner(
             max_time=self.max_time,
             truncate=self.truncate,

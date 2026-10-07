@@ -936,8 +936,6 @@ def test_build_scanners_uses_per_scanner_action(fake_llm_guard_scanners):
 
 
 def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_scanners):
-    _, _, FakeInvisibleText, FakeTokenLimit, _, _ = fake_llm_guard_scanners
-
     guardrails = OutputGuardrails(
         enabled=True,
         scanner_configs=(
@@ -949,15 +947,15 @@ def test_build_scanners_builds_invisible_text_and_token_limit(fake_llm_guard_sca
     scanners = guardrails._build_scanners()
 
     assert len(scanners) == 2
-    assert isinstance(scanners[0]._scanner, FakeInvisibleText)
-    assert isinstance(scanners[1]._scanner, FakeTokenLimit)
-    assert scanners[1]._scanner.limit == 32
-    assert scanners[1]._scanner.encoding_name == "cl100k_base"
+    # Native scanners don't have the adapter wrapper pattern
+    from guardrail_core.native_scanners import NativeInvisibleTextScanner, NativeTokenLimitScanner
+    assert isinstance(scanners[0], NativeInvisibleTextScanner)
+    assert isinstance(scanners[1], NativeTokenLimitScanner)
+    assert scanners[1].limit == 32
+    assert scanners[1].encoding_name == "cl100k_base"
 
 
 def test_build_scanners_forwards_token_limit_model_name(fake_llm_guard_scanners):
-    _, _, _, FakeTokenLimit, _, _ = fake_llm_guard_scanners
-
     guardrails = OutputGuardrails(
         enabled=True,
         scanner_configs=(
@@ -972,13 +970,12 @@ def test_build_scanners_forwards_token_limit_model_name(fake_llm_guard_scanners)
     scanners = guardrails._build_scanners()
 
     assert len(scanners) == 1
-    assert isinstance(scanners[0]._scanner, FakeTokenLimit)
-    assert scanners[0]._scanner.model_name == "gpt-4"
+    from guardrail_core.native_scanners import NativeTokenLimitScanner
+    assert isinstance(scanners[0], NativeTokenLimitScanner)
+    assert scanners[0].model_name == "gpt-4"
 
 
 def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
-    _, _, _, _, FakeJSON, FakeReadingTime = fake_llm_guard_scanners
-
     guardrails = OutputGuardrails(
         enabled=True,
         scanner_configs=(
@@ -990,10 +987,11 @@ def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
     scanners = guardrails._build_scanners()
 
     assert len(scanners) == 2
-    assert isinstance(scanners[0], FakeJSON)
+    from guardrail_core.native_scanners import NativeJSONScanner, NativeReadingTimeScanner
+    assert isinstance(scanners[0], NativeJSONScanner)
     assert scanners[0].required_elements == 2
     assert scanners[0].repair is False
-    assert isinstance(scanners[1], FakeReadingTime)
+    assert isinstance(scanners[1], NativeReadingTimeScanner)
     assert scanners[1].max_time == 0.25
     assert scanners[1].truncate is True
 

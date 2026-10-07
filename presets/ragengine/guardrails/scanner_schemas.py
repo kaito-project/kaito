@@ -303,14 +303,15 @@ class NativeRegexScanner:
         match_type: RegexMatchType = RegexMatchType.SEARCH,
         redact: bool = False,
     ) -> None:
-        self.patterns = [re.compile(p) for p in patterns]
+        self.patterns = patterns  # Store original pattern strings for compatibility
+        self._compiled_patterns = [re.compile(p) for p in patterns]
         self.is_blocked = is_blocked
         self.match_type = match_type
         self.redact = redact
 
     def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
         del prompt
-        for pattern in self.patterns:
+        for pattern in self._compiled_patterns:
             matches = []
             if self.match_type == RegexMatchType.SEARCH:
                 match = pattern.search(output)

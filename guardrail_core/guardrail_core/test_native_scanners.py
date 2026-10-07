@@ -410,9 +410,7 @@ class TestNativeTokenLimitScanner:
         try:
             # With model_name, should use encoding_for_model (may be different from encoding_name)
             scanner = NativeTokenLimitScanner(
-                limit=100,
-                encoding_name="cl100k_base",
-                model_name="gpt-3.5-turbo"
+                limit=100, encoding_name="cl100k_base", model_name="gpt-3.5-turbo"
             )
             output, valid, score = scanner.scan("", "Hello world")
             # Should not raise an error and should work correctly
@@ -435,7 +433,7 @@ class TestNativeTokenLimitScanner:
             # Different encodings may have different token counts
             scanner_cl100k = NativeTokenLimitScanner(
                 limit=1000,  # High enough to not truncate
-                encoding_name="cl100k_base"
+                encoding_name="cl100k_base",
             )
             output_cl100k, _, _ = scanner_cl100k.scan("", text)
 
@@ -462,8 +460,7 @@ class TestBanSubstringsParityWithLLMGuard:
           from the corresponding character class in the banned substring.
         """
         scanner = NativeBanSubstringsScanner(
-            substrings=["test"],
-            match_type=BanSubstringsMatchType.WORD
+            substrings=["test"], match_type=BanSubstringsMatchType.WORD
         )
 
         # Should NOT match when part of other words
@@ -473,8 +470,7 @@ class TestBanSubstringsParityWithLLMGuard:
 
         # Should NOT match "testing" as word even though "test" is substring
         scanner2 = NativeBanSubstringsScanner(
-            substrings=["testing"],
-            match_type=BanSubstringsMatchType.WORD
+            substrings=["testing"], match_type=BanSubstringsMatchType.WORD
         )
         output2, valid2, score2 = scanner2.scan("", "test testing case")
         assert not valid2  # Matches "testing"
@@ -487,21 +483,26 @@ class TestBanSubstringsParityWithLLMGuard:
         scanner = NativeBanSubstringsScanner(
             substrings=["test"],
             match_type=BanSubstringsMatchType.STR,
-            case_sensitive=False  # default
+            case_sensitive=False,  # default
         )
 
         # Should match substring anywhere (case insensitive)
         cases = [
-            ("testing", False),   # "test" is in "testing", should be invalid (valid=False)
-            ("atestb", False),    # "test" is in middle, should be invalid
-            ("test", False),      # Exact match, should be invalid
-            ("TEST", False),      # Case insensitive, should be invalid
+            (
+                "testing",
+                False,
+            ),  # "test" is in "testing", should be invalid (valid=False)
+            ("atestb", False),  # "test" is in middle, should be invalid
+            ("test", False),  # Exact match, should be invalid
+            ("TEST", False),  # Case insensitive, should be invalid
             ("hello world", True),  # No "test", should be valid
         ]
 
         for text, should_be_valid in cases:
             output, valid, score = scanner.scan("", text)
-            assert valid == should_be_valid, f"Failed for text: {text}. Expected valid={should_be_valid}, got {valid}"
+            assert valid == should_be_valid, (
+                f"Failed for text: {text}. Expected valid={should_be_valid}, got {valid}"
+            )
 
     def test_parity_case_sensitivity(self):
         """Test case sensitivity parameter (parity with llm-guard).
@@ -510,16 +511,14 @@ class TestBanSubstringsParityWithLLMGuard:
         """
         # Case insensitive (default)
         scanner_ci = NativeBanSubstringsScanner(
-            substrings=["SECRET"],
-            case_sensitive=False
+            substrings=["SECRET"], case_sensitive=False
         )
         output_ci, valid_ci, _ = scanner_ci.scan("", "this is secret info")
         assert not valid_ci  # Should match despite different case
 
         # Case sensitive
         scanner_cs = NativeBanSubstringsScanner(
-            substrings=["SECRET"],
-            case_sensitive=True
+            substrings=["SECRET"], case_sensitive=True
         )
         output_cs, valid_cs, _ = scanner_cs.scan("", "this is secret info")
         assert valid_cs  # Should NOT match different case
@@ -531,8 +530,7 @@ class TestBanSubstringsParityWithLLMGuard:
         When not all are present, it returns True (valid), score 0.0.
         """
         scanner = NativeBanSubstringsScanner(
-            substrings=["admin", "password"],
-            contains_all=True
+            substrings=["admin", "password"], contains_all=True
         )
 
         # All present: invalid (bad)
@@ -556,9 +554,7 @@ class TestBanSubstringsParityWithLLMGuard:
         llm-guard replaces all found substrings with [REDACTED].
         """
         scanner = NativeBanSubstringsScanner(
-            substrings=["secret"],
-            redact=True,
-            case_sensitive=False
+            substrings=["secret"], redact=True, case_sensitive=False
         )
 
         output, valid, score = scanner.scan("", "My secret and the SECRET are secret")
@@ -588,7 +584,9 @@ class TestJSONScannerParityWithLLMGuard:
 
         assert not valid, "Unrepairable JSON should be invalid"
         assert score == 1.0, "Unrepairable JSON should have score 1.0"
-        assert output == broken_json, "Original output should be returned when repair fails"
+        assert output == broken_json, (
+            "Original output should be returned when repair fails"
+        )
 
     def test_parity_repair_success_returns_valid(self):
         """Test that successful repair returns valid (parity with llm-guard).
@@ -642,12 +640,12 @@ class TestJSONScannerParityWithLLMGuard:
         scanner = NativeJSONScanner(required_elements=3)
 
         # Array with exact required elements
-        output1, valid1, score1 = scanner.scan("", '[1, 2, 3]')
+        output1, valid1, score1 = scanner.scan("", "[1, 2, 3]")
         assert valid1
         assert score1 == -1.0
 
         # Array with fewer elements
-        output2, valid2, score2 = scanner.scan("", '[1, 2]')
+        output2, valid2, score2 = scanner.scan("", "[1, 2]")
         assert not valid2
         assert score2 == 1.0
 
@@ -722,7 +720,7 @@ class TestTokenLimitScannerParityWithLLMGuard:
             scanner = NativeTokenLimitScanner(
                 limit=1000,  # High limit
                 encoding_name="cl100k_base",
-                model_name="gpt-3.5-turbo"
+                model_name="gpt-3.5-turbo",
             )
 
             # Should not raise - model_name should be used

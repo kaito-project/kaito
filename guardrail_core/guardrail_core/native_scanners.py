@@ -225,15 +225,11 @@ class NativeInvisibleTextScanner:
             category = unicodedata.category(char)
             # Detect format chars (Cf), private use (Co), and unassigned (Cn).
             # This matches llm-guard behavior: skips normal control chars like \n, \t, \r
-            if (
-                category in ("Cf", "Co", "Cn")
-                or char
-                in (
-                    "​",  # Zero-width space
-                    "‌",  # Zero-width non-joiner
-                    "‍",  # Zero-width joiner
-                    "﻿",  # Zero-width no-break space
-                )
+            if category in ("Cf", "Co", "Cn") or char in (
+                "​",  # Zero-width space
+                "‌",  # Zero-width non-joiner
+                "‍",  # Zero-width joiner
+                "﻿",  # Zero-width no-break space
             ):
                 invisible_chars.append(i)
 

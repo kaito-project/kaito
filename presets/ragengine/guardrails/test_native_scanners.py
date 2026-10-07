@@ -152,14 +152,22 @@ class TestNativeRegexScanner:
         scanner = NativeRegexScanner(patterns=[r"\d+"], is_blocked=False)
         output, valid, score = scanner.scan("", "has 123 number")
         assert valid  # Pattern matched in allow-list = valid
-        assert score == 1.0
+        assert score == -1.0  # Allow-list match score is -1.0
 
     def test_is_blocked_false_allow_list_no_match(self):
         """Test is_blocked=False (allow-list) with no match."""
         scanner = NativeRegexScanner(patterns=[r"\d+"], is_blocked=False)
         output, valid, score = scanner.scan("", "no numbers here")
         assert not valid  # No pattern match in allow-list = invalid
-        assert score == 0.0
+        assert score == 1.0  # Allow-list no-match score is 1.0
+
+    def test_multiple_patterns_first_match_stops(self):
+        """Test that first matching pattern stops iteration."""
+        scanner = NativeRegexScanner(patterns=[r"\d+", r"secret"], redact=True)
+        output, valid, score = scanner.scan("", "123 secret")
+        # First pattern \d+ matches and triggers redaction, second never checked
+        assert output == "[REDACTED] secret"
+        assert not valid
 
     def test_empty_output(self):
         """Test empty output."""

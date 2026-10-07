@@ -316,45 +316,46 @@ class NativeRegexScanner:
         if output.strip() == "":
             return output, True, -1.0
 
-        matches = []
         for pattern in self.patterns:
+            matches = []
             if self.match_type == RegexMatchType.SEARCH:
-                # Search: only first match per pattern
                 match = pattern.search(output)
-                if match:
-                    matches.append(match)
+                matches = [match] if match else []
             elif self.match_type == RegexMatchType.FULL_MATCH:
                 match = pattern.fullmatch(output)
-                if match:
-                    matches.append(match)
+                matches = [match] if match else []
             else:  # ALL
-                # Find ALL matches per pattern
-                matches.extend(pattern.finditer(output))
+                matches = list(pattern.finditer(output))
 
-        if not matches:
-            # No matches found
-            if self.is_blocked:
-                # Block-list: no block patterns matched = valid
+            if not matches:
+                # This pattern didn't match, try next one
+                continue
+
+            # First matching pattern found - handle and return
+            if not self.is_blocked:
+                # Allow-list: match found = valid, score -1.0
                 return output, True, -1.0
+
+            # Block-list: pattern matched = invalid
+            if self.redact:
+                sanitized = output
+                # Sort by position descending to avoid offset issues
+                for match in sorted(matches, key=lambda m: m.start(), reverse=True):
+                    sanitized = (
+                        sanitized[: match.start()]
+                        + "[REDACTED]"
+                        + sanitized[match.end() :]
+                    )
+                return sanitized, False, 1.0
             else:
-                # Allow-list: no allowed patterns matched = invalid
-                return output, False, 0.0
+                return output, False, 1.0
 
-        # Matches found
-        if not self.is_blocked:
-            # Allow-list: pattern matched = valid
-            return output, True, 1.0
-
-        # Block-list: pattern matched = invalid
-        if self.redact:
-            sanitized = output
-            # Sort by position descending to avoid offset issues
-            for match in sorted(matches, key=lambda m: m.start(), reverse=True):
-                sanitized = (
-                    sanitized[: match.start()] + "[REDACTED]" + sanitized[match.end() :]
-                )
-            return sanitized, False, 1.0
+        # All patterns checked, none matched
+        if self.is_blocked:
+            # Block-list: no block patterns matched = valid
+            return output, True, -1.0
         else:
+            # Allow-list: no allowed patterns matched = invalid, score 1.0
             return output, False, 1.0
 
 

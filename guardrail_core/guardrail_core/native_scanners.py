@@ -88,12 +88,11 @@ class NativeBanSubstringsScanner:
 
         if found_substrings:
             if self.redact:
-                sanitized = output
+                # Collect all match positions based on original output
+                all_matches = []
                 for substring in found_substrings:
                     search_str = substring if self.case_sensitive else substring.lower()
-                    # Find all occurrences (case-sensitive or insensitive per setting)
                     start = 0
-                    matches = []
                     while True:
                         if self.case_sensitive:
                             pos = output.find(substring, start)
@@ -101,16 +100,15 @@ class NativeBanSubstringsScanner:
                             pos = search_text.find(search_str, start)
                         if pos == -1:
                             break
-                        matches.append((pos, pos + len(substring)))
+                        all_matches.append((pos, pos + len(substring)))
                         start = pos + 1
 
-                    # Sort by position descending to avoid offset issues
-                    for match_start, match_end in sorted(matches, reverse=True):
-                        sanitized = (
-                            sanitized[:match_start]
-                            + "[REDACTED]"
-                            + sanitized[match_end:]
-                        )
+                # Apply all replacements from right to left to avoid offset issues
+                sanitized = output
+                for match_start, match_end in sorted(all_matches, reverse=True):
+                    sanitized = (
+                        sanitized[:match_start] + "[REDACTED]" + sanitized[match_end:]
+                    )
 
                 return sanitized, False, 1.0
             else:

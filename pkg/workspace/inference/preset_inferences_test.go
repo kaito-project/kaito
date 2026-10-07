@@ -1238,13 +1238,47 @@ func TestV41ExtendsVLLMEngineReadyTimeout(t *testing.T) {
 		},
 	}
 	var timeout string
-	for _, variable := range buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, params, "", "") {
+	for _, variable := range buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, params, nil, "", "") {
 		if variable.Name == "VLLM_ENGINE_READY_TIMEOUT_S" {
 			timeout = variable.Value
 		}
 	}
 	if timeout != "3600" {
 		t.Fatalf("VLLM_ENGINE_READY_TIMEOUT_S = %q, want 3600", timeout)
+	}
+}
+
+func TestQwen4ExpDisablesPLECPUOffloadOnA100(t *testing.T) {
+	params := &pkgmodel.PresetParam{
+		Metadata: pkgmodel.Metadata{
+			Architectures: []string{"Qwen4ExpForConditionalGeneration"},
+		},
+	}
+	for _, tc := range []struct {
+		gpuModel string
+		want     bool
+	}{
+		{gpuModel: "NVIDIA A100", want: true},
+		{gpuModel: "NVIDIA H100", want: false},
+	} {
+		t.Run(tc.gpuModel, func(t *testing.T) {
+			env := buildMainContainerEnv(
+				pkgmodel.RuntimeNameVLLM,
+				params,
+				&sku.GPUConfig{GPUModel: tc.gpuModel},
+				"",
+				"",
+			)
+			hasOverride := false
+			for _, variable := range env {
+				if variable.Name == "VLLM_PLE_CPU_OFFLOAD" {
+					hasOverride = variable.Value == "0"
+				}
+			}
+			if hasOverride != tc.want {
+				t.Fatalf("VLLM_PLE_CPU_OFFLOAD=0 present = %v, want %v", hasOverride, tc.want)
+			}
+		})
 	}
 }
 

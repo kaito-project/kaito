@@ -420,6 +420,34 @@ func TestGetInferenceCommandVLLMHardwareOverrides(t *testing.T) {
 	}
 }
 
+func TestGetInferenceCommandQwen4ExpIndexerDtypeByGPU(t *testing.T) {
+	for _, tc := range []struct {
+		gpuModel string
+		want     string
+	}{
+		{gpuModel: "NVIDIA H100", want: "fp8"},
+		{gpuModel: "NVIDIA A100", want: "bf16"},
+	} {
+		t.Run(tc.gpuModel, func(t *testing.T) {
+			p := &PresetParam{
+				Metadata: Metadata{Architectures: []string{"Qwen4ExpForConditionalGeneration"}},
+				RuntimeParam: RuntimeParam{VLLM: VLLMParam{
+					BaseCommand:    "vllm serve",
+					ModelRunParams: map[string]string{},
+				}},
+			}
+			cmd := p.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				SKUNumGPUs:  4,
+				NumNodes:    1,
+				GPUConfig:   &sku.GPUConfig{GPUModel: tc.gpuModel},
+			})
+			require.Len(t, cmd, 3)
+			assert.Contains(t, cmd[2], "--attention-config.indexer_kv_dtype="+tc.want)
+		})
+	}
+}
+
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {
 	// Default: --kv-events-config is injected so downstream ZMQ subscribers
 	// can consume BlockStored / BlockRemoved / AllBlocksCleared events.

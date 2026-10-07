@@ -685,7 +685,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			readinessTimeout = defaultStartupProbeTimeout
 		}
 
-		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, cudaHome, localModelWeightsPath)
+		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, gpuConfig, cudaHome, localModelWeightsPath)
 
 		ports := append([]corev1.ContainerPort(nil), containerPorts...)
 		if runtimeName == pkgmodel.RuntimeNameVLLM {
@@ -785,7 +785,7 @@ func configureCUDAToolkitVolume(model pkgmodel.Model,
 // buildMainContainerEnv builds the env vars for the main inference container.
 // runtimeName selects vLLM-specific vars; cudaHome and localModelWeightsPath
 // are "" when not applicable.
-func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam,
+func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, gpuConfig *sku.GPUConfig,
 	cudaHome, localModelWeightsPath string,
 ) []corev1.EnvVar {
 	var env []corev1.EnvVar
@@ -829,6 +829,19 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 					Value: "3600",
 				})
 				break
+			}
+		}
+		if gpuConfig != nil && strings.Contains(strings.ToLower(gpuConfig.GPUModel), "a100") {
+			for _, arch := range inferenceParam.Architectures {
+				if arch == "Qwen4ExpForCausalLM" || arch == "Qwen4ExpForConditionalGeneration" {
+					// Ampere cannot run Qwen4Exp's pinned-host FP8 PLE lookup
+					// kernel. Keep the FP8 table resident on-device instead.
+					env = append(env, corev1.EnvVar{
+						Name:  "VLLM_PLE_CPU_OFFLOAD",
+						Value: "0",
+					})
+					break
+				}
 			}
 		}
 	}

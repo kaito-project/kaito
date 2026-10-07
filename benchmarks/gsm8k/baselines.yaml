@@ -153,6 +153,33 @@ targets:
   evaluated: 128
   emptyResponses: 1
   measuredAt: '2026-09-27'
+- model: Qwen/Qwen3.8-Flash-Next
+  instanceType: Standard_ND96isr_H100_v5
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.9765625
+  correct: 125
+  evaluated: 128
+  emptyResponses: 1
+  measuredAt: '2026-10-07'
+- model: Qwen/Qwen3.8-Flash-Next-FP8
+  instanceType: Standard_NC96ads_A100_v4
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.9765625
+  correct: 125
+  evaluated: 128
+  emptyResponses: 1
+  measuredAt: '2026-10-07'
+- model: Qwen/Qwen3.8-Flash-Next-FP8
+  instanceType: Standard_ND96isr_H100_v5
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.984375
+  correct: 126
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-07'
 - model: deepseek-ai/DeepSeek-V3.2
   instanceType: Standard_ND96isr_H100_v5
   nodes: 2

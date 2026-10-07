@@ -451,6 +451,11 @@ type modelGPUKey struct {
 	gpuModel  string
 }
 
+type architectureGPUKey struct {
+	architecture string
+	gpuModel     string
+}
+
 // cudagraphModeByModelAndGPU overrides vLLM's default FULL_AND_PIECEWISE mode
 // for known incompatibilities. An empty GPU model applies the mode to every GPU.
 // Inference performance may degrade compared with the default FULL_AND_PIECEWISE mode.
@@ -485,6 +490,15 @@ var gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
 	{modelName: "deepseek-v4-pro", gpuModel: "NVIDIA H100"}: "0.91",
 }
 
+var indexerKVDtypeByArchitectureAndGPU = map[architectureGPUKey]string{
+	// Hopper supports the recipe's FP8 sparse indexer. Ampere lacks fp8e4nv,
+	// so its QSA indexer must remain BF16.
+	// source: https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next
+	{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA H100"}:              "fp8",
+	{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA H100"}: "fp8",
+	{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              "bf16",
+	{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: "bf16",
+}
 // ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
 // launched with for the given GPU. A per-GPU-model safety cap (clamps down for
 // tight-VRAM GPUs) wins over the default.
@@ -535,6 +549,15 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		gpuMemoryUtilization = modelUtilization
 	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = gpuMemoryUtilization
+	for _, architecture := range p.Architectures {
+		if dtype, ok := indexerKVDtypeByArchitectureAndGPU[architectureGPUKey{
+			architecture: architecture,
+			gpuModel:     policyGPUModel,
+		}]; ok {
+			p.VLLM.ModelRunParams["attention-config.indexer_kv_dtype"] = dtype
+			break
+		}
+	}
 
 	const cudagraphModeParam = "compilation-config.cudagraph_mode"
 	_, configured := p.VLLM.ModelRunParams[cudagraphModeParam]
@@ -775,6 +798,7 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
 			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
+			"Qwen4ExpForCausalLM", "Qwen4ExpForConditionalGeneration",
 			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",
 			"DeepseekV4ForCausalLM", "DeepseekV41ForCausalLM", "DeepseekV32ForCausalLM":
 			return true

@@ -546,3 +546,40 @@ models:
   headDim: 512
   qkRopeHeadDim: 64
   quantMethod: fp8
+- name: Qwen/Qwen3.8-Flash-Next
+  description: https://huggingface.co/Qwen/Qwen3.8-Flash-Next
+  license: qwen-community-1.0
+  pipelineTag: image-text-to-text
+  modelFileSize: 335.28Gi
+  architectures:
+  - Qwen4ExpForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 2560
+  numHiddenLayers: 48
+  numAttentionHeads: 24
+  numKeyValueHeads: 2
+  headDim: 256
+  mambaStateBytesPerSeq: 115458048
+  mambaStateBytesPerLayer: 3207168
+  numFullAttnLayers: 12
+  numLinearLayers: 36
+- name: Qwen/Qwen3.8-Flash-Next-FP8
+  description: https://huggingface.co/Qwen/Qwen3.8-Flash-Next-FP8
+  license: qwen-community-1.0
+  pipelineTag: image-text-to-text
+  baseModel:
+  - Qwen/Qwen3.8-Flash-Next
+  modelFileSize: 172.80Gi
+  architectures:
+  - Qwen4ExpForConditionalGeneration
+  modelTokenLimit: 262144
+  hiddenSize: 2560
+  numHiddenLayers: 48
+  numAttentionHeads: 24
+  numKeyValueHeads: 2
+  headDim: 256
+  quantMethod: fp8
+  mambaStateBytesPerSeq: 115458048
+  mambaStateBytesPerLayer: 3207168
+  numFullAttnLayers: 12
+  numLinearLayers: 36

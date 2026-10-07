@@ -6,7 +6,7 @@ The standard workflow is `.github/workflows/preset-model-regression.yaml`. Model
 
 ## How it works
 
-1. `preset-regression-matrix.sh` joins `presets/workspace/models/model_catalog.yaml` with `.github/preset-regression-config.json`. It selects models by profile and GPU pool and maps the requested GPUs per node to an instance type.
+1. `preset-regression-matrix.sh` joins `presets/workspace/models/model_catalog.yaml` with `.github/preset-regression-config.json`. It selects models by profile and GPU pool, estimates the node count for each allowed `gpusPerNodeOptions` shape, and chooses the shape requiring the fewest nodes. Ties use the smaller shape.
 2. `preset-regression-run.sh` processes targets serially so one model cannot consume another model's GPU allocation.
 3. The runner creates a Workspace and waits for `ResourceReady`, `InferenceReady`, `WorkspaceSucceeded`, and `BenchmarkCompleted`.
 4. The existing startup benchmark must complete as part of normal Workspace readiness, but its values are not compared with regression baselines.

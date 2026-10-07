@@ -137,6 +137,8 @@ var (
 		"Qwen3_5ForConditionalGeneration":         "qwen3",
 		"Qwen3_5MoeForCausalLM":                   "qwen3",
 		"Qwen3_5MoeForConditionalGeneration":      "qwen3",
+		"Qwen4ExpForCausalLM":                     "qwen3",
+		"Qwen4ExpForConditionalGeneration":        "qwen3",
 		"MuseGlimmerForCausalLM":                  "muse_glimmer",
 		"MuseGlimmerForConditionalGeneration":     "muse_glimmer",
 		"GptOssForCausalLM":                       "openai_gptoss",
@@ -234,6 +236,8 @@ var (
 		"Qwen3_5ForConditionalGeneration":         "qwen3_coder",
 		"Qwen3_5MoeForCausalLM":                   "qwen3_coder",
 		"Qwen3_5MoeForConditionalGeneration":      "qwen3_coder",
+		"Qwen4ExpForCausalLM":                     "qwen3_coder",
+		"Qwen4ExpForConditionalGeneration":        "qwen3_coder",
 		"MiniMaxM2ForCausalLM":                    "minimax_m2",
 		"MiniMaxM3SparseForCausalLM":              "minimax_m3",
 		"MiniMaxM3SparseForConditionalGeneration": "minimax_m3",
@@ -349,6 +353,9 @@ var (
 		"Glm5NextForCausalLM":              true,
 		"Glm5NextForConditionalGeneration": true,
 		"DeepseekV41ForCausalLM":           true,
+		// source: https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next
+		"Qwen4ExpForCausalLM":              true,
+		"Qwen4ExpForConditionalGeneration": true,
 	}
 
 	// vllmDisableFlashInferAutotuneArchMap lists architectures that disable
@@ -360,6 +367,9 @@ var (
 		// source: https://recipes.vllm.ai/zai-org/GLM-5.3-Flash
 		"Glm5NextForCausalLM":              true,
 		"Glm5NextForConditionalGeneration": true,
+		// source: https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next
+		"Qwen4ExpForCausalLM":              true,
+		"Qwen4ExpForConditionalGeneration": true,
 	}
 
 	// catalogOverrides provides hardcoded values for models whose HuggingFace
@@ -1014,7 +1024,6 @@ func (g *Generator) FinalizeParams() {
 			break
 		}
 	}
-
 	// Set GDN prefill backend based on model name prefix
 	for prefix, backend := range vllmGdnPrefillBackendPrefixMap {
 		if strings.HasPrefix(g.Param.Metadata.Name, prefix) {

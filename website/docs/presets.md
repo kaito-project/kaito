@@ -40,6 +40,8 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | Qwen/Qwen3.6-35B-A3B-FP8 | https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8 | Apache-2.0 |
 | Qwen/Qwen3.8-27B | https://huggingface.co/Qwen/Qwen3.8-27B | Apache-2.0 |
 | Qwen/Qwen3.8-27B-FP8 | https://huggingface.co/Qwen/Qwen3.8-27B-FP8 | Apache-2.0 |
+| Qwen/Qwen3.8-Flash-Next | https://huggingface.co/Qwen/Qwen3.8-Flash-Next | qwen-community-1.0 |
+| Qwen/Qwen3.8-Flash-Next-FP8 | https://huggingface.co/Qwen/Qwen3.8-Flash-Next-FP8 | qwen-community-1.0 |
 | zai-org/GLM-5.3 | https://huggingface.co/zai-org/GLM-5.3 | GLM-5.3 |
 | zai-org/GLM-5.3-Flash | https://huggingface.co/zai-org/GLM-5.3-Flash | MIT |
 

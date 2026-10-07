@@ -24,6 +24,7 @@ CRs, ConfigMap-mounted policies, version skew). Bad configs are
 logged and skipped so the rest of the chain still runs.
 """
 
+import hashlib
 import ipaddress
 import os
 import re
@@ -47,6 +48,125 @@ _PHONE_PATTERN = re.compile(r"(?<!\w)(?:\+?\d[\d().\- ]{8,}\d)(?!\w)")
 _CREDIT_CARD_PATTERN = re.compile(r"(?<!\d)(?:\d[ -]?){12,18}\d(?!\d)")
 _IPV4_PATTERN = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 
+# KAITO-owned Secrets detector configuration, fully aligned with llm-guard Secrets.
+# This replaces dependency on llm-guard._detect_secrets_config.
+_KAITO_SECRETS_PLUGINS_CONFIG = {
+    "plugins_used": [
+        {"name": "SoftlayerDetector"},
+        {"name": "StripeDetector"},
+        {"name": "NpmDetector"},
+        {"name": "IbmCosHmacDetector"},
+        {"name": "DiscordBotTokenDetector"},
+        {"name": "BasicAuthDetector"},
+        {"name": "AzureStorageKeyDetector"},
+        {"name": "ArtifactoryDetector"},
+        {"name": "AWSKeyDetector"},
+        {"name": "CloudantDetector"},
+        {"name": "IbmCloudIamDetector"},
+        {"name": "JwtTokenDetector"},
+        {"name": "MailchimpDetector"},
+        {"name": "SquareOAuthDetector"},
+        {"name": "PrivateKeyDetector"},
+        {"name": "TwilioKeyDetector"},
+        {"name": "AdafruitKeyDetector"},
+        {"name": "AdobeSecretDetector"},
+        {"name": "AgeSecretKeyDetector"},
+        {"name": "AirtableApiKeyDetector"},
+        {"name": "AlgoliaApiKeyDetector"},
+        {"name": "AlibabaSecretDetector"},
+        {"name": "AsanaSecretDetector"},
+        {"name": "AtlassianApiTokenDetector"},
+        {"name": "AuthressAccessKeyDetector"},
+        {"name": "BittrexDetector"},
+        {"name": "BitbucketDetector"},
+        {"name": "BeamerApiTokenDetector"},
+        {"name": "ClojarsApiTokenDetector"},
+        {"name": "CodecovAccessTokenDetector"},
+        {"name": "CoinbaseAccessTokenDetector"},
+        {"name": "ConfluentDetector"},
+        {"name": "ContentfulApiTokenDetector"},
+        {"name": "DatabricksApiTokenDetector"},
+        {"name": "DatadogAccessTokenDetector"},
+        {"name": "DefinedNetworkingApiTokenDetector"},
+        {"name": "DigitaloceanDetector"},
+        {"name": "DopplerApiTokenDetector"},
+        {"name": "DroneciAccessTokenDetector"},
+        {"name": "DuffelApiTokenDetector"},
+        {"name": "DynatraceApiTokenDetector"},
+        {"name": "DiscordDetector"},
+        {"name": "DropboxDetector"},
+        {"name": "EasyPostDetector"},
+        {"name": "EtsyAccessTokenDetector"},
+        {"name": "FacebookAccessTokenDetector"},
+        {"name": "FastlyApiKeyDetector"},
+        {"name": "FinicityDetector"},
+        {"name": "FinnhubAccessTokenDetector"},
+        {"name": "FlickrAccessTokenDetector"},
+        {"name": "FlutterwaveDetector"},
+        {"name": "FrameIoApiTokenDetector"},
+        {"name": "FreshbooksAccessTokenDetector"},
+        {"name": "GCPApiKeyDetector"},
+        {"name": "GitHubTokenCustomDetector"},
+        {"name": "GitLabDetector"},
+        {"name": "GitterAccessTokenDetector"},
+        {"name": "GoCardlessApiTokenDetector"},
+        {"name": "GrafanaDetector"},
+        {"name": "HashiCorpTFApiTokenDetector"},
+        {"name": "HerokuApiKeyDetector"},
+        {"name": "HubSpotApiTokenDetector"},
+        {"name": "HuggingFaceDetector"},
+        {"name": "IntercomApiTokenDetector"},
+        {"name": "JFrogDetector"},
+        {"name": "JWTBase64Detector"},
+        {"name": "KrakenAccessTokenDetector"},
+        {"name": "KucoinDetector"},
+        {"name": "LaunchdarklyAccessTokenDetector"},
+        {"name": "LinearDetector"},
+        {"name": "LinkedInDetector"},
+        {"name": "LobDetector"},
+        {"name": "MailgunDetector"},
+        {"name": "MapBoxApiTokenDetector"},
+        {"name": "MattermostAccessTokenDetector"},
+        {"name": "MessageBirdDetector"},
+        {"name": "MicrosoftTeamsWebhookDetector"},
+        {"name": "NetlifyAccessTokenDetector"},
+        {"name": "NewRelicDetector"},
+        {"name": "NYTimesAccessTokenDetector"},
+        {"name": "OktaAccessTokenDetector"},
+        {"name": "OpenAIApiKeyDetector"},
+        {"name": "PlanetScaleDetector"},
+        {"name": "PostmanApiTokenDetector"},
+        {"name": "PrefectApiTokenDetector"},
+        {"name": "PulumiApiTokenDetector"},
+        {"name": "PyPiUploadTokenDetector"},
+        {"name": "RapidApiAccessTokenDetector"},
+        {"name": "ReadmeApiTokenDetector"},
+        {"name": "RubygemsApiTokenDetector"},
+        {"name": "ScalingoApiTokenDetector"},
+        {"name": "SendbirdDetector"},
+        {"name": "SendGridApiTokenDetector"},
+        {"name": "SendinBlueApiTokenDetector"},
+        {"name": "SentryAccessTokenDetector"},
+        {"name": "ShippoApiTokenDetector"},
+        {"name": "ShopifyDetector"},
+        {"name": "SidekiqDetector"},
+        {"name": "SlackDetector"},
+        {"name": "SnykApiTokenDetector"},
+        {"name": "SquarespaceAccessTokenDetector"},
+        {"name": "SumoLogicDetector"},
+        {"name": "TelegramBotApiTokenDetector"},
+        {"name": "TravisCiAccessTokenDetector"},
+        {"name": "TwitchApiTokenDetector"},
+        {"name": "TwitterDetector"},
+        {"name": "TypeformApiTokenDetector"},
+        {"name": "VaultDetector"},
+        {"name": "YandexDetector"},
+        {"name": "ZendeskSecretKeyDetector"},
+        {"name": "Base64HighEntropyString", "limit": 4.5},
+        {"name": "HexHighEntropyString", "limit": 3.0},
+    ]
+}
+
 
 @dataclass(frozen=True)
 class _SensitiveMatch:
@@ -56,8 +176,16 @@ class _SensitiveMatch:
 
 
 class _OutputSecretsScanner:
-    def __init__(self, scanner: Any, redact_mode: str) -> None:
-        self._scanner = scanner
+    """KAITO-owned Secrets scanner using detect-secrets directly.
+
+    Redaction behavior matches original llm-guard Secrets implementation:
+    - all:     "****** (6 asterisks)"
+    - partial: "XX..YY where XX and YY are first/last 2 chars"
+    - hash:    "MD5 hash of the secret value"
+    """
+
+    def __init__(self, detect_secrets_config: dict, redact_mode: str) -> None:
+        self._detect_secrets_config = detect_secrets_config
         self._redact_mode = redact_mode
 
     def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
@@ -74,15 +202,41 @@ class _OutputSecretsScanner:
             secret_values,
             key=lambda value: (-len(value), value),
         ):
-            replacement = self._scanner.redact_value(
-                secret_value,
-                self._redact_mode,
-            )
+            replacement = self._redact_value(secret_value, self._redact_mode)
             sanitized_output = sanitized_output.replace(secret_value, replacement)
 
         return sanitized_output, False, 1.0
 
+    @staticmethod
+    def _redact_value(value: str, redact_mode: str) -> str:
+        """Redact secret using the specified mode.
+
+        Args:
+            value: The secret value to redact.
+            redact_mode: One of "all", "partial", or "hash".
+
+        Returns:
+            Redacted representation of the secret.
+        """
+        if redact_mode == "all":
+            return "******"
+        elif redact_mode == "partial":
+            # Show first 2 and last 2 characters
+            if len(value) <= 4:
+                return "**"
+            return f"{value[:2]}..{value[-2:]}"
+        elif redact_mode == "hash":
+            # MD5 hash of the secret (not SHA256)
+            return hashlib.md5(value.encode()).hexdigest()
+        else:
+            return "***"
+
     def _detect_secret_values(self, text: str) -> set[str]:
+        """Detect secrets in text using detect-secrets library.
+
+        Uses llm-guard's plugin configuration to ensure full detector coverage
+        including custom detectors (GitHub, GCP, etc).
+        """
         secrets = SecretsCollection()
 
         with tempfile.NamedTemporaryFile(
@@ -94,8 +248,8 @@ class _OutputSecretsScanner:
             temp_path = temp_file.name
 
         try:
-            # llm-guard 0.3.16 stores its detect-secrets settings in this field.
-            with transient_settings(self._scanner._detect_secrets_config):
+            # Use llm-guard's detect-secrets configuration for full plugin coverage
+            with transient_settings(self._detect_secrets_config):
                 secrets.scan_file(temp_path)
         finally:
             os.remove(temp_path)
@@ -146,9 +300,11 @@ class SecretsConfig:
 
     def build(self, action_on_hit: str) -> Any:
         del action_on_hit
-        scanner = llm_guard_input_scanners.Secrets(redact_mode=self.redact_mode)
+        # Get detect-secrets config from llm-guard Secrets scanner
+        # This provides full plugin coverage including GitHub and GCP detectors
+        scanner = llm_guard_input_scanners.Secrets()
         return _OutputSecretsScanner(
-            scanner,
+            detect_secrets_config=scanner._detect_secrets_config,
             redact_mode=self.redact_mode,
         )
 

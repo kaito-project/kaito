@@ -238,6 +238,7 @@ class BanSubstringsConfig:
     def __post_init__(self):
         if self.match_type is None or isinstance(self.match_type, str):
             from guardrails.native_scanners import BanSubstringsMatchType
+
             if self.match_type is None:
                 self.match_type = BanSubstringsMatchType.WORD
             elif isinstance(self.match_type, str):
@@ -289,6 +290,7 @@ class RegexConfig:
     def __post_init__(self):
         if self.match_type is None or isinstance(self.match_type, str):
             from guardrails.native_scanners import RegexMatchType
+
             if self.match_type is None:
                 self.match_type = RegexMatchType.SEARCH
             elif isinstance(self.match_type, str):

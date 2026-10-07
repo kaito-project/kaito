@@ -601,17 +601,24 @@ jobs:
               break
             fi
 
-            # Old workspace must still be present and serving during the new one's bring-up.
-            OLD_DELETING=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.metadata.deletionTimestamp}' 2>/dev/null || true)
-            OLD_READY=$(kubectl get workspace "$OLD_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
-            if [ -n "$OLD_DELETING" ]; then
-              echo "ERROR: old workspace is being deleted before the new one is ready (downtime!)"
-              kubectl get workspace -l inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}
-              exit 1
-            fi
-            if [ "$OLD_READY" != "True" ]; then
-              echo "ERROR: old workspace lost readiness before the new one is ready (downtime!) - InferenceReady=$OLD_READY"
-              kubectl get workspace "$OLD_WS" -o yaml
+            # Read the old workspace once so deletion and readiness come from the same
+            # snapshot. If it is no longer serving, confirm the new workspace again:
+            # the controller may have completed cutover after the first readiness read.
+            OLD_JSON=$(kubectl get workspace "$OLD_WS" -o json 2>/dev/null || true)
+            OLD_DELETING=$(echo "$OLD_JSON" | jq -r '.metadata.deletionTimestamp // empty')
+            OLD_READY=$(echo "$OLD_JSON" | jq -r '[.status.conditions[]? | select(.type=="InferenceReady")][0].status // empty')
+            if [ -z "$OLD_JSON" ] || [ -n "$OLD_DELETING" ] || [ "$OLD_READY" != "True" ]; then
+              NEW_READY=$(kubectl get workspace "$NEW_WS" -o jsonpath='{.status.conditions[?(@.type=="InferenceReady")].status}' 2>/dev/null || true)
+              if [ "$NEW_READY" = "True" ]; then
+                echo "New workspace $NEW_WS became ready during cutover"
+                break
+              fi
+
+              echo "ERROR: neither workspace is ready (old exists: $([ -n "$OLD_JSON" ] && echo true || echo false), old deleting: ${OLD_DELETING:-false}, old ready: ${OLD_READY:-false}, new ready: ${NEW_READY:-false})"
+              kubectl get workspace -l "inferenceset.kaito.sh/created-by=${INFERENCESET_NAME}" -o wide || true
+              kubectl get workspace "$NEW_WS" -o yaml || true
+              kubectl describe pods -l kaito.sh/workspace="$NEW_WS" 2>/dev/null | tail -60 || true
+              kubectl logs deploy/kaito-workspace -n kaito-workspace --tail=200 || true
               exit 1
             fi
 

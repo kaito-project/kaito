@@ -74,12 +74,12 @@ on:
 permissions:
   contents: read
 
-# Never cancel a run midway: that would leak the node reservation and the installed
-# controller. Queue instead, so only one run holds the GPU nodes at a time. Queued runs
-# that have not been approved yet hold nothing and are safe to cancel by hand.
+# Prefer the newest run for this shared cluster. Cancellation can interrupt cleanup,
+# so a leaked reservation label or Helm release may require manual cleanup; the install
+# step removes a stale Helm release before deploying the next controller.
 concurrency:
   group: preset-model-regression-8xh100
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   GO_VERSION: "1.26.6"

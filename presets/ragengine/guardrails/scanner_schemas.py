@@ -35,16 +35,10 @@ import llm_guard.input_scanners as llm_guard_input_scanners
 import llm_guard.output_scanners as llm_guard_output_scanners
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
-from llm_guard.input_scanners.ban_substrings import (
-    MatchType as BanSubstringsMatchType,
-)
-from llm_guard.input_scanners.regex import MatchType as RegexMatchType
 
-# Allowed match_type values, mirrored from llm_guard's enum *values* (not names).
-# Keeping these here lets us reject invalid policies at parse time instead of
-# letting the error surface only when the scanner is built.
-_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(m.value for m in BanSubstringsMatchType)
-_REGEX_MATCH_TYPES = frozenset(m.value for m in RegexMatchType)
+# Allowed match_type values derived from enums in guardrail_core.native_scanners
+_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(("word", "str"))
+_REGEX_MATCH_TYPES = frozenset(("search", "fullmatch", "all"))
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
 _DEFAULT_SENSITIVE_DETECTORS = ("email", "phone", "credit_card", "ip_address")
 _SENSITIVE_DETECTORS = frozenset(_DEFAULT_SENSITIVE_DETECTORS)
@@ -230,26 +224,37 @@ class TokenLimitOutputAdapter:
 class BanSubstringsConfig:
     supports_redact: ClassVar[bool] = True
     substrings: list[str]
-    match_type: str = "word"
+    match_type: Any = None  # Will be set to BanSubstringsMatchType
     case_sensitive: bool = False
     contains_all: bool = False
 
+    def __post_init__(self):
+        if self.match_type is None or isinstance(self.match_type, str):
+            from guardrail_core.native_scanners import BanSubstringsMatchType
+
+            if self.match_type is None:
+                self.match_type = BanSubstringsMatchType.WORD
+            elif isinstance(self.match_type, str):
+                self.match_type = BanSubstringsMatchType(self.match_type)
+
     @classmethod
     def from_dict(cls, raw: dict) -> "BanSubstringsConfig":
+        from guardrail_core.native_scanners import BanSubstringsMatchType
+
         substrings = _coerce_string_list(raw.get("substrings"))
         if not substrings:
             raise ValueError(
                 "ban_substrings requires 'substrings' to be a non-empty list of strings"
             )
-        match_type = str(raw.get("match_type", "word")).lower()
-        if match_type not in _BAN_SUBSTRINGS_MATCH_TYPES:
+        match_type_str = str(raw.get("match_type", "word")).lower()
+        if match_type_str not in _BAN_SUBSTRINGS_MATCH_TYPES:
             raise ValueError(
                 f"ban_substrings 'match_type' must be one of "
-                f"{sorted(_BAN_SUBSTRINGS_MATCH_TYPES)}, got {match_type!r}"
+                f"{sorted(_BAN_SUBSTRINGS_MATCH_TYPES)}, got {match_type_str!r}"
             )
         return cls(
             substrings=substrings,
-            match_type=match_type,
+            match_type=BanSubstringsMatchType(match_type_str),
             case_sensitive=_coerce_bool(
                 raw.get("case_sensitive"), False, field="case_sensitive"
             ),
@@ -259,9 +264,11 @@ class BanSubstringsConfig:
         )
 
     def build(self, action_on_hit: str) -> Any:
-        return llm_guard_output_scanners.BanSubstrings(
+        from guardrail_core.native_scanners import NativeBanSubstringsScanner
+
+        return NativeBanSubstringsScanner(
             substrings=list(self.substrings),
-            match_type=BanSubstringsMatchType(self.match_type),
+            match_type=self.match_type,
             case_sensitive=self.case_sensitive,
             contains_all=self.contains_all,
             redact=(action_on_hit == "redact"),
@@ -273,10 +280,21 @@ class RegexConfig:
     supports_redact: ClassVar[bool] = True
     patterns: list[str]
     is_blocked: bool = True
-    match_type: str = "search"
+    match_type: Any = None  # Will be set to RegexMatchType
+
+    def __post_init__(self):
+        if self.match_type is None or isinstance(self.match_type, str):
+            from guardrail_core.native_scanners import RegexMatchType
+
+            if self.match_type is None:
+                self.match_type = RegexMatchType.SEARCH
+            elif isinstance(self.match_type, str):
+                self.match_type = RegexMatchType(self.match_type)
 
     @classmethod
     def from_dict(cls, raw: dict) -> "RegexConfig":
+        from guardrail_core.native_scanners import RegexMatchType
+
         patterns = _coerce_string_list(raw.get("patterns"))
         if not patterns:
             raise ValueError(
@@ -289,23 +307,25 @@ class RegexConfig:
                 raise ValueError(
                     f"regex pattern {pattern!r} is not a valid regular expression: {exc}"
                 ) from exc
-        match_type = str(raw.get("match_type", "search")).lower()
-        if match_type not in _REGEX_MATCH_TYPES:
+        match_type_str = str(raw.get("match_type", "search")).lower()
+        if match_type_str not in _REGEX_MATCH_TYPES:
             raise ValueError(
                 f"regex 'match_type' must be one of "
-                f"{sorted(_REGEX_MATCH_TYPES)}, got {match_type!r}"
+                f"{sorted(_REGEX_MATCH_TYPES)}, got {match_type_str!r}"
             )
         return cls(
             patterns=patterns,
             is_blocked=_coerce_bool(raw.get("is_blocked"), True, field="is_blocked"),
-            match_type=match_type,
+            match_type=RegexMatchType(match_type_str),
         )
 
     def build(self, action_on_hit: str) -> Any:
-        return llm_guard_output_scanners.Regex(
+        from guardrail_core.native_scanners import NativeRegexScanner
+
+        return NativeRegexScanner(
             patterns=list(self.patterns),
             is_blocked=self.is_blocked,
-            match_type=RegexMatchType(self.match_type),
+            match_type=self.match_type,
             redact=(action_on_hit == "redact"),
         )
 

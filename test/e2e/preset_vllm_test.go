@@ -186,21 +186,21 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a granite-4.1-8b workspace with model streaming successfully", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
+	It("should create an NVIDIA-Nemotron-Nano-9B-v2 two-node workspace with model streaming successfully", utils.GinkgoLabelFastCheck, func() {
+		numOfNode := 2
 
 		// Create the federated identity credential for this process's namespace.
 		createStreamingFIC(namespaceName)
 		defer deleteStreamingFIC(namespaceName)
 
-		workspaceObj := createGranite4_1_8BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createNemotronNano9BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
-		defer cleanupStreamingResources(workspaceObj, "ibm-granite/granite-4.1-8b")
+		defer cleanupStreamingResources(workspaceObj, PresetNemotronNano9BModel)
 		time.Sleep(30 * time.Second)
 
 		validateCreateNode(workspaceObj, numOfNode)
-		validateModelMirrorResources("ibm-granite/granite-4.1-8b", workspaceObj.Namespace)
-		validateModelMirrorReady(workspaceObj, "ibm-granite/granite-4.1-8b")
+		validateModelMirrorResources(PresetNemotronNano9BModel, workspaceObj.Namespace)
+		validateModelMirrorReady(workspaceObj, PresetNemotronNano9BModel)
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)
@@ -210,16 +210,18 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 
 		validateInferenceResource(workspaceObj, int32(numOfNode))
 
-		validateStreamingPodShape(workspaceObj, "ibm-granite/granite-4.1-8b", false)
+		// Two one-GPU nodes use pipeline parallelism (TP=1, PP=2), so Ray is
+		// multi-node but RunAI's tensor-parallel distributed loader stays off.
+		validateStreamingPodShape(workspaceObj, PresetNemotronNano9BModel, true, false)
 		validateWorkspaceReadiness(workspaceObj)
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a NVIDIA-Nemotron-3-Nano-4B-BF16 workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
+	It("should create a granite-4.1-8b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
 		numOfNode := 1
-		workspaceObj := createNemotron3Nano4BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createGranite4_1_8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)
@@ -240,7 +242,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should inject universal ngram --speculative-config on a phi-4 vLLM InferenceSet opted in via annotation", utils.GinkgoLabelFastCheck, func() {
+	It("should inject universal ngram --speculative-config on a phi-4 vLLM InferenceSet opted in via annotation", utils.GinkgoLabelA100Required, func() {
 		// phi-4 is a built-in vLLM preset but is not in speculativeDecodingByPreset,
 		// so this exercises the universal ngram fallback path introduced in
 		// PR #2312 / proposal PR #2303 ("Method → Preset Selection Rule").
@@ -1523,17 +1525,14 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 	return workspaceObj
 }
 
-func createNemotron3Nano4BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createGranite4_1_8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	// NVIDIA-Nemotron-3-Nano-4B-BF16 is a NemotronH hybrid model that interleaves Mamba-2
-	// state-space layers with a few self-attention layers instead of using full attention
-	// on every layer, so it exercises the preset path on a non-standard architecture.
-	By("Creating a workspace CR with NVIDIA-Nemotron-3-Nano-4B-BF16 preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-nemotron-3-nano-4b-", rand.Intn(1000))
+	By("Creating a workspace CR with granite-4.1-8b preset public mode and vLLM", func() {
+		uniqueID := fmt.Sprint("preset-granite-4-1-8b-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-nemotron-3-nano-4b-vllm"},
-			}, nil, PresetNemotron3Nano4BModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-granite-4-1-8b-vllm"},
+			}, nil, PresetGranite4_1_8BModel, nil, nil, nil, "", "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)
@@ -1541,14 +1540,14 @@ func createNemotron3Nano4BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *k
 	return workspaceObj
 }
 
-func createGranite4_1_8BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
+func createNemotronNano9BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
 	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with granite-4.1-8b preset public mode and vLLM (streaming)", func() {
-		uniqueID := fmt.Sprint("preset-granite-4-1-8b-stream-", rand.Intn(1000))
+	By("Creating a workspace CR with NVIDIA-Nemotron-Nano-9B-v2 preset public mode and vLLM (streaming)", func() {
+		uniqueID := fmt.Sprint("preset-nemotron-nano-9b-stream-", rand.Intn(1000))
 		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
 			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-granite-4-1-8b-stream-vllm"},
-			}, nil, PresetGranite4_1_8BModel, nil, nil, nil, "", "")
+				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-nemotron-nano-9b-stream-vllm"},
+			}, nil, PresetNemotronNano9BModel, nil, nil, nil, "", "")
 
 		// STREAMING TEST: intentionally NOT setting kaito.sh/model-streaming=disabled.
 		// With the gate on, this workspace streams from blob (az://).

@@ -912,7 +912,10 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
 
     assert parsed == (_ban_subs_cfg(substrings=["secret"]),)
     assert len(scanners) == 1
-    assert isinstance(scanners[0], FakeBanSubstrings)
+    # Native scanner, not FakeBanSubstrings
+    from guardrail_core.native_scanners import NativeBanSubstringsScanner
+
+    assert isinstance(scanners[0], NativeBanSubstringsScanner)
     assert scanners[0].substrings == ["secret"]
     assert scanners[0].redact is True
 
@@ -1139,16 +1142,17 @@ def test_build_scanners_skips_configs_whose_build_raises(monkeypatch):
     sentinel = object()
     call_count = {"n": 0}
 
-    def fake_regex(*args, **kwargs):
+    def fake_build(self, action_on_hit):
         call_count["n"] += 1
         if call_count["n"] == 1:
             raise RuntimeError("simulated build failure")
         return sentinel
 
+    # Mock RegexConfig.build() instead of llm_guard since we now use NativeRegexScanner
     monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_output_scanners,
-        "Regex",
-        fake_regex,
+        scanner_schemas_module.RegexConfig,
+        "build",
+        fake_build,
         raising=False,
     )
 
@@ -1193,10 +1197,12 @@ def test_regex_config_build_uses_value_lookup_for_fullmatch(
 ):
     """Regression test: enum value 'fullmatch' must work end-to-end (the enum
     NAME is FULL_MATCH, so a name-based lookup would raise KeyError)."""
+    from guardrail_core.native_scanners import RegexMatchType
+
     cfg = RegexConfig.from_dict({"patterns": ["a"], "match_type": "fullmatch"})
     scanner = cfg.build("redact")
 
-    assert scanner.match_type == scanner_schemas_module.RegexMatchType.FULL_MATCH
+    assert scanner.match_type == RegexMatchType.FULL_MATCH
 
 
 # ---------------------------------------------------------------------------

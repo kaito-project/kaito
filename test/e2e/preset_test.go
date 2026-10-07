@@ -54,7 +54,7 @@ const (
 	PresetGPT_OSS_120BModel         = "gpt-oss-120b"
 	PresetMinistral33BInstructModel = "mistralai/ministral-3-3b-instruct-2512"
 	PresetGranite4_1_8BModel        = "ibm-granite/granite-4.1-8b"
-	PresetNemotron3Nano4BModel      = "nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16"
+	PresetNemotronNano9BModel       = "nvidia/NVIDIA-Nemotron-Nano-9B-v2"
 	PresetMiMo7BBaseModel           = "XiaomiMiMo/MiMo-7B-Base"
 	WorkspaceHashAnnotation         = "workspace.kaito.io/hash"
 	// WorkspaceRevisionAnnotation represents the revision number of the workload managed by the workspace

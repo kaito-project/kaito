@@ -14,6 +14,7 @@
 package model
 
 import (
+	"maps"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -278,6 +279,140 @@ func TestGetInferenceCommandVLLMGpuMemoryUtilization(t *testing.T) {
 	assert.Contains(t, cmdNil[2], "--gpu-memory-utilization=0.92")
 }
 
+func TestGetInferenceCommandVLLMHardwareOverrides(t *testing.T) {
+	tests := []struct {
+		name          string
+		modelName     string
+		gpuModel      string
+		runParams     map[string]string
+		wantGraphMode string
+		wantBackend   string
+		wantMemory    string
+	}{
+		{
+			name:          "Nemotron Nano 9B on A10",
+			modelName:     "nvidia-nemotron-nano-9b-v2",
+			gpuModel:      "NVIDIA A10",
+			wantGraphMode: "FULL_DECODE_ONLY",
+		},
+		{
+			name:          "Nemotron Nano 9B on BYO A10",
+			modelName:     "nvidia-nemotron-nano-9b-v2",
+			gpuModel:      "NVIDIA-A10",
+			wantGraphMode: "FULL_DECODE_ONLY",
+			wantMemory:    "0.82",
+		},
+		{
+			name:          "DeepSeek V4 on every GPU",
+			modelName:     "deepseek-v4-flash-0731",
+			gpuModel:      "NVIDIA H100",
+			wantGraphMode: "PIECEWISE",
+			wantMemory:    "0.92",
+		},
+		{
+			name:          "DeepSeek V4 Pro reserves H100 runtime headroom",
+			modelName:     "deepseek-v4-pro",
+			gpuModel:      "NVIDIA H100",
+			wantGraphMode: "FULL_DECODE_ONLY",
+			wantMemory:    "0.91",
+		},
+		{
+			name:          "DeepSeek V4 Pro reserves BYO H100 runtime headroom",
+			modelName:     "deepseek-v4-pro",
+			gpuModel:      "NVIDIA-H100-80GB-HBM3",
+			wantGraphMode: "FULL_DECODE_ONLY",
+			wantMemory:    "0.91",
+		},
+		{
+			name:          "DeepSeek V4 Pro avoids PIECEWISE capture on A100",
+			modelName:     "deepseek-v4-pro",
+			gpuModel:      "NVIDIA A100",
+			wantGraphMode: "FULL_DECODE_ONLY",
+			wantMemory:    "0.92",
+		},
+		{
+			name:        "Ministral on A100",
+			modelName:   "ministral-3-14b-instruct-2512",
+			gpuModel:    "NVIDIA A100",
+			wantBackend: "marlin",
+		},
+		{
+			name:        "Ministral on A10",
+			modelName:   "ministral-3-14b-instruct-2512",
+			gpuModel:    "NVIDIA A10",
+			wantBackend: "marlin",
+		},
+		{
+			name:        "Ministral on BYO A100",
+			modelName:   "ministral-3-14b-instruct-2512",
+			gpuModel:    "A100-SXM4-80GB",
+			wantBackend: "marlin",
+		},
+		{
+			name:      "Ministral on H100",
+			modelName: "ministral-3-14b-instruct-2512",
+			gpuModel:  "NVIDIA H100",
+		},
+		{
+			name:        "Mistral Medium on A100",
+			modelName:   "mistral-medium-3.5-128b",
+			gpuModel:    "NVIDIA A100",
+			wantBackend: "marlin",
+		},
+		{
+			name:      "Mistral Medium on H100",
+			modelName: "mistral-medium-3.5-128b",
+			gpuModel:  "NVIDIA H100",
+		},
+		{
+			name:      "explicit overrides win",
+			modelName: "mistral-medium-3.5-128b",
+			gpuModel:  "NVIDIA A100",
+			runParams: map[string]string{
+				"compilation-config.cudagraph_mode": "NONE",
+				"linear-backend":                    "torch",
+			},
+			wantGraphMode: "NONE",
+			wantBackend:   "torch",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runParams := maps.Clone(tt.runParams)
+			if runParams == nil {
+				runParams = map[string]string{}
+			}
+			p := &PresetParam{RuntimeParam: RuntimeParam{VLLM: VLLMParam{
+				BaseCommand:    "vllm serve",
+				ModelName:      tt.modelName,
+				ModelRunParams: runParams,
+			}}}
+
+			cmd := p.GetInferenceCommand(RuntimeContext{
+				RuntimeName: RuntimeNameVLLM,
+				SKUNumGPUs:  1,
+				NumNodes:    1,
+				GPUConfig:   &sku.GPUConfig{GPUModel: tt.gpuModel},
+			})
+			require.Len(t, cmd, 3)
+			if tt.wantGraphMode == "" {
+				assert.NotContains(t, cmd[2], "--compilation-config.cudagraph_mode")
+			} else {
+				assert.Contains(t, cmd[2], "--compilation-config.cudagraph_mode="+tt.wantGraphMode)
+			}
+			if tt.wantBackend == "" {
+				assert.NotContains(t, cmd[2], "--linear-backend")
+			} else {
+				assert.Contains(t, cmd[2], "--linear-backend="+tt.wantBackend)
+			}
+			if tt.wantMemory != "" {
+				assert.Contains(t, cmd[2], "--gpu-memory-utilization="+tt.wantMemory)
+			}
+		})
+	}
+}
+
 func TestGetInferenceCommandVLLMKVCacheEventsDefault(t *testing.T) {
 	// Default: --kv-events-config is injected so downstream ZMQ subscribers
 	// can consume BlockStored / BlockRemoved / AllBlocksCleared events.
@@ -485,6 +620,28 @@ func TestMultiNodeRayCommandRequiresReadyCluster(t *testing.T) {
 	assert.Contains(t, script, "--ray_cluster_size=2")
 	assert.Contains(t, script, " && vllm serve")
 	assert.NotContains(t, script, "; vllm serve")
+}
+
+func TestMultiNodeRayCommandExtendsTimeoutForCUDAToolkit(t *testing.T) {
+	p := &PresetParam{
+		Metadata: Metadata{Name: "minimax-m2.7"},
+		RuntimeParam: RuntimeParam{VLLM: VLLMParam{
+			BaseCommand:          "vllm serve",
+			ModelRunParams:       map[string]string{},
+			RayLeaderBaseCommand: "bash multi-node-serving.sh leader",
+			RayLeaderParams:      map[string]string{},
+			RayWorkerBaseCommand: "bash multi-node-serving.sh worker",
+			RayWorkerParams:      map[string]string{},
+		}},
+	}
+	args := p.buildMultiNodeRayCommand(RuntimeContext{
+		NumNodes:          4,
+		WorkspaceMetadata: metav1.ObjectMeta{Name: "ws", Namespace: "default"},
+	})
+	require.Len(t, args, 3)
+	assert.Equal(t, "900", p.VLLM.RayLeaderParams["ray_init_timeout"])
+	assert.Equal(t, "900", p.VLLM.RayWorkerParams["ray_init_timeout"])
+	assert.Contains(t, args[2], "--ray_init_timeout=900")
 }
 
 func TestGetInferenceCommandUnknownRuntime(t *testing.T) {

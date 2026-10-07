@@ -11,4 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""KAITO-owned guardrails package with reusable scanner implementations."""
+from setuptools import find_packages, setup
+
+setup(
+    name="guardrail-core",
+    version="0.1.0",
+    description="KAITO-owned guardrail scanners",
+    packages=find_packages(exclude=["tests", "test_*"]),
+    python_requires=">=3.12",
+)

@@ -46,8 +46,8 @@ const (
 
 // vLLMDefaultMaxNumSeqs returns the max_num_seqs vLLM picks for the OpenAI API
 // server when the caller does not pass one, mirroring
-// _set_default_max_num_seqs_and_batched_tokens_args in vllm/engine/arg_utils.py:
-// https://github.com/vllm-project/vllm/blob/releases/v0.25.1/vllm/engine/arg_utils.py#L2423-L2445
+// get_batch_defaults in vllm/engine/arg_utils.py:
+// https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/engine/arg_utils.py#L2701-L2759
 // A100 is name-excluded from the large-GPU branch upstream because large batches
 // regress its throughput (vLLM PR #17885), so it keeps the smaller default even
 // though it clears the memory threshold.

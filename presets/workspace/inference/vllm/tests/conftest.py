@@ -49,8 +49,11 @@ except (ImportError, Exception):
         "vllm",
         [
             "entrypoints",
+            "entrypoints.launchers",
+            "entrypoints.launchers.api_server",
+            "entrypoints.launchers.api_server.entry",
+            "entrypoints.launchers.cli_args",
             "entrypoints.openai",
-            "entrypoints.openai.api_server",
             "entrypoints.openai.models",
             "entrypoints.openai.models.protocol",
             "utils",

@@ -36,18 +36,9 @@ import llm_guard.output_scanners as llm_guard_output_scanners
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
 
-from guardrails.native_scanners import (
-    BanSubstringsMatchType,
-    NativeBanSubstringsScanner,
-    NativeRegexScanner,
-    RegexMatchType,
-)
-
-# Allowed match_type values derived from enums
-_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(
-    match_type.value for match_type in BanSubstringsMatchType
-)
-_REGEX_MATCH_TYPES = frozenset(match_type.value for match_type in RegexMatchType)
+# Allowed match_type values derived from enums in guardrails.native_scanners
+_BAN_SUBSTRINGS_MATCH_TYPES = frozenset(("word", "str"))
+_REGEX_MATCH_TYPES = frozenset(("search", "fullmatch", "all"))
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
 _DEFAULT_SENSITIVE_DETECTORS = ("email", "phone", "credit_card", "ip_address")
 _SENSITIVE_DETECTORS = frozenset(_DEFAULT_SENSITIVE_DETECTORS)
@@ -233,12 +224,22 @@ class TokenLimitOutputAdapter:
 class BanSubstringsConfig:
     supports_redact: ClassVar[bool] = True
     substrings: list[str]
-    match_type: BanSubstringsMatchType = BanSubstringsMatchType.WORD
+    match_type: Any = None  # Will be set to BanSubstringsMatchType
     case_sensitive: bool = False
     contains_all: bool = False
 
+    def __post_init__(self):
+        if self.match_type is None or isinstance(self.match_type, str):
+            from guardrails.native_scanners import BanSubstringsMatchType
+            if self.match_type is None:
+                self.match_type = BanSubstringsMatchType.WORD
+            elif isinstance(self.match_type, str):
+                self.match_type = BanSubstringsMatchType(self.match_type)
+
     @classmethod
     def from_dict(cls, raw: dict) -> "BanSubstringsConfig":
+        from guardrails.native_scanners import BanSubstringsMatchType
+
         substrings = _coerce_string_list(raw.get("substrings"))
         if not substrings:
             raise ValueError(
@@ -262,6 +263,8 @@ class BanSubstringsConfig:
         )
 
     def build(self, action_on_hit: str) -> Any:
+        from guardrails.native_scanners import NativeBanSubstringsScanner
+
         return NativeBanSubstringsScanner(
             substrings=list(self.substrings),
             match_type=self.match_type,
@@ -276,10 +279,20 @@ class RegexConfig:
     supports_redact: ClassVar[bool] = True
     patterns: list[str]
     is_blocked: bool = True
-    match_type: RegexMatchType = RegexMatchType.SEARCH
+    match_type: Any = None  # Will be set to RegexMatchType
+
+    def __post_init__(self):
+        if self.match_type is None or isinstance(self.match_type, str):
+            from guardrails.native_scanners import RegexMatchType
+            if self.match_type is None:
+                self.match_type = RegexMatchType.SEARCH
+            elif isinstance(self.match_type, str):
+                self.match_type = RegexMatchType(self.match_type)
 
     @classmethod
     def from_dict(cls, raw: dict) -> "RegexConfig":
+        from guardrails.native_scanners import RegexMatchType
+
         patterns = _coerce_string_list(raw.get("patterns"))
         if not patterns:
             raise ValueError(
@@ -305,6 +318,8 @@ class RegexConfig:
         )
 
     def build(self, action_on_hit: str) -> Any:
+        from guardrails.native_scanners import NativeRegexScanner
+
         return NativeRegexScanner(
             patterns=list(self.patterns),
             is_blocked=self.is_blocked,

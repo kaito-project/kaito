@@ -13,7 +13,7 @@
 
 """Unit tests for native KAITO guardrails scanners."""
 
-from .scanner_schemas import (
+from guardrails.native_scanners import (
     BanSubstringsMatchType,
     NativeBanSubstringsScanner,
     NativeRegexScanner,

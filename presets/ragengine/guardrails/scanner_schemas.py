@@ -29,7 +29,6 @@ import os
 import re
 import tempfile
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Any, ClassVar
 
 import llm_guard.input_scanners as llm_guard_input_scanners
@@ -37,21 +36,12 @@ import llm_guard.output_scanners as llm_guard_output_scanners
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
 
-
-# KAITO-owned guardrails enums (independent of llm-guard)
-class BanSubstringsMatchType(StrEnum):
-    """KAITO match types for BanSubstrings scanner."""
-
-    WORD = "word"
-    STR = "str"
-
-
-class RegexMatchType(StrEnum):
-    """KAITO match types for Regex scanner."""
-
-    SEARCH = "search"
-    FULL_MATCH = "fullmatch"
-    ALL = "all"
+from guardrails.native_scanners import (
+    BanSubstringsMatchType,
+    NativeBanSubstringsScanner,
+    NativeRegexScanner,
+    RegexMatchType,
+)
 
 
 # Allowed match_type values derived from enums
@@ -238,120 +228,6 @@ class TokenLimitOutputAdapter:
     def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
         sanitized_output, is_valid, score = self._scanner.scan(output)
         return sanitized_output, is_valid, score
-
-
-class NativeBanSubstringsScanner:
-    """KAITO-owned BanSubstrings scanner using substring matching."""
-
-    def __init__(
-        self,
-        substrings: list[str],
-        match_type: BanSubstringsMatchType = BanSubstringsMatchType.WORD,
-        case_sensitive: bool = False,
-        contains_all: bool = False,
-        redact: bool = False,
-    ) -> None:
-        self.substrings = substrings
-        self.match_type = match_type
-        self.case_sensitive = case_sensitive
-        self.contains_all = contains_all
-        self.redact = redact
-
-    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
-        del prompt
-        found_substrings = []
-        search_text = output if self.case_sensitive else output.lower()
-
-        for substring in self.substrings:
-            search_str = substring if self.case_sensitive else substring.lower()
-
-            if self.match_type == BanSubstringsMatchType.WORD:
-                pattern = r"\b" + re.escape(search_str) + r"\b"
-                if re.search(pattern, search_text):
-                    found_substrings.append(substring)
-            elif self.match_type == BanSubstringsMatchType.STR:
-                if search_str in search_text:
-                    found_substrings.append(substring)
-
-        if self.contains_all and len(found_substrings) < len(self.substrings):
-            return output, True, 0.0
-
-        if found_substrings:
-            if self.redact:
-                sanitized = output
-                for substring in found_substrings:
-                    # Case-insensitive replace: use regex to preserve original case
-                    pattern = re.compile(
-                        re.escape(substring),
-                        re.IGNORECASE if not self.case_sensitive else 0,
-                    )
-                    sanitized = pattern.sub("[REDACTED]", sanitized)
-                return sanitized, False, 1.0
-            else:
-                return output, False, 1.0
-
-        return output, True, -1.0
-
-
-class NativeRegexScanner:
-    """KAITO-owned Regex scanner using compiled patterns."""
-
-    def __init__(
-        self,
-        patterns: list[str],
-        is_blocked: bool = True,
-        match_type: RegexMatchType = RegexMatchType.SEARCH,
-        redact: bool = False,
-    ) -> None:
-        self.patterns = patterns  # Store original pattern strings for compatibility
-        self._compiled_patterns = [re.compile(p) for p in patterns]
-        self.is_blocked = is_blocked
-        self.match_type = match_type
-        self.redact = redact
-
-    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
-        del prompt
-        for pattern in self._compiled_patterns:
-            matches = []
-            if self.match_type == RegexMatchType.SEARCH:
-                match = pattern.search(output)
-                matches = [match] if match else []
-            elif self.match_type == RegexMatchType.FULL_MATCH:
-                match = pattern.fullmatch(output)
-                matches = [match] if match else []
-            else:  # ALL
-                matches = list(pattern.finditer(output))
-
-            if not matches:
-                # This pattern didn't match, try next one
-                continue
-
-            # First matching pattern found - handle and return
-            if not self.is_blocked:
-                # Allow-list: match found = valid, score -1.0
-                return output, True, -1.0
-
-            # Block-list: pattern matched = invalid
-            if self.redact:
-                sanitized = output
-                # Sort by position descending to avoid offset issues
-                for match in sorted(matches, key=lambda m: m.start(), reverse=True):
-                    sanitized = (
-                        sanitized[: match.start()]
-                        + "[REDACTED]"
-                        + sanitized[match.end() :]
-                    )
-                return sanitized, False, 1.0
-            else:
-                return output, False, 1.0
-
-        # All patterns checked, none matched
-        if self.is_blocked:
-            # Block-list: no block patterns matched = valid
-            return output, True, -1.0
-        else:
-            # Allow-list: no allowed patterns matched = invalid, score 1.0
-            return output, False, 1.0
 
 
 @dataclass

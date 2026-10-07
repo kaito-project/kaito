@@ -116,6 +116,12 @@ clusterName: "kaito"
 flux2:
   helmController:
     create: true
+    container:
+      # helm-controller >= v1.5 defaults to Helm v4 behaviors (server-side apply and
+      # kstatus health checks), which keep KAITO-managed InferencePool HelmReleases
+      # from becoming Ready. Keep the Helm v3 defaults KAITO was validated against.
+      additionalArgs:
+        - --feature-gates=UseHelm3Defaults=true
   sourceController:
     create: true
   imageAutomationController:

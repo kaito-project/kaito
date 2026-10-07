@@ -1002,21 +1002,6 @@ def test_build_scanners_builds_json_and_reading_time(fake_llm_guard_scanners):
 
 
 def test_build_scanners_supports_secrets_type(monkeypatch):
-    class FakeSecrets:
-        def __init__(self, *, redact_mode="all"):
-            self.redact_mode = redact_mode
-
-        @staticmethod
-        def redact_value(value, mode):
-            return f"{mode}:{value}"
-
-    monkeypatch.setattr(
-        scanner_schemas_module.llm_guard_input_scanners,
-        "Secrets",
-        FakeSecrets,
-        raising=False,
-    )
-
     parsed = output_guardrails_module._parse_policy_scanner_configs(
         [{"type": "secrets", "redactMode": "partial"}],
         "guardrails.yaml",
@@ -1025,15 +1010,34 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
 
     scanners = guardrails._build_scanners()
     monkeypatch.setattr(
-        scanners[0], "_detect_secret_values", lambda output: {"secret-value"}
+        scanners[0], "_detect_secret_values", lambda output: {"secret-token"}
     )
 
     assert parsed == (_secrets_cfg(redact_mode="partial"),)
-    assert scanners[0].scan("ignored", "secret-value") == (
-        "partial:secret-value",
+    assert scanners[0].scan("ignored", "secret-token") == (
+        "se..en",
         False,
         1.0,
     )
+
+
+@pytest.mark.parametrize(
+    ("redact_mode", "expected"),
+    [
+        ("all", "******"),
+        ("partial", "se..en"),
+        ("hash", "3c28d89b80f70302b04fce2a1451f6ea"),
+    ],
+)
+def test_native_secrets_scanner_matches_legacy_redaction(
+    monkeypatch, redact_mode, expected
+):
+    scanner = SecretsConfig(redact_mode=redact_mode).build("redact")
+    monkeypatch.setattr(
+        scanner, "_detect_secret_values", lambda output: {"secret-token"}
+    )
+
+    assert scanner.scan("", "secret-token") == (expected, False, 1.0)
 
 
 def test_secrets_config_build_works_with_scan_output_end_to_end():
@@ -1068,8 +1072,10 @@ def test_output_secrets_scanner_deduplicates_detector_hits(monkeypatch):
         def scan_file(self, path):
             pass
 
+    import guardrail_core.native_scanners as native_scanners_module
+
     monkeypatch.setattr(
-        scanner_schemas_module, "SecretsCollection", FakeSecretsCollection
+        native_scanners_module, "SecretsCollection", FakeSecretsCollection
     )
     scanner = SecretsConfig(redact_mode="all").build("redact")
 

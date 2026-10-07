@@ -17,8 +17,13 @@ All scanners implement the KAITO output guardrail scanner interface:
     scan(prompt: str, output: str) -> tuple[str, bool, float]
 """
 
+import hashlib
+import os
 import re
+import tempfile
 from enum import StrEnum
+
+from detect_secrets.core.secrets_collection import SecretsCollection
 
 
 class BanSubstringsMatchType(StrEnum):
@@ -190,3 +195,160 @@ class NativeRegexScanner:
         else:
             # Allow-list: no allowed patterns matched = invalid, score 1.0
             return output, False, 1.0
+
+
+class NativeSecretsScanner:
+    """KAITO-owned Secrets scanner using detect-secrets directly.
+
+    Detects and redacts sensitive information like API keys, passwords,
+    and other secrets using the detect-secrets library.
+
+    Redaction behavior:
+        - all:     "****** (6 asterisks, fixed-length to avoid leaking secret length)"
+        - partial: "XX..YY (first and last 2 chars, ** if secret <= 4 chars)"
+        - hash:    "MD5 hash of the secret value"
+    """
+
+    def __init__(self, redact_mode: str = "all") -> None:
+        """Initialize the secrets scanner.
+
+        Args:
+            redact_mode: How to redact detected secrets. One of:
+                - "all": Replace entire secret with fixed-length mask
+                - "partial": Show first 2 and last 2 characters
+                - "hash": Replace with MD5 hash
+        """
+        self._redact_mode = redact_mode
+
+    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
+        """Scan output for secrets and redact if found.
+
+        Args:
+            prompt: The input prompt (unused, kept for interface compatibility).
+            output: The text to scan.
+
+        Returns:
+            (output, valid, score):
+                output: Original or redacted output text.
+                valid: True if no secrets found, False if secrets detected.
+                score: -1.0 if no secrets (valid), 1.0 if secrets found (invalid).
+        """
+        del prompt
+        if output.strip() == "":
+            return output, True, -1.0
+
+        secret_values = self._detect_secret_values(output)
+        if not secret_values:
+            return output, True, -1.0
+
+        sanitized_output = output
+        for secret_value in sorted(
+            secret_values,
+            key=lambda value: (-len(value), value),
+        ):
+            replacement = self._redact_value(secret_value, self._redact_mode)
+            sanitized_output = sanitized_output.replace(secret_value, replacement)
+
+        return sanitized_output, False, 1.0
+
+    @staticmethod
+    def _redact_value(value: str, redact_mode: str) -> str:
+        """Redact secret using the specified mode.
+
+        Args:
+            value: The secret value to redact.
+            redact_mode: One of "all", "partial", or "hash".
+
+        Returns:
+            Redacted representation of the secret.
+        """
+        if redact_mode == "all":
+            return "******"
+        elif redact_mode == "partial":
+            # Show first 2 and last 2 characters
+            if len(value) <= 4:
+                return "**"
+            return f"{value[:2]}..{value[-2:]}"
+        elif redact_mode == "hash":
+            # MD5 hash of the secret (not SHA256)
+            return hashlib.md5(value.encode()).hexdigest()
+        else:
+            return "***"
+
+    def _detect_secret_values(self, text: str) -> set[str]:
+        """Detect secrets using detect-secrets library directly.
+
+        Uses KAITO-owned plugin configuration for comprehensive detection.
+
+        Args:
+            text: The text to scan for secrets.
+
+        Returns:
+            A set of detected secret values.
+        """
+        from detect_secrets.settings import transient_settings
+
+        secrets = SecretsCollection()
+
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+        ) as temp_file:
+            temp_file.write(text)
+            temp_path = temp_file.name
+
+        try:
+            # Use detect-secrets with KAITO-owned plugin configuration
+            with transient_settings(self._get_kaito_plugins_config()):
+                secrets.scan_file(temp_path)
+        finally:
+            os.remove(temp_path)
+
+        return {
+            found_secret.secret_value
+            for file_path in secrets.files
+            for found_secret in secrets[file_path]
+            if found_secret.secret_value
+        }
+
+    @staticmethod
+    def _get_kaito_plugins_config() -> dict:
+        """Get KAITO-owned detect-secrets plugin configuration.
+
+        This configuration uses only plugins provided by bc-detect-secrets
+        (the detect-secrets fork used by the project), without relying on
+        llm-guard's proprietary detectors. Provides comprehensive coverage:
+        - API keys (AWS, Azure, GitHub, GCP, etc.)
+        - Authentication tokens (OAuth, JWT, etc.)
+        - Database credentials
+        - Private keys
+        - High-entropy strings
+
+        Returns:
+            Dict with 'plugins_used' key containing plugin specifications.
+        """
+        return {
+            "plugins_used": [
+                # Core detectors from detect-secrets
+                {"name": "SoftlayerDetector"},
+                {"name": "StripeDetector"},
+                {"name": "NpmDetector"},
+                {"name": "IbmCosHmacDetector"},
+                {"name": "DiscordBotTokenDetector"},
+                {"name": "BasicAuthDetector"},
+                {"name": "AzureStorageKeyDetector"},
+                {"name": "ArtifactoryDetector"},
+                {"name": "AWSKeyDetector"},
+                {"name": "CloudantDetector"},
+                {"name": "IbmCloudIamDetector"},
+                {"name": "JwtTokenDetector"},
+                {"name": "MailchimpDetector"},
+                {"name": "SquareOAuthDetector"},
+                {"name": "PrivateKeyDetector"},
+                {"name": "TwilioKeyDetector"},
+                # High-entropy detectors
+                {"name": "Base64HighEntropyString", "limit": 4.5},
+                {"name": "HexHighEntropyString", "limit": 3.0},
+            ]
+        }

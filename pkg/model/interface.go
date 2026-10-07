@@ -464,8 +464,9 @@ var cudagraphModeByModelAndGPU = map[modelGPUKey]string{
 	// FULL_AND_PIECEWISE mode Cuda graph capture OOMs for Nemotron models under vllm 0.30.0
 	{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: "NVIDIA A10"}:     "FULL_DECODE_ONLY",
 	{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: "NVIDIA A10"}: "FULL_DECODE_ONLY",
-	// FULL_AND_PIECEWISE mode Cuda graph capture fails on V4 Flash under vllm 0.30.0
-	{modelName: "deepseek-v4-flash-0731"}: "PIECEWISE",
+	// CUDA graph capture exhausts device memory on a two-H100 node.
+	// TODO: only disable CUDA when memory is limited.
+	{modelName: "deepseek-v4-flash-0731"}: "NONE",
 	// V4 Pro exhausts memory in PIECEWISE capture after DeepGEMM warmup under vllm 0.30.0
 	{modelName: "deepseek-v4-pro"}: "FULL_DECODE_ONLY",
 	// V4.1 Flash exhausts H100 memory in FULL_AND_PIECEWISE capture, while

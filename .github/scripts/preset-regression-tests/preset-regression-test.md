@@ -6,7 +6,7 @@ The standard workflow is `.github/workflows/preset-model-regression.yaml`. Model
 
 ## How it works
 
-1. `preset-regression-matrix.sh` joins `presets/workspace/models/model_catalog.yaml` with `.github/preset-regression-config.json`. It selects models by profile and GPU pool, estimates the node count for each allowed `gpusPerNodeOptions` shape, and chooses the shape requiring the fewest nodes. Ties use the smaller shape.
+1. `preset-regression-matrix.sh` joins `presets/workspace/models/model_catalog.yaml` with `.github/preset-regression-config.json`. It applies `modelSizeSafetyFactor`, divides the adjusted size by per-GPU memory for each allowed `gpusPerNodeOptions` shape, and applies any model/GPU-specific `minimumGPUsOverrides`. It then chooses the shape requiring the fewest nodes. Ties use the fewest allocated GPUs.
 2. `preset-regression-run.sh` processes targets serially so one model cannot consume another model's GPU allocation.
 3. The runner creates a Workspace and waits for `ResourceReady`, `InferenceReady`, `WorkspaceSucceeded`, and `BenchmarkCompleted`.
 4. The existing startup benchmark must complete as part of normal Workspace readiness, but its values are not compared with regression baselines.
@@ -18,6 +18,8 @@ The baseline identity is `(model, instanceType, nodes)`. Its recorded profile mu
 ## Configuration
 
 Shared matrix and infrastructure policy lives in `.github/preset-regression-config.json`.
+The default safety factor covers modest runtime overhead. Use `minimumGPUsOverrides`
+only for measured model/GPU combinations that need more memory than this estimate.
 
 Correctness configuration is in `benchmarks/gsm8k/config.yaml`. It controls the dataset revision, evaluator version, sample selection, generation profiles, concurrency, retries, timeouts, and allowed accuracy regression. Model-specific execution and generation overrides are resolved before evaluation.
 
@@ -99,6 +101,9 @@ python3 .github/scripts/preset-regression-tests/update_preset_regression_baselin
 ```
 
 The CLI ignores failed summaries, validates metric ranges, deduplicates by deployment identity, preserves unaffected targets, and sorts the resulting manifest. Always inspect `git diff -- benchmarks/gsm8k/baselines.yaml` before committing.
+Historical deployment identities may remain in the manifest after the matrix changes.
+Coverage validation requires baselines for active targets but ignores these stale entries
+until replacement measurements have been collected and reviewed.
 
 ## Troubleshooting
 

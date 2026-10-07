@@ -306,7 +306,7 @@ func TestGetInferenceCommandVLLMHardwareOverrides(t *testing.T) {
 			name:          "DeepSeek V4 on every GPU",
 			modelName:     "deepseek-v4-flash-0731",
 			gpuModel:      "NVIDIA H100",
-			wantGraphMode: "PIECEWISE",
+			wantGraphMode: "NONE",
 			wantMemory:    "0.92",
 		},
 		{

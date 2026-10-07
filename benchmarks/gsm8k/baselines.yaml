@@ -18,6 +18,24 @@ targets:
   evaluated: 128
   emptyResponses: 0
   measuredAt: '2026-09-27'
+- model: MiniMaxAI/MiniMax-M2.7
+  instanceType: Standard_NC80adis_H100_v5
+  nodes: 2
+  profile: chat-thinking-v1
+  accuracy: 0.96875
+  correct: 124
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-07'
+- model: MiniMaxAI/MiniMax-M2.7
+  instanceType: Standard_NC96ads_A100_v4
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.96875
+  correct: 124
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-07'
 - model: Qwen/Qwen3.5-4B
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1
@@ -99,6 +117,15 @@ targets:
   evaluated: 128
   emptyResponses: 1
   measuredAt: '2026-09-27'
+- model: Qwen/Qwen3.6-35B-A3B
+  instanceType: Standard_NC48ads_A100_v4
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.96875
+  correct: 124
+  evaluated: 128
+  emptyResponses: 1
+  measuredAt: '2026-10-08'
 - model: Qwen/Qwen3.6-35B-A3B-FP8
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1
@@ -198,6 +225,15 @@ targets:
   evaluated: 128
   emptyResponses: 1
   measuredAt: '2026-09-27'
+- model: deepseek-ai/DeepSeek-V4-Flash-0731
+  instanceType: Standard_NC80adis_H100_v5
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.9609375
+  correct: 123
+  evaluated: 128
+  emptyResponses: 3
+  measuredAt: '2026-10-08'
 - model: deepseek-ai/DeepSeek-V4-Pro
   instanceType: Standard_ND96isr_H100_v5
   nodes: 2
@@ -441,6 +477,24 @@ targets:
   evaluated: 128
   emptyResponses: 46
   measuredAt: '2026-09-27'
+- model: mistralai/Mistral-Medium-3.5-128B
+  instanceType: Standard_NC48ads_A100_v4
+  nodes: 1
+  profile: mistral-thinking-v1
+  accuracy: 0.515625
+  correct: 66
+  evaluated: 128
+  emptyResponses: 62
+  measuredAt: '2026-10-08'
+- model: mistralai/Mistral-Medium-3.5-128B
+  instanceType: Standard_NC80adis_H100_v5
+  nodes: 1
+  profile: mistral-thinking-v1
+  accuracy: 0.640625
+  correct: 82
+  evaluated: 128
+  emptyResponses: 41
+  measuredAt: '2026-10-07'
 - model: mistralai/Mistral-Small-4-119B-2603
   instanceType: Standard_NC40ads_H100_v5
   nodes: 2
@@ -450,6 +504,15 @@ targets:
   evaluated: 128
   emptyResponses: 0
   measuredAt: '2026-09-27'
+- model: mistralai/Mistral-Small-4-119B-2603
+  instanceType: Standard_NC80adis_H100_v5
+  nodes: 1
+  profile: mistral-thinking-v1
+  accuracy: 0.96875
+  correct: 124
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-07'
 - model: moonshotai/Kimi-K2.6
   instanceType: Standard_ND96isr_H100_v5
   nodes: 2
@@ -531,6 +594,24 @@ targets:
   evaluated: 128
   emptyResponses: 0
   measuredAt: '2026-09-27'
+- model: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
+  instanceType: Standard_NC80adis_H100_v5
+  nodes: 2
+  profile: chat-thinking-v1
+  accuracy: 0.9765625
+  correct: 125
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-07'
+- model: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
+  instanceType: Standard_NC96ads_A100_v4
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.984375
+  correct: 126
+  evaluated: 128
+  emptyResponses: 0
+  measuredAt: '2026-10-07'
 - model: nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4
   instanceType: Standard_ND96isr_H100_v5
   nodes: 1
@@ -567,6 +648,15 @@ targets:
   evaluated: 128
   emptyResponses: 2
   measuredAt: '2026-09-27'
+- model: nvidia/NVIDIA-Nemotron-Nano-9B-v2
+  instanceType: Standard_NV72ads_A10_v5
+  nodes: 1
+  profile: chat-thinking-v1
+  accuracy: 0.9609375
+  correct: 123
+  evaluated: 128
+  emptyResponses: 1
+  measuredAt: '2026-10-08'
 - model: openai/gpt-oss-120b
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1

@@ -1,5 +1,11 @@
 {
   "_comment": "Shared infrastructure and size-based target policies for preset regression workflows. Model names and sizes come from presets/workspace/models/model_catalog.yaml.",
+  "modelSizeSafetyFactor": 1.2,
+  "minimumGPUsOverrides": {
+    "nvidia/NVIDIA-Nemotron-Nano-9B-v2": {
+      "a10": 2
+    }
+  },
   "profiles": {
     "standard": {
       "timeoutMinutes": 60,
@@ -64,12 +70,10 @@
         "1": "Standard_NV36ads_A10_v5",
         "2": "Standard_NV72ads_A10_v5"
       },
-      "gpuMemoryGiBPerNode": {
+      "gpuMemoryGiBPerGPU": {
         "1": 24,
-        "2": 48
-      },
-      "gpuMemoryUtilization": 0.82,
-      "baseOverheadGiB": 1.5
+        "2": 24
+      }
     },
     "a100": {
       "displayName": "NVIDIA A100 80GB",
@@ -80,13 +84,11 @@
         "2": "Standard_NC48ads_A100_v4",
         "4": "Standard_NC96ads_A100_v4"
       },
-      "gpuMemoryGiBPerNode": {
+      "gpuMemoryGiBPerGPU": {
         "1": 80,
-        "2": 160,
-        "4": 320
-      },
-      "gpuMemoryUtilization": 0.92,
-      "baseOverheadGiB": 2.3
+        "2": 80,
+        "4": 80
+      }
     },
     "h100": {
       "displayName": "NVIDIA H100",
@@ -97,13 +99,11 @@
         "2": "Standard_NC80adis_H100_v5",
         "8": "Standard_ND96isr_H100_v5"
       },
-      "gpuMemoryGiBPerNode": {
+      "gpuMemoryGiBPerGPU": {
         "1": 94,
-        "2": 188,
-        "8": 640
-      },
-      "gpuMemoryUtilization": 0.92,
-      "baseOverheadGiB": 2.3
+        "2": 94,
+        "8": 80
+      }
     }
   }
 }

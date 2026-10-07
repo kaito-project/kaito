@@ -37,6 +37,7 @@ from preset_regression_gsm8k import (
 from preset_regression_test_utils import load_yaml, validate_coverage
 
 ROOT = Path(__file__).resolve().parents[3]
+MODEL_CATALOG = ROOT / "presets/workspace/models/model_catalog.yaml"
 GSM_CONFIG = ROOT / "benchmarks/gsm8k/config.yaml"
 GSM_BASELINES = ROOT / "benchmarks/gsm8k/baselines.yaml"
 
@@ -45,6 +46,16 @@ class PresetRegressionGSM8KTest(unittest.TestCase):
     def test_repository_manifests_are_valid(self):
         validate_gsm8k_data(load_yaml(GSM_CONFIG), load_yaml(GSM_BASELINES))
 
+    def test_each_catalog_model_has_a_baseline(self):
+        catalog_models = {
+            str(model["name"]) for model in load_yaml(MODEL_CATALOG)["models"]
+        }
+        baseline_models = {
+            str(target["model"])
+            for target in load_yaml(GSM_BASELINES).get("targets", [])
+        }
+        self.assertEqual([], sorted(catalog_models - baseline_models))
+
     def test_models_use_large_default_thinking_profile(self):
         name, profile = resolve_profile(
             load_yaml(GSM_CONFIG), "deepseek-ai/DeepSeek-V4-Flash-0731"
@@ -52,23 +63,22 @@ class PresetRegressionGSM8KTest(unittest.TestCase):
         self.assertEqual("chat-thinking-v1", name)
         self.assertEqual(8192, profile["maxGenTokens"])
 
-    def test_timeout_prone_models_use_higher_concurrency(self):
+    def test_models_use_default_concurrency(self):
         config = load_yaml(GSM_CONFIG)
-        models = (
-            "google/gemma-4-26B-A4B-it",
-            "google/gemma-4-31B-it",
-            "Qwen/Qwen3.5-9B",
-            "Qwen/Qwen3.6-27B",
-            "Qwen/Qwen3.8-27B",
-            "mistralai/Mistral-Medium-3.5-128B",
-            "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+        self.assertEqual(
+            16,
+            resolve_gsm8k_execution(config, "microsoft/Phi-4-mini-instruct")[
+                "numConcurrent"
+            ],
         )
-        for model in models:
-            with self.subTest(model=model):
-                self.assertEqual(
-                    32 if model == "mistralai/Mistral-Medium-3.5-128B" else 16,
-                    resolve_gsm8k_execution(config, model)["numConcurrent"],
-                )
+
+    def test_mistral_medium_uses_higher_concurrency(self):
+        self.assertEqual(
+            32,
+            resolve_gsm8k_execution(
+                load_yaml(GSM_CONFIG), "mistralai/Mistral-Medium-3.5-128B"
+            )["numConcurrent"],
+        )
 
     def test_retry_policy_excludes_timeouts(self):
         self.assertFalse(
@@ -266,6 +276,39 @@ class PresetRegressionGSM8KTest(unittest.TestCase):
         finally:
             preset_regression_gsm8k.urllib.request.urlopen = original_urlopen
             preset_regression_gsm8k.json.load = original_json_load
+
+    def test_matrix_applies_safety_factor_and_minimum_gpu_overrides(self):
+        targets = json.loads(
+            subprocess.check_output(
+                [
+                    "bash",
+                    ".github/scripts/preset-regression-tests/preset-regression-matrix.sh",
+                ],
+                cwd=ROOT,
+                env={
+                    **os.environ,
+                    "REGRESSION_PROFILE": "standard",
+                    "GPU": "",
+                },
+                text=True,
+            )
+        )
+        instance_types = {
+            (target["model"], target["gpu"]): target["instanceType"]
+            for target in targets
+        }
+        self.assertEqual(
+            "Standard_NC48ads_A100_v4",
+            instance_types[("Qwen/Qwen3.6-35B-A3B", "a100")],
+        )
+        self.assertEqual(
+            "Standard_NV72ads_A10_v5",
+            instance_types[("nvidia/NVIDIA-Nemotron-Nano-9B-v2", "a10")],
+        )
+        self.assertEqual(
+            "Standard_NC24ads_A100_v4",
+            instance_types[("openai/gpt-oss-120b", "a100")],
+        )
 
     def test_matrix_has_complete_baseline_coverage(self):
         targets = []

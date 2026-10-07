@@ -223,11 +223,10 @@ class NativeInvisibleTextScanner:
         invisible_chars = []
         for i, char in enumerate(output):
             category = unicodedata.category(char)
-            # Detect control characters, format characters, separators (excluding space)
-            # and zero-width characters
+            # Detect format chars (Cf), private use (Co), and unassigned (Cn).
+            # This matches llm-guard behavior: skips normal control chars like \n, \t, \r
             if (
-                category in ("Cc", "Cf", "Zl", "Zp")
-                or (category == "Zs" and char not in (" ", "\t", "\n", "\r"))
+                category in ("Cf", "Co", "Cn")
                 or char
                 in (
                     "​",  # Zero-width space

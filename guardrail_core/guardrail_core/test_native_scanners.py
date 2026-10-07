@@ -227,11 +227,20 @@ class TestNativeInvisibleTextScanner:
         assert "‌" not in output
 
     def test_control_characters(self):
-        """Test detection of control characters."""
+        """Test that normal control chars (Cc) like newline are NOT removed.
+
+        This maintains parity with llm-guard which only removes Cf/Co/Cn,
+        not Cc category which includes normal control chars like \n, \t, \r.
+        """
         scanner = NativeInvisibleTextScanner()
-        output, valid, score = scanner.scan("", "Hello\x00World")  # Null character
-        assert not valid
-        assert "\x00" not in output
+        # Normal newline should be preserved
+        output, valid, score = scanner.scan("", "Hello\nWorld")
+        assert valid
+        assert "\n" in output
+        # Tab should also be preserved
+        output, valid, score = scanner.scan("", "Hello\tWorld")
+        assert valid
+        assert "\t" in output
 
     def test_empty_output(self):
         """Test empty output."""

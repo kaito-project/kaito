@@ -313,9 +313,6 @@ class NativeRegexScanner:
 
     def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
         del prompt
-        if output.strip() == "":
-            return output, True, -1.0
-
         for pattern in self.patterns:
             matches = []
             if self.match_type == RegexMatchType.SEARCH:

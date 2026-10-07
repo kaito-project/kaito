@@ -169,9 +169,16 @@ class TestNativeRegexScanner:
         assert output == "[REDACTED] secret"
         assert not valid
 
-    def test_empty_output(self):
-        """Test empty output."""
-        scanner = NativeRegexScanner(patterns=[r"\d+"])
+    def test_empty_output_block_list(self):
+        """Test empty output in block-list mode."""
+        scanner = NativeRegexScanner(patterns=[r"\d+"], is_blocked=True)
         output, valid, score = scanner.scan("", "")
-        assert valid
+        assert valid  # Block-list: no patterns matched = valid
         assert score == -1.0
+
+    def test_empty_output_allow_list(self):
+        """Test empty output in allow-list mode."""
+        scanner = NativeRegexScanner(patterns=[r"\d+"], is_blocked=False)
+        output, valid, score = scanner.scan("", "")
+        assert not valid  # Allow-list: no patterns matched = invalid
+        assert score == 1.0

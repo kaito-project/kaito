@@ -222,12 +222,7 @@ class NativeInvisibleTextScanner:
             category = unicodedata.category(char)
             # Detect format chars (Cf), private use (Co), and unassigned (Cn).
             # This matches llm-guard behavior: skips normal control chars like \n, \t, \r
-            if category in ("Cf", "Co", "Cn") or char in (
-                "​",  # Zero-width space
-                "‌",  # Zero-width non-joiner
-                "‍",  # Zero-width joiner
-                "﻿",  # Zero-width no-break space
-            ):
+            if category in ("Cf", "Co", "Cn"):
                 invisible_chars.append(i)
 
         if not invisible_chars:
@@ -395,7 +390,8 @@ class NativeTokenLimitScanner:
     """KAITO-owned scanner to enforce token count limits on output.
 
     Uses tiktoken for accurate token counting with configurable tokenizer.
-    When output exceeds the limit, optionally truncates it to fit.
+    When output exceeds the limit, truncates it to fit.
+    Requires tiktoken to be installed.
     """
 
     def __init__(

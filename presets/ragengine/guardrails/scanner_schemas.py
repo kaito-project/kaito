@@ -36,7 +36,7 @@ import llm_guard.output_scanners as llm_guard_output_scanners
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
 
-# Allowed match_type values derived from enums in kaito_guardrails.native_scanners
+# Allowed match_type values derived from enums in guardrail_core.native_scanners
 _BAN_SUBSTRINGS_MATCH_TYPES = frozenset(("word", "str"))
 _REGEX_MATCH_TYPES = frozenset(("search", "fullmatch", "all"))
 _SECRETS_REDACT_MODES = frozenset({"all", "partial", "hash"})
@@ -230,7 +230,7 @@ class BanSubstringsConfig:
 
     def __post_init__(self):
         if self.match_type is None or isinstance(self.match_type, str):
-            from kaito_guardrails.native_scanners import BanSubstringsMatchType
+            from guardrail_core.native_scanners import BanSubstringsMatchType
 
             if self.match_type is None:
                 self.match_type = BanSubstringsMatchType.WORD
@@ -239,7 +239,7 @@ class BanSubstringsConfig:
 
     @classmethod
     def from_dict(cls, raw: dict) -> "BanSubstringsConfig":
-        from kaito_guardrails.native_scanners import BanSubstringsMatchType
+        from guardrail_core.native_scanners import BanSubstringsMatchType
 
         substrings = _coerce_string_list(raw.get("substrings"))
         if not substrings:
@@ -264,7 +264,7 @@ class BanSubstringsConfig:
         )
 
     def build(self, action_on_hit: str) -> Any:
-        from kaito_guardrails.native_scanners import NativeBanSubstringsScanner
+        from guardrail_core.native_scanners import NativeBanSubstringsScanner
 
         return NativeBanSubstringsScanner(
             substrings=list(self.substrings),
@@ -284,7 +284,7 @@ class RegexConfig:
 
     def __post_init__(self):
         if self.match_type is None or isinstance(self.match_type, str):
-            from kaito_guardrails.native_scanners import RegexMatchType
+            from guardrail_core.native_scanners import RegexMatchType
 
             if self.match_type is None:
                 self.match_type = RegexMatchType.SEARCH
@@ -293,7 +293,7 @@ class RegexConfig:
 
     @classmethod
     def from_dict(cls, raw: dict) -> "RegexConfig":
-        from kaito_guardrails.native_scanners import RegexMatchType
+        from guardrail_core.native_scanners import RegexMatchType
 
         patterns = _coerce_string_list(raw.get("patterns"))
         if not patterns:
@@ -320,7 +320,7 @@ class RegexConfig:
         )
 
     def build(self, action_on_hit: str) -> Any:
-        from kaito_guardrails.native_scanners import NativeRegexScanner
+        from guardrail_core.native_scanners import NativeRegexScanner
 
         return NativeRegexScanner(
             patterns=list(self.patterns),

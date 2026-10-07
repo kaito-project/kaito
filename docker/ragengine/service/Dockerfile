@@ -34,6 +34,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # Copy the rest of the application code after dependencies are installed
 # This ensures dependency installation layer is cached when only code changes
+COPY guardrail_core/ guardrail_core/
 COPY presets/ragengine/ ragengine/
 
 # Set the final working directory

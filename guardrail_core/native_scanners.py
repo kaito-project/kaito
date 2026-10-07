@@ -13,8 +13,7 @@
 
 """KAITO-owned native guardrails scanners.
 
-These scanners are independent of llm-guard and can be reused by any KAITO client.
-They maintain compatibility with the existing llm-guard scanner interface:
+All scanners implement the KAITO output guardrail scanner interface:
     scan(prompt: str, output: str) -> tuple[str, bool, float]
 """
 
@@ -65,10 +64,9 @@ class NativeBanSubstringsScanner:
             (output, valid, score):
                 output: Original or redacted output text.
                 valid: True if output passes the scanner (no banned substrings found).
-                score: Scanner result score, kept compatible with the existing
-                    llm-guard scanner contract. Score semantics: 0.0 when contains_all
-                    mode doesn't match all required substrings, 1.0 when substring(s)
-                    found in block-list mode (invalid), -1.0 when valid.
+                score: Conformant to KAITO scanner contract: -1.0 when valid,
+                    1.0 when invalid (substring found in block-list), or 0.0 in
+                    contains_all mode when not all required substrings are found.
         """
         del prompt
         found_substrings = []
@@ -149,10 +147,8 @@ class NativeRegexScanner:
                 output: Original or redacted output text.
                 valid: In block-list mode: True if no patterns matched (valid).
                     In allow-list mode: True if at least one pattern matched (valid).
-                score: Scanner result score, kept compatible with the existing
-                    llm-guard scanner contract. Score semantics: 1.0 when invalid
-                    (pattern matched in block-list or no match in allow-list),
-                    -1.0 when valid.
+                score: Conformant to KAITO scanner contract: -1.0 when valid,
+                    1.0 when invalid (pattern matched in block-list or no match in allow-list).
         """
         del prompt
         for pattern in self._compiled_patterns:

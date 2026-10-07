@@ -259,9 +259,6 @@ class NativeBanSubstringsScanner:
 
     def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
         del prompt
-        if output.strip() == "":
-            return output, True, -1.0
-
         found_substrings = []
         search_text = output if self.case_sensitive else output.lower()
 

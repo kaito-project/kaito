@@ -96,6 +96,16 @@ class TestNativeBanSubstringsScanner:
         # All occurrences should be redacted
         assert output == "[REDACTED] and [REDACTED] both [REDACTED]"
 
+    def test_contains_all_empty_output(self):
+        """Test contains_all with empty output returns score=0.0."""
+        scanner = NativeBanSubstringsScanner(
+            substrings=["secret", "key"], contains_all=True
+        )
+        output, valid, score = scanner.scan("", "")
+        # All substrings missing (contains_all requires all) → score 0.0
+        assert valid
+        assert score == 0.0
+
 
 class TestNativeRegexScanner:
     """Test native Regex scanner."""

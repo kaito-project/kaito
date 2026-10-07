@@ -32,7 +32,7 @@ from dataclasses import dataclass
 from typing import Any, ClassVar
 
 import llm_guard.input_scanners as llm_guard_input_scanners
-import llm_guard.output_scanners as llm_guard_output_scanners
+import llm_guard.output_scanners as llm_guard_output_scanners  # noqa: F401 (used by tests for monkeypatch)
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import transient_settings
 

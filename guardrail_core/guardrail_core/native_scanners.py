@@ -25,6 +25,13 @@ from enum import StrEnum
 
 from detect_secrets.core.secrets_collection import SecretsCollection
 
+_LEGACY_SECRET_PATTERNS = (
+    re.compile(r"(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{36}"),
+    re.compile(r"github_pat_[0-9A-Za-z_]{82}"),
+    re.compile(r"gho_[0-9A-Za-z]{36}"),
+    re.compile(r"(?i)\bAIza[0-9A-Za-z\\-_]{35}(?=['|\"\n\r\s\x60;]|$)"),
+)
+
 
 class BanSubstringsMatchType(StrEnum):
     """Match types for BanSubstrings scanner."""
@@ -205,7 +212,7 @@ class NativeSecretsScanner:
 
     Redaction behavior:
         - all:     "****** (6 asterisks, fixed-length to avoid leaking secret length)"
-        - partial: "XX..YY (first and last 2 chars, ** if secret <= 4 chars)"
+        - partial: "XX..YY (first and last 2 chars)"
         - hash:    "MD5 hash of the secret value"
     """
 
@@ -264,16 +271,11 @@ class NativeSecretsScanner:
         """
         if redact_mode == "all":
             return "******"
-        elif redact_mode == "partial":
-            # Show first 2 and last 2 characters
-            if len(value) <= 4:
-                return "**"
+        if redact_mode == "partial":
             return f"{value[:2]}..{value[-2:]}"
-        elif redact_mode == "hash":
-            # MD5 hash of the secret (not SHA256)
+        if redact_mode == "hash":
             return hashlib.md5(value.encode()).hexdigest()
-        else:
-            return "***"
+        raise ValueError(f"redact mode wasn't recognized {redact_mode}")
 
     def _detect_secret_values(self, text: str) -> set[str]:
         """Detect secrets using detect-secrets library directly.
@@ -305,12 +307,18 @@ class NativeSecretsScanner:
         finally:
             os.remove(temp_path)
 
-        return {
+        secret_values = {
             found_secret.secret_value
             for file_path in secrets.files
             for found_secret in secrets[file_path]
             if found_secret.secret_value
         }
+        secret_values.update(
+            match.group(0)
+            for pattern in _LEGACY_SECRET_PATTERNS
+            for match in pattern.finditer(text)
+        )
+        return secret_values
 
     @staticmethod
     def _get_kaito_plugins_config() -> dict:

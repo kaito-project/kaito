@@ -913,7 +913,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
     assert parsed == (_ban_subs_cfg(substrings=["secret"]),)
     assert len(scanners) == 1
     # Native scanner, not FakeBanSubstrings
-    from guardrails.native_scanners import NativeBanSubstringsScanner
+    from kaito_guardrails.native_scanners import NativeBanSubstringsScanner
 
     assert isinstance(scanners[0], NativeBanSubstringsScanner)
     assert scanners[0].substrings == ["secret"]
@@ -1199,7 +1199,7 @@ def test_regex_config_build_uses_value_lookup_for_fullmatch(
 ):
     """Regression test: enum value 'fullmatch' must work end-to-end (the enum
     NAME is FULL_MATCH, so a name-based lookup would raise KeyError)."""
-    from guardrails.native_scanners import RegexMatchType
+    from kaito_guardrails.native_scanners import RegexMatchType
 
     cfg = RegexConfig.from_dict({"patterns": ["a"], "match_type": "fullmatch"})
     scanner = cfg.build("redact")

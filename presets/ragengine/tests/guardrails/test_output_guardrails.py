@@ -914,6 +914,7 @@ def test_build_scanners_supports_normalized_ban_substrings_type(
     assert len(scanners) == 1
     # Native scanner, not FakeBanSubstrings
     from ragengine.guardrails.scanner_schemas import NativeBanSubstringsScanner
+
     assert isinstance(scanners[0], NativeBanSubstringsScanner)
     assert scanners[0].substrings == ["secret"]
     assert scanners[0].redact is True

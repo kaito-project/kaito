@@ -1017,6 +1017,8 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
         def redact_value(value, mode):
             return f"{mode}:{value}"
 
+        _detect_secrets_config = {"plugins_used": []}
+
     monkeypatch.setattr(
         scanner_schemas_module.llm_guard_input_scanners,
         "Secrets",
@@ -1037,7 +1039,7 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
 
     assert parsed == (_secrets_cfg(redact_mode="partial"),)
     assert scanners[0].scan("ignored", "secret-value") == (
-        "partial:secret-value",
+        "se..ue",
         False,
         1.0,
     )

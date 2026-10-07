@@ -329,7 +329,7 @@ func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, err
 		return sku.GetGPUConfigBySKU(ctx.Workspace.Resource.InstanceType)
 	}
 
-	// NAP is disabled (BYO scenario) - prefer to get GPU config from matching nodes with nvidia.com labels
+	// NAP is disabled (BYO scenario) - resolve GPU config from matching nodes.
 	// Only try to find matching nodes if we have a labelSelector and if WorkerNodes is not already populated
 	readyNodes, err := nodeprovision.GetReadyNodes(ctx.Ctx, ctx.KubeClient, ctx.NodeProvisioner, ctx.Workspace)
 	if err != nil {
@@ -338,7 +338,7 @@ func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, err
 	if len(readyNodes) == 0 {
 		return nil, fmt.Errorf("no ready nodes found matching the workspace's label selector")
 	}
-	gpuConfig, err := sku.GetGPUConfigFromNodeLabels(readyNodes[0])
+	gpuConfig, err := sku.GetGPUConfigFromNode(readyNodes[0])
 	if err != nil {
 		return nil, err
 	}

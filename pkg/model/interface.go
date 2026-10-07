@@ -20,7 +20,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -483,29 +482,11 @@ var gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
 	{modelName: "deepseek-v4-pro", gpuModel: "NVIDIA H100"}: "0.91",
 }
 
-// canonicalGPUModel maps GPU Feature Discovery product labels used by BYO nodes
-// to the model names used by the SKU tables and hardware policy maps.
-func canonicalGPUModel(gpuModel string) string {
-	for token := range strings.FieldsFuncSeq(gpuModel, func(r rune) bool {
-		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
-	}) {
-		switch strings.ToUpper(token) {
-		case "H100":
-			return "NVIDIA H100"
-		case "A100":
-			return "NVIDIA A100"
-		case "A10":
-			return "NVIDIA A10"
-		}
-	}
-	return gpuModel
-}
-
 // ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
 // launched with for the given GPU. A per-GPU-model safety cap (clamps down for
 // tight-VRAM GPUs) wins over the default.
 func ResolveGPUMemoryUtilization(gpuModel string) string {
-	if util, ok := gpuMemoryUtilizationByGPUModel[canonicalGPUModel(gpuModel)]; ok {
+	if util, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {
 		return util
 	}
 	return defaultGPUMemoryUtilization
@@ -545,7 +526,7 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	if rc.GPUConfig != nil {
 		gpuModel = rc.GPUConfig.GPUModel
 	}
-	policyGPUModel := canonicalGPUModel(gpuModel)
+	policyGPUModel := sku.CanonicalGPUModel(gpuModel)
 	gpuMemoryUtilization := ResolveGPUMemoryUtilization(gpuModel)
 	if modelUtilization, ok := gpuMemoryUtilizationByModelAndGPU[modelGPUKey{modelName: p.VLLM.ModelName, gpuModel: policyGPUModel}]; ok {
 		gpuMemoryUtilization = modelUtilization

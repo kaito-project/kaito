@@ -319,7 +319,7 @@ func TestNodeEstimator_EstimateNodeCount_BYO(t *testing.T) {
 			errorContains: "failed to list ready nodes",
 		},
 		{
-			name: "Should use GPU config from ready nodes (NAP disabled)",
+			name: "Should use known node instance type without GFD labels (NAP disabled)",
 			workspace: &kaitov1beta1.Workspace{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-workspace",
@@ -337,16 +337,13 @@ func TestNodeEstimator_EstimateNodeCount_BYO(t *testing.T) {
 				},
 			},
 			setupMocks: func(mockClient *test.MockClient) {
-				// Mock ready node with GPU labels
+				// Mock a ready node whose known instance type supplies GPU configuration.
 				readyNode := corev1.Node{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "byo-gpu-node",
 						Labels: map[string]string{
 							"node.kubernetes.io/instance-type": "Standard_NC96ads_A100_v4",
 							"kubernetes.azure.com/accelerator": "nvidia-tesla-a100",
-							"nvidia.com/gpu.product":           "Tesla-A100-SXM4-80GB",
-							"nvidia.com/gpu.count":             "4",
-							"nvidia.com/gpu.memory":            "81920", // 80GB in MiB
 						},
 					},
 					Status: corev1.NodeStatus{

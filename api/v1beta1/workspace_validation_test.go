@@ -533,7 +533,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			presetNameOverride: "test-validation-static",
 			runtime:            model.RuntimeNameVLLM,
 			expectErrs:         true,
-			errContent:         "Failed to get GPU config from nvidia labels",
+			errContent:         "Failed to get GPU config from known instance type or nvidia labels",
 			testNodes: []v1.Node{
 				{
 					ObjectMeta: metav1.ObjectMeta{
@@ -564,7 +564,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			presetNameOverride: "test-validation-static",
 			runtime:            model.RuntimeNameVLLM,
 			expectErrs:         true,
-			errContent:         "Failed to get GPU config from nvidia labels",
+			errContent:         "Failed to get GPU config from known instance type or nvidia labels",
 			testNodes: []v1.Node{
 				{
 					ObjectMeta: metav1.ObjectMeta{
@@ -595,7 +595,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 			presetNameOverride: "test-validation-static",
 			runtime:            model.RuntimeNameVLLM,
 			expectErrs:         true,
-			errContent:         "Failed to get GPU config from nvidia labels",
+			errContent:         "Failed to get GPU config from known instance type or nvidia labels",
 			testNodes: []v1.Node{
 				{
 					ObjectMeta: metav1.ObjectMeta{
@@ -642,6 +642,45 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "node-a100",
+						Labels: map[string]string{
+							"workload":               "gpu",
+							"nvidia.com/gpu.product": "NVIDIA-A100-SXM4-80GB",
+							"nvidia.com/gpu.count":   "1",
+							"nvidia.com/gpu.memory":  "81920", // 80GB * 1024 = 81920 MiB
+						},
+					},
+				},
+			},
+			useFeatureGate: true,
+		},
+		{
+			name: "Valid - known SKU and GFD labels describe the same GPU product",
+			resourceSpec: &ResourceSpec{
+				InstanceType: "", // Empty instanceType indicates BYO mode
+				Count:        pointerToInt(2),
+				LabelSelector: &metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"workload": "gpu",
+					},
+				},
+			},
+			preset:             true,
+			presetNameOverride: "test-validation-static",
+			runtime:            model.RuntimeNameVLLM,
+			expectErrs:         false,
+			testNodes: []v1.Node{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-known-a100",
+						Labels: map[string]string{
+							"workload":                 "gpu",
+							v1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "node-gfd-a100",
 						Labels: map[string]string{
 							"workload":               "gpu",
 							"nvidia.com/gpu.product": "NVIDIA-A100-SXM4-80GB",

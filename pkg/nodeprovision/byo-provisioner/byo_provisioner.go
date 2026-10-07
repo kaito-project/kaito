@@ -181,8 +181,9 @@ func nodeHasAllocatableGPU(node *corev1.Node) bool {
 }
 
 // SelectInstanceType returns the SKU with the most per-node GPU memory among ready,
-// non-deleting nodes with allocatable GPUs and usable labels. Ties are resolved by
-// instance type for deterministic selection; no usable node returns an empty string.
+// non-deleting nodes with allocatable GPUs and resolvable GPU configuration. Ties
+// are resolved by instance type for deterministic selection; no usable node returns
+// an empty string.
 func SelectInstanceType(ctx context.Context, c client.Client, ws *kaitov1beta1.Workspace) (string, error) {
 	nodeList := &corev1.NodeList{}
 	if err := c.List(ctx, nodeList); err != nil {
@@ -209,7 +210,7 @@ func SelectInstanceType(ctx context.Context, c client.Client, ws *kaitov1beta1.W
 		if _, ok := groups[instanceType]; ok {
 			continue
 		}
-		gpuConfig, err := sku.GetGPUConfigFromNodeLabels(node)
+		gpuConfig, err := sku.GetGPUConfigFromNode(node)
 		if err != nil {
 			continue
 		}

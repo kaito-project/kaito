@@ -43,7 +43,6 @@ from guardrails.native_scanners import (
     RegexMatchType,
 )
 
-
 # Allowed match_type values derived from enums
 _BAN_SUBSTRINGS_MATCH_TYPES = frozenset(
     match_type.value for match_type in BanSubstringsMatchType

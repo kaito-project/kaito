@@ -201,9 +201,6 @@ class NativeInvisibleTextScanner:
     steganographic content or malicious instructions in model output.
     """
 
-    def __init__(self) -> None:
-        pass
-
     def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
         """Scan output for invisible or non-printable Unicode characters.
 

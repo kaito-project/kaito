@@ -28,8 +28,7 @@ from detect_secrets.core.secrets_collection import SecretsCollection
 _LEGACY_SECRET_PATTERNS = (
     re.compile(r"(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{36}"),
     re.compile(r"github_pat_[0-9A-Za-z_]{82}"),
-    re.compile(r"gho_[0-9A-Za-z]{36}"),
-    re.compile(r"(?i)\bAIza[0-9A-Za-z\\-_]{35}(?=['|\"\n\r\s\x60;]|$)"),
+    re.compile(r"(?i)\bAIza[0-9A-Za-z_-]{35}(?=['|\"\n\r\s\x60;]|$)"),
 )
 
 
@@ -280,7 +279,7 @@ class NativeSecretsScanner:
     def _detect_secret_values(self, text: str) -> set[str]:
         """Detect secrets using detect-secrets library directly.
 
-        Uses KAITO-owned plugin configuration for comprehensive detection.
+        Uses KAITO-owned plugins plus legacy compatibility patterns.
 
         Args:
             text: The text to scan for secrets.
@@ -326,12 +325,8 @@ class NativeSecretsScanner:
 
         This configuration uses only plugins provided by bc-detect-secrets
         (the detect-secrets fork used by the project), without relying on
-        llm-guard's proprietary detectors. Provides comprehensive coverage:
-        - API keys (AWS, Azure, GitHub, GCP, etc.)
-        - Authentication tokens (OAuth, JWT, etc.)
-        - Database credentials
-        - Private keys
-        - High-entropy strings
+        llm-guard-specific detectors. It covers common built-in secret types;
+        legacy compatibility patterns supplement types without built-in plugins.
 
         Returns:
             Dict with 'plugins_used' key containing plugin specifications.

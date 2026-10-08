@@ -131,11 +131,12 @@ class PresetRegressionGSM8KTest(unittest.TestCase):
             config, "mistralai/Mistral-Medium-3.5-128B"
         )
         gemma_name, gemma = resolve_profile(config, "google/gemma-4-12B-it")
-        self.assertEqual("mistral-thinking-v1", mistral_name)
+        self.assertEqual("mistral-nonthinking-v1", mistral_name)
         self.assertNotIn("chatTemplateKwargs", mistral)
-        self.assertEqual({"reasoning_effort": "high"}, mistral["requestKwargs"])
-        self.assertEqual("chat-thinking-v1", gemma_name)
-        self.assertEqual({"enable_thinking": True}, gemma["chatTemplateKwargs"])
+        self.assertEqual({"reasoning_effort": "none"}, mistral["requestKwargs"])
+        self.assertEqual("chat-nonthinking-v1", gemma_name)
+        self.assertEqual(8192, gemma["maxGenTokens"])
+        self.assertNotIn("chatTemplateKwargs", gemma)
 
         nemotron_name, nemotron = resolve_profile(
             config, "nvidia/NVIDIA-Nemotron-Nano-9B-v2"
@@ -143,12 +144,12 @@ class PresetRegressionGSM8KTest(unittest.TestCase):
         self.assertEqual("chat-thinking-v1", nemotron_name)
         self.assertEqual({"enable_thinking": True}, nemotron["chatTemplateKwargs"])
 
-    def test_mistral_thinking_uses_native_request_field(self):
+    def test_mistral_nonthinking_uses_native_request_field(self):
         _, profile = resolve_profile(
             load_yaml(GSM_CONFIG), "mistralai/Mistral-Medium-3.5-128B"
         )
         kwargs = generation_kwargs(profile)
-        self.assertEqual("high", kwargs["reasoning_effort"])
+        self.assertEqual("none", kwargs["reasoning_effort"])
         self.assertNotIn("chat_template_kwargs", kwargs)
 
     def test_duplicate_baseline_identity_is_rejected(self):

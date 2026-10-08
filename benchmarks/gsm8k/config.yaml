@@ -18,7 +18,7 @@ profiles:
     applyChatTemplate: true
     fewshotAsMultiturn: false
     temperature: 0
-    maxGenTokens: 512
+    maxGenTokens: 8192
     stopSequences:
       - "</s>"
       - "<|im_end|>"
@@ -32,19 +32,22 @@ profiles:
     stopSequences:
       - "</s>"
       - "<|im_end|>"
-  mistral-thinking-v1:
+  mistral-nonthinking-v1:
     applyChatTemplate: true
     fewshotAsMultiturn: false
     temperature: 0
     maxGenTokens: 8192
     requestKwargs:
-      reasoning_effort: high
+      reasoning_effort: none
     stopSequences:
       - "</s>"
       - "<|im_end|>"
 
 modelProfileOverrides:
-  mistralai/Mistral-Medium-3.5-128B: mistral-thinking-v1
+  google/gemma-4-12B-it: chat-nonthinking-v1
+  # High reasoning effort produced many empty responses within the bounded
+  # evaluator; none completed every sample and scored higher on both A100 and H100.
+  mistralai/Mistral-Medium-3.5-128B: mistral-nonthinking-v1
 
 execution:
   numConcurrent: 16

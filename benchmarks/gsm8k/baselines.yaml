@@ -183,21 +183,21 @@ targets:
 - model: google/gemma-4-12B-it
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1
-  profile: chat-thinking-v1
-  accuracy: 0.53125
-  correct: 68
+  profile: chat-nonthinking-v1
+  accuracy: 0.9609375
+  correct: 123
   evaluated: 128
-  emptyResponses: 60
-  measuredAt: '2026-09-27'
+  emptyResponses: 0
+  measuredAt: '2026-10-08'
 - model: google/gemma-4-12B-it
   instanceType: Standard_NC40ads_H100_v5
   nodes: 1
-  profile: chat-thinking-v1
-  accuracy: 0.5390625
-  correct: 69
+  profile: chat-nonthinking-v1
+  accuracy: 0.9609375
+  correct: 123
   evaluated: 128
-  emptyResponses: 58
-  measuredAt: '2026-09-27'
+  emptyResponses: 0
+  measuredAt: '2026-10-08'
 - model: google/gemma-4-26B-A4B-it
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1
@@ -354,21 +354,21 @@ targets:
 - model: mistralai/Mistral-Medium-3.5-128B
   instanceType: Standard_NC48ads_A100_v4
   nodes: 1
-  profile: mistral-thinking-v1
-  accuracy: 0.515625
-  correct: 66
+  profile: mistral-nonthinking-v1
+  accuracy: 0.96875
+  correct: 124
   evaluated: 128
-  emptyResponses: 62
+  emptyResponses: 0
   measuredAt: '2026-10-08'
 - model: mistralai/Mistral-Medium-3.5-128B
   instanceType: Standard_NC80adis_H100_v5
   nodes: 1
-  profile: mistral-thinking-v1
-  accuracy: 0.640625
-  correct: 82
+  profile: mistral-nonthinking-v1
+  accuracy: 0.9609375
+  correct: 123
   evaluated: 128
-  emptyResponses: 41
-  measuredAt: '2026-10-07'
+  emptyResponses: 0
+  measuredAt: '2026-10-08'
 - model: moonshotai/Kimi-K2.6
   instanceType: Standard_ND96isr_H100_v5
   nodes: 2

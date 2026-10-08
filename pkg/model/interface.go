@@ -467,8 +467,6 @@ var cudagraphModeByModelAndGPU = map[modelGPUKey]string{
 	// CUDA graph capture exhausts device memory on a two-H100 node.
 	// TODO: only disable CUDA when memory is limited.
 	{modelName: "deepseek-v4-flash-0731"}: "NONE",
-	// V4 Pro exhausts memory in PIECEWISE capture after DeepGEMM warmup under vllm 0.30.0
-	{modelName: "deepseek-v4-pro"}: "FULL_DECODE_ONLY",
 	// V4.1 Flash exhausts H100 memory in FULL_AND_PIECEWISE capture, while
 	// PIECEWISE initializes but the first chat request hits a CUDA illegal access.
 	{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}: "FULL_DECODE_ONLY",
@@ -479,16 +477,7 @@ var linearBackendByModelAndGPU = map[modelGPUKey]string{
 	// Selects Marlin for FP8 Mistral models on GPUs without native FP8 support.
 	// vLLM 0.30.0 otherwise selects a CUTLASS SM80 path that cannot consume FP8
 	// operands and fails during Inductor compilation or eager profile execution.
-	{modelName: "ministral-3-14b-instruct-2512", gpuModel: "NVIDIA A10"}:  "marlin",
-	{modelName: "ministral-3-14b-instruct-2512", gpuModel: "NVIDIA A100"}: "marlin",
-	{modelName: "mistral-medium-3.5-128b", gpuModel: "NVIDIA A100"}:       "marlin",
-}
-
-// gpuMemoryUtilizationByModelAndGPU reserves runtime activation headroom for
-// exact model/GPU combinations beyond the general per-GPU policy.
-var gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
-	// At 0.92, V4 Pro OOMs at max concurrency during startup benchmarking.
-	{modelName: "deepseek-v4-pro", gpuModel: "NVIDIA H100"}: "0.91",
+	{modelName: "mistral-medium-3.5-128b", gpuModel: "NVIDIA A100"}: "marlin",
 }
 
 var indexerKVDtypeByArchitectureAndGPU = map[architectureGPUKey]string{
@@ -546,9 +535,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	}
 	policyGPUModel := sku.CanonicalGPUModel(gpuModel)
 	gpuMemoryUtilization := ResolveGPUMemoryUtilization(gpuModel)
-	if modelUtilization, ok := gpuMemoryUtilizationByModelAndGPU[modelGPUKey{modelName: p.VLLM.ModelName, gpuModel: policyGPUModel}]; ok {
-		gpuMemoryUtilization = modelUtilization
-	}
 	p.VLLM.ModelRunParams["gpu-memory-utilization"] = gpuMemoryUtilization
 	for _, architecture := range p.Architectures {
 		if dtype, ok := indexerKVDtypeByArchitectureAndGPU[architectureGPUKey{
@@ -846,12 +832,8 @@ func (p *PresetParam) RequiresFlashInfer() bool {
 			return true
 		}
 	}
-	// These checkpoints share Mistral3ForConditionalGeneration and
-	// NemotronHForCausalLM with models that do not require FlashInfer, so matching
-	// those architectures would unnecessarily enable runtime CUDA compilation.
-	switch p.Name {
-	case "mistral-small-4-119b-2603",
-		"nvidia-nemotron-3-ultra-550b-a55b-nvfp4":
+	// NemotronH checkpoints do not uniformly require FlashInfer.
+	if p.Name == "nvidia-nemotron-3-ultra-550b-a55b-nvfp4" {
 		return true
 	}
 	return false

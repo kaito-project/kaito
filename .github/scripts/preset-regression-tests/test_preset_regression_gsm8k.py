@@ -127,15 +127,10 @@ class PresetRegressionGSM8KTest(unittest.TestCase):
 
     def test_model_profile_overrides(self):
         config = load_yaml(GSM_CONFIG)
-        ministral_name, ministral = resolve_profile(
-            config, "mistralai/Ministral-3-14B-Instruct-2512"
-        )
         mistral_name, mistral = resolve_profile(
             config, "mistralai/Mistral-Medium-3.5-128B"
         )
         gemma_name, gemma = resolve_profile(config, "google/gemma-4-12B-it")
-        self.assertEqual("chat-nonthinking-v1", ministral_name)
-        self.assertNotIn("chatTemplateKwargs", ministral)
         self.assertEqual("mistral-thinking-v1", mistral_name)
         self.assertNotIn("chatTemplateKwargs", mistral)
         self.assertEqual({"reasoning_effort": "high"}, mistral["requestKwargs"])
@@ -297,10 +292,6 @@ class PresetRegressionGSM8KTest(unittest.TestCase):
             (target["model"], target["gpu"]): target["instanceType"]
             for target in targets
         }
-        self.assertEqual(
-            "Standard_NC48ads_A100_v4",
-            instance_types[("Qwen/Qwen3.6-35B-A3B", "a100")],
-        )
         self.assertEqual(
             "Standard_NV72ads_A10_v5",
             instance_types[("nvidia/NVIDIA-Nemotron-Nano-9B-v2", "a10")],

@@ -52,24 +52,6 @@ models:
   numKeyValueHeads: 8
   headDim: 64
   quantMethod: mxfp4
-- name: mistralai/Ministral-3-14B-Instruct-2512
-  description: https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512
-  license: apache-2.0
-  baseModel:
-  - mistralai/Ministral-3-14B-Base-2512
-  modelFileSize: 14.65Gi
-  architectures:
-  - Mistral3ForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 5120
-  numHiddenLayers: 40
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-  headDim: 128
-  quantMethod: fp8
 - name: nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16
   license: nvidia-nemotron-open-model-license
@@ -202,23 +184,6 @@ models:
   numAttentionHeads: 8
   numKeyValueHeads: 1
   headDim: 256
-- name: mistralai/Mistral-Small-4-119B-2603
-  description: https://huggingface.co/mistralai/Mistral-Small-4-119B-2603
-  license: apache-2.0
-  modelFileSize: 112.63Gi
-  architectures:
-  - Mistral3ForConditionalGeneration
-  modelTokenLimit: 1048576
-  hiddenSize: 4096
-  numHiddenLayers: 36
-  numAttentionHeads: 32
-  numKeyValueHeads: 32
-  loadFormat: mistral
-  configFormat: mistral
-  tokenizerMode: mistral
-  kvLoraRank: 256
-  qkRopeHeadDim: 64
-  quantMethod: fp8
 - name: Qwen/Qwen3.5-4B
   description: https://huggingface.co/Qwen/Qwen3.5-4B
   license: apache-2.0
@@ -272,23 +237,6 @@ models:
   numKeyValueHeads: 2
   headDim: 256
   quantMethod: fp8
-  mambaStateBytesPerSeq: 64389120
-  mambaStateBytesPerLayer: 2146304
-  numFullAttnLayers: 10
-  numLinearLayers: 30
-- name: Qwen/Qwen3.6-35B-A3B
-  description: https://huggingface.co/Qwen/Qwen3.6-35B-A3B
-  license: apache-2.0
-  pipelineTag: image-text-to-text
-  modelFileSize: 66.97Gi
-  architectures:
-  - Qwen3_5MoeForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 2048
-  numHiddenLayers: 40
-  numAttentionHeads: 16
-  numKeyValueHeads: 2
-  headDim: 256
   mambaStateBytesPerSeq: 64389120
   mambaStateBytesPerLayer: 2146304
   numFullAttnLayers: 10
@@ -369,21 +317,6 @@ models:
   headDim: 512
   qkRopeHeadDim: 64
   quantMethod: fp8
-- name: deepseek-ai/DeepSeek-V4-Pro
-  description: https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro
-  license: mit
-  pipelineTag: text-generation
-  modelFileSize: 805.34Gi
-  architectures:
-  - DeepseekV4ForCausalLM
-  modelTokenLimit: 1048576
-  hiddenSize: 7168
-  numHiddenLayers: 61
-  numAttentionHeads: 128
-  numKeyValueHeads: 1
-  headDim: 512
-  qkRopeHeadDim: 64
-  quantMethod: fp8
 - name: google/gemma-4-12B-it
   description: https://huggingface.co/google/gemma-4-12B-it
   license: apache-2.0
@@ -399,21 +332,6 @@ models:
   numAttentionHeads: 16
   numKeyValueHeads: 8
   headDim: 256
-- name: moonshotai/Kimi-K2.7-Code
-  description: https://huggingface.co/moonshotai/Kimi-K2.7-Code
-  license: modified-mit
-  pipelineTag: image-text-to-text
-  modelFileSize: 554.32Gi
-  architectures:
-  - KimiK25ForConditionalGeneration
-  modelTokenLimit: 262144
-  hiddenSize: 7168
-  numHiddenLayers: 61
-  numAttentionHeads: 64
-  numKeyValueHeads: 64
-  kvLoraRank: 512
-  qkRopeHeadDim: 64
-  quantMethod: pack-quantized
 - name: nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4
   description: https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-NVFP4
   license: openmdw-1.1
@@ -431,35 +349,6 @@ models:
   mambaStateBytesPerLayer: 8499200
   numFullAttnLayers: 12
   numLinearLayers: 48
-- name: deepseek-ai/DeepSeek-V3.2
-  description: https://huggingface.co/deepseek-ai/DeepSeek-V3.2
-  license: mit
-  pipelineTag: text-generation
-  baseModel:
-  - deepseek-ai/DeepSeek-V3.2-Exp-Base
-  modelFileSize: 642.14Gi
-  architectures:
-  - DeepseekV32ForCausalLM
-  modelTokenLimit: 163840
-  hiddenSize: 7168
-  numHiddenLayers: 61
-  numAttentionHeads: 128
-  numKeyValueHeads: 128
-  kvLoraRank: 512
-  qkRopeHeadDim: 64
-  quantMethod: fp8
-- name: ibm-granite/granite-4.1-8b
-  description: https://huggingface.co/ibm-granite/granite-4.1-8b
-  license: apache-2.0
-  pipelineTag: text-generation
-  modelFileSize: 16.38Gi
-  architectures:
-  - GraniteForCausalLM
-  modelTokenLimit: 131072
-  hiddenSize: 4096
-  numHiddenLayers: 40
-  numAttentionHeads: 32
-  numKeyValueHeads: 8
 - name: Qwen/Qwen3.8-27B
   description: https://huggingface.co/Qwen/Qwen3.8-27B
   license: apache-2.0

@@ -724,43 +724,6 @@ func TestGetModelByName_DeepSeekV4Flash(t *testing.T) {
 	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
-// TestGetModelByName_DeepSeekV32 verifies DeepSeek-V3.2 resolves offline from the
-// embedded catalog and wires the deepseek_v3 reasoning parser, deepseek_v32
-// tool-call parser and tokenizer mode, and disables FlashInfer autotune per its recipe.
-func TestGetModelByName_DeepSeekV32(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3.2", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	runParams := params.RuntimeParam.VLLM.ModelRunParams
-	assert.Equal(t, "deepseek_v3", runParams["reasoning-parser"])
-	assert.Equal(t, "deepseek_v32", runParams["tool-call-parser"])
-	assert.Equal(t, "deepseek_v32", runParams["tokenizer_mode"])
-	assert.Equal(t, "False", runParams["kernel-config.enable_flashinfer_autotune"])
-}
-
-// TestGetModelByName_DeepSeekV4Pro verifies DeepSeek-V4-Pro resolves offline from
-// the embedded catalog and inherits the DeepSeek-V4 family wiring — including the
-// fp8 kv-cache-dtype, which the engine asserts on for the DeepseekV4 architecture.
-func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Pro", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	runParams := params.RuntimeParam.VLLM.ModelRunParams
-	assert.Equal(t, "deepseek_v4", runParams["reasoning-parser"])
-	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
-	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
-	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
-	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
-}
-
 func TestGetModelByName_GLM53Flash(t *testing.T) {
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 
@@ -1223,28 +1186,6 @@ func TestGetModelByName_DeepSeekR10528_SpeculativeDecodingMTP(t *testing.T) {
 // deepseek-r1-0528 test above for rationale.
 func TestGetModelByName_DeepSeekV30324_SpeculativeDecodingMTP(t *testing.T) {
 	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3-0324", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
-		return
-	}
-	assert.Equal(t, "mtp", params.SpeculativeDecoding.Method)
-	if !assert.NotNil(t, params.SpeculativeDecoding.MTP) {
-		return
-	}
-	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
-}
-
-// TestGetModelByName_DeepSeekV32_SpeculativeDecodingMTP is the regression
-// guard for the deepseek-v3.2 tuned MTP config; like the R1/V3-0324 tests,
-// it ensures the generator-assigned per-preset config survives model
-// registration and GetInferenceParameters().
-func TestGetModelByName_DeepSeekV32_SpeculativeDecodingMTP(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3.2", "")
 	assert.NoError(t, err)
 	if !assert.NotNil(t, m) {
 		return

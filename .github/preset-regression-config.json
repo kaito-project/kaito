@@ -28,8 +28,7 @@
             4
           ],
           "blocklist": [
-            "deepseek-ai/DeepSeek-V4-Flash-0731",
-            "mistralai/Mistral-Small-4-119B-2603"
+            "deepseek-ai/DeepSeek-V4-Flash-0731"
           ]
         },
         "h100": {

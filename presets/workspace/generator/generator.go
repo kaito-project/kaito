@@ -47,6 +47,11 @@ type specDecoEntry struct {
 	Config     *model.SpeculativeDecodingConfig
 }
 
+type maxNumSeqsTarget struct {
+	architecture string
+	gpuModel     string
+}
+
 func mtpSpecDecoEntry(userFacing string) specDecoEntry {
 	return mtpSpecDecoEntryWithModel(userFacing, "")
 }
@@ -417,7 +422,29 @@ var (
 		"qwen/qwen3.6-27b":                 mtpSpecDecoEntry("Qwen/Qwen3.6-27B"),
 		"qwen/qwen3.5-397b-a17b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-397B-A17B-GPTQ-Int4"),
 	}
+
+	// maxNumSeqsTargets lists architecture/GPU pairs whose Mamba-cache-block
+	// ceilings should be estimated. The estimator only emits an override when
+	// the calculated ceiling is below vLLM's default.
+	maxNumSeqsTargets = map[maxNumSeqsTarget]struct{}{
+		{architecture: "Qwen3_5ForConditionalGeneration", gpuModel: "NVIDIA H100"}:    {},
+		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: "NVIDIA H100"}: {},
+	}
 )
+
+// SupportsMaxNumSeqsEstimate reports whether max-num-seqs estimation is enabled
+// for any of a model's architectures on the target GPU.
+func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
+	for _, architecture := range architectures {
+		if _, ok := maxNumSeqsTargets[maxNumSeqsTarget{
+			architecture: architecture,
+			gpuModel:     gpuModel,
+		}]; ok {
+			return true
+		}
+	}
+	return false
+}
 
 type Generator struct {
 	ModelRepo      string

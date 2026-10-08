@@ -44,9 +44,7 @@ profiles:
       - "<|im_end|>"
 
 modelProfileOverrides:
-  mistralai/Ministral-3-14B-Instruct-2512: chat-nonthinking-v1
   mistralai/Mistral-Medium-3.5-128B: mistral-thinking-v1
-  mistralai/Mistral-Small-4-119B-2603: mistral-thinking-v1
 
 execution:
   numConcurrent: 16

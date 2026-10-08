@@ -601,22 +601,6 @@ func TestLoadFromCatalog(t *testing.T) {
 			},
 		},
 		{
-			modelRepo:   "mistralai/Ministral-3-14B-Instruct-2512",
-			expectFound: true,
-			expectedParam: model.PresetParam{
-				Metadata: model.Metadata{
-					Name:                   "ministral-3-14b-instruct-2512",
-					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-14B-Instruct-2512"),
-					ModelFileSize:          "14.65Gi",
-					BytesPerToken:          163840,
-					ModelTokenLimit:        262144,
-					DiskStorageRequirement: "94Gi",
-					AttnType:               "GQA",
-				},
-			},
-		},
-		{
 			modelRepo:   "some-org/unknown-model",
 			expectFound: false,
 		},
@@ -696,9 +680,7 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	// Mistral catalog entries should set load_format, config_format, tokenizer_mode
 	// to "mistral" in VLLM.ModelRunParams after FinalizeParams.
 	mistralRepos := []string{
-		"mistralai/Ministral-3-14B-Instruct-2512",
 		"mistralai/Mistral-Medium-3.5-128B",
-		"mistralai/Mistral-Small-4-119B-2603",
 	}
 
 	for _, repo := range mistralRepos {
@@ -739,6 +721,14 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
 		})
 	}
+}
+
+func TestSupportsMaxNumSeqsEstimate(t *testing.T) {
+	assert.True(t, SupportsMaxNumSeqsEstimate([]string{"Qwen3_5ForConditionalGeneration"}, "NVIDIA H100"))
+	assert.True(t, SupportsMaxNumSeqsEstimate([]string{"Qwen3_5MoeForConditionalGeneration"}, "NVIDIA H100"))
+	assert.False(t, SupportsMaxNumSeqsEstimate([]string{"Qwen3_5ForConditionalGeneration"}, "NVIDIA A100"))
+	assert.False(t, SupportsMaxNumSeqsEstimate([]string{"OtherArchitecture"}, "NVIDIA H100"))
+	assert.False(t, SupportsMaxNumSeqsEstimate(nil, "NVIDIA H100"))
 }
 
 func TestSelectWeightFiles(t *testing.T) {

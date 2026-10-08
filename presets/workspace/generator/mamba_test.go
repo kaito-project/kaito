@@ -99,9 +99,9 @@ func TestComputeMambaLayerInfo(t *testing.T) {
 			wantFull:     16,
 		},
 		{
-			// Qwen3.6-35B-A3B: nv=32, 30 linear + 10 full.
+			// 35B-A3B fixture: nv=32, 30 linear + 10 full.
 			// conv = (128*16*2 + 128*32)*3*2 = 49152; temporal = 32*128*128*4 = 2097152.
-			name: "gated delta net qwen 35b-a3b",
+			name: "gated delta net 35b-a3b fixture",
 			config: map[string]interface{}{
 				"linear_key_head_dim":    float64(128),
 				"linear_value_head_dim":  float64(128),

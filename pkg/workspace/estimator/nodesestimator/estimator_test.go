@@ -658,7 +658,6 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A100(t *testing.T) {
 	runRealCatalogModelCases(t, []realCatalogModelCase{
 		{"gpt-oss-120b/1xA100", "openai/gpt-oss-120b", a100_1GPU, 1},     // 60.77Gi
 		{"Qwen3.8-27B/1xA100", "Qwen/Qwen3.8-27B", a100_1GPU, 1},         // 51.75Gi
-		{"Qwen3.6-35B-A3B/1xA100", "Qwen/Qwen3.6-35B-A3B", a100_1GPU, 2}, // 66.97Gi, too tight on one 80Gi A100
 		{"Qwen/Qwen3.6-27B/1xA100", "Qwen/Qwen3.6-27B", a100_1GPU, 1},    // 51.75Gi
 		{"gemma-4-31B-it/1xA100", "google/gemma-4-31B-it", a100_1GPU, 1}, // 58.25Gi
 	})
@@ -678,7 +677,6 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_H100(t *testing.T) {
 		{"DeepSeek-V4-Flash-0731/1xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_1GPU, 2}, // 155.43Gi
 		{"DeepSeek-V4-Flash-0731/2xH100", "deepseek-ai/DeepSeek-V4-Flash-0731", h100_2GPU, 1}, // 155.43Gi
 		{"Qwen3.8-27B/1xH100", "Qwen/Qwen3.8-27B", h100_1GPU, 1},                              // 51.75Gi
-		{"Qwen3.6-35B-A3B/1xH100", "Qwen/Qwen3.6-35B-A3B", h100_1GPU, 1},                      // 66.97Gi
 		{"gemma-4-31B-it/1xH100", "google/gemma-4-31B-it", h100_1GPU, 1},                      // 58.25Gi
 	})
 }
@@ -696,7 +694,6 @@ func TestNodeEstimator_EstimateNodeCount_RealCatalogModels_A10(t *testing.T) {
 		{"gpt-oss-20b/1xA10", "openai/gpt-oss-20b", a10_1GPU, 1},                        // 12.82Gi                      // 12.82Gi
 		{"gemma-4-12B-it/1xA10", "google/gemma-4-12B-it", a10_1GPU, 2},                  // 22.28Gi
 		{"gemma-4-12B-it/2xA10", "google/gemma-4-12B-it", a10_2GPU, 1},                  // 22.28Gi
-		{"granite-4.1-8b/1xA10", "ibm-granite/granite-4.1-8b", a10_1GPU, 1},             // 16.38Gi
 		{"Nemotron-Nano-9B-v2/1xA10", "nvidia/NVIDIA-Nemotron-Nano-9B-v2", a10_1GPU, 2}, // 16.56Gi, can't launch on 1 1xA10 node due to mamba cache
 		{"Nemotron-Nano-9B-v2/2xA10", "nvidia/NVIDIA-Nemotron-Nano-9B-v2", a10_2GPU, 1}, // 16.56Gi
 		{"Qwen3.5-9B/1xA10", "Qwen/Qwen3.5-9B", a10_1GPU, 2},                            // 17.98Gi, can't launch on 1 1xA10 node

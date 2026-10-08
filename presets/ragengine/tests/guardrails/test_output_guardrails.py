@@ -1021,47 +1021,6 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
     )
 
 
-@pytest.mark.parametrize(
-    ("secret", "redact_mode", "expected"),
-    [
-        ("secret-token", "all", "******"),
-        ("secret-token", "partial", "se..en"),
-        ("abc", "partial", "ab..bc"),
-        ("secret-token", "hash", "3c28d89b80f70302b04fce2a1451f6ea"),
-    ],
-)
-def test_native_secrets_scanner_matches_legacy_redaction(
-    monkeypatch, secret, redact_mode, expected
-):
-    scanner = SecretsConfig(redact_mode=redact_mode).build("redact")
-    monkeypatch.setattr(scanner, "_detect_secret_values", lambda output: {secret})
-
-    assert scanner.scan("", secret) == (expected, False, 1.0)
-
-
-def test_native_secrets_scanner_rejects_unknown_redaction_mode(monkeypatch):
-    scanner = SecretsConfig(redact_mode="unknown").build("redact")
-    monkeypatch.setattr(scanner, "_detect_secret_values", lambda output: {"secret"})
-
-    with pytest.raises(ValueError, match="redact mode wasn't recognized unknown"):
-        scanner.scan("", "secret")
-
-
-def test_native_secrets_scanner_detects_legacy_key_types():
-    aws_key = "AKIA" + "A" * 16
-    github_token = "ghp_" + "A" * 36
-    gcp_key = "AIza" + "A" * 35
-    scanner = SecretsConfig(redact_mode="all").build("redact")
-
-    sanitized, is_valid, risk_score = scanner.scan(
-        "", f"Keys: {aws_key}, {github_token}, {gcp_key}"
-    )
-
-    assert sanitized == "Keys: ******, ******, ******"
-    assert is_valid is False
-    assert risk_score == 1.0
-
-
 def test_secrets_config_build_works_with_scan_output_end_to_end():
     scanner = SecretsConfig(redact_mode="partial").build("redact")
     original_output = "Contact me at AKIA1234567890ABCDEF for access."

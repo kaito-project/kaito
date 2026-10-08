@@ -1034,12 +1034,12 @@ def test_build_scanners_supports_secrets_type(monkeypatch):
 
     scanners = guardrails._build_scanners()
     monkeypatch.setattr(
-        scanners[0], "_detect_secret_values", lambda output: {"secret-value"}
+        scanners[0], "_detect_secret_values", lambda output: {"secret-token"}
     )
 
     assert parsed == (_secrets_cfg(redact_mode="partial"),)
-    assert scanners[0].scan("ignored", "secret-value") == (
-        "se..ue",
+    assert scanners[0].scan("ignored", "secret-token") == (
+        "se..en",
         False,
         1.0,
     )

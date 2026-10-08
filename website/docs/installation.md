@@ -116,7 +116,7 @@ Follow this [instruction](faq#how-do-i-use-existing-gpus-in-the-cluster-for-my-i
 BYO nodes are correctly labeled manually. 
 
 :::note
-For BYO nodes, the KAITO controller relies on Node Feature Discovery and GPU Feature Discovery daemonsets to populate proper node labels for the GPU hardware. These two daemonsets are not needed for instance types that KAITO knows since KAITO controller is able to extract the GPU topology and hardware specification from the instance type. If KAITO does not know the instance type, even though the node is provisioned by the cloud provider, the BYO option has to be chosen.
+For BYO nodes, KAITO first reads GPU count, model, and memory from the node's `node.kubernetes.io/instance-type` label when that instance type is in KAITO's SKU table. If the instance type is unknown, KAITO falls back to Node Feature Discovery and GPU Feature Discovery labels. Nodes with MIG configured always use the GPU Feature Discovery labels. The NVIDIA device plugin is still required to advertise `nvidia.com/gpu` resources. If KAITO does not know the instance type, even though the node is provisioned by the cloud provider, the BYO option has to be chosen.
 :::
 
 

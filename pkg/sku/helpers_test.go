@@ -258,7 +258,7 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetGPUConfigFromNodeLabels(tt.node)
+			got, err := getGPUConfigFromNodeLabels(tt.node)
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, got)
@@ -273,6 +273,94 @@ func TestGetGPUConfigFromNvidiaLabels(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetGPUConfigFromNode(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	t.Run("known instance type does not require GFD labels", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "known-sku-node",
+				Labels: map[string]string{
+					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
+				},
+			},
+		}
+
+		got, err := GetGPUConfigFromNode(node)
+		assert.NoError(t, err)
+		assert.Equal(t, "Standard_NC24ads_A100_v4", got.SKU)
+		assert.Equal(t, 1, got.GPUCount)
+		assert.Equal(t, "NVIDIA A100", got.GPUModel)
+		assert.Equal(t, resource.MustParse("80Gi"), got.GPUMem)
+	})
+
+	t.Run("unknown instance type falls back to GFD labels", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "unknown-sku-node",
+				Labels: map[string]string{
+					corev1.LabelInstanceTypeStable: "custom-gpu-node",
+					consts.NvidiaGPUProduct:        "Custom-GPU",
+					consts.NvidiaGPUCount:          "2",
+					consts.NvidiaGPUMemory:         "24576",
+				},
+			},
+		}
+
+		got, err := GetGPUConfigFromNode(node)
+		assert.NoError(t, err)
+		assert.Equal(t, UnknownSKU, got.SKU)
+		assert.Equal(t, 2, got.GPUCount)
+		assert.Equal(t, "Custom-GPU", got.GPUModel)
+		assert.Equal(t, resource.MustParse("48Gi"), got.GPUMem)
+	})
+
+	t.Run("MIG reconfiguration uses GFD labels instead of the known instance type", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "pending-mig-node",
+				Labels: map[string]string{
+					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
+					consts.NvidiaGPUProduct:        "NVIDIA-A100-SXM4-80GB",
+					consts.NvidiaGPUCount:          "1",
+					consts.NvidiaGPUMemory:         "81920",
+					consts.NvidiaMIGConfig:         "all-1g.10gb",
+					consts.NvidiaMIGConfigState:    "pending",
+				},
+			},
+		}
+
+		got, err := GetGPUConfigFromNode(node)
+		assert.NoError(t, err)
+		assert.Equal(t, UnknownSKU, got.SKU)
+		assert.False(t, got.IsMIG)
+	})
+
+	t.Run("MIG node uses live GFD topology for a known instance type", func(t *testing.T) {
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "mig-node",
+				Labels: map[string]string{
+					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
+					consts.NvidiaGPUProduct:        "NVIDIA-A100-SXM4-80GB-MIG-1g.10gb",
+					consts.NvidiaGPUCount:          "1",
+					consts.NvidiaGPUMemory:         "10240",
+					consts.NvidiaMIGConfig:         "all-1g.10gb",
+					consts.NvidiaMIGConfigState:    "success",
+				},
+			},
+		}
+
+		got, err := GetGPUConfigFromNode(node)
+		assert.NoError(t, err)
+		assert.Equal(t, UnknownSKU, got.SKU)
+		assert.Equal(t, 1, got.GPUCount)
+		expectedMemory := resource.MustParse("10Gi")
+		assert.Zero(t, expectedMemory.Cmp(got.GPUMem))
+		assert.True(t, got.IsMIG)
+	})
 }
 
 func TestScaleGPUConfigToCount(t *testing.T) {

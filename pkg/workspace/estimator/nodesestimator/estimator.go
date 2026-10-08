@@ -98,7 +98,7 @@ func (c *NodeEstimator) EstimateNodeCount(ctx context.Context, req estimator.Nod
 					}
 				}
 			}
-			gpuConfig, err = sku.GetGPUConfigFromNodeLabels(sizingNode)
+			gpuConfig, err = sku.GetGPUConfigFromNode(sizingNode)
 			if err != nil {
 				return 0, fmt.Errorf("failed to get GPU config from existing nodes: %w", err)
 			}

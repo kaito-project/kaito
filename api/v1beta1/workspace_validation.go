@@ -659,14 +659,18 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			groupCount := 0
 			for i := range nodeItems {
 				node := &nodeItems[i]
-				// Try to get GPU configuration from nvidia.com labels first
-				gpuConfig, err := sku.GetGPUConfigFromNodeLabels(node)
+				gpuConfig, err := sku.GetGPUConfigFromNode(node)
 				if err != nil {
 					if relaxed {
 						continue
 					}
-					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from nvidia labels on node %s: %v", node.Name, err)))
+					errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Failed to get GPU config from known instance type or nvidia labels on node %s: %v", node.Name, err)))
 					return errs
+				}
+				gpuModel := sku.CanonicalGPUModel(gpuConfig.GPUModel)
+				currentGPUModel := ""
+				if skuConfig != nil {
+					currentGPUModel = sku.CanonicalGPUModel(skuConfig.GPUModel)
 				}
 
 				switch {
@@ -678,12 +682,12 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 						skuConfig = gpuConfig
 						groupCount = 1
 					} else if gpuConfig.GPUMem.Equal(skuConfig.GPUMem) &&
-						gpuConfig.GPUModel == skuConfig.GPUModel &&
+						gpuModel == currentGPUModel &&
 						gpuConfig.GPUCount == skuConfig.GPUCount {
 						groupCount++
 					}
 				default:
-					if gpuConfig.GPUModel != skuConfig.GPUModel {
+					if gpuModel != currentGPUModel {
 						errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("Non-uniform GPU product: node %s has %s GPUs, but previous node has %s GPUs, all nodes must have the same GPU product for homogeneous placement", node.Name, gpuConfig.GPUModel, skuConfig.GPUModel)))
 						return errs
 					}
@@ -703,7 +707,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				if relaxed {
 					return errs
 				}
-				errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have appropriate NVIDIA GPU labels"))
+				errs = errs.Also(apis.ErrGeneric("Failed to determine GPU configuration from existing nodes, ensure nodes have a known instance type or appropriate NVIDIA GPU labels"))
 				return errs
 			}
 			machineCount = groupCount

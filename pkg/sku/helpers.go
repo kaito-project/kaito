@@ -17,6 +17,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
+	"unicode"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -29,6 +31,9 @@ import (
 // do not want to resolve a handler from the environment on every call. It is
 // expected to be initialized once at process startup via GetSKUHandler.
 var DefaultSKUHandler CloudSKUHandler = nil
+
+// UnknownSKU identifies GPU configuration that was not resolved from a SKU table.
+const UnknownSKU = "unknown"
 
 // GetSKUHandler returns the CloudSKUHandler for the current cloud provider
 // as configured via the CLOUD_PROVIDER environment variable.
@@ -71,8 +76,42 @@ func GetGPUConfigBySKU(instanceType string) (*GPUConfig, error) {
 	return config, nil
 }
 
-// GetGPUConfigFromNodeLabels extracts GPU configuration from nvidia.com labels on a node.
-func GetGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
+// GetGPUConfigFromNode resolves GPU configuration from the node's instance type
+// when it is a known SKU, then falls back to GPU Feature Discovery labels.
+// Nodes with MIG configured always use their live labels because the SKU catalog
+// describes full physical GPUs rather than the partition topology.
+func GetGPUConfigFromNode(node *corev1.Node) (*GPUConfig, error) {
+	if !hasMIGConfig(node) {
+		if instanceType := node.Labels[corev1.LabelInstanceTypeStable]; instanceType != "" {
+			if config, _ := GetGPUConfigBySKU(instanceType); config != nil {
+				return config, nil
+			}
+		}
+	}
+
+	return getGPUConfigFromNodeLabels(node)
+}
+
+// CanonicalGPUModel maps GPU Feature Discovery product labels to the model names
+// used by SKU tables and hardware policy maps.
+func CanonicalGPUModel(gpuModel string) string {
+	for token := range strings.FieldsFuncSeq(gpuModel, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	}) {
+		switch strings.ToUpper(token) {
+		case "H100":
+			return "NVIDIA H100"
+		case "A100":
+			return "NVIDIA A100"
+		case "A10":
+			return "NVIDIA A10"
+		}
+	}
+	return gpuModel
+}
+
+// getGPUConfigFromNodeLabels extracts GPU configuration from nvidia.com labels on a node.
+func getGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
 	gpuProduct, hasGPUProduct := node.Labels[consts.NvidiaGPUProduct]
 	gpuCountStr, hasGPUCount := node.Labels[consts.NvidiaGPUCount]
 	gpuMemoryStr, hasGPUMemory := node.Labels[consts.NvidiaGPUMemory]
@@ -109,7 +148,7 @@ func GetGPUConfigFromNodeLabels(node *corev1.Node) (*GPUConfig, error) {
 	}
 
 	return &GPUConfig{
-		SKU:                   "unknown", // SKU is not available from node labels
+		SKU:                   UnknownSKU,
 		GPUCount:              gpuCount,
 		GPUModel:              gpuProduct,
 		GPUMem:                *resource.NewQuantity(gpuMemGiB*consts.GiBToBytes, resource.BinarySI),
@@ -142,8 +181,13 @@ func ScaleGPUConfigToCount(nodeCfg *GPUConfig, count int) (*GPUConfig, error) {
 // populated only via the spec-driven path (Workspace.Resource.Partition), so a
 // node-detected MIG under the "single" strategy keeps requesting nvidia.com/gpu.
 func isMIGNode(node *corev1.Node) bool {
-	migConfig := node.Labels[consts.NvidiaMIGConfig]
-	return migConfig != "" &&
-		migConfig != consts.NvidiaMIGConfigDisabled &&
+	return hasMIGConfig(node) &&
 		node.Labels[consts.NvidiaMIGConfigState] == consts.NvidiaMIGConfigStateSuccess
+}
+
+// hasMIGConfig reports whether MIG is requested, including while it is pending
+// or failed, so a SKU's full-GPU topology is not used during reconfiguration.
+func hasMIGConfig(node *corev1.Node) bool {
+	migConfig := node.Labels[consts.NvidiaMIGConfig]
+	return migConfig != "" && migConfig != consts.NvidiaMIGConfigDisabled
 }

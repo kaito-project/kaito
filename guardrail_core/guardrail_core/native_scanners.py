@@ -24,6 +24,7 @@ import tempfile
 from enum import StrEnum
 
 from detect_secrets.core.secrets_collection import SecretsCollection
+from detect_secrets.settings import default_settings
 
 _LEGACY_SECRET_PATTERNS = (
     re.compile(r"(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{36}"),
@@ -279,7 +280,7 @@ class NativeSecretsScanner:
     def _detect_secret_values(self, text: str) -> set[str]:
         """Detect secrets using detect-secrets library directly.
 
-        Uses KAITO-owned plugins plus legacy compatibility patterns.
+        Uses detect-secrets defaults plus legacy compatibility patterns.
 
         Args:
             text: The text to scan for secrets.
@@ -287,8 +288,6 @@ class NativeSecretsScanner:
         Returns:
             A set of detected secret values.
         """
-        from detect_secrets.settings import transient_settings
-
         secrets = SecretsCollection()
 
         with tempfile.NamedTemporaryFile(
@@ -300,8 +299,7 @@ class NativeSecretsScanner:
             temp_path = temp_file.name
 
         try:
-            # Use detect-secrets with KAITO-owned plugin configuration
-            with transient_settings(self._get_kaito_plugins_config()):
+            with default_settings():
                 secrets.scan_file(temp_path)
         finally:
             os.remove(temp_path)
@@ -318,40 +316,3 @@ class NativeSecretsScanner:
             for match in pattern.finditer(text)
         )
         return secret_values
-
-    @staticmethod
-    def _get_kaito_plugins_config() -> dict:
-        """Get KAITO-owned detect-secrets plugin configuration.
-
-        This configuration uses only plugins provided by bc-detect-secrets
-        (the detect-secrets fork used by the project), without relying on
-        llm-guard-specific detectors. It covers common built-in secret types;
-        legacy compatibility patterns supplement types without built-in plugins.
-
-        Returns:
-            Dict with 'plugins_used' key containing plugin specifications.
-        """
-        return {
-            "plugins_used": [
-                # Core detectors from detect-secrets
-                {"name": "SoftlayerDetector"},
-                {"name": "StripeDetector"},
-                {"name": "NpmDetector"},
-                {"name": "IbmCosHmacDetector"},
-                {"name": "DiscordBotTokenDetector"},
-                {"name": "BasicAuthDetector"},
-                {"name": "AzureStorageKeyDetector"},
-                {"name": "ArtifactoryDetector"},
-                {"name": "AWSKeyDetector"},
-                {"name": "CloudantDetector"},
-                {"name": "IbmCloudIamDetector"},
-                {"name": "JwtTokenDetector"},
-                {"name": "MailchimpDetector"},
-                {"name": "SquareOAuthDetector"},
-                {"name": "PrivateKeyDetector"},
-                {"name": "TwilioKeyDetector"},
-                # High-entropy detectors
-                {"name": "Base64HighEntropyString", "limit": 4.5},
-                {"name": "HexHighEntropyString", "limit": 3.0},
-            ]
-        }

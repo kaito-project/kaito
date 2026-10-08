@@ -583,3 +583,16 @@ models:
   mambaStateBytesPerLayer: 3207168
   numFullAttnLayers: 12
   numLinearLayers: 36
+- name: meta-models/Muse-Glimmer-30B
+  description: https://huggingface.co/meta-models/Muse-Glimmer-30B
+  license: apache-2.0
+  pipelineTag: image-text-to-text
+  modelFileSize: 55.46Gi
+  architectures:
+  - MuseGlimmerForConditionalGeneration
+  modelTokenLimit: 131072
+  hiddenSize: 6656
+  numHiddenLayers: 52
+  numAttentionHeads: 32
+  numKeyValueHeads: 2
+  headDim: 128

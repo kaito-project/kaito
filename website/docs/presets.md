@@ -18,6 +18,7 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | google/gemma-4-E2B-it | https://huggingface.co/google/gemma-4-E2B-it | Apache-2.0 |
 | google/gemma-4-E4B-it | https://huggingface.co/google/gemma-4-E4B-it | Apache-2.0 |
 | ibm-granite/granite-4.1-8b | https://huggingface.co/ibm-granite/granite-4.1-8b | Apache-2.0 |
+| meta-models/Muse-Glimmer-30B | https://huggingface.co/meta-models/Muse-Glimmer-30B | Apache-2.0 |
 | microsoft/Phi-4-mini-instruct | https://huggingface.co/microsoft/Phi-4-mini-instruct | MIT |
 | microsoft/phi-4 | https://huggingface.co/microsoft/phi-4 | MIT |
 | MiniMaxAI/MiniMax-M2.7 | https://huggingface.co/MiniMaxAI/MiniMax-M2.7 | Other |

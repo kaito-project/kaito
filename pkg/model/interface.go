@@ -530,13 +530,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
-	// Disable LMCache KV cache CPU offloading for models where it is known to be
-	// problematic, either because:
-	//   - the model needs vLLM's hybrid KV cache manager (incompatible with the
-	//     LMCache connector), or
-	//   - LMCache is disabled for this model (see isLMCacheDisabled), or
-	//   - the workload runs on a MIG partition (TODO: support KV cache CPU offloading on MIG).
-	if p.isVLLMHybridKVCacheManagerRequired() || p.isLMCacheDisabled() ||
+	// Disable LMCache KV cache CPU offloading when the model needs vLLM's hybrid
+	// KV cache manager, or when the workload runs on a MIG partition.
+	// TODO: support KV cache CPU offloading on MIG.
+	if p.isVLLMHybridKVCacheManagerRequired() ||
 		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
@@ -687,21 +684,6 @@ func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
 			"Qwen4ExpForCausalLM", "Qwen4ExpForConditionalGeneration",
 			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",
 			"DeepseekV4ForCausalLM", "DeepseekV41ForCausalLM", "DeepseekV32ForCausalLM":
-			return true
-		}
-	}
-	return false
-}
-
-// isLMCacheDisabled returns true for architectures where LMCache needs to be disabled.
-// There is a known bug in LMCache that causes vLLM crashes on request abortion:
-// https://github.com/LMCache/LMCache/issues/3688
-// This bug will crash the vLLM engine during the TPM phase for certain models in KAITO.
-// TODO: remove this once the issue is resolved.
-func (p *PresetParam) isLMCacheDisabled() bool {
-	for _, arch := range p.Architectures {
-		switch arch {
-		case "GptOssForCausalLM":
 			return true
 		}
 	}

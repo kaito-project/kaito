@@ -29,6 +29,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
 )
 
 const (
@@ -37,6 +38,7 @@ const (
 	HuggingFaceWebsite               = "https://huggingface.co"
 	SpeculativeDecodingMethodMTP     = "mtp"
 	mtpSpeculativeDecodingTokenCount = 1
+	defaultGPUMemoryUtilization      = "0.92"
 )
 
 // Please update the following model-specific configurations when adding new models to model catalog
@@ -47,9 +49,14 @@ type specDecoEntry struct {
 	Config     *model.SpeculativeDecodingConfig
 }
 
-type maxNumSeqsTarget struct {
+type architectureGPUKey struct {
 	architecture string
 	gpuModel     string
+}
+
+type modelGPUKey struct {
+	modelName string
+	gpuModel  string
 }
 
 func mtpSpecDecoEntry(userFacing string) specDecoEntry {
@@ -426,9 +433,39 @@ var (
 	// maxNumSeqsTargets lists architecture/GPU pairs whose Mamba-cache-block
 	// ceilings should be estimated. The estimator only emits an override when
 	// the calculated ceiling is below vLLM's default.
-	maxNumSeqsTargets = map[maxNumSeqsTarget]struct{}{
+	maxNumSeqsTargets = map[architectureGPUKey]struct{}{
 		{architecture: "Qwen3_5ForConditionalGeneration", gpuModel: "NVIDIA H100"}:    {},
 		{architecture: "Qwen3_5MoeForConditionalGeneration", gpuModel: "NVIDIA H100"}: {},
+	}
+
+	// gpuMemoryUtilizationByGPUModel reserves additional runtime headroom on
+	// tight-VRAM GPUs.
+	gpuMemoryUtilizationByGPUModel = map[string]string{
+		"NVIDIA A10": "0.82",
+	}
+
+	// cudagraphModeByModelAndGPU overrides vLLM's default graph mode for known
+	// incompatibilities. An empty GPU model applies to every GPU.
+	cudagraphModeByModelAndGPU = map[modelGPUKey]string{
+		{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: "NVIDIA A10"}:     "FULL_DECODE_ONLY",
+		{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: "NVIDIA A10"}: "FULL_DECODE_ONLY",
+		{modelName: "deepseek-v4-flash-0731"}:                                 "NONE",
+		{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}:           "FULL_DECODE_ONLY",
+	}
+
+	// linearBackendByModelAndGPU overrides vLLM's default linear backend.
+	linearBackendByModelAndGPU = map[modelGPUKey]string{
+		{modelName: "mistral-medium-3.5-128b", gpuModel: "NVIDIA A100"}: "marlin",
+	}
+
+	// indexerKVDtypeByArchitectureAndGPU configures Qwen's sparse-attention
+	// indexer. Hopper supports FP8; Ampere must use BF16.
+	// source: https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next
+	indexerKVDtypeByArchitectureAndGPU = map[architectureGPUKey]string{
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA H100"}:              "fp8",
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA H100"}: "fp8",
+		{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              "bf16",
+		{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: "bf16",
 	}
 )
 
@@ -436,7 +473,7 @@ var (
 // for any of a model's architectures on the target GPU.
 func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 	for _, architecture := range architectures {
-		if _, ok := maxNumSeqsTargets[maxNumSeqsTarget{
+		if _, ok := maxNumSeqsTargets[architectureGPUKey{
 			architecture: architecture,
 			gpuModel:     gpuModel,
 		}]; ok {
@@ -444,6 +481,52 @@ func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 		}
 	}
 	return false
+}
+
+// ResolveGPUMemoryUtilization returns the vLLM GPU memory utilization for the
+// target GPU.
+func ResolveGPUMemoryUtilization(gpuModel string) string {
+	if utilization, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {
+		return utilization
+	}
+	return defaultGPUMemoryUtilization
+}
+
+// ResolveCUDAGraphMode returns a model/GPU-specific CUDA graph mode.
+func ResolveCUDAGraphMode(modelName, gpuModel string) (string, bool) {
+	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	if mode, ok := cudagraphModeByModelAndGPU[modelGPUKey{
+		modelName: modelName,
+		gpuModel:  canonicalGPUModel,
+	}]; ok {
+		return mode, true
+	}
+	mode, ok := cudagraphModeByModelAndGPU[modelGPUKey{modelName: modelName}]
+	return mode, ok
+}
+
+// ResolveLinearBackend returns a model/GPU-specific linear backend.
+func ResolveLinearBackend(modelName, gpuModel string) (string, bool) {
+	backend, ok := linearBackendByModelAndGPU[modelGPUKey{
+		modelName: modelName,
+		gpuModel:  sku.CanonicalGPUModel(gpuModel),
+	}]
+	return backend, ok
+}
+
+// ResolveIndexerKVDtype returns the sparse-attention indexer dtype for a model's
+// architecture and target GPU.
+func ResolveIndexerKVDtype(architectures []string, gpuModel string) (string, bool) {
+	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
+	for _, architecture := range architectures {
+		if dtype, ok := indexerKVDtypeByArchitectureAndGPU[architectureGPUKey{
+			architecture: architecture,
+			gpuModel:     canonicalGPUModel,
+		}]; ok {
+			return dtype, true
+		}
+	}
+	return "", false
 }
 
 type Generator struct {

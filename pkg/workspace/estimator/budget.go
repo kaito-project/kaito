@@ -16,7 +16,7 @@ package estimator
 import (
 	"strconv"
 
-	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	presetgenerator "github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 // Shared per-GPU memory budget parameters. Both the node estimator (which solves
@@ -58,10 +58,10 @@ var baseOverheadGiBByGPUModel = map[string]float64{
 }
 
 // ResolveGPUMemoryUtilization returns the --gpu-memory-utilization the launcher
-// runs vLLM with for the given GPU model (see ResolveGPUMemoryUtilization in
-// pkg/model), so estimators predict the same per-GPU budget vLLM will have.
+// runs vLLM with for the given GPU model, so estimators predict the same
+// per-GPU budget vLLM will have.
 func ResolveGPUMemoryUtilization(gpuModel string) float64 {
-	v, err := strconv.ParseFloat(pkgmodel.ResolveGPUMemoryUtilization(gpuModel), 64)
+	v, err := strconv.ParseFloat(presetgenerator.ResolveGPUMemoryUtilization(gpuModel), 64)
 	if err != nil {
 		return defaultGPUMemoryUtilization
 	}

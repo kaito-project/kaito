@@ -731,6 +731,44 @@ func TestSupportsMaxNumSeqsEstimate(t *testing.T) {
 	assert.False(t, SupportsMaxNumSeqsEstimate(nil, "NVIDIA H100"))
 }
 
+func TestResolveIndexerKVDtype(t *testing.T) {
+	architectures := []string{"Qwen4ExpForConditionalGeneration"}
+
+	dtype, ok := ResolveIndexerKVDtype(architectures, "NVIDIA H100")
+	assert.True(t, ok)
+	assert.Equal(t, "fp8", dtype)
+
+	dtype, ok = ResolveIndexerKVDtype(architectures, "A100-SXM4-80GB")
+	assert.True(t, ok)
+	assert.Equal(t, "bf16", dtype)
+
+	_, ok = ResolveIndexerKVDtype([]string{"OtherArchitecture"}, "NVIDIA H100")
+	assert.False(t, ok)
+}
+
+func TestResolveGPUModelPolicies(t *testing.T) {
+	assert.Equal(t, "0.82", ResolveGPUMemoryUtilization("NVIDIA-A10"))
+	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("NVIDIA A100"))
+
+	mode, ok := ResolveCUDAGraphMode("nvidia-nemotron-nano-9b-v2", "NVIDIA-A10")
+	assert.True(t, ok)
+	assert.Equal(t, "FULL_DECODE_ONLY", mode)
+
+	mode, ok = ResolveCUDAGraphMode("deepseek-v4-flash-0731", "NVIDIA A100")
+	assert.True(t, ok)
+	assert.Equal(t, "NONE", mode)
+
+	_, ok = ResolveCUDAGraphMode("other-model", "NVIDIA H100")
+	assert.False(t, ok)
+
+	backend, ok := ResolveLinearBackend("mistral-medium-3.5-128b", "A100-SXM4-80GB")
+	assert.True(t, ok)
+	assert.Equal(t, "marlin", backend)
+
+	_, ok = ResolveLinearBackend("mistral-medium-3.5-128b", "NVIDIA H100")
+	assert.False(t, ok)
+}
+
 func TestSelectWeightFiles(t *testing.T) {
 	cases := []struct {
 		name              string

@@ -431,74 +431,6 @@ func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
 	return utils.ShellCmd(torchCommand + " " + modelCommand)
 }
 
-// defaultGPUMemoryUtilization is the --gpu-memory-utilization value KAITO passes
-// to vLLM unless the GPU model overrides it in gpuMemoryUtilizationByGPUModel.
-const defaultGPUMemoryUtilization = "0.92"
-
-// gpuMemoryUtilizationByGPUModel overrides --gpu-memory-utilization for specific
-// GPU models that need extra headroom. Keys use the canonical SKU-table names;
-// BYO GPU Feature Discovery product labels are normalized before lookup.
-var gpuMemoryUtilizationByGPUModel = map[string]string{
-	// On the 24 GiB A10, vLLM's KV-pool profiling under-counts the
-	// prompt-logprobs warmup + CUDA-graph-capture transients for some models
-	// (e.g. gemma-4's huge-vocab final_logit_softcapping copy), so the default
-	// 0.84 leaves too little headroom and OOMs. 0.82 leaves enough slack.
-	"NVIDIA A10": "0.82",
-}
-
-type modelGPUKey struct {
-	modelName string
-	gpuModel  string
-}
-
-type architectureGPUKey struct {
-	architecture string
-	gpuModel     string
-}
-
-// cudagraphModeByModelAndGPU overrides vLLM's default FULL_AND_PIECEWISE mode
-// for known incompatibilities. An empty GPU model applies the mode to every GPU.
-// Inference performance may degrade compared with the default FULL_AND_PIECEWISE mode.
-// TODO: Remove these overrides once default FULL_AND_PIECEWISE mode is supported in vLLM.
-var cudagraphModeByModelAndGPU = map[modelGPUKey]string{
-	// FULL_AND_PIECEWISE mode Cuda graph capture OOMs for Nemotron models under vllm 0.30.0
-	{modelName: "nvidia-nemotron-nano-9b-v2", gpuModel: "NVIDIA A10"}:     "FULL_DECODE_ONLY",
-	{modelName: "nvidia-nemotron-3-nano-4b-bf16", gpuModel: "NVIDIA A10"}: "FULL_DECODE_ONLY",
-	// CUDA graph capture exhausts device memory on a two-H100 node.
-	// TODO: only disable CUDA when memory is limited.
-	{modelName: "deepseek-v4-flash-0731"}: "NONE",
-	// V4.1 Flash exhausts H100 memory in FULL_AND_PIECEWISE capture, while
-	// PIECEWISE initializes but the first chat request hits a CUDA illegal access.
-	{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}: "FULL_DECODE_ONLY",
-}
-
-// linearBackendByModelAndGPU overrides vLLM's default selection of linear backend.
-var linearBackendByModelAndGPU = map[modelGPUKey]string{
-	// Selects Marlin for FP8 Mistral models on GPUs without native FP8 support.
-	// vLLM 0.30.0 otherwise selects a CUTLASS SM80 path that cannot consume FP8
-	// operands and fails during Inductor compilation or eager profile execution.
-	{modelName: "mistral-medium-3.5-128b", gpuModel: "NVIDIA A100"}: "marlin",
-}
-
-var indexerKVDtypeByArchitectureAndGPU = map[architectureGPUKey]string{
-	// Hopper supports the recipe's FP8 sparse indexer. Ampere lacks fp8e4nv,
-	// so its QSA indexer must remain BF16.
-	// source: https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next
-	{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA H100"}:              "fp8",
-	{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA H100"}: "fp8",
-	{architecture: "Qwen4ExpForCausalLM", gpuModel: "NVIDIA A100"}:              "bf16",
-	{architecture: "Qwen4ExpForConditionalGeneration", gpuModel: "NVIDIA A100"}: "bf16",
-}
-// ResolveGPUMemoryUtilization returns the --gpu-memory-utilization vLLM should be
-// launched with for the given GPU. A per-GPU-model safety cap (clamps down for
-// tight-VRAM GPUs) wins over the default.
-func ResolveGPUMemoryUtilization(gpuModel string) string {
-	if util, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {
-		return util
-	}
-	return defaultGPUMemoryUtilization
-}
-
 func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	// Determine served-model-name priority:
 	// 1. MRI workspaces: use VLLM.ModelName so all roles share a single model
@@ -527,39 +459,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["max-model-len"] = "auto"
 	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
-	}
-
-	gpuModel := ""
-	if rc.GPUConfig != nil {
-		gpuModel = rc.GPUConfig.GPUModel
-	}
-	policyGPUModel := sku.CanonicalGPUModel(gpuModel)
-	gpuMemoryUtilization := ResolveGPUMemoryUtilization(gpuModel)
-	p.VLLM.ModelRunParams["gpu-memory-utilization"] = gpuMemoryUtilization
-	for _, architecture := range p.Architectures {
-		if dtype, ok := indexerKVDtypeByArchitectureAndGPU[architectureGPUKey{
-			architecture: architecture,
-			gpuModel:     policyGPUModel,
-		}]; ok {
-			p.VLLM.ModelRunParams["attention-config.indexer_kv_dtype"] = dtype
-			break
-		}
-	}
-
-	const cudagraphModeParam = "compilation-config.cudagraph_mode"
-	_, configured := p.VLLM.ModelRunParams[cudagraphModeParam]
-	if !configured {
-		if mode, ok := cudagraphModeByModelAndGPU[modelGPUKey{modelName: p.VLLM.ModelName, gpuModel: policyGPUModel}]; ok {
-			p.VLLM.ModelRunParams[cudagraphModeParam] = mode
-		} else if mode, ok := cudagraphModeByModelAndGPU[modelGPUKey{modelName: p.VLLM.ModelName}]; ok {
-			p.VLLM.ModelRunParams[cudagraphModeParam] = mode
-		}
-	}
-
-	if _, configured := p.VLLM.ModelRunParams["linear-backend"]; !configured {
-		if backend, ok := linearBackendByModelAndGPU[modelGPUKey{modelName: p.VLLM.ModelName, gpuModel: policyGPUModel}]; ok {
-			p.VLLM.ModelRunParams["linear-backend"] = backend
-		}
 	}
 
 	// Cap --max-num-seqs for hybrid Mamba/Gated-DeltaNet models so vLLM engine init

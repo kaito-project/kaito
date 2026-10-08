@@ -641,6 +641,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// Hybrid Mamba/Gated-DeltaNet models need max-num-seqs capped to the Mamba
 		// cache blocks vLLM can allocate, otherwise engine startup hard-fails.
 		maxNumSeqs := resolveMaxNumSeqs(ctx.Workspace.Name, inferenceParam, gpuConfig, numNodes)
+		applyGeneratorRuntimeOverrides(inferenceParam, gpuConfig)
 
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
@@ -1252,6 +1253,30 @@ func resolveMaxNumSeqs(workspaceName string, params *pkgmodel.PresetParam, gpuCo
 		NumNodes:        numNodes,
 	})
 	return maxNumSeqs
+}
+
+func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku.GPUConfig) {
+	if params == nil || gpuConfig == nil {
+		return
+	}
+	if params.VLLM.ModelRunParams == nil {
+		params.VLLM.ModelRunParams = make(map[string]string)
+	}
+	params.VLLM.ModelRunParams["gpu-memory-utilization"] =
+		presetgenerator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
+	if _, configured := params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"]; !configured {
+		if mode, ok := presetgenerator.ResolveCUDAGraphMode(params.VLLM.ModelName, gpuConfig.GPUModel); ok {
+			params.VLLM.ModelRunParams["compilation-config.cudagraph_mode"] = mode
+		}
+	}
+	if _, configured := params.VLLM.ModelRunParams["linear-backend"]; !configured {
+		if backend, ok := presetgenerator.ResolveLinearBackend(params.VLLM.ModelName, gpuConfig.GPUModel); ok {
+			params.VLLM.ModelRunParams["linear-backend"] = backend
+		}
+	}
+	if dtype, ok := presetgenerator.ResolveIndexerKVDtype(params.Architectures, gpuConfig.GPUModel); ok {
+		params.VLLM.ModelRunParams["attention-config.indexer_kv_dtype"] = dtype
+	}
 }
 
 // shellSingleQuote wraps s in single quotes, escaping any embedded

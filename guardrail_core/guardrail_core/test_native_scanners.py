@@ -251,7 +251,7 @@ class TestNativeSecretsScanner:
         assert is_valid is False
         assert risk_score == 1.0
 
-    def test_concurrent_scans_do_not_share_detector_settings(self):
+    def test_concurrent_scans_preserve_detection(self):
         scanner = NativeSecretsScanner(redact_mode="all")
         samples = [
             ("AKIA" + "A" * 16, ("******", False, 1.0)),

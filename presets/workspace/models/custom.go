@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gowebpki/jcs"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -49,12 +50,26 @@ func CustomModelName(digest string) string {
 	return plugin.CustomModelNamePrefix + digest
 }
 
-// ConfigDigest returns the lowercase hexadecimal SHA-256 of the exact
-// configuration bytes. Hashing the raw bytes rather than a reserialized form
-// keeps the digest stable and independent of any JSON normalization.
-func ConfigDigest(configJSON []byte) string {
-	sum := sha256.Sum256(configJSON)
-	return hex.EncodeToString(sum[:])
+// ConfigDigest returns the lowercase hexadecimal SHA-256 of the configuration's
+// RFC 8785 (JCS) canonical form.
+//
+// The configuration is canonicalized rather than hashed as raw bytes because
+// the copy in the ConfigMap is rarely byte-identical to the config.json in the
+// model bundle: callers typically carry it as structured data (e.g. a
+// protobuf Struct) and reserialize it, which reorders keys, changes whitespace
+// and rewrites numbers ("0.0" becomes "0"). Under JCS every number is an IEEE
+// 754 double, so those representations hash identically.
+//
+// The SAS-fetch init container (fetch_sas.py) must compute the same digest
+// over the streamed config.json; both sides are pinned by the shared vectors
+// in testdata/config_digest_vectors.json.
+func ConfigDigest(configJSON []byte) (string, error) {
+	canonical, err := jcs.Transform(configJSON)
+	if err != nil {
+		return "", fmt.Errorf("canonicalize %s: %w", CustomModelConfigKey, err)
+	}
+	sum := sha256.Sum256(canonical)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 // ResolvedCustomModel is the outcome of resolving a bring-your-own model.
@@ -189,7 +204,10 @@ func ResolveCustomModelFromConfig(configJSON []byte, sizeBytes int64) (*Resolved
 		return nil, err
 	}
 
-	digest := ConfigDigest(configJSON)
+	digest, err := ConfigDigest(configJSON)
+	if err != nil {
+		return nil, fmt.Errorf("invalid %s: %w", CustomModelConfigKey, err)
+	}
 	name := CustomModelName(digest)
 
 	// The generated parameters are a function of the configuration *and* the

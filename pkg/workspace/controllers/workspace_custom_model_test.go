@@ -108,7 +108,7 @@ func TestReconcileResolvedModelRecordsDigest(t *testing.T) {
 		client.ObjectKey{Name: "ws", Namespace: "default"}, stored))
 
 	require.NotNil(t, stored.Status.ResolvedModel)
-	assert.Equal(t, models.ConfigDigest([]byte(customModelConfigJSON)), stored.Status.ResolvedModel.ConfigSHA256)
+	assert.Equal(t, mustConfigDigest(t, customModelConfigJSON), stored.Status.ResolvedModel.ConfigSHA256)
 
 	cond := meta.FindStatusCondition(stored.Status.Conditions,
 		string(kaitov1beta1.WorkspaceConditionTypeModelConfigReady))
@@ -129,7 +129,7 @@ func TestReconcileResolvedModelReportsReplacedConfig(t *testing.T) {
 	// something else. It must be reported instead.
 	ws := customModelWorkspace()
 	ws.Status.ResolvedModel = &kaitov1beta1.ResolvedModel{
-		ConfigSHA256: models.ConfigDigest([]byte(customModelConfigJSON)),
+		ConfigSHA256: mustConfigDigest(t, customModelConfigJSON),
 		SizeBytes:    customModelSizeBytes,
 	}
 
@@ -160,14 +160,14 @@ func TestReconcileResolvedModelReportsReplacedConfig(t *testing.T) {
 
 	// The originally pinned digest must survive; overwriting it would erase the
 	// only record of what the running deployment was built from.
-	assert.Equal(t, models.ConfigDigest([]byte(customModelConfigJSON)),
+	assert.Equal(t, mustConfigDigest(t, customModelConfigJSON),
 		ws.Status.ResolvedModel.ConfigSHA256)
 }
 
 func TestReconcileResolvedModelAcceptsUnchangedConfig(t *testing.T) {
 	ws := customModelWorkspace()
 	ws.Status.ResolvedModel = &kaitov1beta1.ResolvedModel{
-		ConfigSHA256: models.ConfigDigest([]byte(customModelConfigJSON)),
+		ConfigSHA256: mustConfigDigest(t, customModelConfigJSON),
 		SizeBytes:    customModelSizeBytes,
 	}
 	r := newCustomModelReconciler(ws, customModelConfigMap("byo-config", customModelConfigJSON))
@@ -214,7 +214,7 @@ func TestReconcileResolvedModelAdoptsChangedSize(t *testing.T) {
 	// recorded rather than reported as a replacement.
 	ws := customModelWorkspace()
 	ws.Status.ResolvedModel = &kaitov1beta1.ResolvedModel{
-		ConfigSHA256: models.ConfigDigest([]byte(customModelConfigJSON)),
+		ConfigSHA256: mustConfigDigest(t, customModelConfigJSON),
 		SizeBytes:    customModelSizeBytes,
 	}
 	corrected := customModelSizeBytes * 4
@@ -230,7 +230,7 @@ func TestReconcileResolvedModelAdoptsChangedSize(t *testing.T) {
 	require.NotNil(t, stored.Status.ResolvedModel)
 	assert.Equal(t, corrected, stored.Status.ResolvedModel.SizeBytes,
 		"status must reflect the size it resolved to now")
-	assert.Equal(t, models.ConfigDigest([]byte(customModelConfigJSON)),
+	assert.Equal(t, mustConfigDigest(t, customModelConfigJSON),
 		stored.Status.ResolvedModel.ConfigSHA256, "the model itself is unchanged")
 
 	cond := meta.FindStatusCondition(stored.Status.Conditions,
@@ -246,7 +246,7 @@ func TestReconcileResolvedModelToleratesStatusWithoutSize(t *testing.T) {
 	// deployment on upgrade, so an unset size must simply be adopted.
 	ws := customModelWorkspace()
 	ws.Status.ResolvedModel = &kaitov1beta1.ResolvedModel{
-		ConfigSHA256: models.ConfigDigest([]byte(customModelConfigJSON)),
+		ConfigSHA256: mustConfigDigest(t, customModelConfigJSON),
 	}
 	r := newCustomModelReconciler(ws, customModelConfigMap("byo-config", customModelConfigJSON))
 
@@ -274,4 +274,11 @@ func TestReconcileResolvedModelRejectsMissingSize(t *testing.T) {
 	require.NotNil(t, cond)
 	assert.Equal(t, custommodel.ReasonInvalid, cond.Reason)
 	assert.Nil(t, stored.Status.ResolvedModel)
+}
+
+func mustConfigDigest(t *testing.T, configJSON string) string {
+	t.Helper()
+	digest, err := models.ConfigDigest([]byte(configJSON))
+	require.NoError(t, err)
+	return digest
 }

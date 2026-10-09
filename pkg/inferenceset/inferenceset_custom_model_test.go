@@ -109,7 +109,7 @@ func TestISReconcileResolvedModelRecordsIdentity(t *testing.T) {
 		client.ObjectKey{Name: "is", Namespace: "default"}, stored))
 
 	require.NotNil(t, stored.Status.ResolvedModel)
-	assert.Equal(t, models.ConfigDigest([]byte(customISConfigJSON)), stored.Status.ResolvedModel.ConfigSHA256)
+	assert.Equal(t, mustConfigDigest(t, customISConfigJSON), stored.Status.ResolvedModel.ConfigSHA256)
 	assert.Equal(t, customISSizeBytes, stored.Status.ResolvedModel.SizeBytes)
 
 	cond := isModelCondition(t, r)
@@ -129,7 +129,7 @@ func TestISReconcileResolvedModelDetectsReplacement(t *testing.T) {
 	// different weights than the replicas already serving.
 	is := customInferenceSet()
 	is.Status.ResolvedModel = &kaitov1beta1.ResolvedModel{
-		ConfigSHA256: models.ConfigDigest([]byte(customISConfigJSON)),
+		ConfigSHA256: mustConfigDigest(t, customISConfigJSON),
 		SizeBytes:    customISSizeBytes,
 	}
 
@@ -152,7 +152,7 @@ func TestISReconcileResolvedModelDetectsReplacement(t *testing.T) {
 	assert.Equal(t, metav1.ConditionFalse, cond.Status)
 	assert.Equal(t, custommodel.ReasonReplaced, cond.Reason)
 
-	assert.Equal(t, models.ConfigDigest([]byte(customISConfigJSON)),
+	assert.Equal(t, mustConfigDigest(t, customISConfigJSON),
 		is.Status.ResolvedModel.ConfigSHA256, "the pinned identity must survive")
 }
 
@@ -161,7 +161,7 @@ func TestISReconcileResolvedModelAdoptsChangedSize(t *testing.T) {
 	// adopted so the whole set converges on the new value rather than wedging.
 	is := customInferenceSet()
 	is.Status.ResolvedModel = &kaitov1beta1.ResolvedModel{
-		ConfigSHA256: models.ConfigDigest([]byte(customISConfigJSON)),
+		ConfigSHA256: mustConfigDigest(t, customISConfigJSON),
 		SizeBytes:    customISSizeBytes,
 	}
 	corrected := customISSizeBytes * 4
@@ -210,4 +210,11 @@ func TestISReconcileResolvedModelSkipsNonCustomPresets(t *testing.T) {
 
 	require.NoError(t, r.reconcileResolvedModel(context.Background(), is))
 	assert.Nil(t, isModelCondition(t, r))
+}
+
+func mustConfigDigest(t *testing.T, configJSON string) string {
+	t.Helper()
+	digest, err := models.ConfigDigest([]byte(configJSON))
+	require.NoError(t, err)
+	return digest
 }

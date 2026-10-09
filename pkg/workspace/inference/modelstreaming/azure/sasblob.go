@@ -44,11 +44,15 @@ const (
 	// azureIdentityVersion is the azure-identity version pip-installed at runtime by the init
 	// container. Kept in sync with the pin previously in the base image requirements.txt.
 	azureIdentityVersion = "1.19.0"
+	// rfc8785Version is the RFC 8785 (JCS) canonicalizer fetch_sas.py uses to digest config.json
+	// the same way models.ConfigDigest does.
+	rfc8785Version = "0.1.4"
 )
 
-// initShellCommand pip-installs azure-identity and runs fetch_sas.py, which is mounted from a
-// per-workspace ConfigMap at SASScriptMountPath.
+// initShellCommand pip-installs azure-identity and rfc8785 and runs fetch_sas.py, which is
+// mounted from a per-workspace ConfigMap at SASScriptMountPath.
 const initShellCommand = "pip install --no-cache-dir -q azure-identity==" + azureIdentityVersion +
+	" rfc8785==" + rfc8785Version +
 	" && python3 " + modelstreaming.SASScriptMountPath + "/" + modelstreaming.SASScriptFileName
 
 // SASBlobProvider streams weights from a pre-existing external blob using a short-lived

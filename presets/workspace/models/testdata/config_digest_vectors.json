@@ -1,0 +1,129 @@
+{
+  "_comment": [
+    "Shared RFC 8785 (JCS) config digest vectors. Consumed by both",
+    "presets/workspace/models/custom_test.go (ConfigDigest) and",
+    "pkg/workspace/inference/modelstreaming/azure/fetch_sas_test.py (canonical_config_digest).",
+    "Every input in an 'equivalent' group must canonicalize to 'canonical' and hash to 'sha256';",
+    "every 'invalid' input must be rejected by both implementations."
+  ],
+  "equivalent": [
+    {
+      "name": "hf_config_and_aimanager_protojson_reserialization",
+      "inputs": [
+        "{\n  \"architectures\": [\n    \"Phi3ForCausalLM\"\n  ],\n  \"attention_bias\": false,\n  \"attention_dropout\": 0.0,\n  \"bos_token_id\": 100257,\n  \"embd_pdrop\": 0.0,\n  \"eos_token_id\": 100265,\n  \"hidden_act\": \"silu\",\n  \"hidden_size\": 5120,\n  \"initializer_range\": 0.02,\n  \"intermediate_size\": 17920,\n  \"max_position_embeddings\": 16384,\n  \"model_type\": \"phi3\",\n  \"num_attention_heads\": 40,\n  \"num_hidden_layers\": 40,\n  \"num_key_value_heads\": 10,\n  \"original_max_position_embeddings\": 16384,\n  \"pad_token_id\": 100349,\n  \"resid_pdrop\": 0.0,\n  \"rms_norm_eps\": 1e-05,\n  \"rope_scaling\": null,\n  \"rope_theta\": 250000.0,\n  \"sliding_window\": null,\n  \"tie_word_embeddings\": false,\n  \"torch_dtype\": \"bfloat16\",\n  \"transformers_version\": \"4.47.0\",\n  \"use_cache\": true,\n  \"vocab_size\": 100352\n}\n",
+        "{\"architectures\":[\"Phi3ForCausalLM\"], \"attention_bias\":false, \"attention_dropout\":0, \"bos_token_id\":100257, \"embd_pdrop\":0, \"eos_token_id\":100265, \"hidden_act\":\"silu\", \"hidden_size\":5120, \"initializer_range\":0.02, \"intermediate_size\":17920, \"max_position_embeddings\":16384, \"model_type\":\"phi3\", \"num_attention_heads\":40, \"num_hidden_layers\":40, \"num_key_value_heads\":10, \"original_max_position_embeddings\":16384, \"pad_token_id\":100349, \"resid_pdrop\":0, \"rms_norm_eps\":0.00001, \"rope_scaling\":null, \"rope_theta\":250000, \"sliding_window\":null, \"tie_word_embeddings\":false, \"torch_dtype\":\"bfloat16\", \"transformers_version\":\"4.47.0\", \"use_cache\":true, \"vocab_size\":100352}"
+      ],
+      "canonical": "{\"architectures\":[\"Phi3ForCausalLM\"],\"attention_bias\":false,\"attention_dropout\":0,\"bos_token_id\":100257,\"embd_pdrop\":0,\"eos_token_id\":100265,\"hidden_act\":\"silu\",\"hidden_size\":5120,\"initializer_range\":0.02,\"intermediate_size\":17920,\"max_position_embeddings\":16384,\"model_type\":\"phi3\",\"num_attention_heads\":40,\"num_hidden_layers\":40,\"num_key_value_heads\":10,\"original_max_position_embeddings\":16384,\"pad_token_id\":100349,\"resid_pdrop\":0,\"rms_norm_eps\":0.00001,\"rope_scaling\":null,\"rope_theta\":250000,\"sliding_window\":null,\"tie_word_embeddings\":false,\"torch_dtype\":\"bfloat16\",\"transformers_version\":\"4.47.0\",\"use_cache\":true,\"vocab_size\":100352}",
+      "sha256": "838e169eceb43e4515bb9959d1f1b903db5034c4c75a32530095930ae6c3369e"
+    },
+    {
+      "name": "float_zero_vs_integer_zero",
+      "inputs": [
+        "{\"attention_dropout\":0.0}",
+        "{\"attention_dropout\":0}",
+        "{\"attention_dropout\":-0.0}",
+        "{\"attention_dropout\":0e10}"
+      ],
+      "canonical": "{\"attention_dropout\":0}",
+      "sha256": "896486d171c31300576651263fc7001f740ce216848a1bc7ca0705c9c613ed97"
+    },
+    {
+      "name": "exponent_spellings",
+      "inputs": [
+        "{\"rms_norm_eps\":1e-05}",
+        "{\"rms_norm_eps\":0.00001}",
+        "{\"rms_norm_eps\":1E-5}",
+        "{\"rms_norm_eps\":10e-6}"
+      ],
+      "canonical": "{\"rms_norm_eps\":0.00001}",
+      "sha256": "b41f5be4bb45c824403c6e4bdd77b01b93ef05ae3eee41b494d6e313ebd7311a"
+    },
+    {
+      "name": "whole_floats",
+      "inputs": [
+        "{\"rope_theta\":250000.0}",
+        "{\"rope_theta\":250000}",
+        "{\"rope_theta\":2.5e5}"
+      ],
+      "canonical": "{\"rope_theta\":250000}",
+      "sha256": "f7f645320711138af7438bfde2cfbe2e2f6c12b79fb294320a622d6123745921"
+    },
+    {
+      "name": "large_exponent",
+      "inputs": [
+        "{\"n\":1e21}",
+        "{\"n\":1000000000000000000000}",
+        "{\"n\":1.0E+21}"
+      ],
+      "canonical": "{\"n\":1e+21}",
+      "sha256": "f1ee2b60ee95a3170fdc07a577e5f3514ced26867443d69da265acadead81007"
+    },
+    {
+      "name": "integer_beyond_float64_precision",
+      "inputs": [
+        "{\"n\":9007199254740993}",
+        "{\"n\":9007199254740992}",
+        "{\"n\":9007199254740992.0}"
+      ],
+      "canonical": "{\"n\":9007199254740992}",
+      "sha256": "66c87d9cb3014e05a11baa97df62282d89d425f22ee15816577c84534e2ef1bb"
+    },
+    {
+      "name": "key_order_and_whitespace",
+      "inputs": [
+        "{\"b\":1,\"a\":[1,{\"d\":true,\"c\":null}]}",
+        "{\n  \"a\": [\n    1,\n    {\n      \"c\": null,\n      \"d\": true\n    }\n  ],\n  \"b\": 1\n}\n"
+      ],
+      "canonical": "{\"a\":[1,{\"c\":null,\"d\":true}],\"b\":1}",
+      "sha256": "15267d68395a2e7ca03e74d71a89d704ff81c46d88509ea0c7a97f883e651e97"
+    },
+    {
+      "name": "unicode_escapes_and_key_order",
+      "inputs": [
+        "{\"name\":\"\\u00fcber\",\"\\u00e9\":\"\\u20ac\",\"a\":\"line\\nbreak\"}",
+        "{\"a\":\"line\\nbreak\",\"name\":\"über\",\"é\":\"€\"}"
+      ],
+      "canonical": "{\"a\":\"line\\nbreak\",\"name\":\"über\",\"é\":\"€\"}",
+      "sha256": "9575ca586e0b9d5127c66703bc75053b49d529ac3029dd3946e50359e2ca2421"
+    },
+    {
+      "name": "string_escapes",
+      "inputs": [
+        "{\"s\":\"\\/\\u0041\\t\\\"q\\\"\"}",
+        "{\"s\":\"/A\\t\\\"q\\\"\"}"
+      ],
+      "canonical": "{\"s\":\"/A\\t\\\"q\\\"\"}",
+      "sha256": "4dd323803704775972c7c9e3afee60d7ceeba4b9267bcca54abb32d7266b00a1"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "duplicate_key",
+      "input": "{\"a\":1,\"a\":2}"
+    },
+    {
+      "name": "nan_literal",
+      "input": "{\"a\":NaN}"
+    },
+    {
+      "name": "infinity_literal",
+      "input": "{\"a\":Infinity}"
+    },
+    {
+      "name": "negative_infinity_literal",
+      "input": "{\"a\":-Infinity}"
+    },
+    {
+      "name": "trailing_data",
+      "input": "{\"a\":1} {\"b\":2}"
+    },
+    {
+      "name": "not_json",
+      "input": "not json"
+    },
+    {
+      "name": "truncated",
+      "input": "{\"a\":"
+    }
+  ]
+}

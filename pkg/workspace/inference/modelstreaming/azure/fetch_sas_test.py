@@ -16,11 +16,12 @@
 NOTE: this file is under a Go package dir, so CI pytest globs (which target presets/)
 do NOT run it automatically. Run manually during development:
     python3 pkg/workspace/inference/modelstreaming/azure/fetch_sas_test.py
-It stubs azure.identity so azure-identity need not be installed locally.
+It stubs azure.identity so azure-identity need not be installed locally; rfc8785 must be
+installed (pip install rfc8785==0.1.4, matching rfc8785Version in sasblob.go).
 """
 
-import hashlib
 import importlib.util
+import json
 import os
 import sys
 import tempfile
@@ -276,14 +277,66 @@ def test_blob_url_without_query():
     )
 
 
+_VECTORS_PATH = os.path.join(
+    _here,
+    "..",
+    "..",
+    "..",
+    "..",
+    "..",
+    "presets",
+    "workspace",
+    "models",
+    "testdata",
+    "config_digest_vectors.json",
+)
+
+
+def _load_vectors():
+    with open(_VECTORS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def test_canonical_config_digest_shared_vectors():
+    # The same vectors pin models.ConfigDigest in Go, so both sides agree byte-for-byte.
+    vectors = _load_vectors()
+    assert vectors["equivalent"] and vectors["invalid"]
+    for group in vectors["equivalent"]:
+        for raw in group["inputs"]:
+            got = fetch_sas.canonical_config_digest(raw.encode("utf-8"))
+            assert got == group["sha256"], (group["name"], raw, got)
+    for case in vectors["invalid"]:
+        _expect_valueerror(
+            "config.json",
+            lambda: fetch_sas.canonical_config_digest(case["input"].encode("utf-8")),
+        )
+
+
 def test_verify_bundle_accepts_matching_config():
-    config = '{"architectures": ["LlamaForCausalLM"]}'
-    sha = hashlib.sha256(config.encode("utf-8")).hexdigest()
+    # The operator hashed a reserialized copy (0.0 -> 0, keys reordered, compact); the
+    # bundle holds the original pretty-printed file. They must still verify.
+    operator_copy = '{"attention_dropout":0,"architectures":["LlamaForCausalLM"]}'
+    bundle_config = (
+        '{\n  "architectures": ["LlamaForCausalLM"],\n  "attention_dropout": 0.0\n}\n'
+    )
+    sha = fetch_sas.canonical_config_digest(operator_copy.encode("utf-8"))
     names = ["model/config.json", "model/model.safetensors"]
     # No exception means the bundle's config.json matched what was sized for.
     _with_urlopen(
-        lambda url, timeout=60: _FakeResp(config),
+        lambda url, timeout=60: _FakeResp(bundle_config),
         lambda: fetch_sas.verify_bundle("https://blob/c?sig=x", names, "model", sha),
+    )
+
+
+def test_verify_bundle_rejects_invalid_config_json():
+    _with_urlopen(
+        lambda url, timeout=60: _FakeResp('{"a": 1, "a": 2}'),
+        lambda: _expect_valueerror(
+            "duplicate key",
+            lambda: fetch_sas.verify_bundle(
+                "https://blob/c?sig=x", ["config.json"], "", "0" * 64
+            ),
+        ),
     )
 
 
@@ -360,6 +413,86 @@ def test_write_env_file():
     assert "STREAM_MODEL_URI='az://c/sub'\n" in content, content
     # single quote in the token value is shell-escaped
     assert "sv=1&sig=ab'\\''cd" in content, content
+
+
+def test_redact_masks_signature_everywhere():
+    line = "GET https://a.blob.core.windows.net/c?sv=1&sig=SECRET%2F&se=x failed; sig=OTHER"
+    out = fetch_sas.redact(line)
+    assert "SECRET" not in out and "OTHER" not in out, out
+    assert "se=x" in out, out
+
+
+def test_redact_url_only_touches_sas_urls():
+    assert (
+        fetch_sas.redact_url("https://a.blob.core.windows.net/c/x?sv=1&sig=abc")
+        == "https://a.blob.core.windows.net/c/x?<redacted>"
+    )
+    plain = "https://a/models/m/versions/1?api-version=2025-11-15-preview"
+    assert fetch_sas.redact_url(plain) == plain
+
+
+def test_describe_error_includes_http_status_and_body():
+    import io
+    import urllib.error
+
+    err = urllib.error.HTTPError(
+        "https://a.blob.core.windows.net/c?sig=abc",
+        403,
+        "Forbidden",
+        {},
+        io.BytesIO(b'{"error":{"code":"AuthorizationFailed"}}'),
+    )
+    msg = fetch_sas.describe_error(err)
+    assert "HTTP 403" in msg and "AuthorizationFailed" in msg, msg
+    assert "abc" not in msg, msg
+
+
+def test_describe_error_truncates_large_body():
+    import io
+    import urllib.error
+
+    body = b"x" * (fetch_sas.MAX_ERROR_BODY + 100)
+    err = urllib.error.HTTPError("https://a/m", 500, "err", {}, io.BytesIO(body))
+    assert "...(truncated)" in fetch_sas.describe_error(err)
+
+
+def test_step_logs_and_wraps_failure():
+    import logging
+
+    records = []
+
+    class _Capture(logging.Handler):
+        def emit(self, record):
+            records.append(fetch_sas.redact(record.getMessage()))
+
+    fetch_sas.configure_logging()
+    fetch_sas.log.addHandler(_Capture())
+    try:
+        with fetch_sas.step(1, "ok step"):
+            pass
+        try:
+            with fetch_sas.step(2, "bad step"):
+                raise ValueError("boom sig=leak")
+        except fetch_sas.StepError as err:
+            assert isinstance(err.cause, ValueError)
+        else:
+            raise AssertionError("expected StepError")
+    finally:
+        fetch_sas.configure_logging()
+    joined = "\n".join(records)
+    assert "ok step ok (" in joined, joined
+    assert "bad step failed (" in joined and "boom" in joined, joined
+    assert "leak" not in joined, joined
+
+
+def test_main_reports_missing_env():
+    saved = {k: os.environ.pop(k, None) for k in fetch_sas.REQUIRED_ENV}
+    try:
+        assert fetch_sas.main() == 1
+    finally:
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
 
 
 if __name__ == "__main__":

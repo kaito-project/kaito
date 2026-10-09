@@ -81,7 +81,7 @@ func TestResolveCustomModelIsContentAddressed(t *testing.T) {
 	resolved, err := ResolveCustomModelFromConfigMap(cm)
 	require.NoError(t, err)
 
-	assert.Equal(t, ConfigDigest([]byte(testCustomConfigJSON)), resolved.Digest)
+	assert.Equal(t, mustConfigDigest(t, testCustomConfigJSON), resolved.Digest)
 	assert.Equal(t, CustomModelName(resolved.Digest), resolved.Name)
 	assert.True(t, strings.HasPrefix(resolved.Name, plugin.CustomModelNamePrefix))
 	require.NotNil(t, resolved.Model)
@@ -124,7 +124,7 @@ func TestResolveCustomModelRebuildsFromConfigAlone(t *testing.T) {
 	}`
 	sizeBytes, err := strconv.ParseInt(testSizeBytes, 10, 64)
 	require.NoError(t, err)
-	name := CustomModelName(ConfigDigest([]byte(uniqueConfig)))
+	name := CustomModelName(mustConfigDigest(t, uniqueConfig))
 	cacheKey := customModelCacheKey(name, sizeBytes)
 	require.False(t, plugin.KaitoModelRegister.Has(cacheKey), "config must not already be cached")
 
@@ -212,7 +212,7 @@ func TestResolveCustomModelFromCluster(t *testing.T) {
 
 	resolved, err := ResolveCustomModel(context.Background(), c, "byo-config", "default")
 	require.NoError(t, err)
-	assert.Equal(t, ConfigDigest([]byte(testCustomConfigJSON)), resolved.Digest)
+	assert.Equal(t, mustConfigDigest(t, testCustomConfigJSON), resolved.Digest)
 
 	_, err = ResolveCustomModel(context.Background(), c, "missing-config", "default")
 	assert.Error(t, err)
@@ -355,7 +355,7 @@ func TestResolveCustomModelFromConfig(t *testing.T) {
 	resolved, err := ResolveCustomModelFromConfig([]byte(testCustomConfigJSON), sizeBytes)
 	require.NoError(t, err)
 	require.NotNil(t, resolved.Model)
-	assert.Equal(t, ConfigDigest([]byte(testCustomConfigJSON)), resolved.Digest)
+	assert.Equal(t, mustConfigDigest(t, testCustomConfigJSON), resolved.Digest)
 	assert.Equal(t, sizeBytes, resolved.SizeBytes)
 	assert.NotEmpty(t, resolved.Model.GetInferenceParameters().TotalSafeTensorFileSize,
 		"the resolved model must be sizable by the estimator")

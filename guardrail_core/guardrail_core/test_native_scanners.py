@@ -20,8 +20,12 @@ import pytest
 from guardrail_core.native_scanners import (
     BanSubstringsMatchType,
     NativeBanSubstringsScanner,
+    NativeInvisibleTextScanner,
+    NativeJSONScanner,
+    NativeReadingTimeScanner,
     NativeRegexScanner,
     NativeSecretsScanner,
+    NativeTokenLimitScanner,
     RegexMatchType,
 )
 
@@ -197,6 +201,159 @@ class TestNativeRegexScanner:
         output, valid, score = scanner.scan("", "")
         assert not valid  # Allow-list: no patterns matched = invalid
         assert score == 1.0
+
+
+class TestNativeInvisibleTextScanner:
+    """Test native InvisibleText scanner."""
+
+    def test_normal_text_unchanged(self):
+        """Test normal text is unchanged."""
+        scanner = NativeInvisibleTextScanner()
+        output, valid, score = scanner.scan("", "Hello World")
+        assert valid
+        assert score == -1.0
+        assert output == "Hello World"
+
+    def test_invisible_unicode_removed(self):
+        """Test invisible unicode characters are removed."""
+        scanner = NativeInvisibleTextScanner()
+        # Zero-width space
+        output, valid, score = scanner.scan("", "Hello​World")
+        assert not valid
+        assert score == 1.0
+        assert "​" not in output
+
+    def test_newline_tab_preserved(self):
+        """Test newline and tab are preserved (Cc category not removed)."""
+        scanner = NativeInvisibleTextScanner()
+        output, valid, score = scanner.scan("", "Hello\nWorld")
+        assert valid
+        assert "\n" in output
+        output, valid, score = scanner.scan("", "Hello\tWorld")
+        assert valid
+        assert "\t" in output
+
+
+class TestNativeJSONScanner:
+    """Test native JSON scanner."""
+
+    def test_valid_json_passed(self):
+        """Test valid JSON passes."""
+        scanner = NativeJSONScanner()
+        output, valid, score = scanner.scan("", '{"key": "value"}')
+        assert valid
+        assert score == -1.0
+
+    def test_invalid_json_failed(self):
+        """Test invalid JSON fails without repair."""
+        scanner = NativeJSONScanner(repair=False)
+        output, valid, score = scanner.scan("", '{"key": "value"')
+        assert not valid
+        assert score == 1.0
+
+    def test_repair_success(self):
+        """Test JSON repair succeeds."""
+        scanner = NativeJSONScanner(repair=True)
+        output, valid, score = scanner.scan("", '{"key": "value"')
+        assert valid
+        assert score == -1.0
+
+    def test_repair_failure_invalid(self):
+        """Test repair failure returns invalid."""
+        scanner = NativeJSONScanner(repair=True)
+        broken_json = "this is not json at all"
+        output, valid, score = scanner.scan("", broken_json)
+        assert not valid
+        assert score == 1.0
+        assert output == broken_json
+
+    def test_required_elements_check(self):
+        """Test required_elements validation."""
+        scanner = NativeJSONScanner(required_elements=2)
+        output, valid, score = scanner.scan("", '{"a": 1, "b": 2}')
+        assert valid
+        # Below requirement fails
+        scanner2 = NativeJSONScanner(required_elements=3)
+        output2, valid2, score2 = scanner2.scan("", '{"a": 1}')
+        assert not valid2
+        assert score2 == 1.0
+
+
+class TestNativeReadingTimeScanner:
+    """Test native ReadingTime scanner."""
+
+    def test_within_limit(self):
+        """Test text within time limit."""
+        scanner = NativeReadingTimeScanner(max_time=1.0)
+        text = " ".join(["word"] * 60)
+        output, valid, score = scanner.scan("", text)
+        assert valid
+        assert score == -1.0
+
+    def test_exceed_limit_no_truncate(self):
+        """Test text exceeding limit without truncation."""
+        scanner = NativeReadingTimeScanner(max_time=0.5)
+        text = " ".join(["word"] * 300)
+        output, valid, score = scanner.scan("", text)
+        assert not valid
+        assert score == 1.0
+
+    def test_exceed_limit_with_truncate(self):
+        """Test text is truncated when exceeding limit."""
+        scanner = NativeReadingTimeScanner(max_time=0.5, truncate=True)
+        text = " ".join(["word"] * 300)
+        output, valid, score = scanner.scan("", text)
+        assert not valid
+        assert score == 1.0
+        assert len(output.split()) <= 110  # Allow margin
+
+
+class TestNativeTokenLimitScanner:
+    """Test native TokenLimit scanner."""
+
+    def test_within_limit(self):
+        """Test token count within limit."""
+        try:
+            scanner = NativeTokenLimitScanner(limit=100)
+            output, valid, score = scanner.scan("", "Hello world")
+            assert valid
+            assert score == -1.0
+        except ImportError:
+            pass
+
+    def test_exceed_limit_with_truncate(self):
+        """Test token count exceeds limit and is truncated."""
+        try:
+            scanner = NativeTokenLimitScanner(limit=5)
+            text = " ".join(["word"] * 50)
+            output, valid, score = scanner.scan("", text)
+            assert not valid
+            assert score == 1.0
+            assert len(output.split()) < len(text.split())
+        except ImportError:
+            pass
+
+    def test_model_name_precedence(self):
+        """Test model_name takes precedence over encoding_name."""
+        try:
+            scanner = NativeTokenLimitScanner(
+                limit=100, encoding_name="cl100k_base", model_name="gpt-3.5-turbo"
+            )
+            output, valid, score = scanner.scan("", "Hello world")
+            assert valid
+            assert score == -1.0
+        except ImportError:
+            pass
+
+    def test_empty_output(self):
+        """Test empty output."""
+        try:
+            scanner = NativeTokenLimitScanner(limit=100)
+            output, valid, score = scanner.scan("", "")
+            assert valid
+            assert score == -1.0
+        except ImportError:
+            pass
 
 
 class TestNativeSecretsScanner:

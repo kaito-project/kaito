@@ -26,7 +26,9 @@ from enum import StrEnum
 from detect_secrets.core.secrets_collection import SecretsCollection
 from detect_secrets.settings import default_settings
 
-_LEGACY_SECRET_PATTERNS = (
+# Compatibility patterns for token formats not fully detected by the currently
+# pinned detect-secrets defaults.
+_DETECT_SECRETS_COMPATIBILITY_PATTERNS = (
     re.compile(r"(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{36}"),
     re.compile(r"github_pat_[0-9A-Za-z_]{82}"),
     re.compile(r"(?i)\bAIza[0-9A-Za-z_-]{35}(?=['|\"\n\r\s\x60;]|$)"),
@@ -280,7 +282,7 @@ class NativeSecretsScanner:
     def _detect_secret_values(self, text: str) -> set[str]:
         """Detect secrets using detect-secrets library directly.
 
-        Uses detect-secrets defaults plus legacy compatibility patterns.
+        Uses detect-secrets defaults plus compatibility patterns for known gaps.
 
         Args:
             text: The text to scan for secrets.
@@ -312,7 +314,7 @@ class NativeSecretsScanner:
         }
         secret_values.update(
             match.group(0)
-            for pattern in _LEGACY_SECRET_PATTERNS
+            for pattern in _DETECT_SECRETS_COMPATIBILITY_PATTERNS
             for match in pattern.finditer(text)
         )
         return secret_values

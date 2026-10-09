@@ -222,7 +222,20 @@ class TestNativeSecretsScanner:
         with pytest.raises(ValueError, match="redact mode wasn't recognized unknown"):
             scanner.scan("", "secret")
 
-    def test_detects_legacy_key_types(self):
+    @pytest.mark.parametrize(
+        "secret",
+        [
+            "ghp_" + "A" * 36,
+            "github_pat_" + "A" * 82,
+            "AIza" + "A" * 35,
+        ],
+    )
+    def test_detects_compatibility_key_types(self, secret):
+        scanner = NativeSecretsScanner(redact_mode="all")
+
+        assert secret in scanner._detect_secret_values(secret)
+
+    def test_detects_default_and_compatibility_key_types(self):
         aws_key = "AKIA" + "A" * 16
         github_token = "ghp_" + "A" * 36
         gcp_key = "AIza" + "A" * 35

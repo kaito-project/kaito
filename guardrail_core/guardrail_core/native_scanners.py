@@ -34,6 +34,8 @@ _DETECT_SECRETS_COMPATIBILITY_PATTERNS = (
     re.compile(r"github_pat_[0-9A-Za-z_]{82}"),
     re.compile(r"(?i)\bAIza[0-9A-Za-z_-]{35}(?=['|\"\n\r\s\x60;]|$)"),
 )
+# detect-secrets settings are process-global. Serialize scans to prevent
+# concurrent settings mutation from causing missed detections.
 _DETECT_SECRETS_SETTINGS_LOCK = threading.Lock()
 
 

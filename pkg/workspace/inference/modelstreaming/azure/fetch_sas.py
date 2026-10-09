@@ -18,9 +18,10 @@ script resolves everything else at pod runtime using the workload identity:
 
   1. Mint an AAD token for the workload identity (audience selected by source type).
   2. Resolve the model (via a URL derived from the mint endpoint) -> blobUri (+ assetId for public).
-  3. Derive the storage account and container from the blobUri.
+  3. Derive the storage account, container, and selected model prefix from the blobUri.
   4. Mint a SAS at the mint endpoint with {blobUri[, assetId]} -> SAS token.
-  5. List the container with the SAS to discover the safetensors subpath -> model streaming URI.
+  5. List only the selected model prefix with the SAS and discover its safetensors
+     subpath -> model streaming URI.
   6. For a bring-your-own model, verify the bundle's config.json against the digest the
      operator sized the deployment from.
   7. Write AZURE_STORAGE_SAS_TOKEN, AZURE_STORAGE_ACCOUNT_NAME, and STREAM_MODEL_URI to the
@@ -117,8 +118,14 @@ def http_json(url: str, token: str, body: "bytes | None" = None) -> dict:
 
 
 def extract_blob_uri(payload: dict) -> str:
-    """Extract the blobUri from a model-resolve response. Public nests it under
-    properties.modelUri; BYO under blobReference.blobUri (tolerate both wrapper keys)."""
+    """Extract the model URI from supported model-resolve response shapes.
+
+    Microsoft Foundry BYO responses return blobUri at the top level. Public responses
+    nest the URI under properties.modelUri, while other BYO responses use
+    blobReference.blobUri or blobReferenceForConsumption.blobUri.
+    """
+    if payload.get("blobUri"):
+        return payload["blobUri"]
     props = payload.get("properties") or {}
     if props.get("modelUri"):
         return props["modelUri"]
@@ -137,22 +144,25 @@ def extract_sas_uri(payload: dict) -> str:
     return ref.get("credential", {}).get("sasUri", "")
 
 
-def account_and_container(blob_uri: str) -> "tuple[str, str]":
-    """Parse the storage account (first host label) and container (first path segment)
-    from a blob URI like https://<account>.blob.core.windows.net/<container>[/...]."""
+def account_container_and_prefix(blob_uri: str) -> "tuple[str, str, str]":
+    """Parse the account, container, and model prefix from a resolved blob URI."""
     parts = urllib.parse.urlsplit(blob_uri)
     account = parts.netloc.split(".", 1)[0]
-    container = parts.path.lstrip("/").split("/", 1)[0]
-    return account, container
+    container, _, prefix = urllib.parse.unquote(parts.path).strip("/").partition("/")
+    return account, container, prefix.rstrip("/")
 
 
-def list_blob_names(sas_uri: str) -> "list[str]":
-    """List every blob name in the container via the SAS.
+def list_blob_names(sas_uri: str, model_prefix: str = "") -> "list[str]":
+    """List blob names under the selected model prefix via the container SAS.
 
     Pages through the full listing (Azure returns at most 5000 blobs per page plus a
     NextMarker) and unescapes XML entities in blob names so paths with '&' etc. are correct.
     """
     base = sas_uri + "&restype=container&comp=list&include=metadata"
+    normalized_prefix = model_prefix.strip("/")
+    if normalized_prefix:
+        listing_prefix = normalized_prefix + "/"
+        base += "&prefix=" + urllib.parse.quote(listing_prefix, safe="")
     names: list = []
     marker = ""
     while True:
@@ -170,12 +180,16 @@ def list_blob_names(sas_uri: str) -> "list[str]":
     return names
 
 
-def discover_subpath(names: "list[str]") -> str:
-    """Return the common directory prefix of the safetensors files (empty string when
-    they are at the container root)."""
-    safetensors = [n for n in names if n.endswith(".safetensors")]
+def discover_subpath(names: "list[str]", model_prefix: str = "") -> str:
+    """Return the safetensors directory within the selected model prefix."""
+    normalized_prefix = model_prefix.strip("/")
+    listing_prefix = normalized_prefix + "/" if normalized_prefix else ""
+    scoped_names = [
+        name for name in names if not listing_prefix or name.startswith(listing_prefix)
+    ]
+    safetensors = [name for name in scoped_names if name.endswith(".safetensors")]
     if not safetensors:
-        return ""
+        return normalized_prefix
     if len(safetensors) == 1:
         return os.path.dirname(safetensors[0])
     return os.path.commonpath(safetensors)
@@ -264,7 +278,7 @@ def main() -> int:
         return 1
     asset_id = model.get("id", "") if source_type == SOURCE_PUBLIC else ""
 
-    account, container = account_and_container(blob_uri)
+    account, container, model_prefix = account_container_and_prefix(blob_uri)
 
     # Mint the SAS token at the mint endpoint.
     body = {"blobUri": blob_uri}
@@ -277,9 +291,10 @@ def main() -> int:
         return 1
     sas_token = sas_uri.split("?", 1)[1]
 
-    # Discover the safetensors subpath and build the az:// model URI.
-    names = list_blob_names(sas_uri)
-    subpath = discover_subpath(names)
+    # Scope discovery to the selected model path even though the credentials endpoint
+    # returns a container-level SAS that may also cover sibling models or versions.
+    names = list_blob_names(sas_uri, model_prefix)
+    subpath = discover_subpath(names, model_prefix)
     model_uri = f"az://{container}/{subpath}" if subpath else f"az://{container}"
 
     # Bring-your-own models carry an expected configuration digest; verify the bundle

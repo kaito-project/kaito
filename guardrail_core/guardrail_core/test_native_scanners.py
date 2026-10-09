@@ -13,6 +13,8 @@
 
 """Unit tests for native KAITO guardrails scanners."""
 
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 
 from guardrail_core.native_scanners import (
@@ -248,3 +250,21 @@ class TestNativeSecretsScanner:
         assert sanitized == "Keys: ******, ******, ******"
         assert is_valid is False
         assert risk_score == 1.0
+
+    def test_concurrent_scans_do_not_share_detector_settings(self):
+        scanner = NativeSecretsScanner(redact_mode="all")
+        samples = [
+            ("AKIA" + "A" * 16, ("******", False, 1.0)),
+            ("ghp_" + "A" * 36, ("******", False, 1.0)),
+            ("plain text", ("plain text", True, -1.0)),
+        ]
+
+        def scan(index):
+            output, expected = samples[index % len(samples)]
+            return scanner.scan("", output), expected
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            results = executor.map(scan, range(100))
+
+        for actual, expected in results:
+            assert actual == expected

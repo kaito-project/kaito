@@ -21,6 +21,7 @@ import hashlib
 import os
 import re
 import tempfile
+import threading
 from enum import StrEnum
 
 from detect_secrets.core.secrets_collection import SecretsCollection
@@ -33,6 +34,7 @@ _DETECT_SECRETS_COMPATIBILITY_PATTERNS = (
     re.compile(r"github_pat_[0-9A-Za-z_]{82}"),
     re.compile(r"(?i)\bAIza[0-9A-Za-z_-]{35}(?=['|\"\n\r\s\x60;]|$)"),
 )
+_DETECT_SECRETS_SETTINGS_LOCK = threading.Lock()
 
 
 class BanSubstringsMatchType(StrEnum):
@@ -301,7 +303,7 @@ class NativeSecretsScanner:
             temp_path = temp_file.name
 
         try:
-            with default_settings():
+            with _DETECT_SECRETS_SETTINGS_LOCK, default_settings():
                 secrets.scan_file(temp_path)
         finally:
             os.remove(temp_path)

@@ -694,9 +694,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	if wObj.Inference.Template != nil {
-		// TODO: handle update
-		_, err := inference.CreateTemplateInference(ctx, wObj, c.Client, c.nodeProvisioner)
-		return err
+		return c.applyTemplateInference(ctx, wObj)
 	}
 
 	if wObj.Inference.Preset == nil {
@@ -777,6 +775,41 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		}
 	}
 	return nil
+}
+
+// applyTemplateInference creates the StatefulSet for a workspace with a custom
+// inference template, and rolls out template changes to an existing StatefulSet
+// when the workspace revision changes.
+func (c *WorkspaceReconciler) applyTemplateInference(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+	existingObj := &appsv1.StatefulSet{}
+	if err := resources.GetResource(ctx, wObj.Name, wObj.Namespace, c.Client, existingObj); err != nil {
+		if apierrors.IsNotFound(err) {
+			_, err = inference.CreateTemplateInference(ctx, wObj, c.Client, c.nodeProvisioner)
+		}
+		return err
+	}
+
+	revisionStr := wObj.Annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
+	annotations := existingObj.GetAnnotations()
+	if currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]; ok && currentRevisionStr == revisionStr {
+		return nil
+	}
+
+	desiredStatefulSet, err := inference.GenerateTemplateInference(ctx, wObj, c.nodeProvisioner)
+	if err != nil {
+		return err
+	}
+
+	klog.InfoS("Updating inference workload with the latest workspace template", "workspace", klog.KObj(wObj), "revision", revisionStr)
+	// The pod template is fully defined by the user, so replace it as a whole.
+	existingObj.Spec.Template = desiredStatefulSet.Spec.Template
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
+	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+	existingObj.SetAnnotations(annotations)
+
+	return c.Update(ctx, existingObj)
 }
 
 func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {

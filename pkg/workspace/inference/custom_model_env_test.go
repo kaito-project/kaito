@@ -46,7 +46,7 @@ func TestBuildMainContainerEnvPassesCustomModelIdentity(t *testing.T) {
 		},
 	}
 
-	env := buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, param, "", "/workspace/weights")
+	env := buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, param, nil, "", "/workspace/weights")
 
 	gotDigest, ok := customEnvValue(env, consts.ModelConfigSHA256EnvName)
 	assert.True(t, ok, "the config digest must be passed to the serving container")
@@ -58,7 +58,7 @@ func TestBuildMainContainerEnvOmitsIdentityForPresetModels(t *testing.T) {
 		Metadata: pkgmodel.Metadata{Name: "llama-3.1-8b-instruct"},
 	}
 
-	env := buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, param, "", "/workspace/weights")
+	env := buildMainContainerEnv(pkgmodel.RuntimeNameVLLM, param, nil, "", "/workspace/weights")
 
 	_, ok := customEnvValue(env, consts.ModelConfigSHA256EnvName)
 	assert.False(t, ok, "a preset model has no operator-supplied config to verify")

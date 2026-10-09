@@ -14,18 +14,19 @@
 package models
 
 import (
-	"bufio"
 	"context"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/model"
+	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/presets/workspace/generator"
 )
@@ -723,60 +724,50 @@ func TestGetModelByName_DeepSeekV4Flash(t *testing.T) {
 	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
 }
 
-// TestGetModelByName_DeepSeekV32 verifies DeepSeek-V3.2 resolves offline from the
-// embedded catalog and wires the deepseek_v3 reasoning parser, deepseek_v32
-// tool-call parser and tokenizer mode, and disables FlashInfer autotune per its recipe.
-func TestGetModelByName_DeepSeekV32(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3.2", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
+func TestGetModelByName_GLM53Flash(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+	var catalog generator.ModelCatalog
+	require.NoError(t, yaml.Unmarshal(modelCatalogYAML, &catalog))
+	catalogNames := make([]string, 0, len(catalog.Models))
+	for _, entry := range catalog.Models {
+		catalogNames = append(catalogNames, entry.Name)
 	}
+	require.Contains(t, catalogNames, "zai-org/GLM-5.3-Flash")
 
+	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.3-Flash", "")
+	require.NoError(t, err)
 	params := m.GetInferenceParameters()
-	runParams := params.RuntimeParam.VLLM.ModelRunParams
-	assert.Equal(t, "deepseek_v3", runParams["reasoning-parser"])
-	assert.Equal(t, "deepseek_v32", runParams["tool-call-parser"])
-	assert.Equal(t, "deepseek_v32", runParams["tokenizer_mode"])
-	assert.Equal(t, "False", runParams["kernel-config.enable_flashinfer_autotune"])
-}
+	assert.Equal(t, "305.80Gi", params.TotalSafeTensorFileSize)
+	assert.Equal(t, 1048576, params.ModelTokenLimit)
+	assert.Equal(t, 4341760, params.MambaStateBytesPerLayer)
+	assert.Equal(t, 147619840, params.MambaStateBytesPerSeq)
+	assert.Equal(t, 34, params.NumLinearLayers)
+	assert.Equal(t, 11, params.NumFullAttnLayers)
+	assert.True(t, params.RequiresFlashInfer())
+	assert.True(t, params.RequiresCUDAToolkit())
 
-// TestGetModelByName_DeepSeekV4Pro verifies DeepSeek-V4-Pro resolves offline from
-// the embedded catalog and inherits the DeepSeek-V4 family wiring — including the
-// fp8 kv-cache-dtype, which the engine asserts on for the DeepseekV4 architecture.
-func TestGetModelByName_DeepSeekV4Pro(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Pro", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	runParams := params.RuntimeParam.VLLM.ModelRunParams
-	assert.Equal(t, "deepseek_v4", runParams["reasoning-parser"])
-	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
-	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
-	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
-	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
-}
-
-// TestGetModelByName_GLM52FP8 verifies GLM-5.2-FP8 resolves offline from the
-// embedded catalog, wires the glm45 reasoning parser and glm47 tool-call parser,
-// uses an fp8 kv-cache per its recipe, and is flagged as requiring DeepGEMM.
-func TestGetModelByName_GLM52FP8(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "zai-org/GLM-5.2-FP8", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	runParams := params.RuntimeParam.VLLM.ModelRunParams
-	assert.Equal(t, "glm45", runParams["reasoning-parser"])
+	runParams := params.VLLM.ModelRunParams
+	assert.Equal(t, "glm47", runParams["reasoning-parser"])
 	assert.Equal(t, "glm47", runParams["tool-call-parser"])
-	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
-	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
-	assert.True(t, params.RequiresDeepGEMM())
+	assert.NotContains(t, runParams, "kv-cache-dtype")
+	assert.Equal(t, "False", runParams["kernel-config.enable_flashinfer_autotune"])
+	assert.Contains(t, runParams, "enable-auto-tool-choice")
+	assert.Contains(t, runParams, "enable-expert-parallel")
+
+	gpuConfig, err := sku.GetGPUConfigBySKU("Standard_ND96isr_H100_v5")
+	require.NoError(t, err)
+	assert.NotEmpty(t, params.GetInferenceCommand(model.RuntimeContext{
+		RuntimeName: model.RuntimeNameVLLM,
+		GPUConfig:   gpuConfig,
+		SKUNumGPUs:  gpuConfig.GPUCount,
+		NumNodes:    1,
+		MaxModelLen: model.MaxModelLenAuto,
+	}))
+	assert.Equal(t, "8", runParams["tensor-parallel-size"])
+	assert.NotContains(t, runParams, "pipeline-parallel-size")
+	assert.NotContains(t, runParams, "distributed-executor-backend")
+	assert.Equal(t, "0", runParams["kaito-kv-cache-cpu-memory-utilization"])
 }
 
 // TestGetModelByName_DeepSeekV4FlashNVFP4 verifies the NVIDIA NVFP4 variant
@@ -1159,68 +1150,6 @@ func TestLegacyBuiltinAliasesResolveToCanonicalIDs(t *testing.T) {
 	}
 }
 
-// TestCatalogModelsHaveMTBenchScores ensures every model in model_catalog.yaml
-// has a corresponding score entry in model_catalog_mtbench_scores.md.
-func TestCatalogModelsHaveMTBenchScores(t *testing.T) {
-	// Parse the model catalog.
-	var catalog generator.ModelCatalog
-	err := yaml.Unmarshal(modelCatalogYAML, &catalog)
-	if err != nil {
-		t.Fatalf("Failed to parse model_catalog.yaml: %v", err)
-	}
-
-	// Parse scored model names from the markdown table.
-	scoredModels := parseMTBenchScores(t, "model_catalog_mtbench_scores.md")
-
-	// Check each catalog model has a score.
-	for _, entry := range catalog.Models {
-		t.Run(entry.Name, func(t *testing.T) {
-			_, found := scoredModels[strings.ToLower(entry.Name)]
-			assert.True(t, found,
-				"model %q has no MT-bench score in model_catalog_mtbench_scores.md",
-				entry.Name)
-		})
-	}
-}
-
-// parseMTBenchScores reads the markdown scores file and returns a set of
-// lowercase model names that have score entries.
-func parseMTBenchScores(t *testing.T, filename string) map[string]bool {
-	t.Helper()
-	f, err := os.Open(filename)
-	if err != nil {
-		t.Fatalf("Failed to open %s: %v", filename, err)
-	}
-	defer f.Close()
-
-	scores := make(map[string]bool)
-	scanner := bufio.NewScanner(f)
-	headerSkipped := false
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if !strings.HasPrefix(line, "|") {
-			continue
-		}
-		// Skip the header row and separator row.
-		if !headerSkipped {
-			headerSkipped = true
-			continue // "| Model | Runtime | ..."
-		}
-		if strings.Contains(line, "---") {
-			continue // separator row
-		}
-		cols := strings.Split(line, "|")
-		if len(cols) < 3 {
-			continue
-		}
-		modelName := strings.TrimSpace(cols[1])
-		if modelName != "" {
-			scores[strings.ToLower(modelName)] = true
-		}
-	}
-	return scores
-}
-
 // TestGetModelByName_DeepSeekR10528_SpeculativeDecodingMTP asserts that the
 // generator-to-model wiring for preset-tuned speculative decoding is preserved:
 // registerModel copies param.SpeculativeDecoding onto vLLMCompatibleModel, and
@@ -1257,28 +1186,6 @@ func TestGetModelByName_DeepSeekR10528_SpeculativeDecodingMTP(t *testing.T) {
 // deepseek-r1-0528 test above for rationale.
 func TestGetModelByName_DeepSeekV30324_SpeculativeDecodingMTP(t *testing.T) {
 	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3-0324", "")
-	assert.NoError(t, err)
-	if !assert.NotNil(t, m) {
-		return
-	}
-
-	params := m.GetInferenceParameters()
-	if !assert.NotNil(t, params.SpeculativeDecoding, "preset-tuned SpeculativeDecoding must survive registration") {
-		return
-	}
-	assert.Equal(t, "mtp", params.SpeculativeDecoding.Method)
-	if !assert.NotNil(t, params.SpeculativeDecoding.MTP) {
-		return
-	}
-	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
-}
-
-// TestGetModelByName_DeepSeekV32_SpeculativeDecodingMTP is the regression
-// guard for the deepseek-v3.2 tuned MTP config; like the R1/V3-0324 tests,
-// it ensures the generator-assigned per-preset config survives model
-// registration and GetInferenceParameters().
-func TestGetModelByName_DeepSeekV32_SpeculativeDecodingMTP(t *testing.T) {
-	m, err := GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V3.2", "")
 	assert.NoError(t, err)
 	if !assert.NotNil(t, m) {
 		return

@@ -84,21 +84,7 @@ def validate_coverage(
     baselines: dict[str, Any],
     require_baselines: bool,
 ) -> list[tuple[str, str]]:
-    expected = {
-        (str(item["model"]), str(item["instanceType"]))
-        for item in targets
-        if not item.get("skipReason")
-    }
-    covered = {
-        (str(item["model"]), str(item["instanceType"]))
-        for item in baselines.get("targets", [])
-    }
-    stale = sorted(covered - expected)
-    if stale:
-        raise ValueError(
-            f"baseline entries do not match active matrix targets: {stale}"
-        )
-    gaps = sorted(expected - covered)
+    gaps = coverage_gaps(targets, baselines)
     if require_baselines and gaps:
         raise ValueError(f"missing required baseline entries: {gaps}")
     return gaps

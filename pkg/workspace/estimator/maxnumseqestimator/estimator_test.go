@@ -85,20 +85,6 @@ func TestMaxNumSeqsEstimator_Estimate(t *testing.T) {
 			wantBelowBlocks: 614,
 		},
 		{
-			name:            "qwen3.6-35b-a3b on single h100",
-			modelName:       "qwen3.6-35b-a3b",
-			perLayerBytes:   2146304,
-			numFull:         10,
-			numLinear:       30,
-			weights:         "66.97Gi",
-			gpu:             h100,
-			numNodes:        1,
-			wantOK:          true,
-			wantMin:         500,
-			wantMax:         620,
-			wantBelowBlocks: 747,
-		},
-		{
 			// Measured on Standard_NC24ads_A100_v4: 391 available blocks. vLLM
 			// name-excludes A100 from its large-GPU branch, so its own default is
 			// already 256 and no cap is needed.

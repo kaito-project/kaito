@@ -1,5 +1,11 @@
 {
   "_comment": "Shared infrastructure and size-based target policies for preset regression workflows. Model names and sizes come from presets/workspace/models/model_catalog.yaml.",
+  "modelSizeSafetyFactor": 1.2,
+  "minimumGPUsOverrides": {
+    "nvidia/NVIDIA-Nemotron-Nano-9B-v2": {
+      "a10": 2
+    }
+  },
   "profiles": {
     "standard": {
       "timeoutMinutes": 60,
@@ -8,21 +14,32 @@
       "pools": {
         "a10": {
           "maxModelSizeGiB": 17,
-          "gpusPerNode": 1,
+          "gpusPerNodeOptions": [
+            1,
+            2
+          ],
           "blocklist": []
         },
         "a100": {
           "maxModelSizeGiB": 250,
-          "gpusPerNode": 1,
+          "gpusPerNodeOptions": [
+            1,
+            2,
+            4
+          ],
           "blocklist": [
-            "deepseek-ai/DeepSeek-V4-Flash-0731",
-            "mistralai/Mistral-Small-4-119B-2603"
+            "deepseek-ai/DeepSeek-V4-Flash-0731"
           ]
         },
         "h100": {
           "maxModelSizeGiB": 250,
-          "gpusPerNode": 1,
-          "blocklist": []
+          "gpusPerNodeOptions": [
+            1,
+            2
+          ],
+          "blocklist": [
+            "Qwen/Qwen3.8-Flash-Next-FP8"
+          ]
         }
       }
     },
@@ -31,7 +48,12 @@
       "pools": {
         "h100": {
           "minModelSizeGiBExclusive": 250,
-          "gpusPerNode": 8,
+          "minModelSizeExemptions": [
+            "Qwen/Qwen3.8-Flash-Next-FP8"
+          ],
+          "gpusPerNodeOptions": [
+            8
+          ],
           "blocklist": []
         }
       }
@@ -46,6 +68,10 @@
       "instanceTypes": {
         "1": "Standard_NV36ads_A10_v5",
         "2": "Standard_NV72ads_A10_v5"
+      },
+      "gpuMemoryGiBPerGPU": {
+        "1": 24,
+        "2": 24
       }
     },
     "a100": {
@@ -56,6 +82,11 @@
         "1": "Standard_NC24ads_A100_v4",
         "2": "Standard_NC48ads_A100_v4",
         "4": "Standard_NC96ads_A100_v4"
+      },
+      "gpuMemoryGiBPerGPU": {
+        "1": 80,
+        "2": 80,
+        "4": 80
       }
     },
     "h100": {
@@ -66,6 +97,11 @@
         "1": "Standard_NC40ads_H100_v5",
         "2": "Standard_NC80adis_H100_v5",
         "8": "Standard_ND96isr_H100_v5"
+      },
+      "gpuMemoryGiBPerGPU": {
+        "1": 94,
+        "2": 94,
+        "8": 80
       }
     }
   }

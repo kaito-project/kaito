@@ -16,7 +16,7 @@ package estimator
 import (
 	"strconv"
 
-	pkgmodel "github.com/kaito-project/kaito/pkg/model"
+	presetgenerator "github.com/kaito-project/kaito/presets/workspace/generator"
 )
 
 // Shared per-GPU memory budget parameters. Both the node estimator (which solves
@@ -51,17 +51,17 @@ const (
 // baseOverheadGiBByGPUModel overrides BaseOverheadGiB for specific GPU models.
 // The 24 GiB A10 measures less fixed runtime overhead in practice than the
 // default reserve assumes, so a lower value lets ~16-17 GiB models fit a single
-// A10 (empirically verified, e.g. granite-4.1-8b) instead of being pushed to an
-// extra node. Keyed by sku.GPUConfig.GPUModel (e.g. "NVIDIA A10").
+// A10 instead of being pushed to an extra node. Keyed by
+// sku.GPUConfig.GPUModel (e.g. "NVIDIA A10").
 var baseOverheadGiBByGPUModel = map[string]float64{
 	"NVIDIA A10": 1.5,
 }
 
 // ResolveGPUMemoryUtilization returns the --gpu-memory-utilization the launcher
-// runs vLLM with for the given GPU model (see ResolveGPUMemoryUtilization in
-// pkg/model), so estimators predict the same per-GPU budget vLLM will have.
+// runs vLLM with for the given GPU model, so estimators predict the same
+// per-GPU budget vLLM will have.
 func ResolveGPUMemoryUtilization(gpuModel string) float64 {
-	v, err := strconv.ParseFloat(pkgmodel.ResolveGPUMemoryUtilization(gpuModel), 64)
+	v, err := strconv.ParseFloat(presetgenerator.ResolveGPUMemoryUtilization(gpuModel), 64)
 	if err != nil {
 		return defaultGPUMemoryUtilization
 	}

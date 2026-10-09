@@ -8,23 +8,19 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 
 | Model Name | Description | License |
 |---|---|---|
-| deepseek-ai/DeepSeek-V3.2 | https://huggingface.co/deepseek-ai/DeepSeek-V3.2 | MIT |
 | deepseek-ai/DeepSeek-V4-Flash-0731 | https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731 | MIT |
-| deepseek-ai/DeepSeek-V4-Pro | https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro | MIT |
+| deepseek-ai/DeepSeek-V4.1-Flash | https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash | MIT |
 | google/gemma-4-12B-it | https://huggingface.co/google/gemma-4-12B-it | Apache-2.0 |
 | google/gemma-4-26B-A4B-it | https://huggingface.co/google/gemma-4-26B-A4B-it | Apache-2.0 |
 | google/gemma-4-31B-it | https://huggingface.co/google/gemma-4-31B-it | Apache-2.0 |
 | google/gemma-4-E2B-it | https://huggingface.co/google/gemma-4-E2B-it | Apache-2.0 |
 | google/gemma-4-E4B-it | https://huggingface.co/google/gemma-4-E4B-it | Apache-2.0 |
-| ibm-granite/granite-4.1-8b | https://huggingface.co/ibm-granite/granite-4.1-8b | Apache-2.0 |
+| meta-models/Muse-Glimmer-30B | https://huggingface.co/meta-models/Muse-Glimmer-30B | Apache-2.0 |
 | microsoft/Phi-4-mini-instruct | https://huggingface.co/microsoft/Phi-4-mini-instruct | MIT |
 | microsoft/phi-4 | https://huggingface.co/microsoft/phi-4 | MIT |
 | MiniMaxAI/MiniMax-M2.7 | https://huggingface.co/MiniMaxAI/MiniMax-M2.7 | Other |
-| mistralai/Ministral-3-14B-Instruct-2512 | https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512 | Apache-2.0 |
 | mistralai/Mistral-Medium-3.5-128B | https://huggingface.co/mistralai/Mistral-Medium-3.5-128B | Other |
-| mistralai/Mistral-Small-4-119B-2603 | https://huggingface.co/mistralai/Mistral-Small-4-119B-2603 | Apache-2.0 |
 | moonshotai/Kimi-K2.6 | https://huggingface.co/moonshotai/Kimi-K2.6 | Modified MIT |
-| moonshotai/Kimi-K2.7-Code | https://huggingface.co/moonshotai/Kimi-K2.7-Code | Modified MIT |
 | nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16 | NVIDIA Nemotron |
 | nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16 | NVIDIA Nemotron |
 | nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16 | NVIDIA Nemotron |
@@ -35,11 +31,13 @@ The following HuggingFace models are curated by the KAITO team with first-class 
 | Qwen/Qwen3.5-4B | https://huggingface.co/Qwen/Qwen3.5-4B | Apache-2.0 |
 | Qwen/Qwen3.5-9B | https://huggingface.co/Qwen/Qwen3.5-9B | Apache-2.0 |
 | Qwen/Qwen3.6-27B | https://huggingface.co/Qwen/Qwen3.6-27B | Apache-2.0 |
-| Qwen/Qwen3.6-35B-A3B | https://huggingface.co/Qwen/Qwen3.6-35B-A3B | Apache-2.0 |
 | Qwen/Qwen3.6-35B-A3B-FP8 | https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8 | Apache-2.0 |
 | Qwen/Qwen3.8-27B | https://huggingface.co/Qwen/Qwen3.8-27B | Apache-2.0 |
 | Qwen/Qwen3.8-27B-FP8 | https://huggingface.co/Qwen/Qwen3.8-27B-FP8 | Apache-2.0 |
-
+| Qwen/Qwen3.8-Flash-Next | https://huggingface.co/Qwen/Qwen3.8-Flash-Next | qwen-community-1.0 |
+| Qwen/Qwen3.8-Flash-Next-FP8 | https://huggingface.co/Qwen/Qwen3.8-Flash-Next-FP8 | qwen-community-1.0 |
+| zai-org/GLM-5.3 | https://huggingface.co/zai-org/GLM-5.3 | GLM-5.3 |
+| zai-org/GLM-5.3-Flash | https://huggingface.co/zai-org/GLM-5.3-Flash | MIT |
 
 ## Generic HuggingFace Models
 **NOTE: Generic HuggingFace models support is best-effort only. Please file an issue under https://github.com/kaito-project/kaito/issues/ if your targeted model doesn't work in KAITO.**

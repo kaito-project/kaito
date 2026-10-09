@@ -33,6 +33,10 @@ func qwenLayerTypes(numLinear, numFull int) []interface{} {
 }
 
 func TestComputeMambaLayerInfo(t *testing.T) {
+	glmLayerTypes := qwenLayerTypes(34, 11)
+	for i := 34; i < len(glmLayerTypes); i++ {
+		glmLayerTypes[i] = "deepseek_sparse_attention"
+	}
 	cases := []struct {
 		name         string
 		config       map[string]interface{}
@@ -40,6 +44,42 @@ func TestComputeMambaLayerInfo(t *testing.T) {
 		wantLinear   int
 		wantFull     int
 	}{
+		{
+			name: "kda glm flash",
+			config: map[string]interface{}{
+				"linear_attn_config": map[string]interface{}{
+					"num_heads":              float64(64),
+					"head_dim":               float64(128),
+					"short_conv_kernel_size": float64(4),
+					"kda_layers":             []interface{}{float64(0)},
+				},
+				"layer_types": glmLayerTypes,
+			},
+			wantPerLayer: 4341760,
+			wantLinear:   34,
+			wantFull:     11,
+		},
+		{
+			name: "unrelated linear config does not imply kda",
+			config: map[string]interface{}{
+				"linear_attn_config": map[string]interface{}{
+					"num_heads":              float64(64),
+					"head_dim":               float64(128),
+					"short_conv_kernel_size": float64(4),
+				},
+				"layer_types": qwenLayerTypes(34, 11),
+			},
+		},
+		{
+			name: "incomplete kda dimensions do not produce state",
+			config: map[string]interface{}{
+				"linear_attn_config": map[string]interface{}{
+					"num_heads":  float64(64),
+					"kda_layers": []interface{}{float64(0)},
+				},
+				"layer_types": qwenLayerTypes(34, 11),
+			},
+		},
 		{
 			// Gated DeltaNet dims of Qwen3.6-27B / Qwen3.8-27B.
 			// conv = (128*16*2 + 128*48)*(4-1)*2 = 61440;
@@ -59,9 +99,9 @@ func TestComputeMambaLayerInfo(t *testing.T) {
 			wantFull:     16,
 		},
 		{
-			// Qwen3.6-35B-A3B: nv=32, 30 linear + 10 full.
+			// 35B-A3B fixture: nv=32, 30 linear + 10 full.
 			// conv = (128*16*2 + 128*32)*3*2 = 49152; temporal = 32*128*128*4 = 2097152.
-			name: "gated delta net qwen 35b-a3b",
+			name: "gated delta net 35b-a3b fixture",
 			config: map[string]interface{}{
 				"linear_key_head_dim":    float64(128),
 				"linear_value_head_dim":  float64(128),
@@ -115,4 +155,15 @@ func TestComputeMambaLayerInfo(t *testing.T) {
 			assert.Equal(t, tc.wantPerLayer*tc.wantLinear, computeMambaStateBytesPerSeq(tc.config))
 		})
 	}
+}
+
+func TestKDAStateMatchesSingleTensorParallelRank(t *testing.T) {
+	config := map[string]interface{}{
+		"linear_attn_config": map[string]interface{}{
+			"num_heads":  float64(8),
+			"head_dim":   float64(128),
+			"kda_layers": []interface{}{float64(0)},
+		},
+	}
+	assert.Equal(t, 542720, kdaStatePerLayer(config))
 }

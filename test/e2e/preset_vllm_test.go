@@ -219,29 +219,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a granite-4.1-8b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
-		numOfNode := 1
-		workspaceObj := createGranite4_1_8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
 	It("should inject universal ngram --speculative-config on a phi-4 vLLM InferenceSet opted in via annotation", utils.GinkgoLabelA100Required, func() {
 		// phi-4 is a built-in vLLM preset but is not in speculativeDecodingByPreset,
 		// so this exercises the universal ngram fallback path introduced in
@@ -1518,21 +1495,6 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 			&metav1.LabelSelector{
 				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-gpt-oss-20b-vllm"},
 			}, nil, PresetGPT_OSS_20BModel, nil, nil, nil, "", "")
-
-		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
-		createAndValidateWorkspace(workspaceObj)
-	})
-	return workspaceObj
-}
-
-func createGranite4_1_8BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {
-	workspaceObj := &kaitov1beta1.Workspace{}
-	By("Creating a workspace CR with granite-4.1-8b preset public mode and vLLM", func() {
-		uniqueID := fmt.Sprint("preset-granite-4-1-8b-", rand.Intn(1000))
-		workspaceObj = utils.GenerateInferenceWorkspaceManifestWithVLLM(uniqueID, namespaceName, "", numOfNode, "Standard_NV36ads_A10_v5",
-			&metav1.LabelSelector{
-				MatchLabels: map[string]string{"kaito-workspace": "public-preset-e2e-test-granite-4-1-8b-vllm"},
-			}, nil, PresetGranite4_1_8BModel, nil, nil, nil, "", "")
 
 		workspaceObj.Annotations = utils.DisableModelStreaming(workspaceObj.Annotations)
 		createAndValidateWorkspace(workspaceObj)

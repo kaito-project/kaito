@@ -601,22 +601,6 @@ func TestLoadFromCatalog(t *testing.T) {
 			},
 		},
 		{
-			modelRepo:   "mistralai/Ministral-3-14B-Instruct-2512",
-			expectFound: true,
-			expectedParam: model.PresetParam{
-				Metadata: model.Metadata{
-					Name:                   "ministral-3-14b-instruct-2512",
-					Architectures:          []string{"Mistral3ForConditionalGeneration"},
-					Version:                fmt.Sprintf("%s/%s", HuggingFaceWebsite, "mistralai/Ministral-3-14B-Instruct-2512"),
-					ModelFileSize:          "14.65Gi",
-					BytesPerToken:          163840,
-					ModelTokenLimit:        262144,
-					DiskStorageRequirement: "94Gi",
-					AttnType:               "GQA",
-				},
-			},
-		},
-		{
 			modelRepo:   "some-org/unknown-model",
 			expectFound: false,
 		},
@@ -653,6 +637,42 @@ func TestLoadFromCatalog(t *testing.T) {
 	}
 }
 
+func TestKVCacheDtypeByArchitecture(t *testing.T) {
+	for _, tc := range []struct {
+		architecture string
+		want         string
+	}{
+		{"GlmMoeDsaForCausalLM", "fp8"},
+		{"DeepseekV4ForCausalLM", "fp8"},
+	} {
+		t.Run(tc.architecture, func(t *testing.T) {
+			gen := NewGenerator("test/model", "")
+			gen.Param.Metadata.Architectures = []string{tc.architecture}
+			gen.FinalizeParams()
+			assert.Equal(t, tc.want, gen.Param.VLLM.ModelRunParams["kv-cache-dtype"])
+		})
+	}
+}
+
+func TestTokenizerModeByArchitecture(t *testing.T) {
+	for _, tc := range []struct {
+		architecture string
+		want         string
+	}{
+		{"DeepseekV3ForCausalLM", "deepseek_v32"},
+		{"DeepseekV32ForCausalLM", "deepseek_v32"},
+		{"DeepseekV4ForCausalLM", "deepseek_v4"},
+		{"DeepseekV41ForCausalLM", "deepseek_v41"},
+	} {
+		t.Run(tc.architecture, func(t *testing.T) {
+			gen := NewGenerator("test/model", "")
+			gen.Param.Metadata.Architectures = []string{tc.architecture}
+			gen.FinalizeParams()
+			assert.Equal(t, tc.want, gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
+		})
+	}
+}
+
 func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	catalogData, err := os.ReadFile("../models/model_catalog.yaml")
 	assert.NoError(t, err)
@@ -660,9 +680,7 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	// Mistral catalog entries should set load_format, config_format, tokenizer_mode
 	// to "mistral" in VLLM.ModelRunParams after FinalizeParams.
 	mistralRepos := []string{
-		"mistralai/Ministral-3-14B-Instruct-2512",
 		"mistralai/Mistral-Medium-3.5-128B",
-		"mistralai/Mistral-Small-4-119B-2603",
 	}
 
 	for _, repo := range mistralRepos {
@@ -703,6 +721,52 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 			assert.Equal(t, "auto", gen.Param.VLLM.ModelRunParams["tokenizer_mode"])
 		})
 	}
+}
+
+func TestSupportsMaxNumSeqsEstimate(t *testing.T) {
+	assert.True(t, SupportsMaxNumSeqsEstimate([]string{"Qwen3_5ForConditionalGeneration"}, "NVIDIA H100"))
+	assert.True(t, SupportsMaxNumSeqsEstimate([]string{"Qwen3_5MoeForConditionalGeneration"}, "NVIDIA H100"))
+	assert.False(t, SupportsMaxNumSeqsEstimate([]string{"Qwen3_5ForConditionalGeneration"}, "NVIDIA A100"))
+	assert.False(t, SupportsMaxNumSeqsEstimate([]string{"OtherArchitecture"}, "NVIDIA H100"))
+	assert.False(t, SupportsMaxNumSeqsEstimate(nil, "NVIDIA H100"))
+}
+
+func TestResolveIndexerKVDtype(t *testing.T) {
+	architectures := []string{"Qwen4ExpForConditionalGeneration"}
+
+	dtype, ok := ResolveIndexerKVDtype(architectures, "NVIDIA H100")
+	assert.True(t, ok)
+	assert.Equal(t, "fp8", dtype)
+
+	dtype, ok = ResolveIndexerKVDtype(architectures, "A100-SXM4-80GB")
+	assert.True(t, ok)
+	assert.Equal(t, "bf16", dtype)
+
+	_, ok = ResolveIndexerKVDtype([]string{"OtherArchitecture"}, "NVIDIA H100")
+	assert.False(t, ok)
+}
+
+func TestResolveGPUModelPolicies(t *testing.T) {
+	assert.Equal(t, "0.82", ResolveGPUMemoryUtilization("NVIDIA-A10"))
+	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("NVIDIA A100"))
+
+	mode, ok := ResolveCUDAGraphMode("nvidia-nemotron-nano-9b-v2", "NVIDIA-A10")
+	assert.True(t, ok)
+	assert.Equal(t, "FULL_DECODE_ONLY", mode)
+
+	mode, ok = ResolveCUDAGraphMode("deepseek-v4-flash-0731", "NVIDIA A100")
+	assert.True(t, ok)
+	assert.Equal(t, "NONE", mode)
+
+	_, ok = ResolveCUDAGraphMode("other-model", "NVIDIA H100")
+	assert.False(t, ok)
+
+	backend, ok := ResolveLinearBackend("mistral-medium-3.5-128b", "A100-SXM4-80GB")
+	assert.True(t, ok)
+	assert.Equal(t, "marlin", backend)
+
+	_, ok = ResolveLinearBackend("mistral-medium-3.5-128b", "NVIDIA H100")
+	assert.False(t, ok)
 }
 
 func TestSelectWeightFiles(t *testing.T) {

@@ -52,6 +52,7 @@ Reserve `custom` as an inference preset name, and reject user-supplied names beg
 |---|---|
 | `config.json` | Required in custom mode. Operator-supplied model configuration, never mounted into the serving pod. |
 | `model_size_bytes` | Required in custom mode. Total on-disk size of the weight bundle, as a plain decimal integer of bytes. |
+| `reference_model_id` | Optional. Hugging Face model ID (`org/name`) whose model-family settings the custom model shares, typically the model it was fine-tuned from. |
 | `inference_config.yaml` | Optional runtime overrides, as in preset mode. Custom mode does not fall back to the default template. |
 
 The ConfigMap must be same-namespace, already existing, and immutable. Because it now carries both the model configuration and the runtime overrides, changing either requires a new ConfigMap name, and that rename is itself the new deployment this proposal requires. That is the deliberate cost of reusing one object: a runtime-only edit is not distinguishable from a model change.
@@ -71,6 +72,7 @@ kubectl create configmap my-model-v1 \
   --from-file=config.json=./config.json \
   --from-file=inference_config.yaml=./inference_config.yaml \
   --from-literal=model_size_bytes=$(du -sb ./model-dir | cut -f1) \
+  --from-literal=reference_model_id=Qwen/Qwen3-8B \
   --dry-run=client -o json \
   | jq '.immutable = true' \
   | kubectl apply -f -
@@ -123,7 +125,7 @@ Use built-in implementations only, disabling remote-code trust in serving, token
 
 Supported `inference.config` values override model defaults for dtype, context/cache, parsers, GPU utilization, and parallelism. Use one shared typed merge for validation, sizing, and rendering. Reject source/tokenizer changes, remote-code enablement, unsupported quantization, and streaming-loader conflicts. Validate explicit context against the model limit; otherwise use auto-fit. Check GPU/topology constraints during planning.
 
-Parsers default by architecture. Without a reliable default or explicit selection, disable the affected parser and warn with configuration guidance; a default does not guarantee the fine-tune's output format. An explicit empty parser value clears its default. The typed merge omits disabled flags and clears derived automatic tool choice when disabling the tool parser. Reject inconsistent combinations; never serialize `disabled`, empty parser values, or YAML booleans blindly.
+Parsers default by architecture unless a reference model is given (see below). Without a reliable default or explicit selection, disable the affected parser and warn with configuration guidance; a default does not guarantee the fine-tune's output format. An explicit empty parser value clears its default. The typed merge omits disabled flags and clears derived automatic tool choice when disabling the tool parser. Reject inconsistent combinations; never serialize `disabled`, empty parser values, or YAML booleans blindly.
 
 ## Model resolution and registration
 
@@ -133,7 +135,9 @@ This keeps derived values off the API surface entirely. Runtime parameters, CLI 
 
 The registry is an in-memory, process-local cache. Content addressing is what makes that safe: a miss is repaired by re-reading the immutable ConfigMap and re-deriving the identical result, so restarts need no extra state and byte-identical configurations across namespaces share one entry. Resolution therefore requires the ConfigMap reference wherever it happens, including node estimation, which today receives only a model name.
 
-Two consequences are deliberate. Derived defaults follow the controller version rather than being pinned, matching existing preset behavior: a controller upgrade combined with a spec change may change derived flags. And the generator's model-name heuristics cannot match `custom-<sha256>`, so architecture-specific defaults come only from configuration; where no reliable default exists, the affected parser is disabled with a warning.
+Two consequences are deliberate. Derived defaults follow the controller version rather than being pinned, matching existing preset behavior: a controller upgrade combined with a spec change may change derived flags. And the generator's model-name heuristics cannot match `custom-<sha256>`, so without a reference model, defaults come only from configuration; where no reliable default exists, the affected parser is disabled with a warning.
+
+The optional `reference_model_id` key restores those heuristics: its model name is used to look up runtime settings such as parsers, chat template and vLLM backends, falling back to the architecture when nothing matches. It never changes the model's identity or sizing, nothing is downloaded for it, and speculative decoding is not inherited. An unrecognized reference contributes nothing.
 
 Native dtype parsing is new; the current wrapper defaults native models to BF16. Reject conflicting normalized `dtype`/`torch_dtype`. CLI `auto` is not a memory representation. FP8 weights imply neither `--quantization=fp8` nor FP8 KV cache. Structural dimensions, RoPE, and checkpoint layout stay in the verified `config.json`. Source/tokenizer paths and code-trust policy remain separate responsibilities.
 
@@ -147,7 +151,7 @@ The declared value is on-disk bundle bytes — the sum of the artifact's files, 
 
 The size lives in the ConfigMap, not an annotation, so changing it forces a new deployment: the ConfigMap is immutable and covered by `ComputeHash`, whereas an annotation edit produces no revision and is a silent no-op once `Status.TargetNodeCount` is set. It is validated once where the ConfigMap is read — missing, blank, zero, negative, non-integer, or implausibly large is rejected there — because a bad value otherwise reaches `resource.MustParse`, which panics.
 
-Identity stays `custom-<sha256>`, the digest of `config.json` alone; the size is not part of it. Correcting a mis-declared size is a correction to the same model, so a changed size is adopted, logged, and re-recorded in `status.resolvedModel`, whereas a changed `config.json` is a replacement. The size is not folded into `config.json` either, which would break the byte-for-byte startup verification. The registry cache is keyed by configuration and size together, so two deployments sharing a `config.json` but declaring different sizes keep separate entries and a corrected size is never served stale capacity figures. A `status.resolvedModel` recorded before this key existed carries no size and is adopted on upgrade rather than flagged as a mismatch.
+Identity stays `custom-<sha256>`, the digest of `config.json` alone; the size is not part of it. Correcting a mis-declared size is a correction to the same model, so a changed size is adopted, logged, and re-recorded in `status.resolvedModel`, whereas a changed `config.json` is a replacement. The size is not folded into `config.json` either, which would break the byte-for-byte startup verification. The registry cache is keyed by configuration, size and reference model together, so two deployments sharing a `config.json` but declaring different sizes keep separate entries and a corrected size is never served stale capacity figures. A `status.resolvedModel` recorded before this key existed carries no size and is adopted on upgrade rather than flagged as a mismatch.
 
 | Parsed or derived output | Where it is used |
 |---|---|

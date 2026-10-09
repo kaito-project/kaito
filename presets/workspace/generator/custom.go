@@ -16,6 +16,8 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/kaito-project/kaito/pkg/model"
 )
@@ -36,14 +38,17 @@ import (
 // architecture's tensor layout, and getting that subtly wrong produces a
 // plausible number rather than an error.
 //
-// modelName becomes the registry key and the served model identity. Note that
-// the generator's model-name heuristics cannot match a content-addressed custom
-// name, so defaults come from the configuration alone; where no reliable
-// default exists the corresponding parser is simply left unset.
-func GenerateFromConfig(modelName string, configJSON []byte, sizeBytes int64) (*model.PresetParam, error) {
+// modelName becomes the registry key and the served model identity. The
+// generator's model-name heuristics cannot match a content-addressed custom
+// name, so by default family settings come from the configuration alone; where
+// no reliable default exists the corresponding setting is simply left unset.
+// WithReferenceModelID restores them by naming a model the custom model
+// shares a family with.
+func GenerateFromConfig(modelName string, configJSON []byte, sizeBytes int64, opts ...CustomOption) (*model.PresetParam, error) {
 	if modelName == "" {
 		return nil, fmt.Errorf("model name is required")
 	}
+	options := ApplyCustomOptions(opts...)
 	if sizeBytes <= 0 {
 		return nil, fmt.Errorf("model size must be a positive number of bytes, got %d", sizeBytes)
 	}
@@ -63,6 +68,7 @@ func GenerateFromConfig(modelName string, configJSON []byte, sizeBytes int64) (*
 		TokenizerMode: "auto",
 		ModelConfig:   parsed,
 	}
+	gen.nameHint = options.ReferenceModelID.FamilyName()
 	gen.Param.Metadata.Name = modelName
 	gen.Param.VLLM.ModelRunParams = make(map[string]string)
 
@@ -99,4 +105,57 @@ func GenerateFromConfig(modelName string, configJSON []byte, sizeBytes int64) (*
 func bytesToGiB(b int64) string {
 	const giB = 1 << 30
 	return fmt.Sprintf("%dGi", (b+giB-1)/giB)
+}
+
+// ReferenceModelID is a validated HuggingFace model ID ("org/name") whose
+// model-family settings a custom model shares. The zero value means none.
+type ReferenceModelID string
+
+// referenceModelIDPattern checks only the "org/name" form, using the
+// characters HuggingFace permits in repository IDs.
+var referenceModelIDPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$`)
+
+// ParseReferenceModelID trims raw and checks that it is empty or has the
+// "org/name" form. An ID naming no known model family is valid and simply
+// contributes no settings.
+func ParseReferenceModelID(raw string) (ReferenceModelID, error) {
+	id := strings.TrimSpace(raw)
+	if id == "" || referenceModelIDPattern.MatchString(id) {
+		return ReferenceModelID(id), nil
+	}
+	return "", fmt.Errorf("reference model ID %q must be a HuggingFace model ID of the form \"org/name\"", raw)
+}
+
+// FamilyName returns the key the name-keyed runtime tables are looked up by,
+// or "" for the zero value.
+func (id ReferenceModelID) FamilyName() string {
+	if id == "" {
+		return ""
+	}
+	return ModelNameFromRepo(string(id))
+}
+
+// CustomOptions holds the optional inputs for generating a custom model.
+type CustomOptions struct {
+	ReferenceModelID ReferenceModelID
+}
+
+// CustomOption configures custom model generation.
+type CustomOption func(*CustomOptions)
+
+// WithReferenceModelID sets the reference model whose family settings a custom
+// model inherits.
+func WithReferenceModelID(id ReferenceModelID) CustomOption {
+	return func(o *CustomOptions) {
+		o.ReferenceModelID = id
+	}
+}
+
+// ApplyCustomOptions folds opts into a CustomOptions value.
+func ApplyCustomOptions(opts ...CustomOption) CustomOptions {
+	var o CustomOptions
+	for _, opt := range opts {
+		opt(&o)
+	}
+	return o
 }

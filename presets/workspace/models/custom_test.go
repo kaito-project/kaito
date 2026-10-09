@@ -125,7 +125,7 @@ func TestResolveCustomModelRebuildsFromConfigAlone(t *testing.T) {
 	sizeBytes, err := strconv.ParseInt(testSizeBytes, 10, 64)
 	require.NoError(t, err)
 	name := CustomModelName(ConfigDigest([]byte(uniqueConfig)))
-	cacheKey := customModelCacheKey(name, sizeBytes)
+	cacheKey := customModelCacheKey(name, sizeBytes, "")
 	require.False(t, plugin.KaitoModelRegister.Has(cacheKey), "config must not already be cached")
 
 	cm := customConfigMap("byo-config", validCustomData(uniqueConfig), true)
@@ -399,4 +399,28 @@ func TestCustomModelDigestRoundTrips(t *testing.T) {
 		_, ok := model.CustomModelDigest(name)
 		assert.False(t, ok, "%q is not a custom model identity", name)
 	}
+}
+
+func TestResolveCustomModelAppliesReferenceModel(t *testing.T) {
+	plain, err := ResolveCustomModelFromConfigMap(customConfigMap("byo-plain", validCustomData(testCustomConfigJSON), true))
+	require.NoError(t, err)
+
+	data := validCustomData(testCustomConfigJSON)
+	data[CustomModelReferenceModelIDKey] = "  deepseek-ai/DeepSeek-V3.2\n"
+	hinted, err := ResolveCustomModelFromConfigMap(customConfigMap("byo-hinted", data, true))
+	require.NoError(t, err)
+
+	assert.Equal(t, plain.Name, hinted.Name, "the reference must not change the model identity")
+	assert.Equal(t, plain.Digest, hinted.Digest)
+	assert.Equal(t, "deepseek_v32", hinted.Model.GetInferenceParameters().VLLM.ModelRunParams["tool-call-parser"])
+	assert.NotEqual(t, "deepseek_v32", plain.Model.GetInferenceParameters().VLLM.ModelRunParams["tool-call-parser"],
+		"models sharing a config.json but not a reference must not share cached parameters")
+}
+
+func TestResolveCustomModelRejectsMalformedReferenceModel(t *testing.T) {
+	data := validCustomData(testCustomConfigJSON)
+	data[CustomModelReferenceModelIDKey] = "qwen3-8b"
+	_, err := ResolveCustomModelFromConfigMap(customConfigMap("byo-bad-ref", data, true))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), CustomModelReferenceModelIDKey)
 }

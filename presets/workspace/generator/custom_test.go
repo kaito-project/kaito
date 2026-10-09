@@ -206,3 +206,64 @@ func TestGenerateFromConfigSizeIsUsedVerbatim(t *testing.T) {
 	assert.Contains(t, exact.Metadata.DiskStorageRequirement, "Gi")
 	assert.NotEqual(t, "0Gi", exact.Metadata.DiskStorageRequirement)
 }
+
+func TestGenerateFromConfigAppliesReferenceModelFamily(t *testing.T) {
+	plain, err := GenerateFromConfig("custom-ref", []byte(llamaConfigJSON), testSizeBytes)
+	require.NoError(t, err)
+	// Without a reference only the architecture tables can match.
+	assert.Equal(t, "llama3_json", plain.Metadata.ToolCallParser)
+	assert.Empty(t, plain.Metadata.ChatTemplate)
+
+	hinted, err := GenerateFromConfig("custom-ref", []byte(llamaConfigJSON), testSizeBytes,
+		WithReferenceModelID("deepseek-ai/DeepSeek-V3.2"))
+	require.NoError(t, err)
+
+	assert.Equal(t, "custom-ref", hinted.Metadata.Name, "the reference must not change the model identity")
+	assert.Equal(t, "deepseek_v32", hinted.Metadata.ToolCallParser)
+	assert.Equal(t, "tool-chat-deepseekv3.jinja", hinted.Metadata.ChatTemplate)
+	assert.Equal(t, "deepseek_v32", hinted.VLLM.ModelRunParams["tokenizer_mode"])
+	assert.Equal(t, "False", hinted.VLLM.ModelRunParams["kernel-config.enable_flashinfer_autotune"])
+	assert.Nil(t, hinted.SpeculativeDecoding, "speculative decoding is never inherited from a reference model")
+}
+
+func TestGenerateFromConfigFallsBackForUnknownReference(t *testing.T) {
+	param, err := GenerateFromConfig("custom-ref", []byte(llamaConfigJSON), testSizeBytes,
+		WithReferenceModelID("acme/unknown-model"))
+	require.NoError(t, err)
+	assert.Equal(t, "llama3_json", param.Metadata.ToolCallParser, "architecture fallback must still apply")
+}
+
+func TestParseReferenceModelID(t *testing.T) {
+	for _, raw := range []string{"", "Qwen/Qwen3-8B", "meta-llama/Llama-3.1-8B-Instruct", "a/b.c_d-e", "org/-model", " org/model\n"} {
+		_, err := ParseReferenceModelID(raw)
+		assert.NoError(t, err, raw)
+	}
+	for _, raw := range []string{"qwen3-8b", "a/b/c", "/model", "org/", "org/model name", "not a model id"} {
+		_, err := ParseReferenceModelID(raw)
+		assert.Error(t, err, raw)
+	}
+
+	id, err := ParseReferenceModelID("  Qwen/Qwen3-8B ")
+	require.NoError(t, err)
+	assert.Equal(t, ReferenceModelID("Qwen/Qwen3-8B"), id)
+	assert.Equal(t, "qwen3-8b", id.FamilyName())
+}
+
+func TestGenerateFromConfigReferenceAffectsRuntimeParamsOnly(t *testing.T) {
+	plain, err := GenerateFromConfig("custom-ref", []byte(llamaConfigJSON), testSizeBytes)
+	require.NoError(t, err)
+	hinted, err := GenerateFromConfig("custom-ref", []byte(llamaConfigJSON), testSizeBytes,
+		WithReferenceModelID("deepseek-ai/DeepSeek-V3.2"))
+	require.NoError(t, err)
+
+	// Everything derived from the model's structure must come from config.json.
+	assert.Equal(t, plain.Metadata.Architectures, hinted.Metadata.Architectures)
+	assert.Equal(t, plain.Metadata.ModelFileSize, hinted.Metadata.ModelFileSize)
+	assert.Equal(t, plain.Metadata.DiskStorageRequirement, hinted.Metadata.DiskStorageRequirement)
+	assert.Equal(t, plain.Metadata.BytesPerToken, hinted.Metadata.BytesPerToken)
+	assert.Equal(t, plain.Metadata.AttnType, hinted.Metadata.AttnType)
+	assert.Equal(t, plain.Metadata.ModelTokenLimit, hinted.Metadata.ModelTokenLimit)
+	assert.Equal(t, plain.Metadata.DType, hinted.Metadata.DType)
+	assert.Equal(t, plain.Metadata.QuantMethod, hinted.Metadata.QuantMethod)
+	assert.Equal(t, plain.Metadata.Version, hinted.Metadata.Version)
+}

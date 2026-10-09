@@ -709,7 +709,9 @@ func (p *PresetParam) RequiresFlashInfer() bool {
 		case "Glm5NextForCausalLM",
 			"Glm5NextForConditionalGeneration",
 			"KimiK25ForConditionalGeneration",
-			"MiniMaxM2ForCausalLM":
+			"MiniMaxM2ForCausalLM",
+			"Qwen4ExpForCausalLM",
+			"Qwen4ExpForConditionalGeneration":
 			return true
 		}
 	}

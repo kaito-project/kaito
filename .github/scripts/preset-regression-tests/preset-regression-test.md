@@ -112,6 +112,7 @@ Start with the aggregate entry's `reason`. Each retained model artifact director
 - `workspace-applied.yaml`
 - `workspace.json` and condition snapshots
 - pod descriptions and current or previous container logs
+- `diagnostics.log` for the final failure and `diagnostics-attempt-N.log` for retried failures
 - `gsm8k-summary.json` and evaluator logs
 
 Common interpretations:

@@ -13,10 +13,15 @@
 
 """Unit tests for native KAITO guardrails scanners."""
 
+from concurrent.futures import ThreadPoolExecutor
+
+import pytest
+
 from guardrail_core.native_scanners import (
     BanSubstringsMatchType,
     NativeBanSubstringsScanner,
     NativeRegexScanner,
+    NativeSecretsScanner,
     RegexMatchType,
 )
 
@@ -192,3 +197,74 @@ class TestNativeRegexScanner:
         output, valid, score = scanner.scan("", "")
         assert not valid  # Allow-list: no patterns matched = invalid
         assert score == 1.0
+
+
+class TestNativeSecretsScanner:
+    """Test native Secrets scanner."""
+
+    @pytest.mark.parametrize(
+        ("secret", "redact_mode", "expected"),
+        [
+            ("secret-token", "all", "******"),
+            ("secret-token", "partial", "se..en"),
+            ("abc", "partial", "ab..bc"),
+            ("secret-token", "hash", "3c28d89b80f70302b04fce2a1451f6ea"),
+        ],
+    )
+    def test_matches_legacy_redaction(self, monkeypatch, secret, redact_mode, expected):
+        scanner = NativeSecretsScanner(redact_mode=redact_mode)
+        monkeypatch.setattr(scanner, "_detect_secret_values", lambda output: {secret})
+
+        assert scanner.scan("", secret) == (expected, False, 1.0)
+
+    def test_rejects_unknown_redaction_mode(self, monkeypatch):
+        scanner = NativeSecretsScanner(redact_mode="unknown")
+        monkeypatch.setattr(scanner, "_detect_secret_values", lambda output: {"secret"})
+
+        with pytest.raises(ValueError, match="redact mode wasn't recognized unknown"):
+            scanner.scan("", "secret")
+
+    @pytest.mark.parametrize(
+        "secret",
+        [
+            "ghp_" + "A" * 36,
+            "github_pat_" + "A" * 82,
+            "AIza" + "A" * 35,
+        ],
+    )
+    def test_detects_compatibility_key_types(self, secret):
+        scanner = NativeSecretsScanner(redact_mode="all")
+
+        assert secret in scanner._detect_secret_values(secret)
+
+    def test_detects_default_and_compatibility_key_types(self):
+        aws_key = "AKIA" + "A" * 16
+        github_token = "ghp_" + "A" * 36
+        gcp_key = "AIza" + "A" * 35
+        scanner = NativeSecretsScanner(redact_mode="all")
+
+        sanitized, is_valid, risk_score = scanner.scan(
+            "", f"Keys: {aws_key}, {github_token}, {gcp_key}"
+        )
+
+        assert sanitized == "Keys: ******, ******, ******"
+        assert is_valid is False
+        assert risk_score == 1.0
+
+    def test_concurrent_scans_preserve_detection(self):
+        scanner = NativeSecretsScanner(redact_mode="all")
+        samples = [
+            ("AKIA" + "A" * 16, ("******", False, 1.0)),
+            ("ghp_" + "A" * 36, ("******", False, 1.0)),
+            ("plain text", ("plain text", True, -1.0)),
+        ]
+
+        def scan(index):
+            output, expected = samples[index % len(samples)]
+            return scanner.scan("", output), expected
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            results = executor.map(scan, range(100))
+
+        for actual, expected in results:
+            assert actual == expected

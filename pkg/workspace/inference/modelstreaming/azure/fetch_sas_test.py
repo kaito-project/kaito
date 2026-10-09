@@ -93,6 +93,31 @@ def test_extract_blob_uri_public():
     )
 
 
+def test_extract_blob_uri_foundry_byo_top_level():
+    payload = {
+        "id": "azureai://accounts/a/projects/p/models/m/versions/1",
+        "name": "m",
+        "version": "1",
+        "blobUri": "https://acct.blob.core.windows.net/c/foundry",
+    }
+    assert (
+        fetch_sas.extract_blob_uri(payload)
+        == "https://acct.blob.core.windows.net/c/foundry"
+    )
+
+
+def test_extract_blob_uri_top_level_takes_precedence():
+    payload = {
+        "blobUri": "https://acct.blob.core.windows.net/c/top-level",
+        "properties": {"modelUri": "https://acct.blob.core.windows.net/c/properties"},
+        "blobReference": {"blobUri": "https://acct.blob.core.windows.net/c/reference"},
+    }
+    assert (
+        fetch_sas.extract_blob_uri(payload)
+        == "https://acct.blob.core.windows.net/c/top-level"
+    )
+
+
 def test_extract_blob_uri_byo():
     payload = {"blobReference": {"blobUri": "https://acct.blob.core.windows.net/c"}}
     assert fetch_sas.extract_blob_uri(payload) == "https://acct.blob.core.windows.net/c"
@@ -118,12 +143,30 @@ def test_extract_sas_uri_missing():
     assert fetch_sas.extract_sas_uri({}) == ""
 
 
-def test_account_and_container():
-    account, container = fetch_sas.account_and_container(
-        "https://sacae6.blob.core.windows.net/private-mo-abc/sub/dir"
+def test_account_container_and_prefix_public():
+    payload = {
+        "properties": {
+            "modelUri": "https://sacae6.blob.core.windows.net/public-models/qwen/version-2/"
+        }
+    }
+    account, container, prefix = fetch_sas.account_container_and_prefix(
+        fetch_sas.extract_blob_uri(payload)
     )
     assert account == "sacae6", account
-    assert container == "private-mo-abc", container
+    assert container == "public-models", container
+    assert prefix == "qwen/version-2", prefix
+
+
+def test_account_container_and_prefix_foundry_byo():
+    payload = {
+        "blobUri": "https://sacae6.blob.core.windows.net/private-models/projects/p/models/qwen/version-1"
+    }
+    account, container, prefix = fetch_sas.account_container_and_prefix(
+        fetch_sas.extract_blob_uri(payload)
+    )
+    assert account == "sacae6", account
+    assert container == "private-models", container
+    assert prefix == "projects/p/models/qwen/version-1", prefix
 
 
 def test_list_blob_names_parses_names():
@@ -138,6 +181,27 @@ def test_list_blob_names_parses_names():
         lambda: fetch_sas.list_blob_names("https://blob/c?sig=x"),
     )
     assert names == ["model/a.safetensors", "model/config.json"], names
+
+
+def test_list_blob_names_scopes_listing_to_model_prefix():
+    xml = (
+        "<EnumerationResults><Blobs>"
+        "<Blob><Name>models/qwen/v1/model.safetensors</Name></Blob>"
+        "</Blobs></EnumerationResults>"
+    )
+    requested_urls = []
+
+    def responder(url, timeout=30):
+        requested_urls.append(url)
+        return _FakeResp(xml)
+
+    names = _with_urlopen(
+        responder,
+        lambda: fetch_sas.list_blob_names("https://blob/c?sig=x", "models/qwen/v1"),
+    )
+    assert names == ["models/qwen/v1/model.safetensors"], names
+    assert len(requested_urls) == 1, requested_urls
+    assert "prefix=models%2Fqwen%2Fv1%2F" in requested_urls[0], requested_urls[0]
 
 
 def test_list_blob_names_paginates_and_unescapes():
@@ -178,6 +242,22 @@ def test_discover_subpath_root():
 
 def test_discover_subpath_none():
     assert fetch_sas.discover_subpath(["config.json"]) == ""
+
+
+def test_discover_subpath_ignores_sibling_models_outside_prefix():
+    names = [
+        "models/qwen/v1/weights/a.safetensors",
+        "models/qwen/v1/weights/b.safetensors",
+        "models/llama/v1/model.safetensors",
+    ]
+    assert (
+        fetch_sas.discover_subpath(names, "models/qwen/v1") == "models/qwen/v1/weights"
+    )
+
+
+def test_discover_subpath_preserves_prefix_without_safetensors():
+    names = ["models/qwen/v1/config.json", "models/qwen/v1/tokenizer.json"]
+    assert fetch_sas.discover_subpath(names, "models/qwen/v1") == "models/qwen/v1"
 
 
 def test_blob_url_inserts_path_before_query():

@@ -17,10 +17,28 @@ All scanners implement the KAITO output guardrail scanner interface:
     scan(prompt: str, output: str) -> tuple[str, bool, float]
 """
 
+import hashlib
 import json
+import os
 import re
+import tempfile
+import threading
 import unicodedata
 from enum import StrEnum
+
+from detect_secrets.core.secrets_collection import SecretsCollection
+from detect_secrets.settings import default_settings
+
+# Compatibility patterns for token formats not fully detected by the currently
+# pinned detect-secrets defaults.
+_DETECT_SECRETS_COMPATIBILITY_PATTERNS = (
+    re.compile(r"(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{36}"),
+    re.compile(r"github_pat_[0-9A-Za-z_]{82}"),
+    re.compile(r"(?i)\bAIza[0-9A-Za-z_-]{35}(?=['|\"\n\r\s\x60;]|$)"),
+)
+# detect-secrets settings are process-global. Serialize scans to prevent
+# concurrent settings mutation from causing missed detections.
+_DETECT_SECRETS_SETTINGS_LOCK = threading.Lock()
 
 
 class BanSubstringsMatchType(StrEnum):
@@ -453,3 +471,117 @@ class NativeTokenLimitScanner:
         truncated_output = tokenizer.decode(truncated_tokens)
 
         return truncated_output, False, 1.0
+
+
+class NativeSecretsScanner:
+    """KAITO-owned Secrets scanner using detect-secrets directly.
+
+    Detects and redacts sensitive information like API keys, passwords,
+    and other secrets using the detect-secrets library.
+
+    Redaction behavior:
+        - all:     "****** (6 asterisks, fixed-length to avoid leaking secret length)"
+        - partial: "XX..YY (first and last 2 chars)"
+        - hash:    "MD5 hash of the secret value"
+    """
+
+    def __init__(self, redact_mode: str = "all") -> None:
+        """Initialize the secrets scanner.
+
+        Args:
+            redact_mode: How to redact detected secrets. One of:
+                - "all": Replace entire secret with fixed-length mask
+                - "partial": Show first 2 and last 2 characters
+                - "hash": Replace with MD5 hash
+        """
+        self._redact_mode = redact_mode
+
+    def scan(self, prompt: str, output: str) -> tuple[str, bool, float]:
+        """Scan output for secrets and redact if found.
+
+        Args:
+            prompt: The input prompt (unused, kept for interface compatibility).
+            output: The text to scan.
+
+        Returns:
+            (output, valid, score):
+                output: Original or redacted output text.
+                valid: True if no secrets found, False if secrets detected.
+                score: -1.0 if no secrets (valid), 1.0 if secrets found (invalid).
+        """
+        del prompt
+        if output.strip() == "":
+            return output, True, -1.0
+
+        secret_values = self._detect_secret_values(output)
+        if not secret_values:
+            return output, True, -1.0
+
+        sanitized_output = output
+        for secret_value in sorted(
+            secret_values,
+            key=lambda value: (-len(value), value),
+        ):
+            replacement = self._redact_value(secret_value, self._redact_mode)
+            sanitized_output = sanitized_output.replace(secret_value, replacement)
+
+        return sanitized_output, False, 1.0
+
+    @staticmethod
+    def _redact_value(value: str, redact_mode: str) -> str:
+        """Redact secret using the specified mode.
+
+        Args:
+            value: The secret value to redact.
+            redact_mode: One of "all", "partial", or "hash".
+
+        Returns:
+            Redacted representation of the secret.
+        """
+        if redact_mode == "all":
+            return "******"
+        if redact_mode == "partial":
+            return f"{value[:2]}..{value[-2:]}"
+        if redact_mode == "hash":
+            return hashlib.md5(value.encode()).hexdigest()
+        raise ValueError(f"redact mode wasn't recognized {redact_mode}")
+
+    def _detect_secret_values(self, text: str) -> set[str]:
+        """Detect secrets using detect-secrets library directly.
+
+        Uses detect-secrets defaults plus compatibility patterns for known gaps.
+
+        Args:
+            text: The text to scan for secrets.
+
+        Returns:
+            A set of detected secret values.
+        """
+        secrets = SecretsCollection()
+
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+        ) as temp_file:
+            temp_file.write(text)
+            temp_path = temp_file.name
+
+        try:
+            with _DETECT_SECRETS_SETTINGS_LOCK, default_settings():
+                secrets.scan_file(temp_path)
+        finally:
+            os.remove(temp_path)
+
+        secret_values = {
+            found_secret.secret_value
+            for file_path in secrets.files
+            for found_secret in secrets[file_path]
+            if found_secret.secret_value
+        }
+        secret_values.update(
+            match.group(0)
+            for pattern in _DETECT_SECRETS_COMPATIBILITY_PATTERNS
+            for match in pattern.finditer(text)
+        )
+        return secret_values

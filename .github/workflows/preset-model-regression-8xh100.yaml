@@ -82,7 +82,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: "1.26.6"
+  GO_VERSION: "1.26.9"
   MODEL_CATALOG_FILE: "presets/workspace/models/model_catalog.yaml"
   REGRESSION_CONFIG_FILE: ".github/preset-regression-config.json"
   REGRESSION_PROFILE: "8xh100"

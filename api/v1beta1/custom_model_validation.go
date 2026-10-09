@@ -72,10 +72,12 @@ func (w *Workspace) validateCustomModelStreaming() *apis.FieldError {
 	}
 
 	annotations := w.GetAnnotations()
-	if annotations[mmconsts.AnnotationModelStreaming] != "true" {
-		return apis.ErrMissingField(fmt.Sprintf(
-			"preset %q requires annotation %s=\"true\"",
-			plugin.PresetNameCustom, mmconsts.AnnotationModelStreaming))
+	// Streaming is on by default once the feature gate is enabled; only an
+	// explicit opt-out leaves a custom model without a source for its weights.
+	if annotations[mmconsts.AnnotationModelStreaming] == "disabled" {
+		return apis.ErrInvalidValue(fmt.Sprintf(
+			"preset %q requires model streaming; remove annotation %s=\"disabled\"",
+			plugin.PresetNameCustom, mmconsts.AnnotationModelStreaming), mmconsts.AnnotationModelStreaming)
 	}
 	// The source type itself is validated by the streaming configuration, but a
 	// custom model has no HuggingFace identity to fall back on, so the

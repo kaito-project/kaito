@@ -67,7 +67,7 @@ permissions:
   contents: read
 
 env:
-  GO_VERSION: "1.26.6"
+  GO_VERSION: "1.26.9"
   VM_SIZE: ${{ github.event.inputs.vm_size || 'Standard_NC24ads_A100_v4' }}
   MIG_STRATEGY: ${{ github.event.inputs.mig_strategy || 'mixed' }}
   MIG_PROFILE: ${{ github.event.inputs.mig_profile || '3g.40gb' }}

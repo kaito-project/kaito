@@ -126,10 +126,19 @@ func TestValidateCustomModelStreaming(t *testing.T) {
 			errSubstr:   consts.FeatureFlagModelStreaming,
 		},
 		{
-			name:        "streaming annotation missing",
+			// Streaming defaults to on, so the annotation is optional.
+			name:        "streaming annotation omitted",
 			gateEnabled: true,
 			annotations: map[string]string{consts.AnnotationStreamSourceType: consts.SourceTypeBYO},
-			errSubstr:   mmconsts.AnnotationModelStreaming,
+		},
+		{
+			name:        "streaming explicitly disabled",
+			gateEnabled: true,
+			annotations: map[string]string{
+				mmconsts.AnnotationModelStreaming: "disabled",
+				consts.AnnotationStreamSourceType: consts.SourceTypeBYO,
+			},
+			errSubstr: mmconsts.AnnotationModelStreaming,
 		},
 		{
 			name:        "wrong source type",

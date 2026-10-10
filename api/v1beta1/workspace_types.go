@@ -264,6 +264,11 @@ type WorkspaceStatus struct {
 	// +optional
 	WorkerNodes []string `json:"workerNodes,omitempty"`
 
+	// MaxModelLen is the maximum context length reported by the inference runtime.
+	// It may be lower than the configured model context length after vLLM memory profiling.
+	// +optional
+	MaxModelLen *int32 `json:"maxModelLen,omitempty"`
+
 	// State represents the current high-level state of the workspace.
 	// +optional
 	State WorkspaceState `json:"state,omitempty"`

@@ -91,6 +91,12 @@ const (
 	// override of either (via DACS_ENV_) is applied to both.
 	runaiChunkEnv = "RUNAI_STREAMER_CHUNK_BYTESIZE"
 	siChunkEnv    = "SI_streamingChunkSize"
+
+	// Storage Intercept applies these client-scoped environment variables over
+	// its config. Keep the tuned DACS values here rather than changing Tachyon's
+	// global defaults.
+	siUploadThreadsEnv        = "SI_cacheNumUploadThreadsPerProcess"
+	siDeferCachePopulationEnv = "SI_blobSiDeferCachePopulation"
 )
 
 var cacheGVR = schema.GroupVersionResource{
@@ -387,6 +393,8 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 			{Name: "RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB", Value: ClientLibPath},
 			{Name: "CACHE_DISCOVERY_URL", Value: discoveryEndpoint},
 			{Name: "CACHE_SERVER_PORT", Value: fmt.Sprintf("%d", defaultDiscoveryPort)},
+			{Name: siUploadThreadsEnv, Value: "4"},
+			{Name: siDeferCachePopulationEnv, Value: "true"},
 		}
 
 		// Overlay DACS_ENV_ passthrough vars: they override same-named fixed
@@ -398,6 +406,24 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 		env := upsertEnv(fixedEnv, p.config.StreamerEnv)
 		env = upsertEnv(env, map[string]string{runaiChunkEnv: chunkVal, siChunkEnv: chunkVal})
 		mutations.EnvVars = append(mutations.EnvVars, env...)
+
+		effectiveEnv := make(map[string]string, len(env))
+		for _, variable := range env {
+			effectiveEnv[variable.Name] = variable.Value
+		}
+		workspaceNamespace, workspaceName := "", ""
+		if workspace != nil {
+			workspaceNamespace = workspace.Namespace
+			workspaceName = workspace.Name
+		}
+		klog.InfoS("Configured DACS model-weights cache",
+			"workspaceNamespace", workspaceNamespace,
+			"workspaceName", workspaceName,
+			"clientImage", clientImage,
+			"discoveryEndpoint", discoveryEndpoint,
+			"streamingChunkSize", effectiveEnv[siChunkEnv],
+			"uploadThreads", effectiveEnv[siUploadThreadsEnv],
+			"deferCachePopulation", effectiveEnv[siDeferCachePopulationEnv])
 
 	case cache.CacheConcernKVCache:
 		if !p.config.KVCacheEnabled {

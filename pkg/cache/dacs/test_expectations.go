@@ -53,6 +53,8 @@ func init() {
 				"RUNAI_STREAMER_EXPERIMENTAL_AZURE_CACHE_LIB",
 				"CACHE_DISCOVERY_URL",
 				"CACHE_SERVER_PORT",
+				siUploadThreadsEnv,
+				siDeferCachePopulationEnv,
 			},
 			RequiredVolumes:      []string{ClientVolumeName},
 			RequiredVolumeMounts: []string{ClientVolumeName},
@@ -90,6 +92,14 @@ func validateModelWeightsMutations(m *cache.PodMutations) []error {
 	wantPort := fmt.Sprintf("%d", defaultDiscoveryPort)
 	if port, ok := m.EnvValue("CACHE_SERVER_PORT"); !ok || port != wantPort {
 		errs = append(errs, fmt.Errorf("CACHE_SERVER_PORT = %q, want %q", port, wantPort))
+	}
+
+	if threads, ok := m.EnvValue(siUploadThreadsEnv); !ok || threads != "4" {
+		errs = append(errs, fmt.Errorf("%s = %q, want %q", siUploadThreadsEnv, threads, "4"))
+	}
+
+	if deferPopulation, ok := m.EnvValue(siDeferCachePopulationEnv); !ok || deferPopulation != "true" {
+		errs = append(errs, fmt.Errorf("%s = %q, want %q", siDeferCachePopulationEnv, deferPopulation, "true"))
 	}
 
 	return errs

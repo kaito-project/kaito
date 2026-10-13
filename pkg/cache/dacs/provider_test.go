@@ -245,9 +245,9 @@ func TestPodMutations_ModelWeightsStreamerEnvOverride(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// 6 fixed env vars (incl. the linked chunk-size pair) + 2 free-form entries.
-	if len(mutations.EnvVars) != 8 {
-		t.Fatalf("expected 8 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+	// 8 fixed env vars (incl. the linked chunk-size pair) + 2 free-form entries.
+	if len(mutations.EnvVars) != 10 {
+		t.Fatalf("expected 10 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
 	}
 	envVars := envVarMap(mutations.EnvVars)
 	if envVars["CACHE_SERVER_CHUNK_BYTESIZE"] != "67108864" {
@@ -300,9 +300,9 @@ func TestPodMutations_ChunkSizePairOverride(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			// Still 6 fixed env vars: the override upserts in place, not duplicates.
-			if len(mutations.EnvVars) != 6 {
-				t.Fatalf("expected 6 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+			// Still 8 fixed env vars: the override upserts in place, not duplicates.
+			if len(mutations.EnvVars) != 8 {
+				t.Fatalf("expected 8 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
 			}
 			envVars := envVarMap(mutations.EnvVars)
 			if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != tt.want {
@@ -389,8 +389,8 @@ func TestPodMutations_ModelWeights(t *testing.T) {
 
 	// Should have DACS discovery env vars plus the linked chunk-size pair
 	// (no KAITO_MODEL_PATH).
-	if len(mutations.EnvVars) != 6 {
-		t.Fatalf("expected 6 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
+	if len(mutations.EnvVars) != 8 {
+		t.Fatalf("expected 8 env vars, got %d: %v", len(mutations.EnvVars), mutations.EnvVars)
 	}
 	envVars := envVarMap(mutations.EnvVars)
 	if envVars["RUNAI_STREAMER_CHUNK_BYTESIZE"] != "33554432" {
@@ -406,7 +406,12 @@ func TestPodMutations_ModelWeights(t *testing.T) {
 	if envVars["CACHE_SERVER_PORT"] != "9065" {
 		t.Errorf("CACHE_SERVER_PORT: got %q, want 9065", envVars["CACHE_SERVER_PORT"])
 	}
-
+	if envVars[siUploadThreadsEnv] != "4" {
+		t.Errorf("%s: got %q, want 4", siUploadThreadsEnv, envVars[siUploadThreadsEnv])
+	}
+	if envVars[siDeferCachePopulationEnv] != "true" {
+		t.Errorf("%s: got %q, want true", siDeferCachePopulationEnv, envVars[siDeferCachePopulationEnv])
+	}
 	// Should NOT have init containers, volumes, or volume mounts (webhook handles these).
 	if len(mutations.InitContainers) != 0 {
 		t.Errorf("expected 0 init containers (webhook handles injection), got %d", len(mutations.InitContainers))
@@ -443,8 +448,8 @@ func TestPodMutations_ModelWeightsCustomPrefix(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(mutations.EnvVars) != 6 {
-		t.Fatalf("expected 6 env vars, got %d", len(mutations.EnvVars))
+	if len(mutations.EnvVars) != 8 {
+		t.Fatalf("expected 8 env vars, got %d", len(mutations.EnvVars))
 	}
 }
 
@@ -470,8 +475,8 @@ func TestPodMutations_ModelWeightsNoModelName(t *testing.T) {
 	}
 
 	// Same env vars regardless of model name (no KAITO_MODEL_PATH).
-	if len(mutations.EnvVars) != 6 {
-		t.Errorf("expected 6 env vars, got %d", len(mutations.EnvVars))
+	if len(mutations.EnvVars) != 8 {
+		t.Errorf("expected 8 env vars, got %d", len(mutations.EnvVars))
 	}
 }
 
@@ -549,8 +554,8 @@ func TestPodMutations_BothConcerns(t *testing.T) {
 	if err != nil {
 		t.Fatalf("model weights: unexpected error: %v", err)
 	}
-	if len(mwMutations.EnvVars) != 6 {
-		t.Errorf("model weights should have 6 env vars, got %v", mwMutations.EnvVars)
+	if len(mwMutations.EnvVars) != 8 {
+		t.Errorf("model weights should have 8 env vars, got %v", mwMutations.EnvVars)
 	}
 	for _, env := range mwMutations.EnvVars {
 		if env.Name == "VLLM_KV_TRANSFER_CONFIG" {

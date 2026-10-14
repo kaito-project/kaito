@@ -88,7 +88,7 @@ class SecretsConfig:
 
     def build(self, action_on_hit: str) -> Any:
         del action_on_hit
-        from guardrail_core.native_scanners import NativeSecretsScanner
+        from guardrail_core.secrets import NativeSecretsScanner
 
         return NativeSecretsScanner(redact_mode=self.redact_mode)
 

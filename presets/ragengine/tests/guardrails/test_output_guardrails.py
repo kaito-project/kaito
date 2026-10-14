@@ -955,10 +955,10 @@ def test_output_secrets_scanner_deduplicates_detector_hits(monkeypatch):
         def scan_file(self, path):
             pass
 
-    import guardrail_core.native_scanners as native_scanners_module
+    import guardrail_core.secrets.scanner as secrets_scanner_module
 
     monkeypatch.setattr(
-        native_scanners_module, "SecretsCollection", FakeSecretsCollection
+        secrets_scanner_module, "SecretsCollection", FakeSecretsCollection
     )
     scanner = SecretsConfig(redact_mode="all").build("redact")
 

@@ -259,6 +259,27 @@ Supported fields:
 
 - `redact_mode`: optional string, one of `all`, `partial`, `hash`; defaults to `all`
 
+Validated provider coverage:
+
+Built-in coverage reflects behavior validated against the pinned
+`bc-detect-secrets` version.
+
+| Provider or format | Detection source | Supported formats |
+| --- | --- | --- |
+| AWS | `detect-secrets` built-in | Access key IDs and contextual secret access keys |
+| Azure | `detect-secrets` built-in | Storage account keys with Azure or `AccountKey` context |
+| GCP | KAITO-specific | `AIza` API keys |
+| GitHub | KAITO-specific | Fixed-length classic and fine-grained access tokens with token-end boundaries |
+| OpenAI | KAITO-specific | Legacy API keys and project or service-account keys |
+| Slack | `detect-secrets` built-in | Tokens and webhook URLs |
+| JWT | `detect-secrets` built-in | Formally valid JSON Web Tokens |
+| Private Key | `detect-secrets` built-in | PEM and supported private-key headers |
+| Basic Auth | `detect-secrets` built-in | Credentials embedded in non-example URLs |
+
+Other provider-specific formats are unsupported unless they match a
+`detect-secrets` built-in or high-entropy detector. Malformed and near-match
+values are intentionally not treated as guaranteed detections.
+
 ### `sensitive`
 
 Purpose:

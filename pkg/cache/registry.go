@@ -16,22 +16,11 @@ package cache
 import (
 	"fmt"
 	"sync"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
-
-func init() {
-	// Wire the validation hook so the API package can validate provider names
-	// without importing pkg/cache (which would create an import cycle).
-	kaitov1beta1.ValidateCacheProvider = func(name kaitov1beta1.CacheProvider) error {
-		_, err := Get(name)
-		return err
-	}
-}
 
 var (
 	mu        sync.RWMutex
-	providers = map[kaitov1beta1.CacheProvider]Provider{}
+	providers = map[ProviderName]Provider{}
 )
 
 // Register adds a cache provider to the registry.
@@ -39,11 +28,11 @@ var (
 func Register(p Provider) {
 	mu.Lock()
 	defer mu.Unlock()
-	providers[kaitov1beta1.CacheProvider(p.Name())] = p
+	providers[ProviderName(p.Name())] = p
 }
 
 // Get returns the provider registered under the given name.
-func Get(name kaitov1beta1.CacheProvider) (Provider, error) {
+func Get(name ProviderName) (Provider, error) {
 	mu.RLock()
 	defer mu.RUnlock()
 	p, ok := providers[name]

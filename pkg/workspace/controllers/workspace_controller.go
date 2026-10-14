@@ -47,6 +47,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
@@ -504,8 +505,6 @@ func (c *WorkspaceReconciler) addOrUpdateWorkspace(ctx context.Context, wObj *ka
 
 func (c *WorkspaceReconciler) deleteWorkspace(ctx context.Context, wObj *kaitov1beta1.Workspace) (reconcile.Result, error) {
 	klog.InfoS("deleteWorkspace", "workspace", klog.KObj(wObj))
-	// TODO(distributed-cache): Call provider.Cleanup() here when workspace.Cache.ModelCache.CleanupOnDelete
-	// is true. Add a cache-cleanup finalizer to gate deletion until cleanup completes or times out.
 	return c.garbageCollectWorkspace(ctx, wObj)
 }
 func (c *WorkspaceReconciler) syncControllerRevision(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
@@ -1772,9 +1771,39 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		)
 	}
 
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		bldr = bldr.Watches(&corev1.ConfigMap{},
+			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+				return cacheConfigMapRequests(ctx, c.Client, obj)
+			}),
+		)
+	}
+
 	bldr = bldr.WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	go monitorWorkspaces(context.Background(), c.Client)
 
 	return bldr.Complete(c)
+}
+
+func cacheConfigMapRequests(ctx context.Context, kubeClient client.Client, obj client.Object) []reconcile.Request {
+	workspaces := &kaitov1beta1.WorkspaceList{}
+	if err := kubeClient.List(ctx, workspaces, client.InNamespace(obj.GetNamespace())); err != nil {
+		klog.ErrorS(err, "Failed to list Workspaces for cache ConfigMap", "configMap", klog.KObj(obj))
+		return nil
+	}
+
+	requests := make([]reconcile.Request, 0)
+	for i := range workspaces.Items {
+		workspace := &workspaces.Items[i]
+		if strings.TrimSpace(workspace.Annotations[cache.ConfigAnnotation]) == obj.GetName() {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: workspace.Namespace,
+					Name:      workspace.Name,
+				},
+			})
+		}
+	}
+	return requests
 }

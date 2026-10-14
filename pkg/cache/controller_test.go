@@ -27,7 +27,7 @@ func isolateProviderRegistry(t *testing.T) {
 	t.Helper()
 
 	mu.RLock()
-	original := make(map[kaitov1beta1.CacheProvider]Provider, len(providers))
+	original := make(map[ProviderName]Provider, len(providers))
 	for name, provider := range providers {
 		original[name] = provider
 	}
@@ -59,12 +59,8 @@ func (p *statefulTestProvider) IsReady(_ context.Context, _ string) (bool, strin
 	return p.ready, p.reason, p.readyErr
 }
 
-func (p *statefulTestProvider) PodMutations(_ context.Context, _ CacheConcern, _ *kaitov1beta1.Workspace, _, _, _ string) (*PodMutations, error) {
+func (p *statefulTestProvider) PodMutations(_ context.Context, _ CacheConcern, _ *kaitov1beta1.Workspace, _, _ string, _ map[string]string) (*PodMutations, error) {
 	return &PodMutations{}, nil
-}
-
-func (p *statefulTestProvider) Cleanup(_ context.Context, _ *kaitov1beta1.Workspace, _ string) error {
-	return nil
 }
 
 func TestControllerReconcileDiscoversProviders(t *testing.T) {

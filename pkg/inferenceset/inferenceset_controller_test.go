@@ -39,6 +39,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -886,7 +887,7 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 	}
 }
 
-func TestAddOrUpdateInferenceSet_PropagatesCacheToWorkspace(t *testing.T) {
+func TestAddOrUpdateInferenceSet_PropagatesCacheAnnotationToWorkspace(t *testing.T) {
 	originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
 	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = false
 	defer func() {
@@ -897,17 +898,10 @@ func TestAddOrUpdateInferenceSet_PropagatesCacheToWorkspace(t *testing.T) {
 	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 	iObj.Spec.Replicas = &replicas
 	iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "test"}}
-	expectedCache := &v1beta1.CacheSpec{
-		ModelCache: &v1beta1.ModelCacheSpec{
-			Provider: "example",
-			Mode:     v1beta1.CacheModeRequired,
-		},
-		KVCache: &v1beta1.KVCacheSpec{
-			Provider: "example",
-			Mode:     v1beta1.CacheModeOpportunistic,
-		},
+	if iObj.Spec.Template.Annotations == nil {
+		iObj.Spec.Template.Annotations = make(map[string]string)
 	}
-	iObj.Spec.Template.Cache = expectedCache
+	iObj.Spec.Template.Annotations[cache.ConfigAnnotation] = "cache-attachment"
 
 	mockClient := test.NewClient()
 	mockClient.CreateOrUpdateObjectInMap(iObj)
@@ -926,6 +920,6 @@ func TestAddOrUpdateInferenceSet_PropagatesCacheToWorkspace(t *testing.T) {
 	}
 	for _, obj := range workspaceMap {
 		workspace := obj.(*v1beta1.Workspace)
-		assert.Equal(t, expectedCache, workspace.Cache)
+		assert.Equal(t, "cache-attachment", workspace.Annotations[cache.ConfigAnnotation])
 	}
 }

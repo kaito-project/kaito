@@ -43,7 +43,7 @@ func TestProvider(t *testing.T) {
 		t.Fatal("IsReady: got false, want true")
 	}
 
-	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, nil, "", "", "")
+	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, nil, "", "", nil)
 	if err != nil {
 		t.Fatalf("PodMutations returned error: %v", err)
 	}
@@ -52,10 +52,6 @@ func TestProvider(t *testing.T) {
 	}
 	if len(mutations.Labels) != 0 || len(mutations.EnvVars) != 0 || len(mutations.Volumes) != 0 || len(mutations.VolumeMounts) != 0 || len(mutations.InitContainers) != 0 {
 		t.Fatalf("expected empty mutations, got %+v", mutations)
-	}
-
-	if err := p.Cleanup(context.Background(), nil, ""); err != nil {
-		t.Fatalf("Cleanup returned error: %v", err)
 	}
 
 	if obj := p.EventObject(); obj != nil {

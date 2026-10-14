@@ -26,8 +26,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 const (
@@ -54,7 +52,7 @@ type Controller struct {
 	Recorder record.EventRecorder
 
 	mu       sync.RWMutex
-	statuses map[kaitov1beta1.CacheProvider]*ProviderStatus
+	statuses map[ProviderName]*ProviderStatus
 }
 
 // NewController creates a new Cache Controller instance.
@@ -62,7 +60,7 @@ func NewController(c client.Client, recorder record.EventRecorder) *Controller {
 	return &Controller{
 		Client:   c,
 		Recorder: recorder,
-		statuses: make(map[kaitov1beta1.CacheProvider]*ProviderStatus),
+		statuses: make(map[ProviderName]*ProviderStatus),
 	}
 }
 
@@ -74,7 +72,7 @@ func (c *Controller) Reconcile(ctx context.Context, req reconcile.Request) (reco
 
 	providers := List()
 	for _, p := range providers {
-		providerName := kaitov1beta1.CacheProvider(p.Name())
+		providerName := ProviderName(p.Name())
 		oldStatus := c.getStatus(providerName)
 
 		available, err := p.IsAvailable(ctx, "")
@@ -148,7 +146,7 @@ func (c *Controller) Reconcile(ctx context.Context, req reconcile.Request) (reco
 }
 
 // GetProviderStatus returns the cached status for a provider.
-func (c *Controller) GetProviderStatus(name kaitov1beta1.CacheProvider) *ProviderStatus {
+func (c *Controller) GetProviderStatus(name ProviderName) *ProviderStatus {
 	return c.getStatus(name)
 }
 
@@ -162,13 +160,13 @@ func (c *Controller) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(c)
 }
 
-func (c *Controller) getStatus(name kaitov1beta1.CacheProvider) *ProviderStatus {
+func (c *Controller) getStatus(name ProviderName) *ProviderStatus {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.statuses[name]
 }
 
-func (c *Controller) setStatus(name kaitov1beta1.CacheProvider, status *ProviderStatus) {
+func (c *Controller) setStatus(name ProviderName, status *ProviderStatus) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.statuses[name] = status
@@ -180,7 +178,7 @@ func (c *Controller) emitEvent(provider, reason, messageFmt string, args ...inte
 
 	// Try to emit event on the Cache CR if one exists for this provider.
 	// This makes events visible via `kubectl describe cache`.
-	p, err := Get(kaitov1beta1.CacheProvider(provider))
+	p, err := Get(ProviderName(provider))
 	if err != nil {
 		return
 	}

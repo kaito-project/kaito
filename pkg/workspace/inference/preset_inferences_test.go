@@ -481,15 +481,11 @@ func (p *guardCacheProvider) AppliesTo(_ cache.CacheConcern, _ *v1beta1.Workspac
 	return false
 }
 
-func (p *guardCacheProvider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *v1beta1.Workspace, _, _, _ string) (*cache.PodMutations, error) {
+func (p *guardCacheProvider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *v1beta1.Workspace, _, _ string, _ map[string]string) (*cache.PodMutations, error) {
 	return &cache.PodMutations{
 		Labels:  map[string]string{guardCacheLabelKey: "true"},
 		EnvVars: []corev1.EnvVar{{Name: guardCacheEnvName, Value: "true"}},
 	}, nil
-}
-
-func (p *guardCacheProvider) Cleanup(_ context.Context, _ *v1beta1.Workspace, _ string) error {
-	return nil
 }
 
 // TestGeneratePresetInference_CacheGatedOnStreaming is the regression guard for
@@ -518,7 +514,7 @@ func TestGeneratePresetInference_CacheGatedOnStreaming(t *testing.T) {
 
 	// Sanity: the guard provider really would inject if invoked, so that the
 	// negative assertion below is meaningful rather than trivially true.
-	m, err := provider.PodMutations(context.TODO(), cache.CacheConcernModelWeights, nil, "", "", "")
+	m, err := provider.PodMutations(context.TODO(), cache.CacheConcernModelWeights, nil, "", "", nil)
 	if err != nil || m == nil || m.Labels[guardCacheLabelKey] != "true" {
 		t.Fatalf("guard provider is not hot: err=%v mutations=%+v", err, m)
 	}
@@ -535,12 +531,15 @@ func TestGeneratePresetInference_CacheGatedOnStreaming(t *testing.T) {
 	workspace.Status.WorkerNodes = []string{"test-node-1"}
 	workspace.Inference.Adapters = nil
 	workspace.Inference.Config = ""
-	workspace.Cache = &v1beta1.CacheSpec{
-		ModelCache: &v1beta1.ModelCacheSpec{
-			Provider: v1beta1.CacheProvider(provider.name),
-			Mode:     v1beta1.CacheModeOpportunistic,
-		},
+	if workspace.Annotations == nil {
+		workspace.Annotations = make(map[string]string)
 	}
+	workspace.Annotations[cache.ConfigAnnotation] = "cache-attachment"
+	mockClient.CreateOrUpdateObjectInMap(&corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "cache-attachment", Namespace: workspace.Namespace},
+		Data: map[string]string{cache.ConfigKey: fmt.Sprintf(
+			"modelWeights:\n  provider: %s\n  mode: Opportunistic\n", provider.name)},
+	})
 
 	estimator := &nodesestimator.NodeEstimator{}
 	req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)
@@ -600,14 +599,10 @@ func (p *gateTestProvider) IsReady(_ context.Context, _ string) (bool, string, e
 	return true, "ready", nil
 }
 
-func (p *gateTestProvider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *v1beta1.Workspace, _, _, _ string) (*cache.PodMutations, error) {
+func (p *gateTestProvider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *v1beta1.Workspace, _, _ string, _ map[string]string) (*cache.PodMutations, error) {
 	return &cache.PodMutations{
 		Labels: map[string]string{gateCacheLabelKey: "true"},
 	}, nil
-}
-
-func (p *gateTestProvider) Cleanup(_ context.Context, _ *v1beta1.Workspace, _ string) error {
-	return nil
 }
 
 // TestGeneratePresetInference_CacheFeatureGate proves that the distributed-cache
@@ -648,12 +643,15 @@ func TestGeneratePresetInference_CacheFeatureGate(t *testing.T) {
 			workspace.Status.WorkerNodes = []string{"test-node-1"}
 			workspace.Inference.Adapters = nil
 			workspace.Inference.Config = ""
-			workspace.Cache = &v1beta1.CacheSpec{
-				ModelCache: &v1beta1.ModelCacheSpec{
-					Provider: v1beta1.CacheProvider(provider.name),
-					Mode:     v1beta1.CacheModeOpportunistic,
-				},
+			if workspace.Annotations == nil {
+				workspace.Annotations = make(map[string]string)
 			}
+			workspace.Annotations[cache.ConfigAnnotation] = "cache-attachment"
+			mockClient.CreateOrUpdateObjectInMap(&corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Name: "cache-attachment", Namespace: workspace.Namespace},
+				Data: map[string]string{cache.ConfigKey: fmt.Sprintf(
+					"modelWeights:\n  provider: %s\n  mode: Opportunistic\n", provider.name)},
+			})
 
 			estimator := &nodesestimator.NodeEstimator{}
 			req, reqErr := workspaceutil.NodeEstimateRequestFromWorkspace(t.Context(), workspace, mockClient)

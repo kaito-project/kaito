@@ -46,8 +46,12 @@ func providerAppliesTo(p Provider, concern CacheConcern, ws *kaitov1beta1.Worksp
 func SetCacheMutations() generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec] {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		ws := ctx.Workspace
-		if ws.Cache == nil {
+		if !HasAttachment(ws) {
 			return nil
+		}
+		attachment, err := ResolveEffectiveAttachment(ctx.Ctx, ctx.KubeClient, ws)
+		if err != nil {
+			return fmt.Errorf("resolving cache attachment: %w", err)
 		}
 
 		// Extract model name and revision from the model's metadata.
@@ -69,13 +73,12 @@ func SetCacheMutations() generator.TypedManifestModifier[generator.WorkspaceGene
 			}
 		}
 
-		mutations, err := collectMutations(ctx.Ctx, ctx.KubeClient, ws, modelName, modelRevision, workloadFromPodSpec(spec))
+		mutations, err := collectMutations(ctx.Ctx, ws, attachment, modelName, modelRevision, workloadFromPodSpec(spec))
 		if err != nil {
 			return fmt.Errorf("collecting cache mutations: %w", err)
 		}
 
-		// Mount user-provided Config ConfigMaps as volumes.
-		mountCacheConfigMaps(ctx.Ctx, ctx.KubeClient, ws, mutations)
+		mountAttachmentParameters(ctx.Ctx, ctx.KubeClient, ws, attachment, mutations)
 
 		klog.InfoS("Cache mutations collected",
 			"workspace", ws.Name,
@@ -97,87 +100,85 @@ func SetCacheMutations() generator.TypedManifestModifier[generator.WorkspaceGene
 // calling each provider once per concern it handles. ss is the workload being
 // mutated; it is passed to each provider's optional applicability check so a
 // provider can decline to engage with a workload it does not support.
-func collectMutations(ctx context.Context, kubeClient client.Client, ws *kaitov1beta1.Workspace, modelName, modelRevision string, ss *appsv1.StatefulSet) (*PodMutations, error) {
+func collectMutations(ctx context.Context, ws *kaitov1beta1.Workspace, attachment *Attachment, modelName, modelRevision string, ss *appsv1.StatefulSet) (*PodMutations, error) {
 	merged := &PodMutations{}
-
-	// Model weights provider
-	if ws.Cache.ModelCache != nil && ws.Cache.ModelCache.Mode != kaitov1beta1.CacheModeDisabled {
-		p, err := Get(ws.Cache.ModelCache.Provider)
-		if err != nil {
-			if ws.Cache.ModelCache.Mode == kaitov1beta1.CacheModeRequired {
-				return nil, fmt.Errorf("model weights cache provider %q: %w", ws.Cache.ModelCache.Provider, err)
-			}
-			klog.V(2).InfoS("Model weights cache provider not registered, skipping",
-				"provider", ws.Cache.ModelCache.Provider, "error", err)
-		} else if !providerAppliesTo(p, CacheConcernModelWeights, ws, ss) {
-			// The provider itself declares it cannot engage with this workload
-			// (e.g. wrong model load path); injecting would be a silent no-op, so
-			// skip without blocking even in Required mode.
-			klog.V(2).InfoS("Model weights cache provider not applicable to this workload, skipping",
-				"provider", ws.Cache.ModelCache.Provider, "workspace", ws.Name)
-		} else {
-			cacheName := extractCacheName(ctx, kubeClient, ws.Namespace, ws.Cache.ModelCache.Config)
-			// Check infrastructure availability before injecting mutations.
-			available, availErr := p.IsAvailable(ctx, cacheName)
-			if availErr != nil || !available {
-				if ws.Cache.ModelCache.Mode == kaitov1beta1.CacheModeRequired {
-					return nil, fmt.Errorf("model weights cache provider %q not available", ws.Cache.ModelCache.Provider)
-				}
-				klog.V(2).InfoS("Model weights cache provider not available, skipping mutations",
-					"provider", ws.Cache.ModelCache.Provider, "available", available, "error", availErr)
-			} else {
-				m, err := p.PodMutations(ctx, CacheConcernModelWeights, ws, modelName, modelRevision, cacheName)
-				if err != nil {
-					if ws.Cache.ModelCache.Mode == kaitov1beta1.CacheModeRequired {
-						return nil, fmt.Errorf("model weights cache mutations: %w", err)
-					}
-					klog.V(2).InfoS("Model weights cache mutations failed, skipping",
-						"provider", ws.Cache.ModelCache.Provider, "error", err)
-				} else {
-					mergeMutations(merged, m)
-				}
-			}
-		}
+	if attachment == nil {
+		return merged, nil
 	}
 
-	// KV cache provider
-	if ws.Cache.KVCache != nil && ws.Cache.KVCache.Mode != kaitov1beta1.CacheModeDisabled {
-		p, err := Get(ws.Cache.KVCache.Provider)
+	if config := attachment.ModelWeights; config != nil && config.Mode != ModeDisabled {
+		mutations, err := collectConcernMutations(ctx, ws, config, CacheConcernModelWeights,
+			modelName, modelRevision, ss, true)
 		if err != nil {
-			if ws.Cache.KVCache.Mode == kaitov1beta1.CacheModeRequired {
-				return nil, fmt.Errorf("KV cache provider %q: %w", ws.Cache.KVCache.Provider, err)
-			}
-			klog.V(2).InfoS("KV cache provider not registered, skipping",
-				"provider", ws.Cache.KVCache.Provider, "error", err)
-		} else {
-			// KV cache is presence-based: its connector is an in-process vLLM
-			// plugin with no model-load-path dependency, so (unlike model weights)
-			// it is not subject to PodApplicabilityChecker.
-			cacheName := extractCacheName(ctx, kubeClient, ws.Namespace, ws.Cache.KVCache.Config)
-			// Check infrastructure availability before injecting mutations.
-			available, availErr := p.IsAvailable(ctx, cacheName)
-			if availErr != nil || !available {
-				if ws.Cache.KVCache.Mode == kaitov1beta1.CacheModeRequired {
-					return nil, fmt.Errorf("KV cache provider %q not available", ws.Cache.KVCache.Provider)
-				}
-				klog.V(2).InfoS("KV cache provider not available, skipping mutations",
-					"provider", ws.Cache.KVCache.Provider, "available", available, "error", availErr)
-			} else {
-				m, err := p.PodMutations(ctx, CacheConcernKVCache, ws, modelName, modelRevision, cacheName)
-				if err != nil {
-					if ws.Cache.KVCache.Mode == kaitov1beta1.CacheModeRequired {
-						return nil, fmt.Errorf("KV cache mutations: %w", err)
-					}
-					klog.V(2).InfoS("KV cache mutations failed, skipping",
-						"provider", ws.Cache.KVCache.Provider, "error", err)
-				} else {
-					mergeMutations(merged, m)
-				}
-			}
+			return nil, err
 		}
+		mergeMutations(merged, mutations)
+	}
+
+	if config := attachment.KVCache; config != nil && config.Mode != ModeDisabled {
+		mutations, err := collectConcernMutations(ctx, ws, config, CacheConcernKVCache,
+			modelName, modelRevision, ss, false)
+		if err != nil {
+			return nil, err
+		}
+		mergeMutations(merged, mutations)
 	}
 
 	return merged, nil
+}
+
+func collectConcernMutations(ctx context.Context, ws *kaitov1beta1.Workspace, config *ConcernConfig,
+	concern CacheConcern, modelName, modelRevision string, ss *appsv1.StatefulSet, checkApplicability bool) (*PodMutations, error) {
+	label := "KV cache"
+	if concern == CacheConcernModelWeights {
+		label = "model weights cache"
+	}
+
+	provider, err := Get(config.Provider)
+	if err != nil {
+		if config.Mode == ModeRequired {
+			return nil, fmt.Errorf("%s provider %q: %w", label, config.Provider, err)
+		}
+		klog.V(2).InfoS("Cache provider not registered, skipping",
+			"concern", concern, "provider", config.Provider, "error", err)
+		return nil, nil
+	}
+	if checkApplicability && !providerAppliesTo(provider, concern, ws, ss) {
+		klog.V(2).InfoS("Cache provider not applicable to this workload, skipping",
+			"concern", concern, "provider", config.Provider, "workspace", ws.Name)
+		return nil, nil
+	}
+	if err := validateParameters(provider, concern, config.Parameters); err != nil {
+		if config.Mode == ModeRequired {
+			return nil, fmt.Errorf("%s: %w", label, err)
+		}
+		klog.V(2).InfoS("Cache parameters invalid, skipping",
+			"concern", concern, "provider", config.Provider, "error", err)
+		return nil, nil
+	}
+
+	cacheName := config.Parameters["cacheName"]
+	available, availabilityErr := provider.IsAvailable(ctx, cacheName)
+	if availabilityErr != nil || !available {
+		if config.Mode == ModeRequired {
+			return nil, fmt.Errorf("%s provider %q not available", label, config.Provider)
+		}
+		klog.V(2).InfoS("Cache provider not available, skipping mutations",
+			"concern", concern, "provider", config.Provider,
+			"available", available, "error", availabilityErr)
+		return nil, nil
+	}
+
+	mutations, err := provider.PodMutations(ctx, concern, ws, modelName, modelRevision, config.Parameters)
+	if err != nil {
+		if config.Mode == ModeRequired {
+			return nil, fmt.Errorf("%s mutations: %w", label, err)
+		}
+		klog.V(2).InfoS("Cache mutations failed, skipping",
+			"concern", concern, "provider", config.Provider, "error", err)
+		return nil, nil
+	}
+	return mutations, nil
 }
 
 // mergeMutations appends src mutations into dst, deduplicating env vars by name
@@ -273,18 +274,16 @@ func applyMutations(spec *corev1.PodSpec, mutations *PodMutations) {
 	}
 }
 
-// mountCacheConfigMaps merges user-provided Config ConfigMaps with provider Helm
-// defaults, creates a runtime ConfigMap with the merged result, and mounts it into
-// the pod so providers can consume the full configuration.
-func mountCacheConfigMaps(ctx context.Context, kubeClient client.Client, ws *kaitov1beta1.Workspace, mutations *PodMutations) {
+// mountAttachmentParameters merges attachment parameters with provider defaults,
+// creates runtime ConfigMaps, and mounts them for providers that consume files.
+func mountAttachmentParameters(ctx context.Context, kubeClient client.Client, ws *kaitov1beta1.Workspace, attachment *Attachment, mutations *PodMutations) {
 	if kubeClient == nil {
 		return
 	}
 
-	// Model cache config
-	if ws.Cache.ModelCache != nil && ws.Cache.ModelCache.Config != "" {
+	if config := attachment.ModelWeights; config != nil && config.Mode != ModeDisabled {
 		runtimeCM := buildRuntimeConfigMap(ctx, kubeClient, ws,
-			ws.Cache.ModelCache.Config, ws.Cache.ModelCache.Provider, "model")
+			config.Parameters, config.Provider, "model")
 		if runtimeCM != "" {
 			volName := "cache-model-config"
 			mutations.Volumes = append(mutations.Volumes, corev1.Volume{
@@ -303,10 +302,9 @@ func mountCacheConfigMaps(ctx context.Context, kubeClient client.Client, ws *kai
 		}
 	}
 
-	// KV cache config
-	if ws.Cache.KVCache != nil && ws.Cache.KVCache.Config != "" {
+	if config := attachment.KVCache; config != nil && config.Mode != ModeDisabled {
 		runtimeCM := buildRuntimeConfigMap(ctx, kubeClient, ws,
-			ws.Cache.KVCache.Config, ws.Cache.KVCache.Provider, "kv")
+			config.Parameters, config.Provider, "kv")
 		if runtimeCM != "" {
 			volName := "cache-kv-config"
 			mutations.Volumes = append(mutations.Volumes, corev1.Volume{
@@ -326,11 +324,11 @@ func mountCacheConfigMaps(ctx context.Context, kubeClient client.Client, ws *kai
 	}
 }
 
-// buildRuntimeConfigMap merges provider Helm defaults with user-provided ConfigMap data,
+// buildRuntimeConfigMap merges provider Helm defaults with attachment parameters,
 // creates/updates a runtime ConfigMap named "cache-<concern>-<workspace>", and returns
 // the runtime ConfigMap name (or empty string on failure).
 func buildRuntimeConfigMap(ctx context.Context, kubeClient client.Client,
-	ws *kaitov1beta1.Workspace, userCMName string, providerName kaitov1beta1.CacheProvider, concern string) string {
+	ws *kaitov1beta1.Workspace, parameters map[string]string, providerName ProviderName, concern string) string {
 
 	// Start with provider Helm defaults (from registered provider config).
 	merged := make(map[string]string)
@@ -343,15 +341,8 @@ func buildRuntimeConfigMap(ctx context.Context, kubeClient client.Client,
 		}
 	}
 
-	// Overlay user-provided ConfigMap data (user overrides defaults).
-	userCM := &corev1.ConfigMap{}
-	if err := kubeClient.Get(ctx, client.ObjectKey{Namespace: ws.Namespace, Name: userCMName}, userCM); err != nil {
-		klog.V(2).InfoS("Failed to fetch user cache config ConfigMap, using defaults only",
-			"configMap", userCMName, "namespace", ws.Namespace, "error", err)
-	} else {
-		for k, v := range userCM.Data {
-			merged[k] = v
-		}
+	for k, v := range parameters {
+		merged[k] = v
 	}
 
 	if len(merged) == 0 {
@@ -397,8 +388,12 @@ func buildRuntimeConfigMap(ctx context.Context, kubeClient client.Client,
 func SetCachePodTemplateLabels() generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet] {
 	return func(ctx *generator.WorkspaceGeneratorContext, ss *appsv1.StatefulSet) error {
 		ws := ctx.Workspace
-		if ws.Cache == nil {
+		if !HasAttachment(ws) {
 			return nil
+		}
+		attachment, err := ResolveEffectiveAttachment(ctx.Ctx, ctx.KubeClient, ws)
+		if err != nil {
+			return fmt.Errorf("resolving cache attachment: %w", err)
 		}
 
 		var modelName, modelRevision string
@@ -418,7 +413,7 @@ func SetCachePodTemplateLabels() generator.TypedManifestModifier[generator.Works
 			}
 		}
 
-		mutations, err := collectMutations(ctx.Ctx, ctx.KubeClient, ws, modelName, modelRevision, ss)
+		mutations, err := collectMutations(ctx.Ctx, ws, attachment, modelName, modelRevision, ss)
 		if err != nil {
 			return fmt.Errorf("collecting cache label mutations: %w", err)
 		}
@@ -448,15 +443,18 @@ func SetCachePodTemplateLabels() generator.TypedManifestModifier[generator.Works
 // the provider itself (via the optional PodApplicabilityChecker), so a provider
 // that cannot serve a given pod template is skipped without a framework-level gate.
 func ApplyTemplateCacheMutations(ctx context.Context, ws *kaitov1beta1.Workspace, kubeClient client.Client, ss *appsv1.StatefulSet) error {
-	if ws.Cache == nil {
+	if !HasAttachment(ws) {
 		return nil
 	}
+	attachment, err := ResolveEffectiveAttachment(ctx, kubeClient, ws)
+	if err != nil {
+		return fmt.Errorf("resolving cache attachment: %w", err)
+	}
 
-	mutations, err := collectMutations(ctx, kubeClient, ws, "", "", ss)
+	mutations, err := collectMutations(ctx, ws, attachment, "", "", ss)
 	if err != nil {
 		klog.V(2).InfoS("Failed to collect cache mutations for template inference", "error", err)
-		// If cache mode is Required, propagate the error so the workspace blocks.
-		if ws.Cache.ModelCache != nil && ws.Cache.ModelCache.Mode == kaitov1beta1.CacheModeRequired {
+		if attachmentRequires(attachment) {
 			return fmt.Errorf("cache mutations failed in Required mode: %w", err)
 		}
 		return nil
@@ -465,8 +463,7 @@ func ApplyTemplateCacheMutations(ctx context.Context, ws *kaitov1beta1.Workspace
 		return nil
 	}
 
-	// Mount user-provided Config ConfigMaps as volumes (parity with SetCacheMutations).
-	mountCacheConfigMaps(ctx, kubeClient, ws, mutations)
+	mountAttachmentParameters(ctx, kubeClient, ws, attachment, mutations)
 
 	klog.InfoS("Cache mutations applied to template inference",
 		"workspace", ws.Name,
@@ -493,20 +490,10 @@ func ApplyTemplateCacheMutations(ctx context.Context, ws *kaitov1beta1.Workspace
 	return nil
 }
 
-// extractCacheName reads the user-provided Config ConfigMap and returns the
-// "cacheName" key value. Returns empty string if no ConfigMap is specified or
-// the key is absent, meaning the provider should use its default cache.
-func extractCacheName(ctx context.Context, kubeClient client.Client, namespace, configMapName string) string {
-	if kubeClient == nil || configMapName == "" {
-		return ""
-	}
-	cm := &corev1.ConfigMap{}
-	if err := kubeClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: configMapName}, cm); err != nil {
-		klog.V(4).InfoS("Could not read user cache ConfigMap for cacheName",
-			"configMap", configMapName, "namespace", namespace, "error", err)
-		return ""
-	}
-	return cm.Data["cacheName"]
+func attachmentRequires(attachment *Attachment) bool {
+	return attachment != nil &&
+		((attachment.ModelWeights != nil && attachment.ModelWeights.Mode == ModeRequired) ||
+			(attachment.KVCache != nil && attachment.KVCache.Mode == ModeRequired))
 }
 
 // workloadFromPodSpec wraps an in-progress PodSpec in a minimal StatefulSet so

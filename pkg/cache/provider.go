@@ -26,9 +26,19 @@ import (
 // CacheConcern identifies which cache concern a provider is being asked about.
 type CacheConcern string
 
+// ProviderName identifies a registered cache provider.
+type ProviderName string
+
+// Mode controls how a workload behaves when a cache cannot be used.
+type Mode string
+
 const (
 	CacheConcernModelWeights CacheConcern = "ModelWeights"
 	CacheConcernKVCache      CacheConcern = "KVCache"
+
+	ModeRequired      Mode = "Required"
+	ModeOpportunistic Mode = "Opportunistic"
+	ModeDisabled      Mode = "Disabled"
 )
 
 // PodMutations describes all pod-level changes needed to enable cache access.
@@ -66,13 +76,10 @@ type Provider interface {
 	IsReady(ctx context.Context, cacheName string) (bool, string, error)
 
 	// PodMutations returns the pod-level changes needed for a specific cache
-	// concern (ModelWeights or KVCache). cacheName identifies the target cache
-	// instance; if empty, the provider uses its default. The provider should
-	// only return mutations relevant to the requested concern.
-	PodMutations(ctx context.Context, concern CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision, cacheName string) (*PodMutations, error)
-
-	// Cleanup invalidates cached data associated with a workspace.
-	Cleanup(ctx context.Context, workspace *kaitov1beta1.Workspace, modelName string) error
+	// concern (ModelWeights or KVCache). Parameters are the validated,
+	// provider-specific values from the attachment. The provider should only
+	// return mutations relevant to the requested concern.
+	PodMutations(ctx context.Context, concern CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision string, parameters map[string]string) (*PodMutations, error)
 }
 
 // EventTarget is an optional interface providers can implement to return a
@@ -105,7 +112,13 @@ type PodApplicabilityChecker interface {
 
 // DefaultConfigProvider is an optional interface providers can implement to
 // supply Helm-value defaults for a given concern. These defaults are merged
-// with user-provided Config ConfigMap data (user overrides defaults).
+// with user-provided attachment parameters (user values override defaults).
 type DefaultConfigProvider interface {
 	DefaultConfig(concern string) map[string]string
+}
+
+// ParameterValidator is implemented by providers that accept attachment
+// parameters. It must reject unknown or invalid values for the given concern.
+type ParameterValidator interface {
+	ValidateParameters(concern CacheConcern, parameters map[string]string) error
 }

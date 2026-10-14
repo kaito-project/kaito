@@ -15,21 +15,16 @@ package cache
 
 import (
 	"testing"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
-func TestValidateCacheProviderHook(t *testing.T) {
+func TestGetValidatesRegisteredProvider(t *testing.T) {
 	isolateProviderRegistry(t)
 	Register(&noopTestProvider{})
 
-	if kaitov1beta1.ValidateCacheProvider == nil {
-		t.Fatal("expected ValidateCacheProvider hook to be initialized")
-	}
-	if err := kaitov1beta1.ValidateCacheProvider("unknown-provider"); err == nil {
+	if _, err := Get("unknown-provider"); err == nil {
 		t.Fatal("expected unknown provider validation to fail")
 	}
-	if err := kaitov1beta1.ValidateCacheProvider("noop-test"); err != nil {
+	if _, err := Get("noop-test"); err != nil {
 		t.Fatalf("expected registered provider validation to succeed, got %v", err)
 	}
 }

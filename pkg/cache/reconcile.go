@@ -42,35 +42,41 @@ type ReconcileResult struct {
 // Returns whether the workspace deployment should be blocked (Required mode + not ready).
 // This should be called early in the reconcile loop, after nodes are ready.
 func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1beta1.Workspace, status *kaitov1beta1.WorkspaceStatus) ReconcileResult {
-	if ws.Cache == nil {
+	if !HasAttachment(ws) {
 		return ReconcileResult{}
 	}
 
 	result := ReconcileResult{}
+	attachment, err := ResolveEffectiveAttachment(ctx, kubeClient, ws)
+	if err != nil {
+		klog.ErrorS(err, "Failed to resolve cache attachment", "workspace", klog.KObj(ws))
+		return ReconcileResult{BlockDeployment: true, RequeueNeeded: true}
+	}
+	if attachment == nil {
+		return ReconcileResult{}
+	}
 
 	// Check model weights cache readiness
-	if ws.Cache.ModelCache != nil && ws.Cache.ModelCache.Mode != kaitov1beta1.CacheModeDisabled {
-		cacheName := extractCacheName(ctx, kubeClient, ws.Namespace, ws.Cache.ModelCache.Config)
-		ready, reason := checkProviderReady(ctx, ws.Cache.ModelCache.Provider, cacheName)
+	if config := attachment.ModelWeights; config != nil && config.Mode != ModeDisabled {
+		ready, reason := checkProviderReady(ctx, CacheConcernModelWeights, config)
 		setCacheCondition(status, ws.GetGeneration(),
 			kaitov1beta1.WorkspaceConditionTypeModelCacheReady, ready, reason)
 
 		// Required mode blocks deployment until the cache is ready — indefinitely.
-		if !ready && ws.Cache.ModelCache.Mode == kaitov1beta1.CacheModeRequired {
+		if !ready && config.Mode == ModeRequired {
 			result.BlockDeployment = true
 			result.RequeueNeeded = true
 		}
 	}
 
 	// Check KV cache readiness
-	if ws.Cache.KVCache != nil && ws.Cache.KVCache.Mode != kaitov1beta1.CacheModeDisabled {
-		cacheName := extractCacheName(ctx, kubeClient, ws.Namespace, ws.Cache.KVCache.Config)
-		ready, reason := checkProviderReady(ctx, ws.Cache.KVCache.Provider, cacheName)
+	if config := attachment.KVCache; config != nil && config.Mode != ModeDisabled {
+		ready, reason := checkProviderReady(ctx, CacheConcernKVCache, config)
 		setCacheCondition(status, ws.GetGeneration(),
 			kaitov1beta1.WorkspaceConditionTypeKVCacheReady, ready, reason)
 
 		// Required mode blocks deployment until the cache is ready — indefinitely.
-		if !ready && ws.Cache.KVCache.Mode == kaitov1beta1.CacheModeRequired {
+		if !ready && config.Mode == ModeRequired {
 			result.BlockDeployment = true
 			result.RequeueNeeded = true
 		}
@@ -97,7 +103,7 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 				"workspace", ws.Name, "error", err)
 			return result
 		}
-		verifyCacheInjection(ctx, kubeClient, ws, ss, status)
+		verifyCacheInjection(ctx, ws, attachment, ss, status)
 	}
 
 	return result
@@ -118,24 +124,24 @@ func ReconcileCache(ctx context.Context, kubeClient client.Client, ws *kaitov1be
 // becomes Ready == infrastructure ready AND mutations injected. ss may be nil
 // when the workload does not yet exist, in which case the concern is reported
 // not-yet injected.
-func verifyCacheInjection(ctx context.Context, kubeClient client.Client,
-	ws *kaitov1beta1.Workspace, ss *appsv1.StatefulSet, status *kaitov1beta1.WorkspaceStatus) {
+func verifyCacheInjection(ctx context.Context, ws *kaitov1beta1.Workspace,
+	attachment *Attachment, ss *appsv1.StatefulSet, status *kaitov1beta1.WorkspaceStatus) {
 
-	if ws.Cache == nil {
+	if attachment == nil {
 		return
 	}
 
-	if ws.Cache.ModelCache != nil && ws.Cache.ModelCache.Mode != kaitov1beta1.CacheModeDisabled &&
+	if attachment.ModelWeights != nil && attachment.ModelWeights.Mode != ModeDisabled &&
 		conditionIsTrue(status, kaitov1beta1.WorkspaceConditionTypeModelCacheReady) {
-		if injected, reason := concernInjected(ctx, kubeClient, ws, CacheConcernModelWeights, ss); !injected {
+		if injected, reason := concernInjected(ctx, ws, attachment, CacheConcernModelWeights, ss); !injected {
 			setCacheCondition(status, ws.GetGeneration(),
 				kaitov1beta1.WorkspaceConditionTypeModelCacheReady, false, reason)
 		}
 	}
 
-	if ws.Cache.KVCache != nil && ws.Cache.KVCache.Mode != kaitov1beta1.CacheModeDisabled &&
+	if attachment.KVCache != nil && attachment.KVCache.Mode != ModeDisabled &&
 		conditionIsTrue(status, kaitov1beta1.WorkspaceConditionTypeKVCacheReady) {
-		if injected, reason := concernInjected(ctx, kubeClient, ws, CacheConcernKVCache, ss); !injected {
+		if injected, reason := concernInjected(ctx, ws, attachment, CacheConcernKVCache, ss); !injected {
 			setCacheCondition(status, ws.GetGeneration(),
 				kaitov1beta1.WorkspaceConditionTypeKVCacheReady, false, reason)
 		}
@@ -152,8 +158,8 @@ func conditionIsTrue(status *kaitov1beta1.WorkspaceStatus, condType kaitov1beta1
 // actually present on the rendered pod template. It recomputes the concern's
 // mutations via the same render-time path (collectMutations) so the two cannot
 // disagree, and confirms any provider-declared labels landed on the workload.
-func concernInjected(ctx context.Context, kubeClient client.Client,
-	ws *kaitov1beta1.Workspace, concern CacheConcern, ss *appsv1.StatefulSet) (bool, string) {
+func concernInjected(ctx context.Context, ws *kaitov1beta1.Workspace,
+	attachment *Attachment, concern CacheConcern, ss *appsv1.StatefulSet) (bool, string) {
 
 	if ss == nil {
 		return false, "inference workload not yet created; cache not injected"
@@ -161,7 +167,7 @@ func concernInjected(ctx context.Context, kubeClient client.Client,
 
 	// Evaluate this concern in isolation so we can attribute the result to the
 	// correct condition, reusing the exact render-time collectMutations path.
-	m, err := collectMutations(ctx, kubeClient, singleConcernWorkspace(ws, concern), "", "", ss)
+	m, err := collectMutations(ctx, ws, singleConcernAttachment(attachment, concern), "", "", ss)
 	if err != nil {
 		return false, fmt.Sprintf("cache not injected: %v", err)
 	}
@@ -180,32 +186,33 @@ func concernInjected(ctx context.Context, kubeClient client.Client,
 	return true, ""
 }
 
-// singleConcernWorkspace returns a shallow copy of ws whose Cache carries only
-// the given concern, so collectMutations evaluates that concern in isolation.
-func singleConcernWorkspace(ws *kaitov1beta1.Workspace, concern CacheConcern) *kaitov1beta1.Workspace {
-	cache := *ws.Cache
+// singleConcernAttachment returns a shallow copy carrying only the requested concern.
+func singleConcernAttachment(attachment *Attachment, concern CacheConcern) *Attachment {
+	out := *attachment
 	switch concern {
 	case CacheConcernModelWeights:
-		cache.KVCache = nil
+		out.KVCache = nil
 	case CacheConcernKVCache:
-		cache.ModelCache = nil
+		out.ModelWeights = nil
 	}
-	out := *ws
-	out.Cache = &cache
 	return &out
 }
 
-// checkProviderReady resolves a provider and checks its readiness.
-func checkProviderReady(ctx context.Context, providerName kaitov1beta1.CacheProvider, cacheName string) (bool, string) {
-	p, err := Get(providerName)
+// checkProviderReady resolves a provider, validates attachment parameters, and checks readiness.
+func checkProviderReady(ctx context.Context, concern CacheConcern, config *ConcernConfig) (bool, string) {
+	p, err := Get(config.Provider)
 	if err != nil {
-		klog.V(2).InfoS("Cache provider not registered", "provider", providerName, "error", err)
-		return false, fmt.Sprintf("provider %q not registered", providerName)
+		klog.V(2).InfoS("Cache provider not registered", "provider", config.Provider, "error", err)
+		return false, fmt.Sprintf("provider %q not registered", config.Provider)
+	}
+	if err := validateParameters(p, concern, config.Parameters); err != nil {
+		return false, err.Error()
 	}
 
+	cacheName := config.Parameters["cacheName"]
 	available, err := p.IsAvailable(ctx, cacheName)
 	if err != nil {
-		klog.V(2).InfoS("Cache provider availability check failed", "provider", providerName, "error", err)
+		klog.V(2).InfoS("Cache provider availability check failed", "provider", config.Provider, "error", err)
 		return false, fmt.Sprintf("availability check failed: %v", err)
 	}
 	if !available {
@@ -214,7 +221,7 @@ func checkProviderReady(ctx context.Context, providerName kaitov1beta1.CacheProv
 
 	ready, reason, err := p.IsReady(ctx, cacheName)
 	if err != nil {
-		klog.V(2).InfoS("Cache provider readiness check failed", "provider", providerName, "error", err)
+		klog.V(2).InfoS("Cache provider readiness check failed", "provider", config.Provider, "error", err)
 		return false, fmt.Sprintf("readiness check failed: %v", err)
 	}
 

@@ -281,7 +281,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// — e.g. a streaming provider only applies when the model is loaded via the
 	// run:ai streamer, while a mount-based provider may apply unconditionally. The
 	// framework does not hardcode any such condition here.
-	cacheApplicable := featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && workspaceObj.Cache != nil
+	cacheApplicable := featuregates.FeatureGates[consts.FeatureFlagDistributedCache] && cache.HasAttachment(workspaceObj)
 	if cacheApplicable {
 		podOpts = append(podOpts, cache.SetCacheMutations())
 	}

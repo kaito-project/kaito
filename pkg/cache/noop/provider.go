@@ -42,12 +42,8 @@ func (p *Provider) IsReady(_ context.Context, _ string) (bool, string, error) {
 	return true, "noop provider is always ready", nil
 }
 
-func (p *Provider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *kaitov1beta1.Workspace, _, _, _ string) (*cache.PodMutations, error) {
+func (p *Provider) PodMutations(_ context.Context, _ cache.CacheConcern, _ *kaitov1beta1.Workspace, _, _ string, _ map[string]string) (*cache.PodMutations, error) {
 	return &cache.PodMutations{}, nil
-}
-
-func (p *Provider) Cleanup(_ context.Context, _ *kaitov1beta1.Workspace, _ string) error {
-	return nil
 }
 
 func (p *Provider) EventObject() runtime.Object {

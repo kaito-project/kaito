@@ -16,8 +16,6 @@ package cache
 import (
 	"sort"
 	"sync"
-
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 // The expectations registry is the backbone of provider-agnostic conformance
@@ -69,7 +67,7 @@ type MutationExpectation struct {
 type Expectations struct {
 	// Provider is the provider name these expectations apply to. Must match the
 	// value returned by Provider.Name().
-	Provider kaitov1beta1.CacheProvider
+	Provider ProviderName
 
 	// NewForConformance returns a Provider instance suitable for offline (no live
 	// cluster) mutation conformance. It must not require a reachable cache backend,
@@ -98,7 +96,7 @@ func (e Expectations) ForConcern(concern CacheConcern) MutationExpectation {
 
 var (
 	expMu        sync.RWMutex
-	expectations = map[kaitov1beta1.CacheProvider]Expectations{}
+	expectations = map[ProviderName]Expectations{}
 )
 
 // RegisterExpectations records a provider's conformance contract. It should be
@@ -111,7 +109,7 @@ func RegisterExpectations(e Expectations) {
 }
 
 // GetExpectations returns the registered expectations for a provider.
-func GetExpectations(name kaitov1beta1.CacheProvider) (Expectations, bool) {
+func GetExpectations(name ProviderName) (Expectations, bool) {
 	expMu.RLock()
 	defer expMu.RUnlock()
 	e, ok := expectations[name]

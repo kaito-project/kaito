@@ -14,7 +14,6 @@
 package noop
 
 import (
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/cache"
 )
 
@@ -24,7 +23,7 @@ import (
 // concerns are supported but expected to produce empty mutations.
 func init() {
 	cache.RegisterExpectations(cache.Expectations{
-		Provider:          kaitov1beta1.CacheProvider(ProviderName),
+		Provider:          cache.ProviderName(ProviderName),
 		NewForConformance: func() cache.Provider { return NewProvider() },
 		ModelWeights: cache.MutationExpectation{
 			Supported:   true,

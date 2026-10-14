@@ -564,7 +564,7 @@ func TestGeneratePresetInference_CacheGatedOnStreaming(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GeneratePresetInference returned error: %v", err)
 	}
-	ss := createdObject.(*appsv1.StatefulSet)
+	ss := createdObject.Workload.(*appsv1.StatefulSet)
 
 	// The model loads via --load_format=auto (no runai_streamer), so no cache
 	// mutations should have been wired: no sentinel label, no sentinel env var.
@@ -676,7 +676,7 @@ func TestGeneratePresetInference_CacheFeatureGate(t *testing.T) {
 			if err != nil {
 				t.Fatalf("GeneratePresetInference returned error: %v", err)
 			}
-			ss := createdObject.(*appsv1.StatefulSet)
+			ss := createdObject.Workload.(*appsv1.StatefulSet)
 
 			_, gotLabel := ss.Spec.Template.Labels[gateCacheLabelKey]
 			if gotLabel != tc.expectLabel {

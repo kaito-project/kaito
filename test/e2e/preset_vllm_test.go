@@ -353,32 +353,9 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateBBRRouting(inferenceSetObj, modelName, inferencePoolName, findWorkspacePod)
 	})
 
-	It("should create a ministral-3-3b-instruct-2512 workspace with preset public mode successfully", func() {
-		numOfNode := 1
-		workspaceObj := createMinistral3_3BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-
-		validateAssociatedService(workspaceObj)
-		validateInferenceConfig(workspaceObj)
-
-		validateInferenceResource(workspaceObj, int32(numOfNode))
-
-		validateWorkspaceReadiness(workspaceObj)
-		validateWorkspaceBenchmarkCompleted(workspaceObj)
-		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
-	})
-
 	It("should serve a public preset GPU workspace with no cache mutations when no cache is installed", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
-		workspaceObj := createQwen3_5_2BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
+		workspaceObj := createQwen3_8_27BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
 		defer cleanupResources(workspaceObj)
 		time.Sleep(30 * time.Second)

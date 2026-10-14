@@ -236,8 +236,8 @@ func TestCollectMutations_BothConcernsMergeResults(t *testing.T) {
 	if mutations.Labels["cache.example.com/inject"] != "true" {
 		t.Fatalf("expected cache injection label, got %v", mutations.Labels)
 	}
-	if len(mutations.EnvVars) != 2 {
-		t.Fatalf("expected model weight + KV env vars (2 total), got %v", mutations.EnvVars)
+	if len(mutations.EnvVars) != 3 {
+		t.Fatalf("expected model weight + KV env vars (3 total), got %v", mutations.EnvVars)
 	}
 
 	envVars := map[string]string{}

@@ -34,7 +34,7 @@ import (
 // here, keeping provider specifics out of the shared conformance suite.
 func init() {
 	cache.RegisterExpectations(cache.Expectations{
-		Provider: kaitov1beta1.CacheProvider(ProviderName),
+		Provider: cache.ProviderName(ProviderName),
 		// PodMutations does not touch the API server, so a nil client is safe for
 		// offline mutation conformance.
 		NewForConformance: func() cache.Provider {

@@ -70,12 +70,12 @@ type E2EHarness interface {
 	Namespace() string
 
 	// Provider returns the cache provider name this harness is configured for.
-	Provider() kaitov1beta1.CacheProvider
+	Provider() ProviderName
 
 	// NewCacheWorkspace builds (but does not create) a standard cache-enabled
 	// Workspace with a unique name derived from idPrefix. Scenarios mutate the
 	// returned object and create it via Client().
-	NewCacheWorkspace(idPrefix string, spec kaitov1beta1.CacheSpec) *kaitov1beta1.Workspace
+	NewCacheWorkspace(idPrefix string, spec Attachment) *kaitov1beta1.Workspace
 
 	// Poll retries fn until it returns nil or the timeout elapses, returning the
 	// last error. Used to wait for eventual controller reconciliation.

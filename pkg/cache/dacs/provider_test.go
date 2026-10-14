@@ -231,16 +231,9 @@ func TestPodMutations_ModelWeightsStreamerEnvOverride(t *testing.T) {
 	}
 	p := New(newFakeProvider().client, cfg)
 
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeOpportunistic,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
-	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", "")
+	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -286,16 +279,9 @@ func TestPodMutations_ChunkSizePairOverride(t *testing.T) {
 			cfg.StreamerEnv = tt.env
 			p := New(newFakeProvider().client, cfg)
 
-			ws := &kaitov1beta1.Workspace{
-				Cache: &kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
-						Provider: "dacs",
-						Mode:     kaitov1beta1.CacheModeOpportunistic,
-					},
-				},
-			}
+			ws := &kaitov1beta1.Workspace{}
 
-			mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", "")
+			mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", nil)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -339,16 +325,9 @@ func TestPodMutations_ChunkSizeRecommendation(t *testing.T) {
 			cfg.StreamerEnv = tt.env
 			p := New(newFakeProvider().client, cfg)
 
-			ws := &kaitov1beta1.Workspace{
-				Cache: &kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
-						Provider: "dacs",
-						Mode:     kaitov1beta1.CacheModeOpportunistic,
-					},
-				},
-			}
+			ws := &kaitov1beta1.Workspace{}
 
-			mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, tt.model, "main", "")
+			mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, tt.model, "main", nil)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -365,16 +344,9 @@ func TestPodMutations_ChunkSizeRecommendation(t *testing.T) {
 
 func TestPodMutations_ModelWeights(t *testing.T) {
 	p := newFakeProvider()
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeOpportunistic,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
-	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", "")
+	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -434,16 +406,9 @@ func TestPodMutations_ModelWeightsCustomPrefix(t *testing.T) {
 	cfg.ClientImage = "test-registry/dacs-client:latest"
 	p := New(client, cfg)
 
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeOpportunistic,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
-	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "abc123", "")
+	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "abc123", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -455,16 +420,9 @@ func TestPodMutations_ModelWeightsCustomPrefix(t *testing.T) {
 
 func TestPodMutations_ModelWeightsNoModelName(t *testing.T) {
 	p := newFakeProvider()
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeOpportunistic,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
-	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "", "", "")
+	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "", "", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -482,16 +440,9 @@ func TestPodMutations_ModelWeightsNoModelName(t *testing.T) {
 
 func TestPodMutations_KVCacheOnly(t *testing.T) {
 	p := newFakeProvider()
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			KVCache: &kaitov1beta1.KVCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeRequired,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
-	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "", "", "")
+	mutations, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "", "", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -536,21 +487,10 @@ func TestPodMutations_KVCacheOnly(t *testing.T) {
 
 func TestPodMutations_BothConcerns(t *testing.T) {
 	p := newFakeProvider()
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeOpportunistic,
-			},
-			KVCache: &kaitov1beta1.KVCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeOpportunistic,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
 	// Model weights concern: label + RUNAI env vars only.
-	mwMutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", "")
+	mwMutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", nil)
 	if err != nil {
 		t.Fatalf("model weights: unexpected error: %v", err)
 	}
@@ -564,7 +504,7 @@ func TestPodMutations_BothConcerns(t *testing.T) {
 	}
 
 	// KV concern: label + VLLM_KV_TRANSFER_CONFIG only.
-	kvMutations, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "microsoft/phi-4", "main", "")
+	kvMutations, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "microsoft/phi-4", "main", nil)
 	if err != nil {
 		t.Fatalf("KV cache: unexpected error: %v", err)
 	}
@@ -586,16 +526,9 @@ func TestPodMutations_KVCacheDisabled(t *testing.T) {
 	cfg.KVCacheEnabled = false
 	p := New(client, cfg)
 
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			KVCache: &kaitov1beta1.KVCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeRequired,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
-	kv, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "", "", "")
+	kv, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "", "", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -609,21 +542,10 @@ func TestPodMutations_KVCacheDisabled(t *testing.T) {
 
 func TestPodMutations_ConcernIsolation(t *testing.T) {
 	p := newFakeProvider()
-	ws := &kaitov1beta1.Workspace{
-		Cache: &kaitov1beta1.CacheSpec{
-			ModelCache: &kaitov1beta1.ModelCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeRequired,
-			},
-			KVCache: &kaitov1beta1.KVCacheSpec{
-				Provider: "dacs",
-				Mode:     kaitov1beta1.CacheModeRequired,
-			},
-		},
-	}
+	ws := &kaitov1beta1.Workspace{}
 
 	// KV concern must not return model weight env vars.
-	kv, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "microsoft/phi-4", "main", "")
+	kv, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws, "microsoft/phi-4", "main", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -637,7 +559,7 @@ func TestPodMutations_ConcernIsolation(t *testing.T) {
 	}
 
 	// Model weights concern must not return KV env vars.
-	mw, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", "")
+	mw, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws, "microsoft/phi-4", "main", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -645,6 +567,66 @@ func TestPodMutations_ConcernIsolation(t *testing.T) {
 		if env.Name == "VLLM_KV_TRANSFER_CONFIG" {
 			t.Error("model weights concern should not include VLLM_KV_TRANSFER_CONFIG")
 		}
+	}
+}
+
+func TestValidateParameters(t *testing.T) {
+	p := newFakeProvider()
+	tests := []struct {
+		name       string
+		concern    cache.CacheConcern
+		parameters map[string]string
+		wantErr    bool
+	}{
+		{name: "empty", concern: cache.CacheConcernModelWeights},
+		{name: "cache name", concern: cache.CacheConcernModelWeights, parameters: map[string]string{"cacheName": "cache-a"}},
+		{name: "endpoint", concern: cache.CacheConcernModelWeights, parameters: map[string]string{"endpoint": "dacs.example:50051"}},
+		{name: "KV protocol", concern: cache.CacheConcernKVCache, parameters: map[string]string{"kvConnectorProtocol": "rdma"}},
+		{name: "unknown", concern: cache.CacheConcernModelWeights, parameters: map[string]string{"unknown": "value"}, wantErr: true},
+		{name: "empty value", concern: cache.CacheConcernModelWeights, parameters: map[string]string{"cacheName": ""}, wantErr: true},
+		{name: "conflicting endpoint aliases", concern: cache.CacheConcernModelWeights, parameters: map[string]string{"endpoint": "one", "discoveryEndpoint": "two"}, wantErr: true},
+		{name: "cache name with endpoint", concern: cache.CacheConcernModelWeights, parameters: map[string]string{"cacheName": "cache-a", "endpoint": "one"}, wantErr: true},
+		{name: "KV protocol on model weights", concern: cache.CacheConcernModelWeights, parameters: map[string]string{"kvConnectorProtocol": "tcp"}, wantErr: true},
+		{name: "invalid KV protocol", concern: cache.CacheConcernKVCache, parameters: map[string]string{"kvConnectorProtocol": "invalid"}, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := p.ValidateParameters(tt.concern, tt.parameters)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ValidateParameters() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestPodMutations_AttachmentParameters(t *testing.T) {
+	p := newFakeProvider()
+	ws := &kaitov1beta1.Workspace{}
+
+	modelMutations, err := p.PodMutations(context.Background(), cache.CacheConcernModelWeights, ws,
+		"microsoft/phi-4", "main", map[string]string{"cacheName": "custom-cache"})
+	if err != nil {
+		t.Fatalf("model weights: unexpected error: %v", err)
+	}
+	if got := envVarMap(modelMutations.EnvVars)["CACHE_DISCOVERY_URL"]; got != "custom-cache-discovery."+defaultCacheNamespace+".svc.cluster.local" {
+		t.Errorf("CACHE_DISCOVERY_URL = %q, want custom cache discovery address", got)
+	}
+
+	kvMutations, err := p.PodMutations(context.Background(), cache.CacheConcernKVCache, ws,
+		"", "", map[string]string{"endpoint": "dacs.example:50051", "kvConnectorProtocol": "rdma"})
+	if err != nil {
+		t.Fatalf("KV cache: unexpected error: %v", err)
+	}
+	var config kvTransferConfig
+	if err := json.Unmarshal([]byte(kvMutations.EnvVars[0].Value), &config); err != nil {
+		t.Fatalf("decoding KV transfer config: %v", err)
+	}
+	if got := config.KVConnectorExtraConfig["locator_nodes"]; got != "dacs.example:50051" {
+		t.Errorf("locator_nodes = %v, want dacs.example:50051", got)
+	}
+	if got := config.KVConnectorExtraConfig["protocol"]; got != "rdma" {
+		t.Errorf("protocol = %v, want rdma", got)
 	}
 }
 
@@ -807,7 +789,7 @@ func TestExplicitRegistration(t *testing.T) {
 	p := newFakeProvider()
 	cache.Register(p)
 
-	got, err := cache.Get(kaitov1beta1.CacheProvider(ProviderName))
+	got, err := cache.Get(cache.ProviderName(ProviderName))
 	if err != nil {
 		t.Fatalf("dacs provider not registered: %v", err)
 	}

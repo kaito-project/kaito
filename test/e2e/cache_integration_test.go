@@ -21,14 +21,17 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"slices"
 	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/samber/lo"
+	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -100,10 +103,10 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-mw-", rand.Intn(1000))
 
 				By("Creating a workspace with model weights cache enabled")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{
 						Provider: provider,
-						Mode:     kaitov1beta1.CacheModeOpportunistic,
+						Mode:     cache.ModeOpportunistic,
 					},
 				})
 				createAndValidateWorkspace(workspaceObj)
@@ -133,10 +136,10 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-kv-", rand.Intn(1000))
 
 				By("Creating a workspace with KV cache enabled")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					KVCache: &kaitov1beta1.KVCacheSpec{
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					KVCache: &cache.ConcernConfig{
 						Provider: provider,
-						Mode:     kaitov1beta1.CacheModeOpportunistic,
+						Mode:     cache.ModeOpportunistic,
 					},
 				})
 				createAndValidateWorkspace(workspaceObj)
@@ -166,10 +169,10 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-req-", rand.Intn(1000))
 
 				By("Creating a workspace with Required mode cache")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{
 						Provider: provider,
-						Mode:     kaitov1beta1.CacheModeRequired,
+						Mode:     cache.ModeRequired,
 					},
 				})
 
@@ -205,7 +208,6 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 		// Required mode with unavailable cache blocks workload creation.
 		Context(fmt.Sprintf("Provider %q: Required mode blocks workload when cache is unavailable", provider), func() {
 			var workspaceObj *kaitov1beta1.Workspace
-			var badConfigCM *corev1.ConfigMap
 
 			It("should set ModelCacheReady=False and not create a StatefulSet", func() {
 				if !exp.ModelWeights.Supported {
@@ -216,22 +218,12 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				}
 				uniqueID := fmt.Sprint("cache-req-block-", rand.Intn(10000))
 
-				By("Creating a ConfigMap with a nonexistent cacheName to make the provider report unavailable")
-				badConfigCM = &corev1.ConfigMap{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      uniqueID + "-badcfg",
-						Namespace: namespaceName,
-					},
-					Data: map[string]string{"cacheName": "nonexistent-cache-cr-e2e"},
-				}
-				Expect(utils.TestingCluster.KubeClient.Create(ctx, badConfigCM)).To(Succeed())
-
-				By("Creating a workspace with Required mode referencing the bad config")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
-						Provider: provider,
-						Mode:     kaitov1beta1.CacheModeRequired,
-						Config:   badConfigCM.Name,
+				By("Creating a workspace with Required mode and a nonexistent cacheName")
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{
+						Provider:   provider,
+						Mode:       cache.ModeRequired,
+						Parameters: map[string]string{"cacheName": "nonexistent-cache-cr-e2e"},
 					},
 				})
 				Eventually(func() error {
@@ -268,17 +260,12 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 					cleanupWorkspace(workspaceObj)
 					workspaceObj = nil
 				}
-				if badConfigCM != nil {
-					_ = utils.TestingCluster.KubeClient.Delete(ctx, badConfigCM)
-					badConfigCM = nil
-				}
 			})
 		})
 
 		// Opportunistic mode with unavailable cache proceeds without injection.
 		Context(fmt.Sprintf("Provider %q: Opportunistic mode proceeds when cache is unavailable", provider), func() {
 			var workspaceObj *kaitov1beta1.Workspace
-			var badConfigCM *corev1.ConfigMap
 
 			It("should create StatefulSet without cache injection labels", func() {
 				if !exp.ModelWeights.Supported {
@@ -289,22 +276,12 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				}
 				uniqueID := fmt.Sprint("cache-opp-proceed-", rand.Intn(10000))
 
-				By("Creating a ConfigMap with a nonexistent cacheName to make the provider report unavailable")
-				badConfigCM = &corev1.ConfigMap{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      uniqueID + "-badcfg",
-						Namespace: namespaceName,
-					},
-					Data: map[string]string{"cacheName": "nonexistent-cache-cr-e2e"},
-				}
-				Expect(utils.TestingCluster.KubeClient.Create(ctx, badConfigCM)).To(Succeed())
-
-				By("Creating a workspace with Opportunistic mode referencing the bad config")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
-						Provider: provider,
-						Mode:     kaitov1beta1.CacheModeOpportunistic,
-						Config:   badConfigCM.Name,
+				By("Creating a workspace with Opportunistic mode and a nonexistent cacheName")
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{
+						Provider:   provider,
+						Mode:       cache.ModeOpportunistic,
+						Parameters: map[string]string{"cacheName": "nonexistent-cache-cr-e2e"},
 					},
 				})
 				createAndValidateWorkspace(workspaceObj)
@@ -332,10 +309,6 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 					cleanupWorkspace(workspaceObj)
 					workspaceObj = nil
 				}
-				if badConfigCM != nil {
-					_ = utils.TestingCluster.KubeClient.Delete(ctx, badConfigCM)
-					badConfigCM = nil
-				}
 			})
 		})
 
@@ -350,10 +323,10 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-env-pres-", rand.Intn(10000))
 
 				By("Creating a workspace with a custom user env var")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{
 						Provider: provider,
-						Mode:     kaitov1beta1.CacheModeOpportunistic,
+						Mode:     cache.ModeOpportunistic,
 					},
 				})
 				// Add a user env var to the model container.
@@ -433,10 +406,10 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-dis-", rand.Intn(10000))
 
 				By("Creating a workspace with model cache Disabled")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{
 						Provider: provider,
-						Mode:     kaitov1beta1.CacheModeDisabled,
+						Mode:     cache.ModeDisabled,
 					},
 				})
 				createAndValidateWorkspace(workspaceObj)
@@ -481,9 +454,9 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-both-", rand.Intn(10000))
 
 				By("Creating a workspace with both model and KV cache enabled")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
-					KVCache:    &kaitov1beta1.KVCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
+					KVCache:      &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				createAndValidateWorkspace(workspaceObj)
 
@@ -504,12 +477,9 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 			})
 		})
 
-		// t17: cache spec toggled across updates. This documents the CURRENT controller
-		// behavior: cache mutations are applied only at StatefulSet creation. The workspace
-		// revision hash (ComputeHash) excludes Cache, so mutating Workspace.Cache on a running
-		// workspace does NOT re-generate the StatefulSet. A live cache mode change is therefore
-		// a no-op on the injected pod spec until the StatefulSet is recreated.
-		Context(fmt.Sprintf("Provider %q: cache spec change on a running workspace is not reconciled onto the StatefulSet", provider), func() {
+		// t17: cache attachment changes trigger Workspace reconciliation through the
+		// ConfigMap watch and update the rendered StatefulSet.
+		Context(fmt.Sprintf("Provider %q: cache attachment changes reconcile the running workspace", provider), func() {
 			var workspaceObj *kaitov1beta1.Workspace
 
 			It("should keep the originally injected cache mutations unchanged after a live mode update", func() {
@@ -519,38 +489,34 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-upd-", rand.Intn(10000))
 
 				By("Creating the workspace initially Opportunistic so cache mutations are injected at STS creation")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				createAndValidateWorkspace(workspaceObj)
 				validateStatefulSetConformance(workspaceObj, exp, cache.CacheConcernModelWeights)
 
-				By("Capturing the StatefulSet revision after initial injection")
-				initialSTS := &appsv1.StatefulSet{}
-				Expect(utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Namespace: workspaceObj.Namespace, Name: workspaceObj.Name}, initialSTS)).To(Succeed())
-				initialRevision := initialSTS.Labels[appsv1.StatefulSetRevisionLabel]
-
-				By("Updating the workspace to Disabled and confirming the StatefulSet is NOT re-generated (current behavior)")
+				By("Updating the cache attachment to Disabled and confirming cache mutations are removed")
 				me := exp.ForConcern(cache.CacheConcernModelWeights)
-				updateCacheMode(workspaceObj, kaitov1beta1.CacheModeDisabled)
-				Consistently(func() error {
+				updateCacheMode(workspaceObj, cache.ModeDisabled)
+				Eventually(func() error {
 					sts := &appsv1.StatefulSet{}
 					if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Namespace: workspaceObj.Namespace, Name: workspaceObj.Name}, sts); err != nil {
 						return err
 					}
-					if got := sts.Labels[appsv1.StatefulSetRevisionLabel]; got != initialRevision {
-						return fmt.Errorf("StatefulSet revision changed from %q to %q; expected no re-generation on cache-only update", initialRevision, got)
-					}
-					// The originally injected cache mutations must still be present (unchanged).
-					if errs := cache.AssertPodSpec(sts.Spec.Template.Labels, &sts.Spec.Template.Spec, me); len(errs) > 0 {
-						msgs := make([]string, 0, len(errs))
-						for _, e := range errs {
-							msgs = append(msgs, e.Error())
+					for name, value := range me.RequiredLabels {
+						if sts.Spec.Template.Labels[name] == value {
+							return fmt.Errorf("cache label %s=%s is still present", name, value)
 						}
-						return fmt.Errorf("original cache mutations unexpectedly removed: %s", strings.Join(msgs, "; "))
+					}
+					for _, container := range sts.Spec.Template.Spec.Containers {
+						for _, env := range container.Env {
+							if slices.Contains(me.RequiredEnvVars, env.Name) {
+								return fmt.Errorf("cache environment variable %s is still present", env.Name)
+							}
+						}
 					}
 					return nil
-				}, 90*time.Second, 15*time.Second).Should(Succeed())
+				}, 5*time.Minute, utils.PollInterval).Should(Succeed())
 			})
 
 			AfterEach(func() {
@@ -573,8 +539,8 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-recr-", rand.Intn(10000))
 
 				By("Creating, validating, then deleting the workspace")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				createAndValidateWorkspace(workspaceObj)
 				validateCacheCondition(workspaceObj, string(kaitov1beta1.WorkspaceConditionTypeModelCacheReady))
@@ -585,8 +551,8 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				}, 5*time.Minute, utils.PollInterval).Should(BeTrue(), "workspace should be deleted")
 
 				By("Recreating the workspace with the same name and verifying it reconciles cleanly")
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				createAndValidateWorkspace(workspaceObj)
 				validateStatefulSetConformance(workspaceObj, exp, cache.CacheConcernModelWeights)
@@ -613,8 +579,8 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				const n = 3
 				By(fmt.Sprintf("Creating %d cache workspaces concurrently on the shared node", n))
 				for i := 0; i < n; i++ {
-					ws := generateCacheWorkspace(fmt.Sprint("cache-conc-", rand.Intn(100000)), namespaceName, provider, kaitov1beta1.CacheSpec{
-						ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+					ws := generateCacheWorkspace(fmt.Sprint("cache-conc-", rand.Intn(100000)), namespaceName, provider, cache.Attachment{
+						ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 					})
 					Expect(utils.TestingCluster.KubeClient.Create(ctx, ws)).To(Succeed())
 					workspaces = append(workspaces, ws)
@@ -634,21 +600,21 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 			})
 		})
 
-		// t7: an InferenceSet propagates its cache spec to every child Workspace.
+		// t7: an InferenceSet propagates its cache attachment to every child Workspace.
 		Context(fmt.Sprintf("Provider %q: InferenceSet propagates cache to children", provider), func() {
 			var isObj *kaitov1beta1.InferenceSet
 
-			It("should create child workspaces that inherit the cache spec", func() {
+			It("should create child workspaces that inherit the cache attachment", func() {
 				if !exp.ModelWeights.Supported {
 					Skip(fmt.Sprintf("provider %q does not support the model weights concern", provider))
 				}
 				uniqueID := fmt.Sprint("cache-is-", rand.Intn(10000))
-				isObj = generateCacheInferenceSet(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				isObj = generateCacheInferenceSet(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				Expect(utils.TestingCluster.KubeClient.Create(ctx, isObj)).To(Succeed())
 
-				By("Verifying at least one child workspace is created carrying the cache spec")
+				By("Verifying at least one child workspace is created carrying the cache attachment")
 				Eventually(func() error {
 					list := &kaitov1beta1.WorkspaceList{}
 					if err := utils.TestingCluster.KubeClient.List(ctx, list,
@@ -659,13 +625,11 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 					if len(list.Items) == 0 {
 						return fmt.Errorf("no child workspaces yet")
 					}
+					expectedConfigMap := isObj.Spec.Template.Annotations[cache.ConfigAnnotation]
 					for i := range list.Items {
 						child := &list.Items[i]
-						if child.Cache == nil || child.Cache.ModelCache == nil {
-							return fmt.Errorf("child %s did not inherit the cache spec", child.Name)
-						}
-						if child.Cache.ModelCache.Provider != provider {
-							return fmt.Errorf("child %s inherited wrong provider %q", child.Name, child.Cache.ModelCache.Provider)
+						if child.Annotations[cache.ConfigAnnotation] != expectedConfigMap {
+							return fmt.Errorf("child %s did not inherit cache attachment %q", child.Name, expectedConfigMap)
 						}
 					}
 					return nil
@@ -694,11 +658,11 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				otherNS = fmt.Sprintf("%s-cache-tenant-%d", namespaceName, rand.Intn(10000))
 				ensureCacheNamespace(otherNS)
 
-				wsA = generateCacheWorkspace(fmt.Sprint("cache-ta-", rand.Intn(10000)), namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				wsA = generateCacheWorkspace(fmt.Sprint("cache-ta-", rand.Intn(10000)), namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
-				wsB = generateCacheWorkspace(fmt.Sprint("cache-tb-", rand.Intn(10000)), otherNS, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				wsB = generateCacheWorkspace(fmt.Sprint("cache-tb-", rand.Intn(10000)), otherNS, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				createAndValidateWorkspace(wsA)
 				createAndValidateWorkspace(wsB)
@@ -734,8 +698,8 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 					Skip(fmt.Sprintf("provider %q does not support the model weights concern", provider))
 				}
 				uniqueID := fmt.Sprint("cache-race-", rand.Intn(10000))
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				createAndValidateWorkspace(workspaceObj)
 
@@ -775,8 +739,8 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 					Skip(fmt.Sprintf("provider %q does not support the model weights concern", provider))
 				}
 				uniqueID := fmt.Sprint("cache-adpt-", rand.Intn(10000))
-				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				workspaceObj = generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				strength := "0.5"
 				workspaceObj.Inference.Adapters = []kaitov1beta1.AdapterSpec{{
@@ -797,7 +761,7 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 			})
 		})
 
-		// t30: a Tuning workspace with a cache spec is accepted by admission (cache
+		// t30: a Tuning workspace with a cache attachment is accepted by admission (cache
 		// validation is orthogonal to Tuning). Uses a dry-run create so nothing is
 		// persisted and no nodes are provisioned.
 		Context(fmt.Sprintf("Provider %q: cache accepted on a Tuning workspace", provider), func() {
@@ -806,8 +770,8 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 					Skip(fmt.Sprintf("provider %q does not support the model weights concern", provider))
 				}
 				uniqueID := fmt.Sprint("cache-tune-", rand.Intn(10000))
-				ws := generateCacheWorkspace(uniqueID, namespaceName, provider, kaitov1beta1.CacheSpec{
-					ModelCache: &kaitov1beta1.ModelCacheSpec{Provider: provider, Mode: kaitov1beta1.CacheModeOpportunistic},
+				ws := generateCacheWorkspace(uniqueID, namespaceName, provider, cache.Attachment{
+					ModelWeights: &cache.ConcernConfig{Provider: provider, Mode: cache.ModeOpportunistic},
 				})
 				// Convert to a Tuning workspace.
 				ws.Inference = nil
@@ -853,10 +817,10 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 				uniqueID := fmt.Sprint("cache-hit-", rand.Intn(10000))
 
 				buildCacheHitWorkspace := func(name string) *kaitov1beta1.Workspace {
-					ws := generateCacheWorkspace(name, wsNamespace, provider, kaitov1beta1.CacheSpec{
-						ModelCache: &kaitov1beta1.ModelCacheSpec{
+					ws := generateCacheWorkspace(name, wsNamespace, provider, cache.Attachment{
+						ModelWeights: &cache.ConcernConfig{
 							Provider: provider,
-							Mode:     kaitov1beta1.CacheModeOpportunistic,
+							Mode:     cache.ModeOpportunistic,
 						},
 					})
 					if cfg.WorkspaceCustomizer != nil {
@@ -943,13 +907,25 @@ var _ = Describe("Cache Integration", Label("cache"), func() {
 // E2EWorkspace hook (see applyProviderE2EWorkspace), keeping this helper free of
 // any single provider's details. A provider whose e2e prerequisites are unmet
 // skips the running spec via that hook.
-func generateCacheWorkspace(name, namespace string, provider kaitov1beta1.CacheProvider, cacheSpec kaitov1beta1.CacheSpec) *kaitov1beta1.Workspace {
+func generateCacheWorkspace(name, namespace string, provider cache.ProviderName, cacheSpec cache.Attachment) *kaitov1beta1.Workspace {
+	configMapName := name + "-cache"
+	attachmentData, err := yaml.Marshal(cacheSpec)
+	Expect(err).NotTo(HaveOccurred())
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: configMapName, Namespace: namespace},
+		Data:       map[string]string{cache.ConfigKey: string(attachmentData)},
+	}
+	err = utils.TestingCluster.KubeClient.Create(ctx, configMap)
+	Expect(err == nil || apierrors.IsAlreadyExists(err)).To(BeTrue(),
+		"failed to create cache attachment ConfigMap: %v", err)
+
 	ws := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 			Annotations: map[string]string{
 				kaitov1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
+				cache.ConfigAnnotation:                  configMapName,
 			},
 		},
 	}
@@ -996,7 +972,6 @@ func generateCacheWorkspace(name, namespace string, provider kaitov1beta1.CacheP
 			},
 		},
 	}
-	ws.Cache = &cacheSpec
 	applyProviderE2EWorkspace(provider, ws)
 	return ws
 }
@@ -1005,7 +980,7 @@ func generateCacheWorkspace(name, namespace string, provider kaitov1beta1.CacheP
 // the provider's registered E2EWorkspace hook, or skips the running spec when the
 // provider's e2e prerequisites are unmet. A provider with no hook keeps the neutral
 // skeleton unchanged, so provider onboarding requires no edits here.
-func applyProviderE2EWorkspace(provider kaitov1beta1.CacheProvider, ws *kaitov1beta1.Workspace) {
+func applyProviderE2EWorkspace(provider cache.ProviderName, ws *kaitov1beta1.Workspace) {
 	exp, ok := cache.GetExpectations(provider)
 	if !ok || exp.E2EWorkspace == nil {
 		return
@@ -1033,8 +1008,8 @@ func ensureCacheNamespace(ns string) {
 }
 
 // generateCacheInferenceSet builds an InferenceSet whose template carries the given
-// cache spec, with a single replica to stay within the node budget.
-func generateCacheInferenceSet(name, namespace string, provider kaitov1beta1.CacheProvider, cacheSpec kaitov1beta1.CacheSpec) *kaitov1beta1.InferenceSet {
+// cache attachment, with a single replica to stay within the node budget.
+func generateCacheInferenceSet(name, namespace string, provider cache.ProviderName, cacheSpec cache.Attachment) *kaitov1beta1.InferenceSet {
 	replicas := int32(1)
 	base := generateCacheWorkspace(name, namespace, provider, cacheSpec)
 	return &kaitov1beta1.InferenceSet{
@@ -1048,7 +1023,11 @@ func generateCacheInferenceSet(name, namespace string, provider kaitov1beta1.Cac
 			Template: kaitov1beta1.InferenceSetTemplate{
 				Resource:  kaitov1beta1.InferenceSetResourceSpec{},
 				Inference: *base.Inference,
-				Cache:     &cacheSpec,
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						cache.ConfigAnnotation: base.Annotations[cache.ConfigAnnotation],
+					},
+				},
 			},
 		},
 	}
@@ -1156,21 +1135,33 @@ func getWorkspaceCondition(ws *kaitov1beta1.Workspace, condType string) (metav1.
 	return c, found, nil
 }
 
-// updateCacheMode patches the workspace's model cache mode with conflict retry.
-func updateCacheMode(ws *kaitov1beta1.Workspace, mode kaitov1beta1.CacheMode) {
+// updateCacheMode patches the workspace's model-weights attachment mode with conflict retry.
+func updateCacheMode(ws *kaitov1beta1.Workspace, mode cache.Mode) {
 	Eventually(func() error {
-		fresh := &kaitov1beta1.Workspace{}
-		if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Namespace: ws.Namespace, Name: ws.Name}, fresh); err != nil {
+		configMapName := ws.Annotations[cache.ConfigAnnotation]
+		if configMapName == "" {
+			return fmt.Errorf("workspace has no %s annotation", cache.ConfigAnnotation)
+		}
+		configMap := &corev1.ConfigMap{}
+		if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKey{Namespace: ws.Namespace, Name: configMapName}, configMap); err != nil {
 			return err
 		}
-		if fresh.Cache == nil || fresh.Cache.ModelCache == nil {
-			return fmt.Errorf("workspace has no model cache spec")
+		attachment := cache.Attachment{}
+		if err := yaml.UnmarshalStrict([]byte(configMap.Data[cache.ConfigKey]), &attachment); err != nil {
+			return fmt.Errorf("decoding cache attachment: %w", err)
 		}
-		fresh.Cache.ModelCache.Mode = mode
-		if err := utils.TestingCluster.KubeClient.Update(ctx, fresh); err != nil {
+		if attachment.ModelWeights == nil {
+			return fmt.Errorf("cache attachment has no modelWeights concern")
+		}
+		attachment.ModelWeights.Mode = mode
+		data, err := yaml.Marshal(attachment)
+		if err != nil {
+			return fmt.Errorf("encoding cache attachment: %w", err)
+		}
+		configMap.Data[cache.ConfigKey] = string(data)
+		if err := utils.TestingCluster.KubeClient.Update(ctx, configMap); err != nil {
 			return err
 		}
-		ws.ResourceVersion = fresh.ResourceVersion
 		return nil
 	}, 2*time.Minute, utils.PollInterval).Should(Succeed(), "failed to update cache mode to %s", mode)
 }
@@ -1178,22 +1169,22 @@ func updateCacheMode(ws *kaitov1beta1.Workspace, mode kaitov1beta1.CacheMode) {
 // e2eHarness implements cache.E2EHarness so provider-declared scenarios (which live
 // in the provider package) can drive the cluster without importing the e2e utils.
 type e2eHarness struct {
-	provider  kaitov1beta1.CacheProvider
+	provider  cache.ProviderName
 	namespace string
 }
 
-func newE2EHarness(provider kaitov1beta1.CacheProvider) cache.E2EHarness {
+func newE2EHarness(provider cache.ProviderName) cache.E2EHarness {
 	return &e2eHarness{provider: provider, namespace: namespaceName}
 }
 
-func newE2EHarnessInNamespace(provider kaitov1beta1.CacheProvider, ns string) cache.E2EHarness {
+func newE2EHarnessInNamespace(provider cache.ProviderName, ns string) cache.E2EHarness {
 	return &e2eHarness{provider: provider, namespace: ns}
 }
 
-func (h *e2eHarness) Ctx() context.Context                 { return ctx }
-func (h *e2eHarness) Client() client.Client                { return utils.TestingCluster.KubeClient }
-func (h *e2eHarness) Namespace() string                    { return h.namespace }
-func (h *e2eHarness) Provider() kaitov1beta1.CacheProvider { return h.provider }
+func (h *e2eHarness) Ctx() context.Context         { return ctx }
+func (h *e2eHarness) Client() client.Client        { return utils.TestingCluster.KubeClient }
+func (h *e2eHarness) Namespace() string            { return h.namespace }
+func (h *e2eHarness) Provider() cache.ProviderName { return h.provider }
 func (h *e2eHarness) Logf(format string, args ...any) {
 	GinkgoWriter.Printf(format+"\n", args...)
 }
@@ -1206,7 +1197,7 @@ func (h *e2eHarness) PodLogs(podName string) (string, error) {
 	return utils.GetPodLogs(clientset, h.namespace, podName, "")
 }
 
-func (h *e2eHarness) NewCacheWorkspace(idPrefix string, spec kaitov1beta1.CacheSpec) *kaitov1beta1.Workspace {
+func (h *e2eHarness) NewCacheWorkspace(idPrefix string, spec cache.Attachment) *kaitov1beta1.Workspace {
 	return generateCacheWorkspace(fmt.Sprintf("%s-%d", idPrefix, rand.Intn(100000)), h.namespace, h.provider, spec)
 }
 

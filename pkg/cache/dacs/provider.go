@@ -155,6 +155,7 @@ type Provider struct {
 var _ cache.Provider = (*Provider)(nil)
 var _ cache.EventTarget = (*Provider)(nil)
 var _ cache.DefaultConfigProvider = (*Provider)(nil)
+var _ cache.ParameterValidator = (*Provider)(nil)
 
 // New creates a DACS cache provider with the given dynamic client and config.
 func New(client dynamic.Interface, cfg Config) *Provider {
@@ -255,7 +256,7 @@ func (p *Provider) IsAvailable(ctx context.Context, cacheName string) (bool, err
 		return true, nil
 	default:
 		return false, fmt.Errorf("multiple DACS cache clusters found (%d) but no default %q; "+
-			"specify cacheName in the Config ConfigMap via InferenceSet or Workspace CR",
+			"specify cacheName in the cache attachment parameters",
 			len(caches.Items), defName)
 	}
 }
@@ -301,7 +302,7 @@ func (p *Provider) IsReady(ctx context.Context, cacheName string) (bool, string,
 		return ready, reason, nil
 	default:
 		return false, "", fmt.Errorf("multiple DACS cache clusters found (%d) but no default %q; "+
-			"specify cacheName in the Config ConfigMap via InferenceSet or Workspace CR",
+			"specify cacheName in the cache attachment parameters",
 			len(caches.Items), defName)
 	}
 }
@@ -315,7 +316,7 @@ func (p *Provider) EventObject() runtime.Object {
 }
 
 // DefaultConfig returns Helm-value defaults for the given concern, used
-// as the base layer when merging with user-provided Config ConfigMaps.
+// as the base layer when merging with attachment parameters.
 func (p *Provider) DefaultConfig(concern string) map[string]string {
 	defaults := map[string]string{
 		"discoveryEndpoint": p.config.DiscoveryEndpoint,
@@ -331,13 +332,20 @@ func (p *Provider) DefaultConfig(concern string) map[string]string {
 }
 
 // PodMutations returns the pod-level changes needed for the requested cache concern.
-// cacheName identifies the target cache CR; if empty, uses the default (p.cacheObj).
 // For ModelWeights: adds the DACS injection label, mounts the client library,
 // and sets RunAI streamer env vars to enable cache-backed model loading.
 // The DACS mutating webhook handles all library injection when it sees the label.
 // For KVCache: adds the injection label and the vLLM KV transfer config env var.
-func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision, cacheName string) (*cache.PodMutations, error) {
+func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern, workspace *kaitov1beta1.Workspace, modelName, modelRevision string, parameters map[string]string) (*cache.PodMutations, error) {
 	mutations := &cache.PodMutations{}
+	cacheName := parameters["cacheName"]
+	discoveryEndpoint := parameters["endpoint"]
+	if discoveryEndpoint == "" {
+		discoveryEndpoint = parameters["discoveryEndpoint"]
+	}
+	if discoveryEndpoint == "" {
+		discoveryEndpoint = p.resolveDiscoveryEndpoint(cacheName)
+	}
 
 	switch concern {
 	case cache.CacheConcernModelWeights:
@@ -367,8 +375,6 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 		})
 
 		// Tell run:ai model streamer to load the cache library from the ImageVolume.
-		discoveryEndpoint := p.resolveDiscoveryEndpoint(cacheName)
-
 		// Resolve the chunk size once. The default is a per-model recommendation
 		// derived offline from the model's safetensors tensor layout (the modal
 		// per-tensor byte size; see pkg/cache/dacs/chunksize) when the model is
@@ -435,9 +441,11 @@ func (p *Provider) PodMutations(ctx context.Context, concern cache.CacheConcern,
 			InjectLabelKey: InjectLabelValue,
 		}
 
-		// Resolve discovery endpoint from provided cacheName or default.
-		endpoint := p.resolveDiscoveryEndpoint(cacheName)
-		kvEnvVars, err := kvCacheEnvVars(endpoint, p.config.KVConnectorProtocol)
+		protocol := p.config.KVConnectorProtocol
+		if configuredProtocol := parameters["kvConnectorProtocol"]; configuredProtocol != "" {
+			protocol = configuredProtocol
+		}
+		kvEnvVars, err := kvCacheEnvVars(discoveryEndpoint, protocol)
 		if err != nil {
 			return nil, fmt.Errorf("building KV cache env vars: %w", err)
 		}
@@ -472,7 +480,7 @@ func (p *Provider) AppliesTo(_ cache.CacheConcern, _ *kaitov1beta1.Workspace, ss
 	return false
 }
 
-// Priority: explicit config > provided cacheName > default cacheObj name > derived default.
+// Priority: configured endpoint > provided cacheName > default cacheObj name > derived default.
 func (p *Provider) resolveDiscoveryEndpoint(cacheName string) string {
 	if p.config.DiscoveryEndpoint != "" {
 		return p.config.DiscoveryEndpoint
@@ -480,7 +488,7 @@ func (p *Provider) resolveDiscoveryEndpoint(cacheName string) string {
 
 	ns := p.cacheNamespace()
 
-	// Use provided cacheName (from user ConfigMap).
+	// Use the cacheName supplied by the attachment.
 	if cacheName != "" {
 		return fmt.Sprintf("%s-discovery.%s.svc.cluster.local", cacheName, ns)
 	}
@@ -494,11 +502,36 @@ func (p *Provider) resolveDiscoveryEndpoint(cacheName string) string {
 	return fmt.Sprintf("%s-discovery.%s.svc.cluster.local", defName, ns)
 }
 
-// Cleanup is a placeholder for cache invalidation logic.
-// TODO(distributed-cache): Implement cache invalidation — evict cached model chunks
-// from DACS cache servers when workspace is deleted with cleanupOnDelete: true.
-func (p *Provider) Cleanup(ctx context.Context, workspace *kaitov1beta1.Workspace, modelName string) error {
-	klog.V(4).InfoS("Cleanup requested (not yet implemented)", "workspace", workspace.Name, "model", modelName)
+// ValidateParameters rejects unknown attachment settings before mutations are generated.
+func (p *Provider) ValidateParameters(concern cache.CacheConcern, parameters map[string]string) error {
+	for name, value := range parameters {
+		switch name {
+		case "cacheName":
+			if strings.TrimSpace(value) == "" {
+				return fmt.Errorf("cacheName must not be empty")
+			}
+		case "endpoint", "discoveryEndpoint":
+			if strings.TrimSpace(value) == "" {
+				return fmt.Errorf("%s must not be empty", name)
+			}
+		case "kvConnectorProtocol":
+			if concern != cache.CacheConcernKVCache {
+				return fmt.Errorf("kvConnectorProtocol is only valid for KVCache")
+			}
+			if value != "tcp" && value != "rdma" {
+				return fmt.Errorf("kvConnectorProtocol must be tcp or rdma")
+			}
+		default:
+			return fmt.Errorf("unknown parameter %q", name)
+		}
+	}
+	if parameters["endpoint"] != "" && parameters["discoveryEndpoint"] != "" {
+		return fmt.Errorf("endpoint and discoveryEndpoint are mutually exclusive")
+	}
+	if parameters["cacheName"] != "" &&
+		(parameters["endpoint"] != "" || parameters["discoveryEndpoint"] != "") {
+		return fmt.Errorf("cacheName and endpoint are mutually exclusive")
+	}
 	return nil
 }
 

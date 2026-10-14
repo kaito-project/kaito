@@ -16,6 +16,8 @@ package cache
 import (
 	"sort"
 	"sync"
+
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
 
 // The expectations registry is the backbone of provider-agnostic conformance

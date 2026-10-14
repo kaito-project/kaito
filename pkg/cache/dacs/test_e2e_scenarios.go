@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -50,12 +49,12 @@ const (
 // provider package is imported.
 func dacsE2EScenarios() []cache.E2EScenario {
 	return []cache.E2EScenario{
-		// t5: an explicit cacheName in the Config ConfigMap is honored for
+		// t5: an explicit cacheName attachment parameter is honored for
 		// availability — a bad name suppresses injection, the real name enables it.
 		// This is DACS-specific because it exercises the DACS cacheName discovery
 		// mechanism (resolveDiscoveryEndpoint from a Cache CR).
 		{
-			Name:       "cacheName override in the Config ConfigMap is honored",
+			Name:       "cacheName attachment parameter is honored",
 			Capability: cache.E2ECapabilityControlPlane,
 			Run:        scenarioCacheNameOverrideHonored,
 		},
@@ -93,22 +92,17 @@ func dacsE2EScenarios() []cache.E2EScenario {
 // ---- control-plane scenarios ----
 
 func scenarioCacheNameOverrideHonored(h cache.E2EHarness) error {
-	// An explicit cacheName provided through the Config ConfigMap must be honored:
+	// An explicit cacheName attachment parameter must be honored:
 	// a nonexistent cache name suppresses injection (unavailable), while the real
 	// cache name drives injection. This exercises the availability gating that the
 	// controller applies per-workspace based on the resolved cacheName.
 	//
 	// Bad name → no injection (cache unavailable).
-	badCM, err := createCacheNameConfigMap(h, "dacs-name-bad", nonExistentCacheName)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = h.Client().Delete(h.Ctx(), badCM) }()
-	badWS := h.NewCacheWorkspace("dacs-name-bad", kaitov1beta1.CacheSpec{
-		ModelCache: &kaitov1beta1.ModelCacheSpec{
-			Provider: kaitov1beta1.CacheProvider(ProviderName),
-			Mode:     kaitov1beta1.CacheModeOpportunistic,
-			Config:   badCM.Name,
+	badWS := h.NewCacheWorkspace("dacs-name-bad", cache.Attachment{
+		ModelWeights: &cache.ConcernConfig{
+			Provider:   cache.ProviderName(ProviderName),
+			Mode:       cache.ModeOpportunistic,
+			Parameters: map[string]string{"cacheName": nonExistentCacheName},
 		},
 	})
 	if err := h.Client().Create(h.Ctx(), badWS); err != nil {
@@ -117,16 +111,11 @@ func scenarioCacheNameOverrideHonored(h cache.E2EHarness) error {
 	defer func() { _ = h.Client().Delete(h.Ctx(), badWS) }()
 
 	// Real name → injection with the matching discovery endpoint.
-	goodCM, err := createCacheNameConfigMap(h, "dacs-name-good", defaultCacheName)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = h.Client().Delete(h.Ctx(), goodCM) }()
-	goodWS := h.NewCacheWorkspace("dacs-name-good", kaitov1beta1.CacheSpec{
-		ModelCache: &kaitov1beta1.ModelCacheSpec{
-			Provider: kaitov1beta1.CacheProvider(ProviderName),
-			Mode:     kaitov1beta1.CacheModeOpportunistic,
-			Config:   goodCM.Name,
+	goodWS := h.NewCacheWorkspace("dacs-name-good", cache.Attachment{
+		ModelWeights: &cache.ConcernConfig{
+			Provider:   cache.ProviderName(ProviderName),
+			Mode:       cache.ModeOpportunistic,
+			Parameters: map[string]string{"cacheName": defaultCacheName},
 		},
 	})
 	if err := h.Client().Create(h.Ctx(), goodWS); err != nil {
@@ -160,10 +149,10 @@ func scenarioCacheNameOverrideHonored(h cache.E2EHarness) error {
 // ---- gated scenarios (real logic, run only when their capability is enabled) ----
 
 func scenarioImageVolumePullFailure(h cache.E2EHarness) error {
-	ws := h.NewCacheWorkspace("dacs-badimg", kaitov1beta1.CacheSpec{
-		ModelCache: &kaitov1beta1.ModelCacheSpec{
-			Provider: kaitov1beta1.CacheProvider(ProviderName),
-			Mode:     kaitov1beta1.CacheModeOpportunistic,
+	ws := h.NewCacheWorkspace("dacs-badimg", cache.Attachment{
+		ModelWeights: &cache.ConcernConfig{
+			Provider: cache.ProviderName(ProviderName),
+			Mode:     cache.ModeOpportunistic,
 		},
 	})
 	if err := h.Client().Create(h.Ctx(), ws); err != nil {
@@ -204,28 +193,14 @@ func scenarioBlobFallback(h cache.E2EHarness) error {
 
 // ---- helpers ----
 
-func createCacheNameConfigMap(h cache.E2EHarness, prefix, cacheName string) (*corev1.ConfigMap, error) {
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: prefix + "-",
-			Namespace:    h.Namespace(),
-		},
-		Data: map[string]string{"cacheName": cacheName},
-	}
-	if err := h.Client().Create(h.Ctx(), cm); err != nil {
-		return nil, fmt.Errorf("creating cacheName ConfigMap: %w", err)
-	}
-	return cm, nil
-}
-
 // runServingWorkspace creates a cache-enabled workspace, waits for the cache
 // condition to become Ready, and runs an optional extra check. It is only invoked
 // for data-plane scenarios, which the runner gates behind an explicit opt-in.
 func runServingWorkspace(h cache.E2EHarness, prefix string, extra func(ws *kaitov1beta1.Workspace) error) error {
-	ws := h.NewCacheWorkspace(prefix, kaitov1beta1.CacheSpec{
-		ModelCache: &kaitov1beta1.ModelCacheSpec{
-			Provider: kaitov1beta1.CacheProvider(ProviderName),
-			Mode:     kaitov1beta1.CacheModeOpportunistic,
+	ws := h.NewCacheWorkspace(prefix, cache.Attachment{
+		ModelWeights: &cache.ConcernConfig{
+			Provider: cache.ProviderName(ProviderName),
+			Mode:     cache.ModeOpportunistic,
 		},
 	})
 	if err := h.Client().Create(h.Ctx(), ws); err != nil {

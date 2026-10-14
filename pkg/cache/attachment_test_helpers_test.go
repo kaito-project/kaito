@@ -14,7 +14,6 @@
 package cache
 
 import (
-	"context"
 	"testing"
 
 	"gopkg.in/yaml.v2"
@@ -81,16 +80,6 @@ func attachmentForTestWorkspace(t *testing.T, workspace *kaitov1beta1.Workspace)
 	attachment, err := decodeAttachment([]byte(raw))
 	if err != nil {
 		t.Fatalf("decode test cache attachment: %v", err)
-	}
-	return attachment
-}
-
-func resolveTestAttachment(t *testing.T, workspace *kaitov1beta1.Workspace) *Attachment {
-	t.Helper()
-	kubeClient := attachmentClientForWorkspace(t, workspace)
-	attachment, err := ResolveAttachment(context.Background(), kubeClient, workspace)
-	if err != nil {
-		t.Fatalf("resolve test cache attachment: %v", err)
 	}
 	return attachment
 }

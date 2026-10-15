@@ -978,17 +978,21 @@ func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, conf
 }
 
 func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
+	if instanceType == "" {
+		return apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType")
+	}
+
 	provider := os.Getenv("CLOUD_PROVIDER")
 
 	switch provider {
 	case consts.AzureCloudName:
-		if sku.HasSKUNamePrefix(instanceType, A_SERIES_PREFIX, B_SERIES_PREFIX, D_SERIES_PREFIX, E_SERIES_PREFIX, F_SERIES_PREFIX, L_SERIES_PREFIX, M_SERIES_PREFIX) {
-			return nil
+		if isAzureGPUOrAcceleratorSKU(instanceType) {
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. Azure N-series GPU/accelerator SKUs are not allowed for the Phase 1 CPU path", instanceType),
+				"instanceType",
+			)
 		}
-		return apis.ErrInvalidValue(
-			fmt.Sprintf("unsupported CPU instance type %s. Expected a CPU-capable Azure SKU such as Standard_D*, Standard_E*, Standard_F*, Standard_B*, Standard_L*, Standard_M*, or Standard_A*", instanceType),
-			"instanceType",
-		)
+		return nil
 	case consts.AWSCloudName:
 		if !awsCPUInstanceTypePattern.MatchString(instanceType) {
 			return apis.ErrInvalidValue(
@@ -1006,19 +1010,14 @@ func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
 			)
 		}
 
-		switch matches[1] {
-		case "g", "p", "inf", "trn", "dl":
+		if isAWSGPUOrAcceleratorInstanceType(instanceType) {
 			return apis.ErrInvalidValue(
 				fmt.Sprintf("unsupported CPU instance type %s. GPU/accelerator-oriented AWS families (g*, p*, inf*, trn*, dl*) are not allowed for the Phase 1 CPU path", instanceType),
 				"instanceType",
 			)
-		default:
-			return nil
 		}
+		return nil
 	default:
-		if instanceType == "" {
-			return apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType")
-		}
 		return nil
 	}
 }

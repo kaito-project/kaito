@@ -75,6 +75,9 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		ws := baseWorkspace()
 		ws.Resource.Count = &two
 		ws.Annotations[AnnotationWorkspaceRuntime] = "invalid-runtime"
+		if IsCPUInferenceWorkspace(ws) {
+			t.Fatalf("expected workspace to not be detected as cpu inference when feature gate is disabled")
+		}
 		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected cpu-specific validation to be skipped when enableCPUInference is disabled, got %v", err)
 		}

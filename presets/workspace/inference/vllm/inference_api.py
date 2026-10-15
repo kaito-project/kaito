@@ -141,10 +141,13 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         engine_default_args = {
             "model": "/workspace/vllm/weights",
             "cpu_offload_gb": 0,
-            "gpu_memory_utilization": get_max_gpu_memory_utilization(),
             "disable_log_stats": False,
             "uvicorn_log_level": "error",
         }
+        if os.environ.get("VLLM_TARGET_DEVICE", "").strip().lower() != "cpu":
+            engine_default_args["gpu_memory_utilization"] = (
+                get_max_gpu_memory_utilization()
+            )
         self.vllm_parser.set_defaults(**engine_default_args)
 
     def parse_args(self, *args, **kwargs):

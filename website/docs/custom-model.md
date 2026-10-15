@@ -16,7 +16,7 @@ The script downloads model weights during server bootstrap, eliminating the need
 
 ## Phase 1 CPU preset support
 
-Phase 1 also supports CPU preset inference referenced through `inference.preset.name`. Both built-in presets and generic Hugging Face model IDs are allowed, as long as the model can resolve through the normal vLLM-compatible preset flow.
+Phase 1 also supports CPU preset inference referenced through `inference.preset.name`. This path requires the `enableCPUInference` feature gate to be enabled on the workspace manager. Both built-in presets and generic Hugging Face model IDs are allowed, as long as the model can resolve through the normal vLLM-compatible preset flow.
 
 ### Preset CPU examples
 

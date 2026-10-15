@@ -176,26 +176,17 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 }
 
 func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
-	byoCPUNodeTarget := false
-	if w != nil && w.Inference != nil && w.Inference.Preset != nil && featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		var err error
-		byoCPUNodeTarget, err = AreLabelSelectedReadyNodesCPU(ctx, w.Resource.LabelSelector, kubeClient)
-		if err != nil {
-			errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve BYO CPU target: %v", err), "resource.labelSelector"))
-		}
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
+		return nil
 	}
 
 	isCPUTarget, resolveErr := ResolveCPUInferenceTarget(ctx, w.Inference, w.Resource.InstanceType, w.Resource.LabelSelector, kubeClient)
 	if resolveErr != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", resolveErr), "resource.labelSelector"))
-	}
-	attemptingCPUPreset := w != nil && w.Inference != nil && w.Inference.Preset != nil && (isCPUInstanceType(w.Resource.InstanceType) || byoCPUNodeTarget)
-	if !isCPUTarget && !attemptingCPUPreset {
 		return errs
 	}
-
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
-		errs = errs.Also(apis.ErrGeneric("Phase 1 CPU inference requires the enableCPUInference feature gate", "metadata.annotations"))
+	if !isCPUTarget {
+		return errs
 	}
 
 	if w.GetAnnotations() != nil {

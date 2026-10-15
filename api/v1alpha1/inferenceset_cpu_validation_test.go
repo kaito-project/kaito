@@ -178,34 +178,3 @@ func TestInferenceSetValidateCreateCPUGenericHFID(t *testing.T) {
 		t.Fatalf("expected generic hf model id cpu inferenceset validation to pass, got %v", err)
 	}
 }
-
-func TestInferenceSetValidateCreateCPURejectsBenchmark(t *testing.T) {
-	test.RegisterTestModel()
-	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
-	}()
-
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-
-	is := &InferenceSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        "cpu-preset-benchmark-is",
-			Namespace:   "default",
-			Annotations: map[string]string{AnnotationRunBenchmark: "true"},
-		},
-		Spec: InferenceSetSpec{
-			Replicas: 1,
-			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
-			Template: InferenceSetTemplate{
-				Resource: InferenceSetResourceSpec{InstanceType: "Standard_D8s_v5"},
-				Inference: kaitov1beta1.InferenceSpec{
-					Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}},
-				},
-			},
-		},
-	}
-	if err := is.validateCreateWithContext(context.Background()); err == nil {
-		t.Fatalf("expected benchmark annotation to be rejected for cpu phase1 paths")
-	}
-}

@@ -196,24 +196,4 @@ func TestValidatePhase1CPUInference(t *testing.T) {
 			t.Fatalf("expected byo cpu preset validation to pass, got %v", err)
 		}
 	})
-
-	t.Run("benchmark annotation rejected for cpu phase1 paths", func(t *testing.T) {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-		ws := &Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        "cpu-preset-benchmark",
-				Namespace:   "default",
-				Annotations: map[string]string{AnnotationRunBenchmark: "true"},
-			},
-			Resource: ResourceSpec{
-				Count:         &one,
-				InstanceType:  "Standard_D8s_v5",
-				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
-			},
-			Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}},
-		}
-		if err := ws.validatePhase1CPUInference(context.Background(), nil); err == nil {
-			t.Fatalf("expected benchmark annotation to be rejected for cpu phase1 paths")
-		}
-	})
 }

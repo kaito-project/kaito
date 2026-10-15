@@ -32,12 +32,12 @@ This example uses `Qwen/Qwen2.5-0.5B-Instruct` on `Standard_D16s_v5`.
 |---|---|---|
 | Preset InferenceSet on CPU | supported | retained example uses default CPU `vllm` runtime |
 | CPU preset with NAP | supported | specify a CPU instance type |
-| `kaito.sh/run-benchmark` on CPU | not supported | rejected for Phase 1 CPU paths |
+| Post-load benchmark stage on CPU | skipped | Phase 1 CPU paths do not run the benchmark stage |
 | Multi-node CPU inference | not supported | Phase 1 is single-node only |
 
 ## Limitations
 
 - **Single-node only**: Distributed inference across multiple nodes is not supported for Phase 1 CPU paths.
 - **Preset compatibility still depends on model resolution/runtime support**: generic Hugging Face model IDs must resolve through the normal vLLM-compatible preset flow.
-- **CPU benchmark path disabled**: `kaito.sh/run-benchmark` is not supported for Phase 1 CPU inference.
+- **CPU benchmark stage skipped**: Phase 1 CPU inference does not run the post-load benchmark stage.
 - **No custom-model autoscaling**: These CPU paths do not attempt to wire autoscaling behavior.

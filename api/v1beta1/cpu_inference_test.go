@@ -28,7 +28,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
-func TestValidatePhase1CPUInference(t *testing.T) {
+func TestValidateCPUInferenceConstraints(t *testing.T) {
 	test.RegisterTestModel()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]

@@ -1,10 +1,10 @@
-apiVersion: kaito.sh/v1alpha1
+apiVersion: kaito.sh/v1beta1
 kind: InferenceSet
 metadata:
   name: qwen-2-5-0-5b-instruct-cpu-vllm
 spec:
   replicas: 1
-  selector:
+  labelSelector:
     matchLabels:
       apps: qwen-2-5-0-5b-instruct-cpu-vllm
   template:

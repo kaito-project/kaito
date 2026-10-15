@@ -30,8 +30,8 @@ This example uses `Qwen/Qwen2.5-0.5B-Instruct` on `Standard_D16s_v5`.
 
 | Scenario | Status | Notes |
 |---|---|---|
-| Preset InferenceSet on CPU | supported | retained example uses default CPU `vllm` runtime |
-| CPU preset with NAP | supported | specify a CPU instance type |
+| Preset InferenceSet on CPU | supported with `enableCPUInference` | retained example uses default CPU `vllm` runtime |
+| CPU preset with NAP | supported with `enableCPUInference` | specify a CPU instance type |
 | Post-load benchmark stage on CPU | skipped | Phase 1 CPU paths do not run the benchmark stage |
 | Multi-node CPU inference | not supported | Phase 1 is single-node only |
 

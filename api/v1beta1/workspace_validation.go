@@ -96,7 +96,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
 		if w.Inference != nil {
-			errs = errs.Also(w.validatePhase1CPUInference(ctx, k8sclient.Client))
+			errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
 		// Validate speculative decoding annotation on updates too.
@@ -127,7 +127,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 		}
 
 		runtime := GetWorkspaceRuntimeName(w)
-		errs = errs.Also(w.validatePhase1CPUInference(ctx, k8sclient.Client))
+		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 		// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 		errs = errs.Also(
 			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
@@ -175,7 +175,7 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 	return errs
 }
 
-func (w *Workspace) validatePhase1CPUInference(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
+func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
 	byoCPUNodeTarget := false
 	if w != nil && w.Inference != nil && w.Inference.Preset != nil && featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		var err error
@@ -951,17 +951,21 @@ func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, conf
 }
 
 func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
+	if instanceType == "" {
+		return apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType")
+	}
+
 	provider := os.Getenv("CLOUD_PROVIDER")
 
 	switch provider {
 	case consts.AzureCloudName:
-		if sku.HasSKUNamePrefix(instanceType, A_SERIES_PREFIX, B_SERIES_PREFIX, D_SERIES_PREFIX, E_SERIES_PREFIX, F_SERIES_PREFIX, L_SERIES_PREFIX, M_SERIES_PREFIX) {
-			return nil
+		if isAzureGPUOrAcceleratorSKU(instanceType) {
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. Azure N-series GPU/accelerator SKUs are not allowed for the Phase 1 CPU path", instanceType),
+				"instanceType",
+			)
 		}
-		return apis.ErrInvalidValue(
-			fmt.Sprintf("unsupported CPU instance type %s. Expected a CPU-capable Azure SKU such as Standard_D*, Standard_E*, Standard_F*, Standard_B*, Standard_L*, Standard_M*, or Standard_A*", instanceType),
-			"instanceType",
-		)
+		return nil
 	case consts.AWSCloudName:
 		if !awsCPUInstanceTypePattern.MatchString(instanceType) {
 			return apis.ErrInvalidValue(
@@ -979,19 +983,14 @@ func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
 			)
 		}
 
-		switch matches[1] {
-		case "g", "p", "inf", "trn", "dl":
+		if isAWSGPUOrAcceleratorInstanceType(instanceType) {
 			return apis.ErrInvalidValue(
 				fmt.Sprintf("unsupported CPU instance type %s. GPU/accelerator-oriented AWS families (g*, p*, inf*, trn*, dl*) are not allowed for the Phase 1 CPU path", instanceType),
 				"instanceType",
 			)
-		default:
-			return nil
 		}
+		return nil
 	default:
-		if instanceType == "" {
-			return apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType")
-		}
 		return nil
 	}
 }

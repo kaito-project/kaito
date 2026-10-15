@@ -59,7 +59,7 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 	return errs
 }
 
-func (is *InferenceSet) validateCPUPhase1(ctx context.Context) (errs *apis.FieldError) {
+func (is *InferenceSet) validateCPUInferenceConstraints(ctx context.Context) (errs *apis.FieldError) {
 	byoCPUNodeTarget, byoErr := kaitov1beta1.AreLabelSelectedReadyNodesCPU(ctx, is.Spec.Selector, k8sclient.Client)
 	if byoErr != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve BYO CPU target: %v", byoErr), "selector"))
@@ -94,7 +94,7 @@ func (is *InferenceSet) validateCreateWithContext(ctx context.Context) (errs *ap
 	}
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
-	errs = errs.Also(is.validateCPUPhase1(ctx))
+	errs = errs.Also(is.validateCPUInferenceConstraints(ctx))
 	return errs
 }
 
@@ -105,7 +105,7 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 func (is *InferenceSet) validateUpdateWithContext(ctx context.Context, _ *InferenceSet) (errs *apis.FieldError) {
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
-	errs = errs.Also(is.validateCPUPhase1(ctx))
+	errs = errs.Also(is.validateCPUInferenceConstraints(ctx))
 	return errs
 }
 

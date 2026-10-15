@@ -1,0 +1,18 @@
+# Requires the workspace manager to enable the enableCPUInference feature gate.
+apiVersion: kaito.sh/v1beta1
+kind: InferenceSet
+metadata:
+  name: qwen-2-5-0-5b-instruct-cpu-tfs
+  annotations:
+    kaito.sh/runtime: transformers
+spec:
+  replicas: 1
+  labelSelector:
+    matchLabels:
+      apps: qwen-2-5-0-5b-instruct-cpu-tfs
+  template:
+    resource:
+      instanceType: Standard_D16s_v5
+    inference:
+      preset:
+        name: Qwen/Qwen2.5-0.5B-Instruct

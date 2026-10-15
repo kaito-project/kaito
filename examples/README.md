@@ -25,7 +25,7 @@ Notes:
 - enable the `enableCPUInference` feature gate first
 - this example uses `Qwen/Qwen2.5-0.5B-Instruct`
 - built-in presets and generic Hugging Face model IDs are supported on the Phase 1 CPU preset path
-- `kaito.sh/run-benchmark` is not supported on Phase 1 CPU paths
+- the post-load benchmark stage is automatically skipped on Phase 1 CPU paths
 
 ---
 

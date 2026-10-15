@@ -213,10 +213,6 @@ func (w *Workspace) validatePhase1CPUInference(ctx context.Context, kubeClient c
 		errs = errs.Also(apis.ErrInvalidValue("Phase 1 CPU inference only supports a single node per Workspace", "resource.count"))
 	}
 
-	if IsRunBenchmarkEnabled(w) {
-		errs = errs.Also(apis.ErrInvalidValue("kaito.sh/run-benchmark is not supported for Phase 1 CPU inference paths", fmt.Sprintf("metadata.annotations[%s]", AnnotationRunBenchmark)))
-	}
-
 	return errs
 }
 

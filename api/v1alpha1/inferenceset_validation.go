@@ -84,9 +84,6 @@ func (is *InferenceSet) validateCPUPhase1(ctx context.Context) (errs *apis.Field
 		}
 	}
 
-	if IsRunBenchmarkEnabled(is) {
-		errs = errs.Also(apis.ErrInvalidValue("kaito.sh/run-benchmark is not supported for Phase 1 CPU inference paths", fmt.Sprintf("metadata.annotations[%s]", AnnotationRunBenchmark)))
-	}
 	return errs
 }
 

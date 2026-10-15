@@ -527,6 +527,55 @@ def _device_is_cpu(args: argparse.Namespace) -> bool:
     return cli_device == "cpu" or env_device == "cpu"
 
 
+def configure_cpu_kv_cache_space_if_applicable(args: argparse.Namespace) -> None:
+    """Cap vLLM CPU KV cache size for CPU runtimes.
+
+    vLLM's CPU backend otherwise auto-sizes KV cache aggressively from available
+    RAM, which can over-allocate during warmup/compile and get the pod OOMKilled.
+    Reuse KAITO's existing kaito_kv_cache_cpu_memory_utilization knob as a
+    conservative fraction of currently available RAM, unless the operator already
+    provided an explicit override via VLLM_CPU_KVCACHE_SPACE or
+    --kv-cache-memory-bytes.
+    """
+    if not _device_is_cpu(args):
+        return
+
+    if os.environ.get("VLLM_CPU_KVCACHE_SPACE"):
+        logger.info(
+            "VLLM_CPU_KVCACHE_SPACE already set to %s; keeping operator override.",
+            os.environ["VLLM_CPU_KVCACHE_SPACE"],
+        )
+        return
+
+    if getattr(args, "kv_cache_memory_bytes", None):
+        logger.info(
+            "kv_cache_memory_bytes=%s set explicitly; skip VLLM_CPU_KVCACHE_SPACE.",
+            args.kv_cache_memory_bytes,
+        )
+        return
+
+    utilization = getattr(args, "kaito_kv_cache_cpu_memory_utilization", None)
+    if utilization is None or utilization <= 0:
+        logger.info(
+            "CPU runtime detected but kaito_kv_cache_cpu_memory_utilization is unset; "
+            "keep vLLM CPU KV cache auto-sizing."
+        )
+        return
+
+    available_memory_gb = psutil.virtual_memory().available / (1024**3)
+    tensor_parallel_size = max(1, int(getattr(args, "tensor_parallel_size", 1) or 1))
+    kv_cache_space_gb = available_memory_gb * utilization / tensor_parallel_size
+    os.environ["VLLM_CPU_KVCACHE_SPACE"] = f"{kv_cache_space_gb:.2f}"
+    logger.info(
+        "CPU runtime detected, set VLLM_CPU_KVCACHE_SPACE=%s GiB "
+        "(available_memory_gb=%0.2f * utilization=%s / tensor_parallel_size=%d)",
+        os.environ["VLLM_CPU_KVCACHE_SPACE"],
+        available_memory_gb,
+        utilization,
+        tensor_parallel_size,
+    )
+
+
 def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
     """
     Set KV transfer config and optionally enable KV cache offloading to CPU RAM.
@@ -584,6 +633,7 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
 def configure_middlewares(args: argparse.Namespace) -> None:
     """Register KAITO middleware according to the parsed opt-out flags."""
     args.middleware = list(args.middleware or [])
+    args.middleware.append("health.HealthMiddleware")
     if args.kaito_disable_benchmark_control:
         logger.info(
             "Benchmark control middleware disabled "
@@ -606,6 +656,7 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
+    configure_cpu_kv_cache_space_if_applicable(args)
     set_kv_transfer_config_if_applicable(args)
 
     logger.info(f"Starting server on port {args.port}")

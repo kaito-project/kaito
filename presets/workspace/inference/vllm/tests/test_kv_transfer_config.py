@@ -23,7 +23,10 @@ from unittest.mock import patch
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, parent_dir)
 
-from inference_api import set_kv_transfer_config_if_applicable  # noqa: E402, I001
+from inference_api import (  # noqa: E402, I001
+    configure_cpu_kv_cache_space_if_applicable,
+    set_kv_transfer_config_if_applicable,
+)
 
 
 def _make_args(**kwargs):
@@ -32,9 +35,39 @@ def _make_args(**kwargs):
         "kv_transfer_config": None,
         "kaito_kv_cache_cpu_memory_utilization": None,
         "tensor_parallel_size": 1,
+        "device": None,
+        "kv_cache_memory_bytes": None,
     }
     defaults.update(kwargs)
     return argparse.Namespace(**defaults)
+
+
+class TestConfigureCPUKVCacheSpace:
+    def test_sets_cpu_kv_cache_space_from_available_memory(self):
+        args = _make_args(
+            device="cpu",
+            kaito_kv_cache_cpu_memory_utilization=0.5,
+            tensor_parallel_size=2,
+        )
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch("inference_api.psutil.virtual_memory") as vm,
+        ):
+            vm.return_value = argparse.Namespace(available=64 * 1024**3)
+            configure_cpu_kv_cache_space_if_applicable(args)
+        assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "16.00"
+
+    def test_respects_explicit_cpu_kv_cache_override(self):
+        args = _make_args(device="cpu", kaito_kv_cache_cpu_memory_utilization=0.5)
+        with patch.dict(os.environ, {"VLLM_CPU_KVCACHE_SPACE": "8"}, clear=True):
+            configure_cpu_kv_cache_space_if_applicable(args)
+            assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "8"
+
+    def test_skips_non_cpu_runtime(self):
+        args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
+        with patch.dict(os.environ, {}, clear=True):
+            configure_cpu_kv_cache_space_if_applicable(args)
+            assert "VLLM_CPU_KVCACHE_SPACE" not in os.environ
 
 
 class TestSetKvTransferConfig:

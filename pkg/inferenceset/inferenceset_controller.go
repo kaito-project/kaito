@@ -401,19 +401,24 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		}
 	}
 
-	desiredSpecDecoValue, desiredHasSpecDeco := desired.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	currentSpecDecoValue, currentHasSpecDeco := ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	if desiredHasSpecDeco {
-		if ws.Annotations == nil {
-			ws.Annotations = make(map[string]string)
-		}
-		if !currentHasSpecDeco || currentSpecDecoValue != desiredSpecDecoValue {
-			ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = desiredSpecDecoValue
+	for _, ann := range []string{
+		kaitov1beta1.AnnotationEnableSpeculativeDecoding,
+		kaitov1beta1.AnnotationWorkspaceRuntime,
+	} {
+		desiredValue, desiredHas := desired.Annotations[ann]
+		currentValue, currentHas := ws.Annotations[ann]
+		if desiredHas {
+			if ws.Annotations == nil {
+				ws.Annotations = make(map[string]string)
+			}
+			if !currentHas || currentValue != desiredValue {
+				ws.Annotations[ann] = desiredValue
+				needsUpdate = true
+			}
+		} else if currentHas {
+			delete(ws.Annotations, ann)
 			needsUpdate = true
 		}
-	} else if currentHasSpecDeco {
-		delete(ws.Annotations, kaitov1beta1.AnnotationEnableSpeculativeDecoding)
-		needsUpdate = true
 	}
 
 	if consts.IsKarpenterProvisioner() {

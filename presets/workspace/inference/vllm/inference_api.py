@@ -510,6 +510,12 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
+def _device_is_cpu(args: argparse.Namespace) -> bool:
+    cli_device = str(getattr(args, "device", "") or "").strip().lower()
+    env_device = str(os.environ.get("VLLM_TARGET_DEVICE", "") or "").strip().lower()
+    return cli_device == "cpu" or env_device == "cpu"
+
+
 def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
     """
     Set KV transfer config and optionally enable KV cache offloading to CPU RAM.
@@ -531,6 +537,12 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
     ):
         logger.info(
             "kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."
+        )
+        return
+
+    if _device_is_cpu(args):
+        logger.info(
+            "CPU runtime detected, skip LMCache KV offload because the CPU image does not include the LMCache GPU stack."
         )
         return
 

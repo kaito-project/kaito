@@ -466,7 +466,6 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
 	}
 	if rc.TargetCPU {
-		p.VLLM.ModelRunParams["device"] = "cpu"
 		delete(p.VLLM.ModelRunParams, "gpu-memory-utilization")
 	}
 

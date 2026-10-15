@@ -15,6 +15,7 @@ package v1alpha1
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -48,11 +49,13 @@ func TestInferenceSetValidateCreateCPUFeatureGate(t *testing.T) {
 	}
 
 	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = false
-	if err := is.validateCreateWithContext(context.Background()); err == nil {
-		t.Fatalf("expected cpu inferenceset validation to fail when feature gate is disabled")
+	is.Annotations = map[string]string{AnnotationWorkspaceRuntime: "invalid-runtime"}
+	if err := is.validateCreateWithContext(context.Background()); err != nil {
+		t.Fatalf("expected cpu-specific validation to be skipped when feature gate is disabled, got %v", err)
 	}
 
 	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	is.Annotations = nil
 	if err := is.validateCreateWithContext(context.Background()); err != nil {
 		t.Fatalf("expected cpu inferenceset validation to pass when feature gate is enabled, got %v", err)
 	}
@@ -176,5 +179,46 @@ func TestInferenceSetValidateCreateCPUGenericHFID(t *testing.T) {
 	}
 	if err := is.validateCreateWithContext(context.Background()); err != nil {
 		t.Fatalf("expected generic hf model id cpu inferenceset validation to pass, got %v", err)
+	}
+}
+
+func TestInferenceSetValidateCPUInferenceConstraints_SkipsNodeLookupForNonCPUPaths(t *testing.T) {
+	test.RegisterTestModel()
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldDisableNAP
+	}()
+
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	mockClient := test.NewClient()
+	k8sclient.SetGlobalClient(mockClient)
+	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("node lookup should not happen for non-cpu paths"))
+
+	is := &InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "non-cpu-is", Namespace: "default"},
+		Spec: InferenceSetSpec{
+			Replicas: 1,
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			Template: InferenceSetTemplate{
+				Inference: kaitov1beta1.InferenceSpec{
+					Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{
+						Name:  "mig",
+						Image: "example.com/mig:latest",
+						Resources: corev1.ResourceRequirements{
+							Requests: corev1.ResourceList{corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1")},
+							Limits:   corev1.ResourceList{corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1")},
+						},
+					}}}},
+				},
+			},
+		},
+	}
+
+	if err := is.validateCPUInferenceConstraints(context.Background()); err != nil {
+		t.Fatalf("expected non-cpu mig path to skip cpu node lookup, got %v", err)
 	}
 }

@@ -60,21 +60,17 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 }
 
 func (is *InferenceSet) validateCPUInferenceConstraints(ctx context.Context) (errs *apis.FieldError) {
-	byoCPUNodeTarget, byoErr := kaitov1beta1.AreLabelSelectedReadyNodesCPU(ctx, is.Spec.Selector, k8sclient.Client)
-	if byoErr != nil {
-		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve BYO CPU target: %v", byoErr), "selector"))
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
+		return nil
 	}
+
 	isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, &is.Spec.Template.Inference, is.Spec.Template.Resource.InstanceType, is.Spec.Selector, k8sclient.Client)
 	if resolveErr != nil {
 		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", resolveErr), "selector"))
-	}
-	attemptingCPUPreset := is.Spec.Template.Inference.Preset != nil && (kaitov1beta1.IsAttemptingCPUPresetTarget(&is.Spec.Template.Inference, is.Spec.Template.Resource.InstanceType) || byoCPUNodeTarget)
-	if !(isCPUTarget || attemptingCPUPreset) {
 		return errs
 	}
-
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
-		errs = errs.Also(apis.ErrGeneric("Phase 1 CPU inference requires the enableCPUInference feature gate", "spec.template.inference"))
+	if !isCPUTarget {
+		return errs
 	}
 
 	if is.Annotations != nil {

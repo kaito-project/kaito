@@ -70,12 +70,13 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 	}
 
-	t.Run("feature gate required", func(t *testing.T) {
+	t.Run("feature gate disabled skips cpu-specific validation", func(t *testing.T) {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = false
 		ws := baseWorkspace()
-		err := ws.validateCPUInferenceConstraints(context.Background(), nil)
-		if err == nil {
-			t.Fatalf("expected validation error when enableCPUInference is disabled")
+		ws.Resource.Count = &two
+		ws.Annotations[AnnotationWorkspaceRuntime] = "invalid-runtime"
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
+			t.Fatalf("expected cpu-specific validation to be skipped when enableCPUInference is disabled, got %v", err)
 		}
 	})
 
@@ -97,6 +98,23 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected cpu workspace validation to pass, got %v", err)
+		}
+	})
+
+	t.Run("mig template is not detected as cpu inference", func(t *testing.T) {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+		ws := baseWorkspace()
+		ws.Inference.Template.Spec.Containers[0].Resources.Requests = corev1.ResourceList{
+			corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1"),
+		}
+		ws.Inference.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{
+			corev1.ResourceName("nvidia.com/mig-1g.10gb"): resource.MustParse("1"),
+		}
+		if IsCPUInferenceWorkspace(ws) {
+			t.Fatalf("expected mig-backed template workspace to not be detected as cpu inference")
+		}
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
+			t.Fatalf("expected non-cpu mig template to skip cpu validation, got %v", err)
 		}
 	})
 

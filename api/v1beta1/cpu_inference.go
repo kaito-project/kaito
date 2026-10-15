@@ -26,6 +26,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/mig"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
@@ -33,6 +34,19 @@ var (
 	awsCPUInstanceTypePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
 	awsInstanceFamilyPattern  = regexp.MustCompile(`^([a-z]+)`)
 )
+
+func hasNVIDIAAcceleratorResource(resources corev1.ResourceList) bool {
+	for resourceName, qty := range resources {
+		if qty.IsZero() {
+			continue
+		}
+		name := string(resourceName)
+		if name == consts.NvidiaGPU || strings.HasPrefix(name, mig.MIGResourcePrefix) {
+			return true
+		}
+	}
+	return false
+}
 
 // IsInferenceTemplateCPUTarget returns true when the custom template does not
 // request GPU resources.
@@ -42,10 +56,7 @@ func IsInferenceTemplateCPUTarget(template *corev1.PodTemplateSpec) bool {
 	}
 
 	for _, container := range template.Spec.Containers {
-		if qty, ok := container.Resources.Requests[corev1.ResourceName(consts.NvidiaGPU)]; ok && !qty.IsZero() {
-			return false
-		}
-		if qty, ok := container.Resources.Limits[corev1.ResourceName(consts.NvidiaGPU)]; ok && !qty.IsZero() {
+		if hasNVIDIAAcceleratorResource(container.Resources.Requests) || hasNVIDIAAcceleratorResource(container.Resources.Limits) {
 			return false
 		}
 	}
@@ -109,7 +120,7 @@ func nodeHasGPUSignals(node *corev1.Node) bool {
 		return false
 	}
 
-	if qty, ok := node.Status.Capacity[corev1.ResourceName(consts.NvidiaGPU)]; ok && !qty.IsZero() {
+	if hasNVIDIAAcceleratorResource(node.Status.Capacity) {
 		return true
 	}
 

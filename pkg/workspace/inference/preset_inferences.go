@@ -666,7 +666,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			}
 			userConfigHasSpeculativeOverride = override
 		}
-		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
+		_, err = applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
 		}

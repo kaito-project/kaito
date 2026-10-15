@@ -1028,6 +1028,22 @@ func TestNewWorkspaceForInferenceSetPropagatesCapacityType(t *testing.T) {
 	assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[kaitov1beta1.AnnotationCapacityType])
 }
 
+func TestNewWorkspaceForInferenceSetPropagatesRuntimeAnnotation(t *testing.T) {
+	is := &kaitov1beta1.InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-is",
+			Namespace: "default",
+			Annotations: map[string]string{
+				kaitov1beta1.AnnotationWorkspaceRuntime: "transformers",
+			},
+		},
+		Spec: kaitov1beta1.InferenceSetSpec{},
+	}
+
+	ws := NewWorkspaceForInferenceSet(is)
+	assert.Equal(t, "transformers", ws.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime])
+}
+
 func TestValidateWorkspaceForInferenceSet(t *testing.T) {
 	// BYO mode so an empty instanceType is valid and node-listing is skipped.
 	orig := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]

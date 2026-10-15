@@ -29,15 +29,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
-const (
-	A_SERIES_PREFIX = "Standard_A"
-	B_SERIES_PREFIX = "Standard_B"
-	E_SERIES_PREFIX = "Standard_E"
-	F_SERIES_PREFIX = "Standard_F"
-	L_SERIES_PREFIX = "Standard_L"
-	M_SERIES_PREFIX = "Standard_M"
-)
-
 var (
 	awsCPUInstanceTypePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
 	awsInstanceFamilyPattern  = regexp.MustCompile(`^([a-z]+)`)
@@ -74,15 +65,11 @@ func IsCPUCompatiblePreset(name ModelName) bool {
 	return plugin.IsValidPreset(strings.ToLower(string(name)))
 }
 
-func isCPUInstanceType(instanceType string) bool {
-	if instanceType == "" {
-		return false
-	}
+func isAzureGPUOrAcceleratorSKU(instanceType string) bool {
+	return strings.HasPrefix(instanceType, "Standard_") && sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX)
+}
 
-	if strings.HasPrefix(instanceType, "Standard_") {
-		return sku.HasSKUNamePrefix(instanceType, A_SERIES_PREFIX, B_SERIES_PREFIX, D_SERIES_PREFIX, E_SERIES_PREFIX, F_SERIES_PREFIX, L_SERIES_PREFIX, M_SERIES_PREFIX)
-	}
-
+func isAWSGPUOrAcceleratorInstanceType(instanceType string) bool {
 	if !awsCPUInstanceTypePattern.MatchString(instanceType) {
 		return false
 	}
@@ -95,10 +82,26 @@ func isCPUInstanceType(instanceType string) bool {
 
 	switch matches[1] {
 	case "g", "p", "inf", "trn", "dl":
-		return false
-	default:
 		return true
+	default:
+		return false
 	}
+}
+
+func isCPUInstanceType(instanceType string) bool {
+	if instanceType == "" {
+		return false
+	}
+
+	if strings.HasPrefix(instanceType, "Standard_") {
+		return !isAzureGPUOrAcceleratorSKU(instanceType)
+	}
+
+	if !awsCPUInstanceTypePattern.MatchString(instanceType) {
+		return false
+	}
+
+	return !isAWSGPUOrAcceleratorInstanceType(instanceType)
 }
 
 func nodeHasGPUSignals(node *corev1.Node) bool {

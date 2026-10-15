@@ -25,8 +25,6 @@ from pathlib import Path
 
 import rate_limit
 import uvloop
-import vllm.entrypoints.launchers.api_server.entry as api_server_entry
-import vllm.entrypoints.launchers.cli_args as launcher_cli_args
 from _workarounds import model_asset_prefetch
 from huggingface_hub import HfFileSystem, scan_cache_dir
 from kaito_inference_config import KaitoInferenceConfig
@@ -35,6 +33,16 @@ from vllm.entrypoints.openai.models.protocol import LoRAModulePath
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 from vllm.v1.metrics.prometheus import get_prometheus_registry
 from vllm_kv_transfer import configure_kv_transfer_and_lmcache
+
+try:
+    import vllm.entrypoints.launchers.api_server.entry as api_server_entry
+    import vllm.entrypoints.launchers.cli_args as launcher_cli_args
+except ModuleNotFoundError:
+    # vLLM 0.25.1 CPU images expose the older OpenAI entrypoint layout instead
+    # of the newer launchers package. Support both layouts so the same KAITO
+    # wrapper works for GPU and CPU images.
+    import vllm.entrypoints.openai.api_server as api_server_entry
+    import vllm.entrypoints.openai.cli_args as launcher_cli_args
 
 # Initialize logger
 logger = logging.getLogger(__name__)

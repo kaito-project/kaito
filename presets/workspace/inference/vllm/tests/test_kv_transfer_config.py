@@ -56,7 +56,7 @@ class TestConfigureCPUKVCacheSpace:
         ):
             vm.return_value = argparse.Namespace(available=64 * 1024**3)
             configure_cpu_kv_cache_space_if_applicable(args)
-        assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "16.00"
+        assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "16"
 
     def test_respects_explicit_cpu_kv_cache_override(self):
         args = _make_args(device="cpu", kaito_kv_cache_cpu_memory_utilization=0.5)

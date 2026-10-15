@@ -536,11 +536,13 @@ def configure_cpu_kv_cache_space_if_applicable(args: argparse.Namespace) -> None
     available_memory_gb = psutil.virtual_memory().available / (1024**3)
     tensor_parallel_size = max(1, int(getattr(args, "tensor_parallel_size", 1) or 1))
     kv_cache_space_gb = available_memory_gb * utilization / tensor_parallel_size
-    os.environ["VLLM_CPU_KVCACHE_SPACE"] = f"{kv_cache_space_gb:.2f}"
+    kv_cache_space_gb_int = max(1, int(kv_cache_space_gb))
+    os.environ["VLLM_CPU_KVCACHE_SPACE"] = str(kv_cache_space_gb_int)
     logger.info(
         "CPU runtime detected, set VLLM_CPU_KVCACHE_SPACE=%s GiB "
-        "(available_memory_gb=%0.2f * utilization=%s / tensor_parallel_size=%d)",
+        "(raw=%0.2f GiB, available_memory_gb=%0.2f * utilization=%s / tensor_parallel_size=%d)",
         os.environ["VLLM_CPU_KVCACHE_SPACE"],
+        kv_cache_space_gb,
         available_memory_gb,
         utilization,
         tensor_parallel_size,

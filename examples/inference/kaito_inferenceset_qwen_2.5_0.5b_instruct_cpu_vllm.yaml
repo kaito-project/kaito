@@ -1,0 +1,15 @@
+apiVersion: kaito.sh/v1alpha1
+kind: InferenceSet
+metadata:
+  name: qwen-2-5-0-5b-instruct-cpu-vllm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      apps: qwen-2-5-0-5b-instruct-cpu-vllm
+  template:
+    resource:
+      instanceType: Standard_D16s_v5
+    inference:
+      preset:
+        name: Qwen/Qwen2.5-0.5B-Instruct

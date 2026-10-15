@@ -902,7 +902,11 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	// that the workspace should benchmark and that the StatefulSet actually
 	// carries the benchmark startup probe. Legacy workspaces created before the
 	// benchmark feature have no probe (backward compatibility).
-	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
+	cpuInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
+	if cpuResolveErr != nil {
+		return cpuResolveErr
+	}
+	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe && !cpuInference
 
 	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
 	maxModelLen := c.collectActualMaxModelLen(ctx, wObj, inferenceReady)
@@ -1729,6 +1733,21 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
+		resolvedCPUInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
+		if cpuResolveErr != nil {
+			return fmt.Errorf("failed to resolve CPU inference target: %w", cpuResolveErr)
+		}
+		if resolvedCPUInference {
+			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+				status.TargetNodeCount = 1
+				return nil
+			}); err != nil {
+				return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+			}
+			wObj.Status.TargetNodeCount = 1
+			return nil
+		}
+
 		// Build the estimate request once, outside the status-update closure.
 		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
 		if reqErr != nil {

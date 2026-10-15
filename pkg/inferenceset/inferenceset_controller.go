@@ -674,8 +674,24 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		return err
 	}
 	if len(wsList.Items) == 0 {
+		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType, iObj.Spec.Selector, c.Client)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		if isCPUTarget {
+			return nil
+		}
 		klog.InfoS("No workspaces found for inferenceset(%s), skipping Gateway API Inference Extension reconciliation", "inferenceset", iObj.Name)
 		return nil
+	}
+	for i := range wsList.Items {
+		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wsList.Items[i].Inference, wsList.Items[i].Resource.InstanceType, wsList.Items[i].Resource.LabelSelector, c.Client)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		if isCPUTarget {
+			return nil
+		}
 	}
 
 	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj)

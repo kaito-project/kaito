@@ -99,34 +99,28 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(w.ValidateCreate(ctx))
 	} else {
 		klog.InfoS("Validate update", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
-		errs = errs.Also(w.ValidateUpdate(ctx, base.(*Workspace)))
-	}
-	return errs
-}
-
-// ValidateUpdate runs the validations applied when a Workspace is updated from
-// old. It can also validate a Workspace projected from another resource, such
-// as the child Workspace of an InferenceSet.
-func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *apis.FieldError) {
-	errs = errs.Also(
-		w.validateUpdate(old).ViaField("spec"),
-		w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
-	)
-	if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
-		errs = errs.Also(w.validateNodeClassNameAnnotation())
-	}
-	errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
-	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
-		errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
-	}
-	if w.Inference != nil {
-		errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
-	}
-	// Validate speculative decoding annotation on updates too.
-	errs = errs.Also(w.validateAnnotations())
-	errs = errs.Also(w.validateSpeculativeDecoding(ctx))
-	if w.Tuning != nil {
-		errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
+		old := base.(*Workspace)
+		errs = errs.Also(
+			w.validateUpdate(old).ViaField("spec"),
+			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
+		)
+		if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
+			errs = errs.Also(w.validateNodeClassNameAnnotation())
+		}
+		errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
+		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
+		}
+		if w.Inference != nil {
+			errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
+			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
+		}
+		// Validate speculative decoding annotation on updates too.
+		errs = errs.Also(w.validateAnnotations())
+		errs = errs.Also(w.validateSpeculativeDecoding(ctx))
+		if w.Tuning != nil {
+			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
+		}
 	}
 	return errs
 }
@@ -149,6 +143,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 		}
 
 		runtime := GetWorkspaceRuntimeName(w)
+		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 		// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 		errs = errs.Also(
 			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
@@ -193,6 +188,58 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
+	return errs
+}
+
+func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
+		return nil
+	}
+
+	isCPUTarget, resolveErr := ResolveCPUInferenceTarget(ctx, w.Inference, w.Resource.InstanceType, w.Resource.LabelSelector, kubeClient)
+	if resolveErr != nil {
+		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", resolveErr), "resource.labelSelector"))
+		return errs
+	}
+	if !isCPUTarget {
+		return errs
+	}
+
+	runtimeName := GetWorkspaceRuntimeName(w)
+	if w.GetAnnotations() != nil {
+		runtime := w.GetAnnotations()[AnnotationWorkspaceRuntime]
+		if runtime != "" && runtime != string(model.RuntimeNameHuggingfaceTransformers) && runtime != string(model.RuntimeNameVLLM) {
+			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
+		}
+	}
+	if runtimeName == model.RuntimeNameVLLM && w.Inference != nil {
+		if w.Resource.InstanceType != "" && !IsAMD64CompatibleVLLMCPUInstanceType(w.Resource.InstanceType) {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", w.Resource.InstanceType),
+				"resource.instanceType",
+			))
+		}
+		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && w.Resource.InstanceType == "" {
+			isAMD64, err := AreLabelSelectedReadyNodesAMD64(ctx, w.Resource.LabelSelector, "", kubeClient)
+			if err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to validate CPU node architecture: %v", err), "resource.labelSelector"))
+			} else if !isAMD64 {
+				errs = errs.Also(apis.ErrInvalidValue(
+					"vLLM CPU runtime only supports amd64 BYO nodes; matched ready nodes must report kubernetes.io/arch=amd64",
+					"resource.labelSelector",
+				))
+			}
+		}
+	}
+
+	count := 1
+	if w.Resource.Count != nil {
+		count = *w.Resource.Count
+	}
+	if count != 1 {
+		errs = errs.Also(apis.ErrInvalidValue("basic CPU inference only supports a single node per Workspace", "resource.count"))
+	}
+
 	return errs
 }
 
@@ -624,6 +671,11 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	}
 
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	isCPUInference, cpuResolveErr := ResolveCPUInferenceTarget(ctx, inference, instanceType, r.LabelSelector, k8sclient.Client)
+	if cpuResolveErr != nil {
+		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", cpuResolveErr), "labelSelector"))
+		return errs
+	}
 
 	// Defer GPU-memory sufficiency checks when BYO reconciliation selects the
 	// effective SKU. Admission accepts the workspace and lets it remain Pending
@@ -741,6 +793,12 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			machineCount = groupCount
 		}
 	} else { // NAP enabled
+		if isCPUInference {
+			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
+				errs = errs.Also(err)
+			}
+			return errs
+		}
 		// GPU partitioning (MIG or accelerator) is only supported on BYO nodes.
 		if r.Partition != nil {
 			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
@@ -917,6 +975,52 @@ func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, conf
 			"partition")
 	}
 	return errs
+}
+
+func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
+	provider := os.Getenv("CLOUD_PROVIDER")
+
+	switch provider {
+	case consts.AzureCloudName:
+		if sku.HasSKUNamePrefix(instanceType, A_SERIES_PREFIX, B_SERIES_PREFIX, D_SERIES_PREFIX, E_SERIES_PREFIX, F_SERIES_PREFIX, L_SERIES_PREFIX, M_SERIES_PREFIX) {
+			return nil
+		}
+		return apis.ErrInvalidValue(
+			fmt.Sprintf("unsupported CPU instance type %s. Expected a CPU-capable Azure SKU such as Standard_D*, Standard_E*, Standard_F*, Standard_B*, Standard_L*, Standard_M*, or Standard_A*", instanceType),
+			"instanceType",
+		)
+	case consts.AWSCloudName:
+		if !awsCPUInstanceTypePattern.MatchString(instanceType) {
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed AWS CPU instance type such as m6i.2xlarge or r7i.4xlarge", instanceType),
+				"instanceType",
+			)
+		}
+
+		familyPart := strings.ToLower(strings.SplitN(instanceType, ".", 2)[0])
+		matches := awsInstanceFamilyPattern.FindStringSubmatch(familyPart)
+		if len(matches) < 2 {
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed AWS CPU instance type such as m6i.2xlarge or r7i.4xlarge", instanceType),
+				"instanceType",
+			)
+		}
+
+		switch matches[1] {
+		case "g", "p", "inf", "trn", "dl":
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. GPU/accelerator-oriented AWS families (g*, p*, inf*, trn*, dl*) are not allowed for the Phase 1 CPU path", instanceType),
+				"instanceType",
+			)
+		default:
+			return nil
+		}
+	default:
+		if instanceType == "" {
+			return apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType")
+		}
+		return nil
+	}
 }
 
 func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError) {

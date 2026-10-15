@@ -397,6 +397,9 @@ type RuntimeContextExtraArguments struct {
 	// exist on local disk (e.g. mounted from a custom GPU node image) via --model.
 	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
 	LocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
+
+	// TargetCPU switches the preset vLLM command line to CPU execution.
+	TargetCPU bool
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
@@ -461,6 +464,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["max-model-len"] = "auto"
 	} else if rc.MaxModelLen > 0 {
 		p.VLLM.ModelRunParams["max-model-len"] = strconv.Itoa(rc.MaxModelLen)
+	}
+	if rc.TargetCPU {
+		p.VLLM.ModelRunParams["device"] = "cpu"
+		delete(p.VLLM.ModelRunParams, "gpu-memory-utilization")
 	}
 
 	// Cap --max-num-seqs for hybrid Mamba/Gated-DeltaNet models so vLLM engine init
@@ -589,6 +596,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 //  3. Multi-node (PP + TP): If the model exceeds a single node's capacity, we use
 //     pipeline parallelism across nodes, with tensor parallelism within each node.
 func (p *PresetParam) configureParallelism(rc RuntimeContext) {
+	if rc.TargetCPU {
+		return
+	}
+
 	multiNode := rc.DistributedInference && rc.NumNodes > 1
 
 	// Tier 1: Model fits on a single GPU → Data Parallelism.

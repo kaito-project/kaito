@@ -15,6 +15,20 @@ metadata:
 
 ---
 
+### Phase 1 CPU preset examples
+
+Selected CPU-compatible preset example retained in Phase 1:
+
+- NAP InferenceSet (default CPU `vllm`): `examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml`
+
+Notes:
+- enable the `enableCPUInference` feature gate first
+- this example uses `Qwen/Qwen2.5-0.5B-Instruct`
+- built-in presets and generic Hugging Face model IDs are supported on the Phase 1 CPU preset path
+- `kaito.sh/run-benchmark` is not supported on Phase 1 CPU paths
+
+---
+
 ### Exposing Service via LoadBalancer (Testing Only)
 
 For **testing** purposes, you may annotate your workspace resource with `kaito.sh/enablelb: "True"` to automatically create a `LoadBalancer` type service with a public IP for the inference service:

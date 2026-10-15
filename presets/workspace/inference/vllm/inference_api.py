@@ -480,6 +480,12 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
+def _device_is_cpu(args: argparse.Namespace) -> bool:
+    cli_device = str(getattr(args, "device", "") or "").strip().lower()
+    env_device = str(os.environ.get("VLLM_TARGET_DEVICE", "") or "").strip().lower()
+    return cli_device == "cpu" or env_device == "cpu"
+
+
 def configure_middlewares(args: argparse.Namespace) -> None:
     """Register KAITO middleware according to the parsed opt-out flags."""
     args.middleware = list(args.middleware or [])

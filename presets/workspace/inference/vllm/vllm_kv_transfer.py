@@ -46,6 +46,14 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
         )
         return
 
+    cli_device = str(getattr(args, "device", "") or "").strip().lower()
+    env_device = str(os.environ.get("VLLM_TARGET_DEVICE", "") or "").strip().lower()
+    if cli_device == "cpu" or env_device == "cpu":
+        logger.info(
+            "CPU runtime detected, skip LMCache KV offload because the CPU image does not include the LMCache GPU stack."
+        )
+        return
+
     if os.environ.get(LMCACHE_DEPLOYMENT_MODE_ENV) != LMCACHE_DEPLOYMENT_MODE_SIDECAR:
         logger.info("Managed LMCache sidecar is unavailable; CPU KV offload disabled.")
         return

@@ -138,6 +138,10 @@ var (
 )
 
 func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
+	if v1beta1.IsCPUInferenceWorkspace(ws) {
+		return nil
+	}
+
 	tolerations := []corev1.Toleration{
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
@@ -268,11 +272,15 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
 	// created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
-	distributed := shouldUseDistributedInference(gctx, numNodes)
+	isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx, workspaceObj.Inference, workspaceObj.Resource.InstanceType, workspaceObj.Resource.LabelSelector, kubeClient)
+	if err != nil {
+		return nil, err
+	}
+	distributed := !isCPUInference && shouldUseDistributedInference(gctx, numNodes)
 	if distributed {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
 	}
-	if v1beta1.ShouldRunBenchmark(workspaceObj) {
+	if v1beta1.ShouldRunBenchmark(workspaceObj) && !isCPUInference {
 		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
 	podOpts = append(podOpts, ConfigureLMCacheSidecar(lmCacheConfig))
@@ -319,6 +327,14 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 }
 
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
+	isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
+	if err != nil {
+		return nil, err
+	}
+	if isCPUInference {
+		return nil, nil
+	}
+
 	partition := ctx.Workspace.Resource.Partition
 
 	// Partition path: build GPU config from the partition spec (MIG mode).
@@ -511,6 +527,31 @@ func GetBaseImageName() string {
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
+func getCPUTransformersImageName() string {
+	presetObj := metadata.MustGet("base")
+	return utils.GetPresetImageName(presetObj.Registry, "base-tfs-cpu", presetObj.Tag)
+}
+
+func getCPUVLLMImageName() string {
+	presetObj := metadata.MustGet("base")
+	return utils.GetPresetImageName(presetObj.Registry, "base-vllm-cpu", presetObj.Tag)
+}
+
+func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) string {
+	if !isCPU {
+		return GetBaseImageName()
+	}
+
+	switch runtimeName {
+	case pkgmodel.RuntimeNameHuggingfaceTransformers:
+		return getCPUTransformersImageName()
+	case pkgmodel.RuntimeNameVLLM:
+		return getCPUVLLMImageName()
+	default:
+		return GetBaseImageName()
+	}
+}
+
 // GetBaseImageTag returns just the tag portion of the base image reference.
 func GetBaseImageTag() string {
 	presetObj := metadata.MustGet("base")
@@ -585,22 +626,30 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				Values:   []string{value},
 			})
 		}
-		// resource requirements
-		gpuResourceName := corev1.ResourceName(nodes.CapacityNvidiaGPU)
-		// Under the "mixed" MIG strategy each profile is its own extended resource
-		// (nvidia.com/mig-<profile>). The requested profile is a workload property,
-		// so it is read from the spec. Node-detected MIG under the "single" strategy
-		// has no spec profile and keeps requesting nvidia.com/gpu.
-		if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
-			gpuResourceName = corev1.ResourceName(mig.MIGResourceName(p.Profile))
+		isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
+		if err != nil {
+			return err
 		}
-		resourceReq := corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
-			},
-			Limits: corev1.ResourceList{
-				gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
-			},
+
+		// resource requirements
+		resourceReq := corev1.ResourceRequirements{}
+		if !isCPUInference {
+			gpuResourceName := corev1.ResourceName(nodes.CapacityNvidiaGPU)
+			// Under the "mixed" MIG strategy each profile is its own extended resource
+			// (nvidia.com/mig-<profile>). The requested profile is a workload property,
+			// so it is read from the spec. Node-detected MIG under the "single" strategy
+			// has no spec profile and keeps requesting nvidia.com/gpu.
+			if p := ctx.Workspace.Resource.Partition; p != nil && p.Mode == v1beta1.PartitionModeMIG && p.Profile != "" {
+				gpuResourceName = corev1.ResourceName(mig.MIGResourceName(p.Profile))
+			}
+			resourceReq = corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				},
+				Limits: corev1.ResourceList{
+					gpuResourceName: *resource.NewQuantity(int64(gpuConfig.GPUCount), resource.DecimalSI),
+				},
+			}
 		}
 
 		// inference command
@@ -629,8 +678,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// context that fits. An explicit max-model-len in the user's inference
 		// config still takes precedence: it is appended after this flag on the
 		// vLLM command line (see inference_api.py).
-		maxModelLen := 2048 // Default for non-vLLM runtimes.
-		if runtimeName == pkgmodel.RuntimeNameVLLM {
+		maxModelLen := 2048 // Default for non-vLLM runtimes and Phase 1 CPU inference.
+		if runtimeName == pkgmodel.RuntimeNameVLLM && !isCPUInference {
 			maxModelLen = pkgmodel.MaxModelLenAuto
 		}
 
@@ -647,14 +696,18 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		maxNumSeqs := resolveMaxNumSeqs(ctx.Workspace.Name, inferenceParam, gpuConfig, numNodes)
 		applyGeneratorRuntimeOverrides(inferenceParam, gpuConfig)
 
+		skuNumGPUs := 0
+		if gpuConfig != nil {
+			skuNumGPUs = gpuConfig.GPUCount
+		}
 		commands := inferenceParam.GetInferenceCommand(pkgmodel.RuntimeContext{
 			RuntimeName:          runtimeName,
 			GPUConfig:            gpuConfig,
 			ConfigVolume:         cmVolumeMountRef,
-			SKUNumGPUs:           gpuConfig.GPUCount,
+			SKUNumGPUs:           skuNumGPUs,
 			NumNodes:             numNodes,
 			WorkspaceMetadata:    ctx.Workspace.ObjectMeta,
-			DistributedInference: ctx.Model.SupportDistributedInference(),
+			DistributedInference: !isCPUInference && ctx.Model.SupportDistributedInference(),
 			MaxModelLen:          maxModelLen,
 			MaxNumSeqs:           maxNumSeqs,
 			InferencePort:        vllmPort,
@@ -664,6 +717,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				StreamingModelPath:    streamingModelPath,
 				StreamingLoadFormat:   streamingLoadFormat,
 				LocalModelWeightsPath: localModelWeightsPath,
+				TargetCPU:             isCPUInference,
 			},
 		})
 		lmCacheConfig.runtimeName = runtimeName
@@ -696,11 +750,11 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		mainContainerEnv := buildMainContainerEnv(runtimeName, inferenceParam, gpuConfig, cudaHome, localModelWeightsPath)
 
 		ports := append([]corev1.ContainerPort(nil), containerPorts...)
-		if runtimeName == pkgmodel.RuntimeNameVLLM {
+		if runtimeName == pkgmodel.RuntimeNameVLLM && !isCPUInference {
 			ports = append(ports, vllmKVEventsContainerPort)
 		}
 
-		setInferenceContainers(spec, ctx.Workspace.Name, commands, resourceReq,
+		setInferenceContainers(spec, ctx.Workspace.Name, getPresetInferenceImageName(runtimeName, isCPUInference), commands, resourceReq,
 			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome, ports)
 		setVLLMGracefulShutdown(spec, runtimeName, shouldUseDistributedInference(ctx, numNodes))
 
@@ -902,14 +956,14 @@ func buildMainContainerEnv(runtimeName pkgmodel.RuntimeName, inferenceParam *pkg
 // the provision script + apt) and needs no GPU. The path is passed as a positional
 // arg ($1), never interpolated, so a path with shell metacharacters cannot inject
 // commands.
-func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands []string,
+func setInferenceContainers(spec *corev1.PodSpec, containerName, image string, commands []string,
 	resourceReq corev1.ResourceRequirements, volumeMounts []corev1.VolumeMount, env []corev1.EnvVar,
 	readinessTimeout time.Duration, vllmPort int32, cudaHome string, ports []corev1.ContainerPort,
 ) {
 	spec.Containers = []corev1.Container{
 		{
 			Name:           containerName,
-			Image:          GetBaseImageName(),
+			Image:          image,
 			Command:        commands,
 			Resources:      resourceReq,
 			Ports:          ports,
@@ -924,7 +978,7 @@ func setInferenceContainers(spec *corev1.PodSpec, containerName string, commands
 	if cudaHome != "" {
 		spec.InitContainers = append([]corev1.Container{{
 			Name:  "cuda-toolkit-provisioner",
-			Image: GetBaseImageName(),
+			Image: image,
 			Command: []string{
 				"/bin/sh", "-c",
 				`flock "$1" /workspace/cuda-provision.sh "$1"`,

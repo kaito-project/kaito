@@ -68,6 +68,7 @@ const (
 	FeatureFlagModelStreaming                     = "ModelStreaming"
 	FeatureFlagEnableBaseImageAutoUpgrade         = "enableBaseImageAutoUpgrade"
 	FeatureFlagEnableEPPFlowControl               = "enableEPPFlowControl"
+	FeatureFlagEnableCPUInference                 = "enableCPUInference"
 
 	FeatureFlagDistributedCache = "distributedCache"
 

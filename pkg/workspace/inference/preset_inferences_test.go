@@ -1996,8 +1996,6 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
 
 		workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-		nodeCount := 1
-		workspace.Resource.Count = &nodeCount
 		workspace.Resource.InstanceType = "Standard_D8s_v5"
 		workspace.Status.WorkerNodes = []string{"test-node-1"}
 		workspace.Status.TargetNodeCount = 1

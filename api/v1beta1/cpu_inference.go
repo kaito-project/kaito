@@ -33,6 +33,7 @@ import (
 var (
 	awsCPUInstanceTypePattern  = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
 	awsInstanceFamilyPattern   = regexp.MustCompile(`^([a-z]+)`)
+	awsArmCPUFamilyPattern     = regexp.MustCompile(`^[a-z]+[0-9]+g[a-z]*$`)
 	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*_v[0-9]+$`)
 )
 
@@ -122,14 +123,14 @@ func isAWSARMCPUInstanceType(instanceType string) bool {
 	}
 
 	familyPart := strings.ToLower(strings.SplitN(instanceType, ".", 2)[0])
-	return strings.HasSuffix(familyPart, "g")
+	return awsArmCPUFamilyPattern.MatchString(familyPart)
 }
 
 func isAzureARMCPUInstanceType(instanceType string) bool {
 	return azureArmCPUInstancePattern.MatchString(instanceType)
 }
 
-func isAMD64CompatibleVLLMCPUInstanceType(instanceType string) bool {
+func IsAMD64CompatibleVLLMCPUInstanceType(instanceType string) bool {
 	if !isCPUInstanceType(instanceType) {
 		return false
 	}

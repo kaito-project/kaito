@@ -94,6 +94,8 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 		instanceType string
 	}{
 		{name: "aws arm cpu instance type rejected for vllm", provider: consts.AWSCloudName, instanceType: "m6g.2xlarge"},
+		{name: "aws arm cpu local-nvme variant rejected for vllm", provider: consts.AWSCloudName, instanceType: "m6gd.2xlarge"},
+		{name: "aws arm cpu network-optimized variant rejected for vllm", provider: consts.AWSCloudName, instanceType: "c7gn.2xlarge"},
 		{name: "azure arm cpu instance type rejected for vllm", provider: consts.AzureCloudName, instanceType: "Standard_D16ps_v5"},
 	}
 

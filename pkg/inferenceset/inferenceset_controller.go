@@ -293,8 +293,8 @@ func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *
 // normal upgrade surge never deletes the incoming replica.
 //
 // Workspaces already being deleted count toward the target without issuing a new delete.
-func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
-	desiredImage := inference.GetBaseImageName()
+func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, iObj *kaitov1beta1.InferenceSet, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
+	desiredImage := inference.GetDesiredInferenceImageName(inferenceset.NewWorkspaceForInferenceSet(iObj))
 
 	// Classify each live Workspace once, recording whether it is Ready and whether it is
 	// running an old base image. Workspaces already terminating count toward the target.
@@ -460,7 +460,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if replicaNumToDelete > 0 {
 		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", desiredReplicas)
 
-		toDelete, err := c.selectWorkspacesToDelete(ctx, wsList.Items, int(desiredReplicas), replicaNumToDelete)
+		toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wsList.Items, int(desiredReplicas), replicaNumToDelete)
 		if err != nil {
 			return ctrl.Result{}, err
 		}

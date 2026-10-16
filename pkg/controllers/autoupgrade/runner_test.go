@@ -30,7 +30,9 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 )
 
@@ -655,6 +657,35 @@ func TestReconcileInferenceSet_AllUpToDate(t *testing.T) {
 	r.reconcileInferenceSet(context.Background(), is)
 
 	// NumDriftedWorkspaces should always be reported, even when 0.
+	updated := &kaitov1beta1.InferenceSet{}
+	_ = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
+	require.NotNil(t, updated.Status.AutoUpgrade)
+	require.NotNil(t, updated.Status.AutoUpgrade.NumDriftedWorkspaces)
+	assert.Equal(t, 0, *updated.Status.AutoUpgrade.NumDriftedWorkspaces)
+}
+
+func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage(t *testing.T) {
+	setTestRegistry(t)
+	const (
+		ns     = "default"
+		isName = "test-is-cpu"
+	)
+
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+	is := makeInferenceSet(isName, ns, true, nil)
+	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	is.Spec.Template.Inference.Preset = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}
+	ws := makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
+	desiredImage := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(is))
+	ss := makeStatefulSet("ws-1", ns, desiredImage)
+	cl := newFakeClient(is, ws, ss)
+	r := &AutoUpgradeRunner{Client: cl}
+
+	r.reconcileInferenceSet(context.Background(), is)
+
 	updated := &kaitov1beta1.InferenceSet{}
 	_ = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
 	require.NotNil(t, updated.Status.AutoUpgrade)

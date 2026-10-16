@@ -194,6 +194,13 @@ var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersPar
 	},
 
 	// Qwen family
+	"qwen2.5-0.5b-instruct": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams:    qwenRunParams,
+		Tag:               "0.2.0",
+	},
 	"qwen2.5-coder-7b-instruct": {
 		BaseCommand:       "accelerate launch",
 		AccelerateParams:  defaultAccelerateParams,

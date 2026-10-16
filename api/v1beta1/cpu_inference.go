@@ -31,8 +31,9 @@ import (
 )
 
 var (
-	awsCPUInstanceTypePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
-	awsInstanceFamilyPattern  = regexp.MustCompile(`^([a-z]+)`)
+	awsCPUInstanceTypePattern  = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
+	awsInstanceFamilyPattern   = regexp.MustCompile(`^([a-z]+)`)
+	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*_v[0-9]+$`)
 )
 
 func hasNVIDIAAcceleratorResource(resources corev1.ResourceList) bool {
@@ -115,6 +116,31 @@ func isCPUInstanceType(instanceType string) bool {
 	return !isAWSGPUOrAcceleratorInstanceType(instanceType)
 }
 
+func isAWSARMCPUInstanceType(instanceType string) bool {
+	if !awsCPUInstanceTypePattern.MatchString(instanceType) {
+		return false
+	}
+
+	familyPart := strings.ToLower(strings.SplitN(instanceType, ".", 2)[0])
+	return strings.HasSuffix(familyPart, "g")
+}
+
+func isAzureARMCPUInstanceType(instanceType string) bool {
+	return azureArmCPUInstancePattern.MatchString(instanceType)
+}
+
+func isAMD64CompatibleVLLMCPUInstanceType(instanceType string) bool {
+	if !isCPUInstanceType(instanceType) {
+		return false
+	}
+
+	if strings.HasPrefix(instanceType, "Standard_") {
+		return !isAzureARMCPUInstanceType(instanceType)
+	}
+
+	return !isAWSARMCPUInstanceType(instanceType)
+}
+
 func nodeHasGPUSignals(node *corev1.Node) bool {
 	if node == nil {
 		return false
@@ -142,7 +168,7 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 
 	var matchLabels client.MatchingLabels
 	if labelSelector != nil {
-		matchLabels = labelSelector.MatchLabels
+		matchLabels = SanitizedMatchLabels(labelSelector)
 	}
 
 	nodeList := &corev1.NodeList{}
@@ -180,6 +206,58 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 	}
 
 	return seenReadyCPU && !seenReadyGPU, nil
+}
+
+// AreLabelSelectedReadyNodesAMD64 reports whether the ready nodes matching the
+// selector are uniformly amd64.
+func AreLabelSelectedReadyNodesAMD64(ctx context.Context, labelSelector *metav1.LabelSelector, instanceType string, kubeClient client.Client) (bool, error) {
+	if kubeClient == nil {
+		return false, nil
+	}
+
+	var matchLabels client.MatchingLabels
+	if labelSelector != nil {
+		matchLabels = SanitizedMatchLabels(labelSelector)
+	}
+
+	nodeList := &corev1.NodeList{}
+	if err := kubeClient.List(ctx, nodeList, matchLabels); err != nil {
+		return false, err
+	}
+
+	seenReadyAMD64 := false
+	seenReadyNonAMD64 := false
+	for i := range nodeList.Items {
+		node := &nodeList.Items[i]
+		if node.DeletionTimestamp != nil {
+			continue
+		}
+		if instanceType != "" && node.Labels[corev1.LabelInstanceTypeStable] != instanceType {
+			continue
+		}
+
+		isReady := false
+		for _, condition := range node.Status.Conditions {
+			if condition.Type == corev1.NodeReady && condition.Status == corev1.ConditionTrue {
+				isReady = true
+				break
+			}
+		}
+		if !isReady {
+			continue
+		}
+
+		if strings.EqualFold(node.Labels[corev1.LabelArchStable], "amd64") {
+			seenReadyAMD64 = true
+		} else {
+			seenReadyNonAMD64 = true
+		}
+		if seenReadyAMD64 && seenReadyNonAMD64 {
+			return false, fmt.Errorf("labelSelector matches a mix of amd64 and non-amd64 nodes; vLLM CPU inference requires homogeneous amd64 nodes")
+		}
+	}
+
+	return seenReadyAMD64 && !seenReadyNonAMD64, nil
 }
 
 // IsAttemptingCPUPresetTarget reports whether the object is trying to use the

@@ -527,6 +527,49 @@ def _device_is_cpu(args: argparse.Namespace) -> bool:
     return cli_device == "cpu" or env_device == "cpu"
 
 
+def _read_cgroup_memory_value(path: str) -> int | None:
+    try:
+        raw = Path(path).read_text().strip()
+    except OSError:
+        return None
+    if not raw or raw == "max":
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        return None
+    if value <= 0 or value >= (1 << 60):
+        return None
+    return value
+
+
+def _container_remaining_memory_bytes() -> int | None:
+    limit = _read_cgroup_memory_value("/sys/fs/cgroup/memory.max")
+    usage = _read_cgroup_memory_value("/sys/fs/cgroup/memory.current")
+    if limit is not None and usage is not None:
+        return max(0, limit - usage)
+
+    limit = _read_cgroup_memory_value("/sys/fs/cgroup/memory/memory.limit_in_bytes")
+    usage = _read_cgroup_memory_value("/sys/fs/cgroup/memory/memory.usage_in_bytes")
+    if limit is not None and usage is not None:
+        return max(0, limit - usage)
+
+    return None
+
+
+def _cpu_kv_cache_available_memory_gib() -> float:
+    available_bytes = psutil.virtual_memory().available
+    remaining_bytes = _container_remaining_memory_bytes()
+    effective_bytes = available_bytes
+    if remaining_bytes is not None:
+        # Keep host-memory visibility from bypassing the container's cgroup
+        # budget and reserve headroom for model loading plus warmup before
+        # handing the remainder to vLLM's CPU KV cache.
+        reserve_bytes = min(2 * 1024**3, remaining_bytes // 4)
+        effective_bytes = min(available_bytes, max(0, remaining_bytes - reserve_bytes))
+    return effective_bytes / (1024**3)
+
+
 def configure_cpu_kv_cache_space_if_applicable(args: argparse.Namespace) -> None:
     """Cap vLLM CPU KV cache size for CPU runtimes.
 
@@ -562,7 +605,7 @@ def configure_cpu_kv_cache_space_if_applicable(args: argparse.Namespace) -> None
         )
         return
 
-    available_memory_gb = psutil.virtual_memory().available / (1024**3)
+    available_memory_gb = _cpu_kv_cache_available_memory_gib()
     tensor_parallel_size = max(1, int(getattr(args, "tensor_parallel_size", 1) or 1))
     kv_cache_space_gb = available_memory_gb * utilization / tensor_parallel_size
     kv_cache_space_gb_int = max(1, int(kv_cache_space_gb))

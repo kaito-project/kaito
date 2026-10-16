@@ -260,6 +260,39 @@ func TestInferenceSetValidateCreateBYOCPUPreset(t *testing.T) {
 	}
 }
 
+func TestInferenceSetValidateCreateCPUPresetTemplateRuntimeAnnotationCanSelectTransformers(t *testing.T) {
+	registerCPUInferenceSetTestModels()
+	oldCPUGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldVLLMGate := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUGate
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLMGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldDisableNAP
+	}()
+
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	is := &InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu-transformers-is", Namespace: "default"},
+		Spec: InferenceSetSpec{
+			Replicas: int32Ptr(1),
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			Template: InferenceSetTemplate{
+				ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers)}},
+				Resource:   InferenceSetResourceSpec{InstanceType: "m6g.2xlarge"},
+				Inference: kaitov1beta1.InferenceSpec{
+					Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}},
+				},
+			},
+		},
+	}
+	if err := is.validateCreateWithContext(context.Background()); err != nil {
+		t.Fatalf("expected transformers runtime selection to bypass vllm-only amd64 restriction, got %v", err)
+	}
+}
+
 func TestInferenceSetValidateCreateCPUGenericHFID(t *testing.T) {
 	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]

@@ -614,8 +614,13 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		volumes, volumeMounts = configureModelWeightsVolumes(
 			streamingModelPath, localModelWeightsPath, volumes, volumeMounts)
 
+		isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
+		if err != nil {
+			return err
+		}
+
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
-			ctx.Model, volumes, volumeMounts)
+			ctx.Model, isCPUInference, volumes, volumeMounts)
 
 		// add share memory for cross process communication
 		shmVolume, shmVolumeMount := utils.ConfigSHMVolume()
@@ -632,11 +637,6 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				Values:   []string{value},
 			})
 		}
-		isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
-		if err != nil {
-			return err
-		}
-
 		// resource requirements
 		resourceReq := corev1.ResourceRequirements{}
 		if !isCPUInference {
@@ -825,10 +825,10 @@ func configureModelWeightsVolumes(streamingModelPath, localModelWeightsPath stri
 // so the pod still starts on nodes that lack it), the install survives pod
 // recreation and is shared by all pods on the node — only nodes that lack it ever
 // pay the install.
-func configureCUDAToolkitVolume(model pkgmodel.Model,
+func configureCUDAToolkitVolume(model pkgmodel.Model, isCPUInference bool,
 	volumes []corev1.Volume, volumeMounts []corev1.VolumeMount,
 ) ([]corev1.Volume, []corev1.VolumeMount, string) {
-	if !model.GetInferenceParameters().RequiresCUDAToolkit() {
+	if isCPUInference || !model.GetInferenceParameters().RequiresCUDAToolkit() {
 		return volumes, volumeMounts, ""
 	}
 

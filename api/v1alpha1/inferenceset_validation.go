@@ -16,6 +16,7 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/robfig/cron/v3"
@@ -73,16 +74,20 @@ func (is *InferenceSet) validateCPUInferenceConstraints(ctx context.Context) (er
 		return errs
 	}
 
-	runtimeName := model.RuntimeNameVLLM
+	effectiveAnnotations := maps.Clone(is.Spec.Template.Annotations)
 	if is.Annotations != nil {
 		runtime := is.Annotations[AnnotationWorkspaceRuntime]
 		if runtime != "" && runtime != string(model.RuntimeNameHuggingfaceTransformers) && runtime != string(model.RuntimeNameVLLM) {
 			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
 		}
-		if runtime == string(model.RuntimeNameHuggingfaceTransformers) {
-			runtimeName = model.RuntimeNameHuggingfaceTransformers
+		if runtime != "" {
+			if effectiveAnnotations == nil {
+				effectiveAnnotations = make(map[string]string)
+			}
+			effectiveAnnotations[AnnotationWorkspaceRuntime] = runtime
 		}
 	}
+	runtimeName := EffectiveInferenceRuntime(effectiveAnnotations)
 	if runtimeName == model.RuntimeNameVLLM {
 		if is.Spec.Template.Resource.InstanceType != "" && !kaitov1beta1.IsAMD64CompatibleVLLMCPUInstanceType(is.Spec.Template.Resource.InstanceType) {
 			errs = errs.Also(apis.ErrInvalidValue(

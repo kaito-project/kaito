@@ -1985,4 +1985,47 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("cpu preset path skips cuda toolkit provisioning even for deepgemm models", func(t *testing.T) {
+		oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+		defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+		mockClient := test.NewClient()
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+		workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		nodeCount := 1
+		workspace.Resource.Count = &nodeCount
+		workspace.Resource.InstanceType = "Standard_D8s_v5"
+		workspace.Status.WorkerNodes = []string{"test-node-1"}
+		workspace.Status.TargetNodeCount = 1
+		workspace.Inference.Preset.PresetMeta.Name = "test-deepgemm-model"
+		workspace.Inference.Adapters = nil
+		workspace.Inference.Config = ""
+
+		svc := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+			Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+		}
+		mockClient.CreateOrUpdateObjectInMap(svc)
+
+		m := plugin.KaitoModelRegister.MustGet("test-deepgemm-model")
+		result, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, m, mockClient, nil)
+		if err != nil {
+			t.Fatalf("GeneratePresetInference returned error: %v", err)
+		}
+		podSpec := result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+		for _, ic := range podSpec.InitContainers {
+			if ic.Name == "cuda-toolkit-provisioner" {
+				t.Fatalf("did not expect cuda-toolkit-provisioner on cpu preset path")
+			}
+		}
+		for _, e := range podSpec.Containers[0].Env {
+			if e.Name == "CUDA_HOME" {
+				t.Fatalf("did not expect CUDA_HOME on cpu preset path, got %q", e.Value)
+			}
+		}
+	})
 }

@@ -276,12 +276,40 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 			"kaito.sh/cpu-inference": "true",
 			LabelWorkspaceName:       "other-workspace",
 		}}
-		isCPU, err := AreLabelSelectedReadyNodesCPU(context.Background(), selector, nodeClient)
+		isCPU, err := AreLabelSelectedReadyNodesCPU(context.Background(), selector, "", nodeClient)
 		if err != nil {
 			t.Fatalf("expected sanitized selector lookup to succeed, got %v", err)
 		}
 		if !isCPU {
 			t.Fatalf("expected sanitized selector lookup to detect cpu-ready nodes")
+		}
+	})
+
+	t.Run("gpu preset with nil selector does not scan the whole cluster for cpu detection", func(t *testing.T) {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+		nodeClient := newCPUValidationClient(t,
+			&corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "amd64"}},
+				Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+			},
+			&corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{Name: "gpu-node", Labels: map[string]string{corev1.LabelInstanceTypeStable: "g5.xlarge", consts.NvidiaGPUProduct: "NVIDIA L4"}},
+				Status: corev1.NodeStatus{
+					Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
+					Capacity:   corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")},
+				},
+			},
+		)
+
+		inference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}}
+		isCPU, err := ResolveCPUInferenceTarget(context.Background(), inference, "g5.xlarge", nil, nodeClient)
+		if err != nil {
+			t.Fatalf("expected gpu preset with nil selector to skip cpu resolution, got %v", err)
+		}
+		if isCPU {
+			t.Fatalf("expected gpu preset with nil selector to remain on gpu path")
 		}
 	})
 

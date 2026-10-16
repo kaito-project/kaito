@@ -110,4 +110,19 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("cpu nap path still rejects partitioned workloads", func(t *testing.T) {
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		resourceSpec := &ResourceSpec{
+			InstanceType: "Standard_D8s_v5",
+			Count:        pointerToInt(1),
+			Partition:    &PartitionSpec{Mode: PartitionModeMIG, Profile: "1g.10gb"},
+			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{
+				"kaito.sh/cpu-inference": "true",
+			}},
+		}
+		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+			t.Fatalf("expected partitioned cpu nap workload to be rejected")
+		}
+	})
 }

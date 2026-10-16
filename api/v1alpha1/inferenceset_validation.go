@@ -73,10 +73,33 @@ func (is *InferenceSet) validateCPUInferenceConstraints(ctx context.Context) (er
 		return errs
 	}
 
+	runtimeName := model.RuntimeNameVLLM
 	if is.Annotations != nil {
 		runtime := is.Annotations[AnnotationWorkspaceRuntime]
 		if runtime != "" && runtime != string(model.RuntimeNameHuggingfaceTransformers) && runtime != string(model.RuntimeNameVLLM) {
 			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
+		}
+		if runtime == string(model.RuntimeNameHuggingfaceTransformers) {
+			runtimeName = model.RuntimeNameHuggingfaceTransformers
+		}
+	}
+	if runtimeName == model.RuntimeNameVLLM {
+		if is.Spec.Template.Resource.InstanceType != "" && !kaitov1beta1.IsAMD64CompatibleVLLMCPUInstanceType(is.Spec.Template.Resource.InstanceType) {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", is.Spec.Template.Resource.InstanceType),
+				"template.resource.instanceType",
+			))
+		}
+		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && is.Spec.Template.Resource.InstanceType == "" {
+			isAMD64, err := kaitov1beta1.AreLabelSelectedReadyNodesAMD64(ctx, is.Spec.Selector, "", k8sclient.Client)
+			if err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to validate CPU node architecture: %v", err), "selector"))
+			} else if !isAMD64 {
+				errs = errs.Also(apis.ErrInvalidValue(
+					"vLLM CPU runtime only supports amd64 BYO nodes; matched ready nodes must report kubernetes.io/arch=amd64",
+					"selector",
+				))
+			}
 		}
 	}
 

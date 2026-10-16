@@ -182,6 +182,39 @@ func TestInferenceSetValidateCreateCPUPreset(t *testing.T) {
 	}
 }
 
+func TestInferenceSetValidateCreateCPUPresetRejectsARMVLLMTargets(t *testing.T) {
+	registerCPUInferenceSetTestModels()
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldDisableNAP
+	}()
+
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+
+	for _, instanceType := range []string{"m6g.2xlarge", "m6gd.2xlarge", "c7gn.2xlarge"} {
+		is := &InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "cpu-preset-is", Namespace: "default"},
+			Spec: InferenceSetSpec{
+				Replicas: int32Ptr(1),
+				Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+				Template: InferenceSetTemplate{
+					Resource: InferenceSetResourceSpec{InstanceType: instanceType},
+					Inference: kaitov1beta1.InferenceSpec{
+						Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}},
+					},
+				},
+			},
+		}
+		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
+		if err := is.validateCreateWithContext(context.Background()); err == nil {
+			t.Fatalf("expected arm cpu instance type %s to be rejected for alpha vllm cpu preset", instanceType)
+		}
+	}
+}
+
 func TestInferenceSetValidateCreateBYOCPUPreset(t *testing.T) {
 	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
@@ -215,6 +248,15 @@ func TestInferenceSetValidateCreateBYOCPUPreset(t *testing.T) {
 
 	if err := is.validateCreateWithContext(context.Background()); err != nil {
 		t.Fatalf("expected BYO cpu preset inferenceset validation to pass, got %v", err)
+	}
+
+	nodeClient = newCPUInferenceSetClient(t, &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu-arm-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "arm64"}},
+		Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	})
+	k8sclient.SetGlobalClient(nodeClient)
+	if err := is.validateCreateWithContext(context.Background()); err == nil {
+		t.Fatalf("expected BYO arm64 cpu preset inferenceset validation to fail for vllm runtime")
 	}
 }
 

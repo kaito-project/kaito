@@ -1,4 +1,4 @@
-# Dependencies for the Phase 1 CPU custom-model images
+# Dependencies for the basic CPU custom-model images
 
 transformers[serving] ==5.14.1
 huggingface-hub==1.11.0

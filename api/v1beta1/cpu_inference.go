@@ -66,7 +66,7 @@ func IsInferenceTemplateCPUTarget(template *corev1.PodTemplateSpec) bool {
 }
 
 // IsCPUCompatiblePreset reports whether the preset reference is eligible for the
-// Phase 1 CPU preset path. Legal built-in presets and generic Hugging Face
+// Basic CPU preset path. Legal built-in presets and generic Hugging Face
 // model IDs are allowed; full model resolution/compatibility is validated in the
 // normal preset validation flow.
 func IsCPUCompatiblePreset(name ModelName) bool {
@@ -204,7 +204,7 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 			seenReadyCPU = true
 		}
 		if seenReadyCPU && seenReadyGPU {
-			return false, fmt.Errorf("labelSelector matches a mix of CPU-only and GPU nodes; use a selector that resolves to a homogeneous CPU node pool for Phase 1 CPU preset inference")
+			return false, fmt.Errorf("labelSelector matches a mix of CPU-only and GPU nodes; use a selector that resolves to a homogeneous CPU node pool for basic CPU preset inference")
 		}
 	}
 
@@ -272,7 +272,7 @@ func IsAttemptingCPUPresetTarget(inference *InferenceSpec, instanceType string) 
 	return inference != nil && inference.Preset != nil && isCPUInstanceType(instanceType)
 }
 
-// ResolveCPUInferenceTarget reports whether the inference spec resolves to the Phase 1 CPU path.
+// ResolveCPUInferenceTarget reports whether the inference spec resolves to the basic CPU path.
 func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, instanceType string, labelSelector *metav1.LabelSelector, kubeClient client.Client) (bool, error) {
 	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
 		return false, nil
@@ -301,7 +301,7 @@ func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, in
 	return AreLabelSelectedReadyNodesCPU(ctx, labelSelector, "", kubeClient)
 }
 
-// IsCPUInferenceTarget reports whether the inference spec resolves to the Phase 1 CPU path.
+// IsCPUInferenceTarget reports whether the inference spec resolves to the basic CPU path.
 func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
 	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
 		return false
@@ -315,7 +315,7 @@ func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
 	return inference.Preset != nil && IsCPUCompatiblePreset(inference.Preset.Name) && isCPUInstanceType(instanceType)
 }
 
-// IsCPUInferenceWorkspace reports whether the workspace matches the Phase 1 CPU path.
+// IsCPUInferenceWorkspace reports whether the workspace matches the basic CPU path.
 func IsCPUInferenceWorkspace(ws *Workspace) bool {
 	if ws == nil {
 		return false

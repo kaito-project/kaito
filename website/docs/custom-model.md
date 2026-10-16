@@ -14,9 +14,9 @@ Here is a **[sample deployment YAML](https://github.com/kaito-project/kaito/tree
 
 The script downloads model weights during server bootstrap, eliminating the need to pre-bake them into the container image.
 
-## Phase 1 CPU preset support
+## Basic CPU preset support
 
-Phase 1 also supports CPU preset inference referenced through `inference.preset.name`. This path requires the `enableCPUInference` feature gate to be enabled on the workspace manager. Both built-in presets and generic Hugging Face model IDs are allowed, as long as the model can resolve through the normal vLLM-compatible preset flow.
+KAITO also supports basic CPU preset inference referenced through `inference.preset.name`. This path requires the `enableCPUInference` feature gate to be enabled on the workspace manager. Both built-in presets and generic Hugging Face model IDs are allowed, as long as the model can resolve through the normal vLLM-compatible preset flow.
 
 ### Preset CPU examples
 
@@ -26,18 +26,18 @@ Retained example:
 
 This example uses `Qwen/Qwen2.5-0.5B-Instruct` on `Standard_D16s_v5`.
 
-### Phase 1 CPU support matrix
+### Basic CPU support matrix
 
 | Scenario | Status | Notes |
 |---|---|---|
 | Preset InferenceSet on CPU | supported with `enableCPUInference` | retained example uses default CPU `vllm` runtime |
 | CPU preset with NAP | supported with `enableCPUInference` | specify a CPU instance type |
-| Post-load benchmark stage on CPU | skipped | Phase 1 CPU paths do not run the benchmark stage |
-| Multi-node CPU inference | not supported | Phase 1 is single-node only |
+| Post-load benchmark stage on CPU | skipped | basic CPU paths do not run the benchmark stage |
+| Multi-node CPU inference | not supported | basic CPU support is single-node only |
 
 ## Limitations
 
-- **Single-node only**: Distributed inference across multiple nodes is not supported for Phase 1 CPU paths.
+- **Single-node only**: Distributed inference across multiple nodes is not supported for basic CPU paths.
 - **Preset compatibility still depends on model resolution/runtime support**: generic Hugging Face model IDs must resolve through the normal vLLM-compatible preset flow.
-- **CPU benchmark stage skipped**: Phase 1 CPU inference does not run the post-load benchmark stage.
+- **CPU benchmark stage skipped**: basic CPU inference does not run the post-load benchmark stage.
 - **No custom-model autoscaling**: These CPU paths do not attempt to wire autoscaling behavior.

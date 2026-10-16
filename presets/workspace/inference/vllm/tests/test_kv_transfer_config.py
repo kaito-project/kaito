@@ -23,7 +23,10 @@ from unittest.mock import patch
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, parent_dir)
 
-from inference_api import configure_cpu_kv_cache_space_if_applicable  # noqa: E402, I001
+from inference_api import (  # noqa: E402, I001
+    _cpu_kv_cache_available_memory_gib,
+    configure_cpu_kv_cache_space_if_applicable,
+)
 from vllm_kv_transfer import (  # noqa: E402, I001
     record_lmcache_server_generation,
     set_kv_transfer_config_if_applicable,
@@ -53,10 +56,29 @@ class TestConfigureCPUKVCacheSpace:
         with (
             patch.dict(os.environ, {}, clear=True),
             patch("inference_api.psutil.virtual_memory") as vm,
+            patch("inference_api._container_remaining_memory_bytes", return_value=None),
         ):
             vm.return_value = argparse.Namespace(available=64 * 1024**3)
             configure_cpu_kv_cache_space_if_applicable(args)
             assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "16"
+
+    def test_caps_cpu_kv_cache_space_by_container_budget(self):
+        args = _make_args(
+            device="cpu",
+            kaito_kv_cache_cpu_memory_utilization=0.5,
+            tensor_parallel_size=1,
+        )
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch("inference_api.psutil.virtual_memory") as vm,
+            patch(
+                "inference_api._container_remaining_memory_bytes",
+                return_value=8 * 1024**3,
+            ),
+        ):
+            vm.return_value = argparse.Namespace(available=64 * 1024**3)
+            configure_cpu_kv_cache_space_if_applicable(args)
+            assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "3"
 
     def test_respects_explicit_cpu_kv_cache_override(self):
         args = _make_args(device="cpu", kaito_kv_cache_cpu_memory_utilization=0.5)
@@ -69,6 +91,27 @@ class TestConfigureCPUKVCacheSpace:
         with patch.dict(os.environ, {}, clear=True):
             configure_cpu_kv_cache_space_if_applicable(args)
             assert "VLLM_CPU_KVCACHE_SPACE" not in os.environ
+
+
+class TestCPUKVCacheMemoryBudget:
+    def test_prefers_host_available_memory_without_cgroup_limit(self):
+        with (
+            patch("inference_api.psutil.virtual_memory") as vm,
+            patch("inference_api._container_remaining_memory_bytes", return_value=None),
+        ):
+            vm.return_value = argparse.Namespace(available=10 * 1024**3)
+            assert _cpu_kv_cache_available_memory_gib() == 10
+
+    def test_reserves_headroom_inside_container_budget(self):
+        with (
+            patch("inference_api.psutil.virtual_memory") as vm,
+            patch(
+                "inference_api._container_remaining_memory_bytes",
+                return_value=8 * 1024**3,
+            ),
+        ):
+            vm.return_value = argparse.Namespace(available=64 * 1024**3)
+            assert _cpu_kv_cache_available_memory_gib() == 6
 
 
 class TestSetKvTransferConfig:

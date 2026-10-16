@@ -97,8 +97,6 @@ func newCPUInferenceSetClient(t *testing.T, objects ...ctrlclient.Object) ctrlcl
 	return fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
 }
 
-func int32Ptr(v int32) *int32 { return &v }
-
 func TestInferenceSetValidateCreateCPUFeatureGate(t *testing.T) {
 	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]

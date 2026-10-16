@@ -80,6 +80,30 @@ class TestConfigureCPUKVCacheSpace:
             configure_cpu_kv_cache_space_if_applicable(args)
             assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "3"
 
+    def test_fails_when_per_worker_budget_is_below_1_gib(self):
+        args = _make_args(
+            device="cpu",
+            kaito_kv_cache_cpu_memory_utilization=0.5,
+            tensor_parallel_size=1,
+        )
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            patch("inference_api.psutil.virtual_memory") as vm,
+            patch(
+                "inference_api._container_remaining_memory_bytes",
+                return_value=512 * 1024**2,
+            ),
+        ):
+            vm.return_value = argparse.Namespace(available=64 * 1024**3)
+            try:
+                configure_cpu_kv_cache_space_if_applicable(args)
+            except RuntimeError as exc:
+                assert "below 1 GiB" in str(exc)
+            else:
+                raise AssertionError(
+                    "expected configure_cpu_kv_cache_space_if_applicable to fail"
+                )
+
     def test_respects_explicit_cpu_kv_cache_override(self):
         args = _make_args(device="cpu", kaito_kv_cache_cpu_memory_utilization=0.5)
         with patch.dict(os.environ, {"VLLM_CPU_KVCACHE_SPACE": "8"}, clear=True):

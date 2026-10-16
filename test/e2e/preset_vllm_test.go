@@ -2847,9 +2847,12 @@ func waitForWorkspaceManagerRollout(key client.ObjectKey) {
 			deployment := &appsv1.Deployment{}
 			err := utils.TestingCluster.KubeClient.Get(ctx, key, deployment)
 			g.Expect(err).NotTo(HaveOccurred())
+			desiredReplicas := *deployment.Spec.Replicas
 			g.Expect(deployment.Status.ObservedGeneration).To(Equal(deployment.Generation))
-			g.Expect(deployment.Status.UpdatedReplicas).To(Equal(*deployment.Spec.Replicas))
-			g.Expect(deployment.Status.AvailableReplicas).To(Equal(*deployment.Spec.Replicas))
+			g.Expect(deployment.Status.Replicas).To(Equal(desiredReplicas))
+			g.Expect(deployment.Status.UpdatedReplicas).To(Equal(desiredReplicas))
+			g.Expect(deployment.Status.ReadyReplicas).To(Equal(desiredReplicas))
+			g.Expect(deployment.Status.AvailableReplicas).To(Equal(desiredReplicas))
 			g.Expect(deployment.Status.UnavailableReplicas).To(BeZero())
 		}, 10*time.Minute, 10*time.Second).Should(Succeed())
 	})

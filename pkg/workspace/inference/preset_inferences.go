@@ -674,7 +674,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// context that fits. An explicit max-model-len in the user's inference
 		// config still takes precedence: it is appended after this flag on the
 		// vLLM command line (see inference_api.py).
-		maxModelLen := 2048 // Default for non-vLLM runtimes and Phase 1 CPU inference.
+		maxModelLen := 2048 // Default for non-vLLM runtimes and basic CPU inference.
 		if runtimeName == pkgmodel.RuntimeNameVLLM && !isCPUInference {
 			maxModelLen = pkgmodel.MaxModelLenAuto
 		}

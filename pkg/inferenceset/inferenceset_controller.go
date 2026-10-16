@@ -230,7 +230,10 @@ func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *
 //
 // Workspaces already being deleted count toward the target without issuing a new delete.
 func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, iObj *kaitov1beta1.InferenceSet, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
-	desiredImage := inference.GetDesiredInferenceImageName(inferenceset.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, inferenceset.NewWorkspaceForInferenceSet(iObj), c.Client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve desired inference image: %w", err)
+	}
 
 	// Classify each live Workspace once, recording whether it is Ready and whether it is
 	// running an old base image. Workspaces already terminating count toward the target.
@@ -476,7 +479,11 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	// check whether all the workspaces are ready
 	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
-	benchmarkApplicable := kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj)
+	benchmarkApplicable, err := kaitov1beta1.ResolveInferenceSetBenchmarkApplicability(ctx, iObj, c.Client)
+	if err != nil {
+		klog.ErrorS(err, "failed to resolve benchmark applicability", "inferenceset", klog.KObj(iObj))
+		return ctrl.Result{}, err
+	}
 
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {

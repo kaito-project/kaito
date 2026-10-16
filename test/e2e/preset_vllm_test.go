@@ -20,6 +20,8 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -802,7 +804,7 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 func createQwenCPUVLLMInferenceSetFromExample() *kaitov1beta1.InferenceSet {
 	inferenceSetObj := &kaitov1beta1.InferenceSet{}
 	By("Creating the CPU vLLM example InferenceSet", func() {
-		raw, err := os.ReadFile("examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml")
+		raw, err := os.ReadFile(cpuVLLMExampleManifestPath())
 		Expect(err).NotTo(HaveOccurred(), "Failed to read CPU vLLM example manifest")
 
 		Expect(yaml.Unmarshal(raw, inferenceSetObj)).To(Succeed(), "Failed to unmarshal CPU vLLM example manifest")
@@ -810,6 +812,12 @@ func createQwenCPUVLLMInferenceSetFromExample() *kaitov1beta1.InferenceSet {
 		createAndValidateInferenceSet(inferenceSetObj)
 	})
 	return inferenceSetObj
+}
+
+func cpuVLLMExampleManifestPath() string {
+	_, thisFile, _, ok := runtime.Caller(0)
+	Expect(ok).To(BeTrue(), "Failed to resolve e2e source file path")
+	return filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "..", "examples", "inference", "kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml"))
 }
 
 func createGemma4InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {

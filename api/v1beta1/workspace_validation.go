@@ -980,9 +980,15 @@ func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
 
 	switch provider {
 	case consts.AzureCloudName:
-		if isAzureGPUOrAcceleratorSKU(instanceType) {
+		if !isAzureCPUInstanceType(instanceType) {
+			if isAzureGPUOrAcceleratorSKU(instanceType) {
+				return apis.ErrInvalidValue(
+					fmt.Sprintf("unsupported CPU instance type %s. Azure N-series GPU/accelerator SKUs are not allowed for the basic CPU path", instanceType),
+					"instanceType",
+				)
+			}
 			return apis.ErrInvalidValue(
-				fmt.Sprintf("unsupported CPU instance type %s. Azure N-series GPU/accelerator SKUs are not allowed for the basic CPU path", instanceType),
+				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed Azure CPU instance type such as Standard_D8s_v5 or Standard_E8s_v5", instanceType),
 				"instanceType",
 			)
 		}

@@ -14,10 +14,12 @@
 package v1beta1
 
 import (
+	"context"
 	"path"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
@@ -319,4 +321,18 @@ func ShouldRunInferenceSetBenchmark(iObj *InferenceSet) bool {
 		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
 		iObj.Spec.Template.Inference.Preset != nil &&
 		!IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
+}
+
+// ResolveInferenceSetBenchmarkApplicability reports whether the InferenceSet's child
+// workspaces should run the post-load benchmark after resolving BYO CPU selectors.
+func ResolveInferenceSetBenchmarkApplicability(ctx context.Context, iObj *InferenceSet, kubeClient client.Client) (bool, error) {
+	if iObj == nil || !IsInferenceSetBenchmarkEnabled(iObj) || GetInferenceSetRuntimeName(iObj) != model.RuntimeNameVLLM ||
+		iObj.Spec.Template.Inference.Preset == nil {
+		return false, nil
+	}
+	isCPU, err := ResolveCPUInferenceSetTarget(ctx, iObj, kubeClient)
+	if err != nil {
+		return false, err
+	}
+	return !isCPU, nil
 }

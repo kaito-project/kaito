@@ -608,7 +608,12 @@ def configure_cpu_kv_cache_space_if_applicable(args: argparse.Namespace) -> None
     available_memory_gb = _cpu_kv_cache_available_memory_gib()
     tensor_parallel_size = max(1, int(getattr(args, "tensor_parallel_size", 1) or 1))
     kv_cache_space_gb = available_memory_gb * utilization / tensor_parallel_size
-    kv_cache_space_gb_int = max(1, int(kv_cache_space_gb))
+    kv_cache_space_gb_int = int(kv_cache_space_gb)
+    if kv_cache_space_gb_int < 1:
+        raise RuntimeError(
+            "CPU runtime detected but the computed per-worker KV cache budget is below 1 GiB; "
+            "lower tensor parallelism, increase the container memory limit, or set an explicit override"
+        )
     os.environ["VLLM_CPU_KVCACHE_SPACE"] = str(kv_cache_space_gb_int)
     logger.info(
         "CPU runtime detected, set VLLM_CPU_KVCACHE_SPACE=%s GiB "

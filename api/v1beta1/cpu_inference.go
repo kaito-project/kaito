@@ -34,6 +34,7 @@ var (
 	awsCPUInstanceTypePattern  = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
 	awsInstanceFamilyPattern   = regexp.MustCompile(`^([a-z]+)`)
 	awsArmCPUFamilyPattern     = regexp.MustCompile(`^[a-z]+[0-9]+g[a-z]*$`)
+	azureCPUInstancePattern    = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?[a-z]*_v[0-9]+$`)
 	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*_v[0-9]+$`)
 )
 
@@ -80,6 +81,10 @@ func IsCPUCompatiblePreset(name ModelName) bool {
 
 func isAzureGPUOrAcceleratorSKU(instanceType string) bool {
 	return strings.HasPrefix(instanceType, "Standard_") && sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX)
+}
+
+func isAzureCPUInstanceType(instanceType string) bool {
+	return azureCPUInstancePattern.MatchString(instanceType) && !isAzureGPUOrAcceleratorSKU(instanceType)
 }
 
 func isAWSGPUOrAcceleratorInstanceType(instanceType string) bool {
@@ -153,6 +158,12 @@ func nodeHasGPUSignals(node *corev1.Node) bool {
 
 	for _, key := range []string{consts.NvidiaGPUProduct, consts.NvidiaGPUCount, consts.NvidiaGPUMemory} {
 		if value := strings.TrimSpace(node.Labels[key]); value != "" {
+			return true
+		}
+	}
+
+	if instanceType := strings.TrimSpace(node.Labels[corev1.LabelInstanceTypeStable]); instanceType != "" {
+		if gpuConfig, _ := sku.GetGPUConfigBySKU(instanceType); gpuConfig != nil {
 			return true
 		}
 	}
@@ -314,4 +325,22 @@ func IsCPUInferenceWorkspace(ws *Workspace) bool {
 	}
 
 	return IsCPUInferenceTarget(ws.Inference, ws.Resource.InstanceType)
+}
+
+// ResolveCPUInferenceWorkspace reports whether the workspace resolves to the basic CPU path,
+// including BYO selector-based detection when instanceType is empty.
+func ResolveCPUInferenceWorkspace(ctx context.Context, ws *Workspace, kubeClient client.Client) (bool, error) {
+	if ws == nil {
+		return false, nil
+	}
+	return ResolveCPUInferenceTarget(ctx, ws.Inference, ws.Resource.InstanceType, ws.Resource.LabelSelector, kubeClient)
+}
+
+// ResolveCPUInferenceSetTarget reports whether the InferenceSet template resolves to the
+// basic CPU path, including BYO selector-based detection when instanceType is empty.
+func ResolveCPUInferenceSetTarget(ctx context.Context, iObj *InferenceSet, kubeClient client.Client) (bool, error) {
+	if iObj == nil {
+		return false, nil
+	}
+	return ResolveCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType, iObj.Spec.Selector, kubeClient)
 }

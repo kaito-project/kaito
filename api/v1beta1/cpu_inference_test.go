@@ -313,6 +313,33 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 	})
 
+	t.Run("gpu sku without discovery labels is still treated as gpu for byo cpu resolution", func(t *testing.T) {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+
+		nodeClient := newCPUValidationClient(t, &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "gpu-sku-node",
+				Labels: map[string]string{
+					"kaito.sh/cpu-inference":       "true",
+					corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
+					corev1.LabelArchStable:         "amd64",
+				},
+			},
+			Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+		})
+
+		inference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}}
+		isCPU, err := ResolveCPUInferenceTarget(context.Background(), inference, "", &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}, nodeClient)
+		if err != nil {
+			t.Fatalf("expected gpu sku without discovery labels to resolve cleanly, got %v", err)
+		}
+		if isCPU {
+			t.Fatalf("expected known gpu sku to stay on gpu path even before discovery labels appear")
+		}
+	})
+
 	t.Run("vllm preset on arm64 byo cpu nodes is rejected", func(t *testing.T) {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true

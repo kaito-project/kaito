@@ -739,7 +739,8 @@ func assertWorkspaceCount(t *testing.T, ctx context.Context, cl client.Client, i
 func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"
-	desiredImage := inference.GetBaseImageName()
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
 	oldImage := desiredImage + "-old"
 
 	type wsSpec struct {
@@ -911,7 +912,7 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 			cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
 			c := &InferenceSetReconciler{Client: cl}
 
-			toDelete, err := c.selectWorkspacesToDelete(ctx, wss, tt.desiredReplicas, tt.numToDelete)
+			toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wss, tt.desiredReplicas, tt.numToDelete)
 			assert.NoError(t, err)
 			assert.Len(t, toDelete, tt.wantDeleted)
 
@@ -1131,4 +1132,36 @@ func TestAddOrUpdateInferenceSet_PropagatesCacheAnnotationToWorkspace(t *testing
 		workspace := obj.(*v1beta1.Workspace)
 		assert.Equal(t, "cache-attachment", workspace.Annotations[cache.ConfigAnnotation])
 	}
+}
+
+func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.T) {
+	ctx := context.Background()
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
+
+	wss := []v1beta1.Workspace{
+		{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
+		{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
+	}
+	objs := []client.Object{
+		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "old-cpu", Image: inference.GetBaseImageName()}}}}}},
+		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "new-cpu", Image: desiredImage}}}}}},
+	}
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
+	c := &InferenceSetReconciler{Client: cl}
+
+	toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wss, 1, 1)
+	assert.NoError(t, err)
+	assert.Len(t, toDelete, 1)
+	assert.Equal(t, "old-cpu", toDelete[0].Name)
 }

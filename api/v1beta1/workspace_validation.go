@@ -805,7 +805,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
 				errs = errs.Also(err)
 			}
-			if runtime == model.RuntimeNameVLLM && !isAMD64CompatibleVLLMCPUInstanceType(instanceType) {
+			if runtime == model.RuntimeNameVLLM && !IsAMD64CompatibleVLLMCPUInstanceType(instanceType) {
 				errs = errs.Also(apis.ErrInvalidValue(
 					fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", instanceType),
 					"instanceType",

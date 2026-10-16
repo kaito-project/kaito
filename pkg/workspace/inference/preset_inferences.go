@@ -552,6 +552,16 @@ func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) s
 	}
 }
 
+// GetDesiredInferenceImageName returns the runtime-aware image that preset inference
+// should use for the given Workspace. Non-preset or nil workspaces fall back to the
+// generic base image.
+func GetDesiredInferenceImageName(ws *v1beta1.Workspace) string {
+	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
+		return GetBaseImageName()
+	}
+	return getPresetInferenceImageName(v1beta1.GetWorkspaceRuntimeName(ws), v1beta1.IsCPUInferenceWorkspace(ws))
+}
+
 // GetBaseImageTag returns just the tag portion of the base image reference.
 func GetBaseImageTag() string {
 	presetObj := metadata.MustGet("base")

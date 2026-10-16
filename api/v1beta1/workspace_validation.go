@@ -196,7 +196,7 @@ func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeCli
 			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
 		}
 	}
-	if runtimeName == model.RuntimeNameVLLM && w.Inference != nil && w.Inference.Preset != nil {
+	if runtimeName == model.RuntimeNameVLLM && w.Inference != nil {
 		if w.Resource.InstanceType != "" && !isAMD64CompatibleVLLMCPUInstanceType(w.Resource.InstanceType) {
 			errs = errs.Also(apis.ErrInvalidValue(
 				fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", w.Resource.InstanceType),
@@ -785,7 +785,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
 				errs = errs.Also(err)
 			}
-			if presetName != "" && runtime == model.RuntimeNameVLLM && !isAMD64CompatibleVLLMCPUInstanceType(instanceType) {
+			if runtime == model.RuntimeNameVLLM && !isAMD64CompatibleVLLMCPUInstanceType(instanceType) {
 				errs = errs.Also(apis.ErrInvalidValue(
 					fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", instanceType),
 					"instanceType",

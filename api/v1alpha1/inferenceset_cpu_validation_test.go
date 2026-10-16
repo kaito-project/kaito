@@ -17,21 +17,90 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
+type cpuInferenceSetTrackingClient struct {
+	ctrlclient.Client
+	listCalled *bool
+	listErr    error
+}
+
+func (c *cpuInferenceSetTrackingClient) List(ctx context.Context, list ctrlclient.ObjectList, opts ...ctrlclient.ListOption) error {
+	if c.listCalled != nil {
+		*c.listCalled = true
+	}
+	if c.listErr != nil {
+		return c.listErr
+	}
+	return c.Client.List(ctx, list, opts...)
+}
+
+type cpuInferenceSetTestModel struct {
+	name        string
+	distributed bool
+}
+
+func (m *cpuInferenceSetTestModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                model.Metadata{Name: m.name, Tag: "1.0.0"},
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "8Gi",
+		RuntimeParam: model.RuntimeParam{
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: map[string]string{},
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				AccelerateParams:  map[string]string{},
+				ModelRunParams:    map[string]string{},
+			},
+		},
+		ReadinessTimeout: 30 * time.Minute,
+	}
+}
+
+func (m *cpuInferenceSetTestModel) GetTuningParameters() *model.PresetParam {
+	return &model.PresetParam{ReadinessTimeout: 30 * time.Minute}
+}
+
+func (m *cpuInferenceSetTestModel) SupportDistributedInference() bool { return m.distributed }
+func (m *cpuInferenceSetTestModel) SupportTuning() bool               { return true }
+
+func registerCPUInferenceSetTestModels() {
+	plugin.KaitoModelRegister.Register(&plugin.Registration{Name: "test-model", Instance: &cpuInferenceSetTestModel{name: "test-model"}})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{Name: "test-distributed-model", Instance: &cpuInferenceSetTestModel{name: "test-distributed-model", distributed: true}})
+}
+
+func newCPUInferenceSetClient(t *testing.T, objects ...ctrlclient.Object) ctrlclient.Client {
+	t.Helper()
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	return fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
+}
+
+func int32Ptr(v int32) *int32 { return &v }
+
 func TestInferenceSetValidateCreateCPUFeatureGate(t *testing.T) {
-	test.RegisterTestModel()
+	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	defer func() {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
@@ -40,7 +109,7 @@ func TestInferenceSetValidateCreateCPUFeatureGate(t *testing.T) {
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-is", Namespace: "default"},
 		Spec: InferenceSetSpec{
-			Replicas: 1,
+			Replicas: int32Ptr(1),
 			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			Template: InferenceSetTemplate{
 				Inference: kaitoInferenceSpecForCPU(),
@@ -84,7 +153,7 @@ func kaitoInferenceSpecForCPU() kaitov1beta1.InferenceSpec {
 }
 
 func TestInferenceSetValidateCreateCPUPreset(t *testing.T) {
-	test.RegisterTestModel()
+	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	defer func() {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
@@ -95,7 +164,7 @@ func TestInferenceSetValidateCreateCPUPreset(t *testing.T) {
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-preset-is", Namespace: "default"},
 		Spec: InferenceSetSpec{
-			Replicas: 1,
+			Replicas: int32Ptr(1),
 			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			Template: InferenceSetTemplate{
 				Resource: InferenceSetResourceSpec{InstanceType: "Standard_D8s_v5"},
@@ -116,7 +185,7 @@ func TestInferenceSetValidateCreateCPUPreset(t *testing.T) {
 }
 
 func TestInferenceSetValidateCreateBYOCPUPreset(t *testing.T) {
-	test.RegisterTestModel()
+	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
@@ -127,20 +196,16 @@ func TestInferenceSetValidateCreateBYOCPUPreset(t *testing.T) {
 	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
-	mockClient := test.NewClient()
-	k8sclient.SetGlobalClient(mockClient)
-	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-		nodeList := args.Get(1).(*corev1.NodeList)
-		nodeList.Items = []corev1.Node{{
-			ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true"}},
-			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-		}}
-	}).Return(nil)
+	nodeClient := newCPUInferenceSetClient(t, &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+		Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	})
+	k8sclient.SetGlobalClient(nodeClient)
 
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-preset-byo-is", Namespace: "default"},
 		Spec: InferenceSetSpec{
-			Replicas: 1,
+			Replicas: int32Ptr(1),
 			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			Template: InferenceSetTemplate{
 				Inference: kaitov1beta1.InferenceSpec{
@@ -156,7 +221,7 @@ func TestInferenceSetValidateCreateBYOCPUPreset(t *testing.T) {
 }
 
 func TestInferenceSetValidateCreateCPUGenericHFID(t *testing.T) {
-	test.RegisterTestModel()
+	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	defer func() {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
@@ -167,7 +232,7 @@ func TestInferenceSetValidateCreateCPUGenericHFID(t *testing.T) {
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-generic-is", Namespace: "default"},
 		Spec: InferenceSetSpec{
-			Replicas: 1,
+			Replicas: int32Ptr(1),
 			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			Template: InferenceSetTemplate{
 				Resource: InferenceSetResourceSpec{InstanceType: "Standard_D8s_v5"},
@@ -183,7 +248,7 @@ func TestInferenceSetValidateCreateCPUGenericHFID(t *testing.T) {
 }
 
 func TestInferenceSetValidateCPUInferenceConstraints_SkipsNodeLookupForNonCPUPaths(t *testing.T) {
-	test.RegisterTestModel()
+	registerCPUInferenceSetTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
@@ -194,14 +259,18 @@ func TestInferenceSetValidateCPUInferenceConstraints_SkipsNodeLookupForNonCPUPat
 	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
-	mockClient := test.NewClient()
-	k8sclient.SetGlobalClient(mockClient)
-	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Return(errors.New("node lookup should not happen for non-cpu paths"))
+	listCalled := false
+	trackingClient := &cpuInferenceSetTrackingClient{
+		Client:     newCPUInferenceSetClient(t),
+		listCalled: &listCalled,
+		listErr:    errors.New("node lookup should not happen for non-cpu paths"),
+	}
+	k8sclient.SetGlobalClient(trackingClient)
 
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Name: "non-cpu-is", Namespace: "default"},
 		Spec: InferenceSetSpec{
-			Replicas: 1,
+			Replicas: int32Ptr(1),
 			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
 			Template: InferenceSetTemplate{
 				Inference: kaitov1beta1.InferenceSpec{
@@ -220,5 +289,8 @@ func TestInferenceSetValidateCPUInferenceConstraints_SkipsNodeLookupForNonCPUPat
 
 	if err := is.validateCPUInferenceConstraints(context.Background()); err != nil {
 		t.Fatalf("expected non-cpu mig path to skip cpu node lookup, got %v", err)
+	}
+	if listCalled {
+		t.Fatalf("expected non-cpu path to skip node lookup")
 	}
 }

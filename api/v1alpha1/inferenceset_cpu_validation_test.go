@@ -228,7 +228,7 @@ func TestInferenceSetValidateCreateBYOCPUPreset(t *testing.T) {
 	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 	nodeClient := newCPUInferenceSetClient(t, &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "amd64"}},
 		Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
 	})
 	k8sclient.SetGlobalClient(nodeClient)

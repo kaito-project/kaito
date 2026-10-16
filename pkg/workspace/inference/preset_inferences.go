@@ -562,6 +562,19 @@ func GetDesiredInferenceImageName(ws *v1beta1.Workspace) string {
 	return getPresetInferenceImageName(v1beta1.GetWorkspaceRuntimeName(ws), v1beta1.IsCPUInferenceWorkspace(ws))
 }
 
+// GetDesiredInferenceImageNameWithResolution returns the runtime-aware image after
+// resolving BYO CPU selectors when instanceType is empty.
+func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client) (string, error) {
+	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
+		return GetBaseImageName(), nil
+	}
+	isCPUInference, err := v1beta1.ResolveCPUInferenceWorkspace(ctx, ws, kubeClient)
+	if err != nil {
+		return "", err
+	}
+	return getPresetInferenceImageName(v1beta1.GetWorkspaceRuntimeName(ws), isCPUInference), nil
+}
+
 // GetBaseImageTag returns just the tag portion of the base image reference.
 func GetBaseImageTag() string {
 	presetObj := metadata.MustGet("base")

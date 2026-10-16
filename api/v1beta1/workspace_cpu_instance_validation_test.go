@@ -88,6 +88,18 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 		}
 	})
 
+	t.Run("azure rejects non-azure cpu sku strings", func(t *testing.T) {
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		resourceSpec := &ResourceSpec{
+			InstanceType:  "m6i.2xlarge",
+			Count:         pointerToInt(1),
+			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+		}
+		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+			t.Fatalf("expected aws-style instance type to be rejected when CLOUD_PROVIDER=azure")
+		}
+	})
+
 	armCases := []struct {
 		name         string
 		provider     string

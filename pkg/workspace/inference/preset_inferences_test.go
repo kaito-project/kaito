@@ -30,8 +30,10 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -2279,6 +2281,45 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 	if processor != weightsPath {
 		t.Errorf("KAITO_PROCESSOR = %q, want %q", processor, weightsPath)
+	}
+}
+
+func TestGetDesiredInferenceImageNameWithResolution_BYOCPUPresetUsesCPUImage(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "cpu-node",
+			Labels: map[string]string{
+				"kaito.sh/cpu-inference": "true",
+				corev1.LabelArchStable:   "amd64",
+			},
+		},
+		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	}).Build()
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	workspace.Resource.InstanceType = ""
+	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
+
+	imageName, err := GetDesiredInferenceImageNameWithResolution(context.Background(), workspace, kubeClient)
+	if err != nil {
+		t.Fatalf("expected BYO CPU preset image resolution to succeed, got %v", err)
+	}
+	if imageName != CPUVLLMImageName {
+		t.Fatalf("expected BYO CPU preset to use %q, got %q", CPUVLLMImageName, imageName)
 	}
 }
 

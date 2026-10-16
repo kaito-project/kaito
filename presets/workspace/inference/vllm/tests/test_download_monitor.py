@@ -632,19 +632,29 @@ class TestHealthMiddleware:
         monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
         middleware = health.HealthMiddleware(app=None)
         response = SimpleNamespace(status_code=200, content={"status": "native-ok"})
-        engine = SimpleNamespace(check_health=AsyncMock(side_effect=AssertionError("should not be called")))
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=AssertionError("should not be called"))
+        )
 
-        actual = self._dispatch(middleware, self._make_request(engine_client=engine), response)
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
 
         assert actual is response
 
     def test_preserves_native_unhealthy_response(self, monkeypatch):
         monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
         middleware = health.HealthMiddleware(app=None)
-        response = SimpleNamespace(status_code=503, content={"error": "native-unhealthy"})
-        engine = SimpleNamespace(check_health=AsyncMock(side_effect=AssertionError("should not be called")))
+        response = SimpleNamespace(
+            status_code=503, content={"error": "native-unhealthy"}
+        )
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=AssertionError("should not be called"))
+        )
 
-        actual = self._dispatch(middleware, self._make_request(engine_client=engine), response)
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
 
         assert actual is response
 
@@ -654,7 +664,9 @@ class TestHealthMiddleware:
         response = SimpleNamespace(status_code=404, content={"detail": "not found"})
         engine = SimpleNamespace(check_health=AsyncMock(return_value=None))
 
-        actual = self._dispatch(middleware, self._make_request(engine_client=engine), response)
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
 
         assert actual.status_code == 200
         assert actual.content == {"status": "ok"}
@@ -664,9 +676,13 @@ class TestHealthMiddleware:
         monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
         middleware = health.HealthMiddleware(app=None)
         response = SimpleNamespace(status_code=404, content={"detail": "not found"})
-        engine = SimpleNamespace(check_health=AsyncMock(side_effect=RuntimeError("engine unhealthy")))
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=RuntimeError("engine unhealthy"))
+        )
 
-        actual = self._dispatch(middleware, self._make_request(engine_client=engine), response)
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
 
         assert actual.status_code == 503
         assert actual.content == {"error": "engine unhealthy"}
@@ -676,8 +692,12 @@ class TestHealthMiddleware:
         monkeypatch.setenv("VLLM_TARGET_DEVICE", "cuda")
         middleware = health.HealthMiddleware(app=None)
         response = SimpleNamespace(status_code=404, content={"detail": "not found"})
-        engine = SimpleNamespace(check_health=AsyncMock(side_effect=AssertionError("should not be called")))
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=AssertionError("should not be called"))
+        )
 
-        actual = self._dispatch(middleware, self._make_request(engine_client=engine), response)
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
 
         assert actual is response

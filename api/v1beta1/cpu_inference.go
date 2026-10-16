@@ -264,15 +264,6 @@ func AreLabelSelectedReadyNodesAMD64(ctx context.Context, labelSelector *metav1.
 	return seenReadyAMD64 && !seenReadyNonAMD64, nil
 }
 
-// IsAttemptingCPUPresetTarget reports whether the object is trying to use the
-// preset CPU path by pairing a preset with a CPU instance type.
-func IsAttemptingCPUPresetTarget(inference *InferenceSpec, instanceType string) bool {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
-		return false
-	}
-	return inference != nil && inference.Preset != nil && isCPUInstanceType(instanceType)
-}
-
 // ResolveCPUInferenceTarget reports whether the inference spec resolves to the basic CPU path.
 func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, instanceType string, labelSelector *metav1.LabelSelector, kubeClient client.Client) (bool, error) {
 	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {

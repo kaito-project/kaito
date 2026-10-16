@@ -16,7 +16,6 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
-	"maps"
 	"strings"
 
 	"github.com/robfig/cron/v3"
@@ -25,10 +24,6 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
-	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
@@ -48,93 +43,32 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
-		errs = errs.Also(is.validateCreateWithContext(ctx).ViaField("spec"))
+		errs = errs.Also(is.validateCreate().ViaField("spec"))
 	} else {
 		klog.InfoS("Validate update", "inferenceset", fmt.Sprintf("%s/%s", is.Namespace, is.Name))
 		old := base.(*InferenceSet)
 		errs = errs.Also(
-			is.validateUpdateWithContext(ctx, old).ViaField("spec"),
+			is.validateUpdate(old).ViaField("spec"),
 		)
 	}
 	errs = errs.Also(is.validateSpeculativeDecoding())
 	return errs
 }
 
-func (is *InferenceSet) validateCPUInferenceConstraints(ctx context.Context) (errs *apis.FieldError) {
-	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
-		return nil
-	}
-
-	isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, &is.Spec.Template.Inference, is.Spec.Template.Resource.InstanceType, is.Spec.Selector, k8sclient.Client)
-	if resolveErr != nil {
-		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", resolveErr), "selector"))
-		return errs
-	}
-	if !isCPUTarget {
-		return errs
-	}
-
-	effectiveAnnotations := maps.Clone(is.Spec.Template.Annotations)
-	if is.Annotations != nil {
-		runtime := is.Annotations[AnnotationWorkspaceRuntime]
-		if runtime != "" && runtime != string(model.RuntimeNameHuggingfaceTransformers) && runtime != string(model.RuntimeNameVLLM) {
-			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
-		}
-		if runtime != "" {
-			if effectiveAnnotations == nil {
-				effectiveAnnotations = make(map[string]string)
-			}
-			effectiveAnnotations[AnnotationWorkspaceRuntime] = runtime
-		}
-	}
-	runtimeName := EffectiveInferenceRuntime(effectiveAnnotations)
-	if runtimeName == model.RuntimeNameVLLM {
-		if is.Spec.Template.Resource.InstanceType != "" && !kaitov1beta1.IsAMD64CompatibleVLLMCPUInstanceType(is.Spec.Template.Resource.InstanceType) {
-			errs = errs.Also(apis.ErrInvalidValue(
-				fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", is.Spec.Template.Resource.InstanceType),
-				"template.resource.instanceType",
-			))
-		}
-		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && is.Spec.Template.Resource.InstanceType == "" {
-			isAMD64, err := kaitov1beta1.AreLabelSelectedReadyNodesAMD64(ctx, is.Spec.Selector, "", k8sclient.Client)
-			if err != nil {
-				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to validate CPU node architecture: %v", err), "selector"))
-			} else if !isAMD64 {
-				errs = errs.Also(apis.ErrInvalidValue(
-					"vLLM CPU runtime only supports amd64 BYO nodes; matched ready nodes must report kubernetes.io/arch=amd64",
-					"selector",
-				))
-			}
-		}
-	}
-
-	return errs
-}
-
-func (is *InferenceSet) validateCreateWithContext(ctx context.Context) (errs *apis.FieldError) {
+func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 	// Validate replicas is non-negative
 	if is.Spec.Replicas != nil && *is.Spec.Replicas < 0 {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
-	errs = errs.Also(is.validateCPUInferenceConstraints(ctx))
 	return errs
 }
 
-func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
-	return is.validateCreateWithContext(context.Background())
-}
-
-func (is *InferenceSet) validateUpdateWithContext(ctx context.Context, _ *InferenceSet) (errs *apis.FieldError) {
+func (is *InferenceSet) validateUpdate(_ *InferenceSet) (errs *apis.FieldError) {
 	errs = errs.Also(is.validateInstanceType().ViaField("template"))
 	errs = errs.Also(validateMaintenanceWindow(is.Spec.AutoUpgrade))
-	errs = errs.Also(is.validateCPUInferenceConstraints(ctx))
 	return errs
-}
-
-func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
-	return is.validateUpdateWithContext(context.Background(), old)
 }
 
 // validateSpeculativeDecoding mirrors the v1beta1 InferenceSet validator for
@@ -218,8 +152,6 @@ func (is *InferenceSet) validateInstanceType() (errs *apis.FieldError) {
 		// Auto-provisioning modes: instanceType is required.
 		if instanceType == "" {
 			errs = errs.Also(apis.ErrMissingField("resource.instanceType"))
-		} else if kaitov1beta1.IsAttemptingCPUPresetTarget(&is.Spec.Template.Inference, instanceType) {
-			errs = errs.Also(kaitov1beta1.ValidateCPUInstanceTypeForNAP(instanceType))
 		}
 	default:
 		// Unknown or unset provisioner: no validation (backward compat).

@@ -679,6 +679,10 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			return errs
 		}
 
+		if isCPUInference {
+			return errs
+		}
+
 		if presetName != "" { // If the user is using a custom pod template instead of a preset, we don't need to list the BYO nodes to get GPU info as we don't know the GPU requirements of a custom model.
 			// Note: for tests like aikit.yaml, it creates nodes with kind that do not have GPU labels, so we need to account for that case.
 			kClient := k8sclient.GetGlobalClient()

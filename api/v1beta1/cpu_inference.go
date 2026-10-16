@@ -93,7 +93,7 @@ func isAWSGPUOrAcceleratorInstanceType(instanceType string) bool {
 	}
 
 	switch matches[1] {
-	case "g", "p", "inf", "trn", "dl":
+	case "g", "gr", "p", "inf", "trn", "dl":
 		return true
 	default:
 		return false
@@ -160,8 +160,8 @@ func nodeHasGPUSignals(node *corev1.Node) bool {
 }
 
 // AreLabelSelectedReadyNodesCPU reports whether the ready nodes matching the selector
-// are uniformly CPU-only (no NVIDIA GPU signals).
-func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.LabelSelector, kubeClient client.Client) (bool, error) {
+// and effective instance-type filter are uniformly CPU-only (no NVIDIA GPU signals).
+func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.LabelSelector, instanceType string, kubeClient client.Client) (bool, error) {
 	if kubeClient == nil {
 		return false, nil
 	}
@@ -181,6 +181,9 @@ func AreLabelSelectedReadyNodesCPU(ctx context.Context, labelSelector *metav1.La
 	for i := range nodeList.Items {
 		node := &nodeList.Items[i]
 		if node.DeletionTimestamp != nil {
+			continue
+		}
+		if instanceType != "" && node.Labels[corev1.LabelInstanceTypeStable] != instanceType {
 			continue
 		}
 
@@ -289,7 +292,13 @@ func ResolveCPUInferenceTarget(ctx context.Context, inference *InferenceSpec, in
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
 		return false, nil
 	}
-	return AreLabelSelectedReadyNodesCPU(ctx, labelSelector, kubeClient)
+	if instanceType != "" {
+		return false, nil
+	}
+	if len(SanitizedMatchLabels(labelSelector)) == 0 {
+		return false, nil
+	}
+	return AreLabelSelectedReadyNodesCPU(ctx, labelSelector, "", kubeClient)
 }
 
 // IsCPUInferenceTarget reports whether the inference spec resolves to the Phase 1 CPU path.

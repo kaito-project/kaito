@@ -653,6 +653,7 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 	existing := &corev1.PodSpec{
 		Containers: []corev1.Container{{
 			Name:         "inference",
+			Image:        "old-image:latest",
 			Command:      []string{"old-cmd"},
 			Args:         []string{"old-arg"},
 			Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
@@ -664,6 +665,7 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 	desired := &corev1.PodSpec{
 		Containers: []corev1.Container{{
 			Name:         "inference",
+			Image:        "new-image:latest",
 			Command:      []string{"new-cmd"},
 			Args:         []string{"new-arg"},
 			Env:          []corev1.EnvVar{{Name: "NEW", Value: "2"}},
@@ -675,6 +677,7 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 
 	syncInferenceMutablePodSpec(existing, desired)
 
+	assert.Equal(t, desired.Containers[0].Image, existing.Containers[0].Image)
 	assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
 	assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
 	assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)

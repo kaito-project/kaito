@@ -31,22 +31,6 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
-type cpuValidationTrackingClient struct {
-	ctrlclient.Client
-	listCalled *bool
-	listErr    error
-}
-
-func (c *cpuValidationTrackingClient) List(ctx context.Context, list ctrlclient.ObjectList, opts ...ctrlclient.ListOption) error {
-	if c.listCalled != nil {
-		*c.listCalled = true
-	}
-	if c.listErr != nil {
-		return c.listErr
-	}
-	return c.Client.List(ctx, list, opts...)
-}
-
 type cpuValidationTestModel struct {
 	name        string
 	distributed bool

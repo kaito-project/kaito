@@ -116,7 +116,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									InferenceSetHashAnnotation: "8b215f13847260f94d2debfebec7ee9540a7b2c08c0d5cabdfdded1ca133f6cc",
+									InferenceSetHashAnnotation: utilsinferenceset.ComputeInferenceSetHash(&test.MockInferenceSetWithComputeHash),
 								},
 							},
 							Revision: 1,

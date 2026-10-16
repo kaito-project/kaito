@@ -76,13 +76,15 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 
 	t.Run("aws gpu family rejected for cpu path", func(t *testing.T) {
 		t.Setenv("CLOUD_PROVIDER", consts.AWSCloudName)
-		resourceSpec := &ResourceSpec{
-			InstanceType:  "g5.xlarge",
-			Count:         pointerToInt(1),
-			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
-		}
-		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
-			t.Fatalf("expected aws gpu instance family to be rejected for cpu path")
+		for _, instanceType := range []string{"g5.xlarge", "gr6.4xlarge"} {
+			resourceSpec := &ResourceSpec{
+				InstanceType:  instanceType,
+				Count:         pointerToInt(1),
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			}
+			if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+				t.Fatalf("expected aws gpu instance family %s to be rejected for cpu path", instanceType)
+			}
 		}
 	})
 

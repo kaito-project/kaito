@@ -852,6 +852,7 @@ func preserveContainerImages(existing, desired []corev1.Container) {
 }
 
 func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
+	existingSpec.Containers[0].Image = desiredSpec.Containers[0].Image
 	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
 	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
 	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env

@@ -163,6 +163,15 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClass
 		nodePoolLabels[consts.KarpenterInferenceSetNamespaceKey] = ws.Namespace
 	}
 
+	nodePoolTaints := []corev1.Taint{{
+		Key:    consts.SKUString,
+		Value:  consts.GPUString,
+		Effect: corev1.TaintEffectNoSchedule,
+	}}
+	if kaitov1beta1.IsCPUInferenceWorkspace(ws) {
+		nodePoolTaints = nil
+	}
+
 	np := &karpenterv1.NodePool{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   nodePoolName,
@@ -181,13 +190,7 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClass
 						Name:  nodeClassName,
 					},
 					Requirements: nodePoolRequirements(ws, cfg, capacityType),
-					Taints: []corev1.Taint{
-						{
-							Key:    consts.SKUString,
-							Value:  consts.GPUString,
-							Effect: corev1.TaintEffectNoSchedule,
-						},
-					},
+					Taints:       nodePoolTaints,
 				},
 			},
 			Disruption: karpenterv1.Disruption{

@@ -16,13 +16,21 @@ package nodeclaim
 import (
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 	one := 1
 	ws := &kaitov1beta1.Workspace{
@@ -32,7 +40,11 @@ func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceOmitsGPUTaint(t *testi
 			InstanceType: "Standard_D8s_v5",
 		},
 		Inference: &kaitov1beta1.InferenceSpec{
-			Preset: &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: kaitov1beta1.ModelName("test-model")}},
+			Template: &corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{Name: "cpu", Image: "example.com/cpu:latest"}},
+				},
+			},
 		},
 	}
 

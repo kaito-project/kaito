@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +39,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -256,6 +258,23 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
 		validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj)
+
+		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
+		validateWorkspaceReadiness(childWS)
+		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
+		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
+	})
+
+	It("should create the qwen cpu vllm InferenceSet example successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		enableWorkspaceManagerFeatureGateForE2E(consts.FeatureFlagEnableCPUInference)
+
+		inferenceSetObj := createQwenCPUVLLMInferenceSetFromExample()
+		DeferCleanup(func() {
+			cleanupResourcesForInferenceSet(inferenceSetObj)
+		})
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, 1)
 
 		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
 		validateWorkspaceReadiness(childWS)
@@ -778,6 +797,19 @@ func validateBBRRouting(inferenceSetObj *kaitov1beta1.InferenceSet, modelName, i
 			return httpCode != "200"
 		}, 2*time.Minute, 10*time.Second).Should(BeTrue(), "BBR should not route non-existent model")
 	})
+}
+
+func createQwenCPUVLLMInferenceSetFromExample() *kaitov1beta1.InferenceSet {
+	inferenceSetObj := &kaitov1beta1.InferenceSet{}
+	By("Creating the CPU vLLM example InferenceSet", func() {
+		raw, err := os.ReadFile("examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml")
+		Expect(err).NotTo(HaveOccurred(), "Failed to read CPU vLLM example manifest")
+
+		Expect(yaml.Unmarshal(raw, inferenceSetObj)).To(Succeed(), "Failed to unmarshal CPU vLLM example manifest")
+		inferenceSetObj.Namespace = namespaceName
+		createAndValidateInferenceSet(inferenceSetObj)
+	})
+	return inferenceSetObj
 }
 
 func createGemma4InferenceSetWithPresetPublicModeAndVLLM(replicas int) *kaitov1beta1.InferenceSet {
@@ -2599,5 +2631,82 @@ func validateMultiRoleInferencePDDisaggregation(mriObj *kaitov1alpha1.MultiRoleI
 		if !kvTransferFound {
 			GinkgoWriter.Printf("WARNING: KV transfer metrics not observed — NIXL may not be available in this environment (requires RDMA/NVLink). Skipping KV transfer assertion.\n")
 		}
+	})
+}
+
+func enableWorkspaceManagerFeatureGateForE2E(flagName string) {
+	kaitoNamespace := os.Getenv("KAITO_NAMESPACE")
+	deploymentKey := client.ObjectKey{Namespace: kaitoNamespace, Name: "kaito-workspace"}
+	originalArgs := []string(nil)
+
+	By(fmt.Sprintf("Enabling workspace manager feature gate %s", flagName), func() {
+		Eventually(func() error {
+			deployment := &appsv1.Deployment{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, deploymentKey, deployment); err != nil {
+				return err
+			}
+			originalArgs = append([]string(nil), deployment.Spec.Template.Spec.Containers[0].Args...)
+			updatedArgs := upsertWorkspaceManagerFeatureGateArg(originalArgs, flagName, true)
+			if strings.Join(updatedArgs, "\x00") == strings.Join(originalArgs, "\x00") {
+				return nil
+			}
+			deployment.Spec.Template.Spec.Containers[0].Args = updatedArgs
+			return utils.TestingCluster.KubeClient.Update(ctx, deployment)
+		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to enable workspace manager feature gate %s", flagName)
+		waitForWorkspaceManagerRollout(deploymentKey)
+	})
+
+	DeferCleanup(func() {
+		By(fmt.Sprintf("Restoring workspace manager feature gate %s", flagName), func() {
+			Eventually(func() error {
+				deployment := &appsv1.Deployment{}
+				if err := utils.TestingCluster.KubeClient.Get(ctx, deploymentKey, deployment); err != nil {
+					return err
+				}
+				deployment.Spec.Template.Spec.Containers[0].Args = append([]string(nil), originalArgs...)
+				return utils.TestingCluster.KubeClient.Update(ctx, deployment)
+			}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to restore workspace manager deployment args")
+			waitForWorkspaceManagerRollout(deploymentKey)
+		})
+	})
+}
+
+func upsertWorkspaceManagerFeatureGateArg(args []string, gateName string, enabled bool) []string {
+	updatedArgs := append([]string(nil), args...)
+	gateEntry := fmt.Sprintf("%s=%t", gateName, enabled)
+	for i, arg := range updatedArgs {
+		if !strings.HasPrefix(arg, "--feature-gates=") {
+			continue
+		}
+		featureGates := strings.TrimPrefix(arg, "--feature-gates=")
+		parts := strings.Split(featureGates, ",")
+		replaced := false
+		for j, part := range parts {
+			if strings.HasPrefix(part, gateName+"=") {
+				parts[j] = gateEntry
+				replaced = true
+				break
+			}
+		}
+		if !replaced {
+			parts = append(parts, gateEntry)
+		}
+		updatedArgs[i] = "--feature-gates=" + strings.Join(parts, ",")
+		return updatedArgs
+	}
+	return append(updatedArgs, "--feature-gates="+gateEntry)
+}
+
+func waitForWorkspaceManagerRollout(key client.ObjectKey) {
+	By("Waiting for the workspace manager rollout to complete", func() {
+		Eventually(func(g Gomega) {
+			deployment := &appsv1.Deployment{}
+			err := utils.TestingCluster.KubeClient.Get(ctx, key, deployment)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(deployment.Status.ObservedGeneration).To(Equal(deployment.Generation))
+			g.Expect(deployment.Status.UpdatedReplicas).To(Equal(*deployment.Spec.Replicas))
+			g.Expect(deployment.Status.AvailableReplicas).To(Equal(*deployment.Spec.Replicas))
+			g.Expect(deployment.Status.UnavailableReplicas).To(BeZero())
+		}, 10*time.Minute, 10*time.Second).Should(Succeed())
 	})
 }

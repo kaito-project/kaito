@@ -189,10 +189,30 @@ func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeCli
 		return errs
 	}
 
+	runtimeName := GetWorkspaceRuntimeName(w)
 	if w.GetAnnotations() != nil {
 		runtime := w.GetAnnotations()[AnnotationWorkspaceRuntime]
 		if runtime != "" && runtime != string(model.RuntimeNameHuggingfaceTransformers) && runtime != string(model.RuntimeNameVLLM) {
 			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
+		}
+	}
+	if runtimeName == model.RuntimeNameVLLM && w.Inference != nil && w.Inference.Preset != nil {
+		if w.Resource.InstanceType != "" && !isAMD64CompatibleVLLMCPUInstanceType(w.Resource.InstanceType) {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", w.Resource.InstanceType),
+				"resource.instanceType",
+			))
+		}
+		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && w.Resource.InstanceType == "" {
+			isAMD64, err := AreLabelSelectedReadyNodesAMD64(ctx, w.Resource.LabelSelector, "", kubeClient)
+			if err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to validate CPU node architecture: %v", err), "resource.labelSelector"))
+			} else if !isAMD64 {
+				errs = errs.Also(apis.ErrInvalidValue(
+					"vLLM CPU runtime only supports amd64 BYO nodes; matched ready nodes must report kubernetes.io/arch=amd64",
+					"resource.labelSelector",
+				))
+			}
 		}
 	}
 
@@ -760,6 +780,12 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		if isCPUInference {
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
 				errs = errs.Also(err)
+			}
+			if presetName != "" && runtime == model.RuntimeNameVLLM && !isAMD64CompatibleVLLMCPUInstanceType(instanceType) {
+				errs = errs.Also(apis.ErrInvalidValue(
+					fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", instanceType),
+					"instanceType",
+				))
 			}
 			return errs
 		}

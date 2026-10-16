@@ -246,7 +246,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
 		nodeClient := newCPUValidationClient(t, &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "amd64"}},
 			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
 		})
 
@@ -260,6 +260,59 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 		if err := ws.validateCPUInferenceConstraints(context.Background(), nodeClient); err != nil {
 			t.Fatalf("expected byo cpu preset validation to pass, got %v", err)
+		}
+	})
+
+	t.Run("cpu node detection sanitizes reserved selector labels", func(t *testing.T) {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+		nodeClient := newCPUValidationClient(t, &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "amd64"}},
+			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+		})
+
+		selector := &metav1.LabelSelector{MatchLabels: map[string]string{
+			"kaito.sh/cpu-inference": "true",
+			LabelWorkspaceName:       "other-workspace",
+		}}
+		isCPU, err := AreLabelSelectedReadyNodesCPU(context.Background(), selector, nodeClient)
+		if err != nil {
+			t.Fatalf("expected sanitized selector lookup to succeed, got %v", err)
+		}
+		if !isCPU {
+			t.Fatalf("expected sanitized selector lookup to detect cpu-ready nodes")
+		}
+	})
+
+	t.Run("vllm preset on arm64 byo cpu nodes is rejected", func(t *testing.T) {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+		nodeClient := newCPUValidationClient(t, &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:   "cpu-arm-node",
+				Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "arm64"},
+			},
+			Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+		})
+
+		ws := &Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "cpu-preset-byo-arm",
+				Namespace: "default",
+				Annotations: map[string]string{
+					AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
+				},
+			},
+			Resource: ResourceSpec{
+				Count:         &one,
+				LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			},
+			Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}},
+		}
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nodeClient); err == nil {
+			t.Fatalf("expected arm64 byo nodes to be rejected for vllm cpu preset path")
 		}
 	})
 }

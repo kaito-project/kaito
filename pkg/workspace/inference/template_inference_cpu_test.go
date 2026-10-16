@@ -23,10 +23,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
 
 func TestCreateTemplateInference_CPUWorkspaceOmitsDefaultGPUTolerations(t *testing.T) {
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
 	one := 1
 	workspace := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{Name: "cpu-ws", Namespace: "default"},

@@ -36,7 +36,7 @@ func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceOmitsGPUTaint(t *testi
 		},
 	}
 
-	nc := GenerateNodeClaimManifestWithOptions("", ws, ManifestOptions{})
+	nc := GenerateNodeClaimManifestWithOptions("0", ws, ManifestOptions{})
 	if nc == nil {
 		t.Fatalf("expected nodeclaim manifest")
 	}

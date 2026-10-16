@@ -781,6 +781,10 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			machineCount = groupCount
 		}
 	} else { // NAP enabled
+		// GPU partitioning (MIG or accelerator) is only supported on BYO nodes.
+		if r.Partition != nil {
+			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
+		}
 		if isCPUInference {
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
 				errs = errs.Also(err)
@@ -792,10 +796,6 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 				))
 			}
 			return errs
-		}
-		// GPU partitioning (MIG or accelerator) is only supported on BYO nodes.
-		if r.Partition != nil {
-			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
 		}
 		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
 		skuHandler, err := sku.GetSKUHandler()

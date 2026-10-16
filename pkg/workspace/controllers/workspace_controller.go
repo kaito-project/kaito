@@ -759,7 +759,11 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	} else {
 		// Selectively update the pod spec fields that are relevant to inference,
 		// and leave the rest unchanged in case user has customized them.
-		syncInferenceMutablePodSpec(&existingObj.Spec.Template.Spec, &desiredStatefulSet.Spec.Template.Spec)
+		syncInferenceMutablePodSpec(
+			&existingObj.Spec.Template.Spec,
+			&desiredStatefulSet.Spec.Template.Spec,
+			inferenceImageVariant(workspace.GetInferenceContainerImage(existingObj)) != inferenceImageVariant(workspace.GetInferenceContainerImage(desiredStatefulSet)),
+		)
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
@@ -782,14 +786,27 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	return nil
 }
 
-func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
-	existingSpec.Containers[0].Image = desiredSpec.Containers[0].Image
+func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec, syncImage bool) {
+	if syncImage {
+		existingSpec.Containers[0].Image = desiredSpec.Containers[0].Image
+	}
 	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
 	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
 	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env
 	existingSpec.Containers[0].VolumeMounts = desiredSpec.Containers[0].VolumeMounts
 	existingSpec.InitContainers = desiredSpec.InitContainers
 	existingSpec.Volumes = desiredSpec.Volumes
+}
+
+func inferenceImageVariant(image string) string {
+	switch {
+	case strings.Contains(image, "base-vllm-cpu"):
+		return "cpu-vllm"
+	case strings.Contains(image, "base-tfs-cpu"):
+		return "cpu-transformers"
+	default:
+		return "base"
+	}
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label

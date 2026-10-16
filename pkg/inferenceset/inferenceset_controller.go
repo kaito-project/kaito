@@ -25,6 +25,7 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -475,6 +476,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	// check whether all the workspaces are ready
 	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
+	benchmarkApplicable := kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj)
+
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
 		status.Replicas = int(desiredReplicas)
@@ -488,7 +491,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			presetName = string(iObj.Spec.Template.Inference.Preset.Name)
 		}
 
-		if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
+		if benchmarkApplicable {
 			if hasBenchmarkTPMResult {
 				if status.Performance == nil {
 					status.Performance = &kaitov1beta1.Performance{}
@@ -514,14 +517,16 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				}
 			}
 		} else {
-			// Feature flag is off — clear any TPM value that may have been written
-			// when the flag was previously enabled (e.g. annotation removed).
+			// Benchmarking is inapplicable — clear any TPM value and remove the
+			// completion condition so parent status does not stay stuck on a
+			// previous generation's benchmark expectations.
 			if status.Performance != nil {
 				delete(status.Performance.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
 				if len(status.Performance.Metrics) == 0 {
 					status.Performance = nil
 				}
 			}
+			meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted))
 		}
 
 		return nil
@@ -544,8 +549,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	// Surface benchmark progress when the annotation is set.
-	if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
+	// Surface benchmark progress when benchmarking applies.
+	if benchmarkApplicable {
 		if benchmarkedReplicas == int(desiredReplicas) && desiredReplicas > 0 {
 			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {

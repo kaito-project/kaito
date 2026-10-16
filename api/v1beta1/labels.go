@@ -317,5 +317,6 @@ func IsInferenceSetBenchmarkEnabled(iObj *InferenceSet) bool {
 func ShouldRunInferenceSetBenchmark(iObj *InferenceSet) bool {
 	return IsInferenceSetBenchmarkEnabled(iObj) &&
 		GetInferenceSetRuntimeName(iObj) == model.RuntimeNameVLLM &&
-		iObj.Spec.Template.Inference.Preset != nil
+		iObj.Spec.Template.Inference.Preset != nil &&
+		!IsCPUInferenceTarget(&iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType)
 }

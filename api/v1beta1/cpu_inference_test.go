@@ -16,20 +16,86 @@ package v1beta1
 import (
 	"context"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
-	"github.com/kaito-project/kaito/pkg/utils/test"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
+type cpuValidationTrackingClient struct {
+	ctrlclient.Client
+	listCalled *bool
+	listErr    error
+}
+
+func (c *cpuValidationTrackingClient) List(ctx context.Context, list ctrlclient.ObjectList, opts ...ctrlclient.ListOption) error {
+	if c.listCalled != nil {
+		*c.listCalled = true
+	}
+	if c.listErr != nil {
+		return c.listErr
+	}
+	return c.Client.List(ctx, list, opts...)
+}
+
+type cpuValidationTestModel struct {
+	name        string
+	distributed bool
+}
+
+func (m *cpuValidationTestModel) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		Metadata:                model.Metadata{Name: m.name, Tag: "1.0.0"},
+		DiskStorageRequirement:  "100Gi",
+		TotalSafeTensorFileSize: "8Gi",
+		RuntimeParam: model.RuntimeParam{
+			VLLM: model.VLLMParam{
+				BaseCommand:    "python3 /workspace/vllm/inference_api.py",
+				ModelRunParams: map[string]string{},
+			},
+			Transformers: model.HuggingfaceTransformersParam{
+				BaseCommand:       "accelerate launch",
+				InferenceMainFile: "/workspace/tfs/inference_api.py",
+				AccelerateParams:  map[string]string{},
+				ModelRunParams:    map[string]string{},
+			},
+		},
+		ReadinessTimeout: 30 * time.Minute,
+	}
+}
+
+func (m *cpuValidationTestModel) GetTuningParameters() *model.PresetParam {
+	return &model.PresetParam{ReadinessTimeout: 30 * time.Minute}
+}
+
+func (m *cpuValidationTestModel) SupportDistributedInference() bool { return m.distributed }
+func (m *cpuValidationTestModel) SupportTuning() bool               { return true }
+
+func registerCPUValidationTestModels() {
+	plugin.KaitoModelRegister.Register(&plugin.Registration{Name: "test-model", Instance: &cpuValidationTestModel{name: "test-model"}})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{Name: "test-distributed-model", Instance: &cpuValidationTestModel{name: "test-distributed-model", distributed: true}})
+}
+
+func newCPUValidationClient(t *testing.T, objects ...ctrlclient.Object) ctrlclient.Client {
+	t.Helper()
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	return fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
+}
+
 func TestValidateCPUInferenceConstraints(t *testing.T) {
-	test.RegisterTestModel()
+	registerCPUValidationTestModels()
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldDisableNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	defer func() {
@@ -195,15 +261,10 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
 
-		mockClient := test.NewClient()
-		k8sclient.SetGlobalClient(mockClient)
-		mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
-			nodeList := args.Get(1).(*corev1.NodeList)
-			nodeList.Items = []corev1.Node{{
-				ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true"}},
-				Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-			}}
-		}).Return(nil)
+		nodeClient := newCPUValidationClient(t, &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{Name: "cpu-node", Labels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+		})
 
 		ws := &Workspace{
 			ObjectMeta: metav1.ObjectMeta{Name: "cpu-preset-byo", Namespace: "default"},
@@ -213,7 +274,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 			},
 			Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}},
 		}
-		if err := ws.validateCPUInferenceConstraints(context.Background(), mockClient); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nodeClient); err != nil {
 			t.Fatalf("expected byo cpu preset validation to pass, got %v", err)
 		}
 	})

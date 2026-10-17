@@ -326,7 +326,10 @@ func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
 	}
 
 	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
-	assert.Equal(t, 0, len(np.Spec.Template.Spec.Taints))
+	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
+	assert.Equal(t, consts.SKUString, np.Spec.Template.Spec.Taints[0].Key)
+	assert.Equal(t, consts.CPUString, np.Spec.Template.Spec.Taints[0].Value)
+	assert.Equal(t, consts.CPUString, np.Spec.Template.Labels[consts.SKUString])
 }
 
 func TestGenerateNodePool_WithAnnotation(t *testing.T) {

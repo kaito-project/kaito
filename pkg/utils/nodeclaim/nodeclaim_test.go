@@ -164,13 +164,11 @@ func TestWaitForPendingNodeClaims(t *testing.T) {
 }
 
 func TestGenerateNodeClaimManifest_PreservesControllerOwnedInferenceSetLabel(t *testing.T) {
-	one := 1
 	ws := test.MockWorkspaceWithPreset.DeepCopy()
-	ws.Resource.Count = &one
 	ws.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "cpu-set"}
 	ws.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
 		consts.WorkspaceCreatedByInferenceSetLabel: "user-pool",
-		"nodepool":                               "cpu",
+		"nodepool": "cpu",
 	}}
 
 	nc := GenerateNodeClaimManifestWithOptions("0", ws, ManifestOptions{})

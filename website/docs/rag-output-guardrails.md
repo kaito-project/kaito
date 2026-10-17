@@ -280,6 +280,9 @@ Other provider-specific formats are unsupported unless they match a
 `detect-secrets` built-in or high-entropy detector. Malformed and near-match
 values are intentionally not treated as guaranteed detections.
 
+Secrets are scanned in memory with isolated detector instances. Model output is
+not written to temporary files during detection.
+
 ### `sensitive`
 
 Purpose:

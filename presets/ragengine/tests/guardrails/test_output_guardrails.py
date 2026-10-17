@@ -942,23 +942,17 @@ def test_secrets_config_build_works_with_scan_output_end_to_end():
 def test_output_secrets_scanner_deduplicates_detector_hits(monkeypatch):
     secret = "AKIA1234567890ABCDEF"
 
-    class FoundSecret:
-        secret_value = secret
-
-    class FakeSecretsCollection:
-        def __init__(self):
-            self.files = {"detected": [FoundSecret(), FoundSecret()]}
-
-        def __getitem__(self, file_path):
-            return self.files[file_path]
-
-        def scan_file(self, path):
-            pass
-
     import guardrail_core.secrets.scanner as secrets_scanner_module
 
     monkeypatch.setattr(
-        secrets_scanner_module, "SecretsCollection", FakeSecretsCollection
+        secrets_scanner_module,
+        "detect_builtin_secrets",
+        lambda output: {secret},
+    )
+    monkeypatch.setattr(
+        secrets_scanner_module,
+        "detect_kaito_provider_secrets",
+        lambda output: {secret},
     )
     scanner = SecretsConfig(redact_mode="all").build("redact")
 

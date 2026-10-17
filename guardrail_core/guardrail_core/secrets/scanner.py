@@ -14,18 +14,10 @@
 """KAITO-owned secrets scanner."""
 
 import hashlib
-import os
-import tempfile
-import threading
-
-from detect_secrets.core.secrets_collection import SecretsCollection
-from detect_secrets.settings import default_settings
 
 from guardrail_core.scanning import ScanResult
+from guardrail_core.secrets.detectors import detect_builtin_secrets
 from guardrail_core.secrets.providers import detect_kaito_provider_secrets
-
-# detect-secrets settings are process-global, so scans must be serialized.
-_DETECT_SECRETS_SETTINGS_LOCK = threading.Lock()
 
 
 class NativeSecretsScanner:
@@ -64,27 +56,6 @@ class NativeSecretsScanner:
         raise ValueError(f"redact mode wasn't recognized {redact_mode}")
 
     def _detect_secret_values(self, text: str) -> set[str]:
-        secrets = SecretsCollection()
-
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            delete=False,
-        ) as temp_file:
-            temp_file.write(text)
-            temp_path = temp_file.name
-
-        try:
-            with _DETECT_SECRETS_SETTINGS_LOCK, default_settings():
-                secrets.scan_file(temp_path)
-        finally:
-            os.remove(temp_path)
-
-        secret_values = {
-            found_secret.secret_value
-            for file_path in secrets.files
-            for found_secret in secrets[file_path]
-            if found_secret.secret_value
-        }
+        secret_values = detect_builtin_secrets(text)
         secret_values.update(detect_kaito_provider_secrets(text))
         return secret_values

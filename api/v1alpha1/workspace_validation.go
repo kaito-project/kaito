@@ -29,12 +29,14 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 const (
@@ -76,8 +78,8 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			runtime := GetWorkspaceRuntimeName(w)
 			// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 			errs = errs.Also(w.Resource.validateCreateWithInference(
-				w.Inference, bypassResourceChecks).ViaField("resource"),
-				w.Inference.validateCreate(ctx, runtime).ViaField("inference"),
+				ctx, w.Inference, w.Namespace, bypassResourceChecks).ViaField("resource"),
+				w.Inference.validateCreate(ctx, runtime, w.Namespace).ViaField("inference"),
 				w.validateInferenceConfig(ctx),
 			)
 		}
@@ -381,7 +383,7 @@ func (r *ResourceSpec) validateCreateWithTuning(tuning *TuningSpec) (errs *apis.
 	return errs
 }
 
-func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, bypassResourceChecks bool) (errs *apis.FieldError) {
+func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inference *InferenceSpec, namespace string, bypassResourceChecks bool) (errs *apis.FieldError) {
 	var presetName string
 	if inference.Preset != nil {
 		presetName = strings.ToLower(string(inference.Preset.Name))
@@ -402,7 +404,11 @@ func (r *ResourceSpec) validateCreateWithInference(inference *InferenceSpec, byp
 	// Check if instancetype exists in our SKUs map for the particular cloud provider
 	if skuConfig := skuHandler.GetGPUConfigBySKU(instanceType); skuConfig != nil {
 		if presetName != "" {
-			model := plugin.KaitoModelRegister.MustGet(presetName) // InferenceSpec has been validated so the name is valid.
+			model, err := inference.resolvePresetModel(ctx, namespace)
+			if err != nil {
+				// The Inference spec validation reports the error.
+				return errs //nolint:nilerr
+			}
 			params := model.GetInferenceParameters()
 
 			machineCount := *r.Count
@@ -473,7 +479,14 @@ func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError)
 	return errs
 }
 
-func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.RuntimeName) (errs *apis.FieldError) {
+// resolvePresetModel resolves the preset model, generating and registering it
+// on a registry miss so later lookups in the same admission are cache hits.
+// v1alpha1 has no model access secret, so no HuggingFace token is used.
+func (i *InferenceSpec) resolvePresetModel(ctx context.Context, namespace string) (model.Model, error) {
+	return models.GetModelByName(ctx, string(i.Preset.Name), i.Config, "", namespace, k8sclient.Client)
+}
+
+func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.RuntimeName, namespace string) (errs *apis.FieldError) {
 	// Check if both Preset and Template are not set
 	if i.Preset == nil && i.Template == nil {
 		errs = errs.Also(apis.ErrMissingField("Preset or Template must be specified"))
@@ -492,7 +505,11 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 			// Need to return here. Otherwise, a panic will be hit when doing following checks.
 			return errs
 		}
-		modelPreset := plugin.KaitoModelRegister.MustGet(string(i.Preset.Name))
+		modelPreset, err := i.resolvePresetModel(ctx, namespace)
+		if err != nil {
+			errs = errs.Also(apis.ErrInvalidValue(fmt.Sprintf("failed to get model preset: %v", err), "presetName"))
+			return errs
+		}
 		params := modelPreset.GetInferenceParameters()
 		// Validate private preset has private image specified
 		if params.ImageAccessMode == string(ModelImageAccessModePrivate) &&
@@ -506,7 +523,7 @@ func (i *InferenceSpec) validateCreate(ctx context.Context, runtime model.Runtim
 				break
 			}
 		}
-		err := params.Validate(model.RuntimeContext{
+		err = params.Validate(model.RuntimeContext{
 			RuntimeName: runtime,
 			RuntimeContextExtraArguments: model.RuntimeContextExtraArguments{
 				AdaptersEnabled:        len(i.Adapters) > 0,

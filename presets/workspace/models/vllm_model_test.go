@@ -536,6 +536,14 @@ func TestRegisterModel(t *testing.T) {
 	}
 }
 
+func TestNewModelRegistrationEvictability(t *testing.T) {
+	param := &model.PresetParam{Metadata: model.Metadata{Name: "m"}}
+
+	assert.False(t, newModelRegistration("microsoft/phi-4", param).Evictable, "catalog models must be pinned")
+	assert.True(t, newModelRegistration("evict-test/non-catalog", param).Evictable, "non-catalog models must be evictable")
+	assert.True(t, newModelRegistration(customModelCacheKey(CustomModelName("abc"), 42, ""), param).Evictable, "custom models must be evictable")
+}
+
 func TestGetHFTokenFromSecret(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -808,7 +816,11 @@ func registerHermeticSpeculativeDecodingTestModels(t *testing.T) {
 		if plugin.KaitoModelRegister.MustGet(key) != nil {
 			continue
 		}
-		param, err := generator.GeneratePreset(modelName, "", []byte(hermeticSpeculativeDecodingCatalogYAML))
+		catalog, err := generator.ParseModelCatalog([]byte(hermeticSpeculativeDecodingCatalogYAML))
+		if !assert.NoError(t, err) {
+			continue
+		}
+		param, err := generator.GeneratePreset(modelName, "", catalog)
 		if !assert.NoError(t, err) {
 			continue
 		}

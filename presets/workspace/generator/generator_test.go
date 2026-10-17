@@ -608,11 +608,8 @@ func TestLoadFromCatalog(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.modelRepo, func(t *testing.T) {
-			catalogData, err := os.ReadFile("../models/model_catalog.yaml")
-			assert.NoError(t, err)
-
 			gen := NewGenerator(tc.modelRepo, "")
-			gen.CatalogData = catalogData
+			gen.Catalog = loadTestCatalog(t)
 			found := gen.loadFromCatalog()
 			assert.Equal(t, tc.expectFound, found)
 
@@ -674,8 +671,7 @@ func TestTokenizerModeByArchitecture(t *testing.T) {
 }
 
 func TestLoadFromCatalogMistralFormats(t *testing.T) {
-	catalogData, err := os.ReadFile("../models/model_catalog.yaml")
-	assert.NoError(t, err)
+	catalog := loadTestCatalog(t)
 
 	// Mistral catalog entries should set load_format, config_format, tokenizer_mode
 	// to "mistral" in VLLM.ModelRunParams after FinalizeParams.
@@ -686,7 +682,7 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	for _, repo := range mistralRepos {
 		t.Run(repo, func(t *testing.T) {
 			gen := NewGenerator(repo, "")
-			gen.CatalogData = catalogData
+			gen.Catalog = catalog
 			found := gen.loadFromCatalog()
 			assert.True(t, found)
 
@@ -709,7 +705,7 @@ func TestLoadFromCatalogMistralFormats(t *testing.T) {
 	for _, repo := range nonMistralRepos {
 		t.Run(repo, func(t *testing.T) {
 			gen := NewGenerator(repo, "")
-			gen.CatalogData = catalogData
+			gen.Catalog = catalog
 			found := gen.loadFromCatalog()
 			assert.True(t, found)
 
@@ -949,4 +945,13 @@ func TestMergeTextConfigWithLLMConfig(t *testing.T) {
 
 	// Existing top-level value should not be overwritten
 	assert.Equal(t, float64(4096), gen.ModelConfig["max_position_embeddings"])
+}
+
+func loadTestCatalog(t *testing.T) *ModelCatalog {
+	t.Helper()
+	data, err := os.ReadFile("../models/model_catalog.yaml")
+	require.NoError(t, err)
+	catalog, err := ParseModelCatalog(data)
+	require.NoError(t, err)
+	return catalog
 }

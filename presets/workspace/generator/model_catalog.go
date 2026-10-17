@@ -63,6 +63,26 @@ type ModelCatalog struct {
 	Models []CatalogEntry `yaml:"models"`
 }
 
+// ParseModelCatalog parses catalog YAML into a ModelCatalog.
+func ParseModelCatalog(data []byte) (*ModelCatalog, error) {
+	catalog := &ModelCatalog{}
+	if err := yaml.Unmarshal(data, catalog); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal model catalog: %w", err)
+	}
+	return catalog, nil
+}
+
+// Find returns the catalog entry whose name matches name case-insensitively,
+// or nil if there is none.
+func (c *ModelCatalog) Find(name string) *CatalogEntry {
+	for i := range c.Models {
+		if strings.EqualFold(c.Models[i].Name, name) {
+			return &c.Models[i]
+		}
+	}
+	return nil
+}
+
 // configKeyMap maps catalog field names to the ordered list of HuggingFace
 // config keys to try, mirroring the getInt lookup order.
 var configKeyMap = map[string][]string{

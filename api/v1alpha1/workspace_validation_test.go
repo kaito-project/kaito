@@ -464,7 +464,7 @@ func TestResourceSpecValidateCreate(t *testing.T) {
 				totalSafeTensorFileSize = tc.totalSafeTensorFileSize
 				perGPUMemoryRequirement = tc.modelPerGPUMemory
 
-				errs := tc.resourceSpec.validateCreateWithInference(&spec, false)
+				errs := tc.resourceSpec.validateCreateWithInference(context.Background(), &spec, "default", false)
 				hasErrs := errs != nil
 				if hasErrs != tc.expectErrs {
 					t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -850,7 +850,7 @@ func TestInferenceSpecValidateCreate(t *testing.T) {
 			if tc.runtimeName != "" {
 				runtime = tc.runtimeName
 			}
-			errs := tc.inferenceSpec.validateCreate(ctx, runtime)
+			errs := tc.inferenceSpec.validateCreate(ctx, runtime, "default")
 			hasErrs := errs != nil
 			if hasErrs != tc.expectErrs {
 				t.Errorf("validateCreate() errors = %v, expectErrs %v", errs, tc.expectErrs)
@@ -2104,6 +2104,56 @@ func TestWorkspaceValidateSpeculativeDecoding_v1alpha1(t *testing.T) {
 			errs := w.validateSpeculativeDecoding()
 			if (errs != nil) != tc.wantErr {
 				t.Errorf("validateSpeculativeDecoding() err=%v wantErr=%v", errs, tc.wantErr)
+			}
+		})
+	}
+}
+
+// Preset names that IsValidPreset accepts but that are not keys in the model
+// registry (legacy aliases, HuggingFace IDs, evicted or custom entries) must
+// be resolved through models.GetModelByName rather than dereferencing a nil
+// registry entry.
+func TestValidateCreateWithUnregisteredValidPreset(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	prevClient, prevRegistry := k8sclient.GetGlobalClient(), plugin.KaitoModelRegister
+	t.Cleanup(func() {
+		k8sclient.SetGlobalClient(prevClient)
+		plugin.KaitoModelRegister = prevRegistry
+	})
+	// Resolution registers models; keep them out of the shared registry.
+	plugin.KaitoModelRegister = plugin.NewModelRegister(plugin.ModelRegistryCacheSize)
+	k8sclient.SetGlobalClient(fake.NewClientBuilder().WithScheme(runtime.NewScheme()).Build())
+	ctx := context.Background()
+
+	tests := []struct {
+		name       string
+		preset     string
+		errContent string
+	}{
+		{name: "legacy alias resolves to catalog model", preset: "phi-4"},
+		{name: "custom preset without config", preset: plugin.PresetNameCustom, errContent: "failed to get model preset"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			spec := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName(tc.preset)}}}
+			if plugin.KaitoModelRegister.Has(tc.preset) {
+				t.Fatalf("preset %q must not be a registry key for this test", tc.preset)
+			}
+
+			errs := spec.validateCreate(ctx, model.RuntimeNameVLLM, "default")
+			if tc.errContent == "" {
+				if errs != nil && strings.Contains(errs.Error(), "failed to get model preset") {
+					t.Errorf("unexpected model resolution error: %v", errs)
+				}
+			} else if errs == nil || !strings.Contains(errs.Error(), tc.errContent) {
+				t.Errorf("validateCreate() errors = %v, expected to contain %q", errs, tc.errContent)
+			}
+
+			// Resource validation skips model checks it cannot resolve; the
+			// inference validation above reports the resolution error.
+			resource := &ResourceSpec{InstanceType: "Standard_NC24ads_A100_v4", Count: pointerToInt(1)}
+			if errs := resource.validateCreateWithInference(ctx, spec, "default", false); errs != nil {
+				t.Errorf("validateCreateWithInference() unexpected errors: %v", errs)
 			}
 		})
 	}

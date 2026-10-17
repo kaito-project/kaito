@@ -22,6 +22,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -88,18 +89,39 @@ func registerModel(hfModelCardID string, param *model.PresetParam) model.Model {
 		return nil
 	}
 
-	model := &vLLMCompatibleModel{
-		model:               param.Metadata,
-		generatedRunParams:  param.VLLM.ModelRunParams,
-		speculativeDecoding: param.SpeculativeDecoding,
-	}
-	r := &plugin.Registration{
-		Name:     hfModelCardID,
-		Instance: model,
-	}
+	r := newModelRegistration(hfModelCardID, param)
 	klog.InfoS("Registering VLLM-compatible model", "model", hfModelCardID, "metadata", param.Metadata)
 	plugin.KaitoModelRegister.Register(r)
-	return model
+	return r.Instance
+}
+
+// newModelRegistration builds the registry entry for a generated model.
+// Catalog models are pinned; any other generated model is evictable.
+func newModelRegistration(hfModelCardID string, param *model.PresetParam) *plugin.Registration {
+	return &plugin.Registration{
+		Name: hfModelCardID,
+		Instance: &vLLMCompatibleModel{
+			model:               param.Metadata,
+			generatedRunParams:  param.VLLM.ModelRunParams,
+			speculativeDecoding: param.SpeculativeDecoding,
+		},
+		Evictable: !isCatalogModel(hfModelCardID),
+	}
+}
+
+// embeddedCatalog is the parsed embedded model catalog. A parse failure is a
+// build defect, so it panics at startup like the other embedded metadata in
+// this package.
+var embeddedCatalog *generator.ModelCatalog
+
+func init() {
+	var err error
+	embeddedCatalog, err = generator.ParseModelCatalog(modelCatalogYAML)
+	utilruntime.Must(err)
+}
+
+func isCatalogModel(name string) bool {
+	return embeddedCatalog.Find(name) != nil
 }
 
 // GetModelByNameWithToken returns a vLLM-compatible model for the given modelName using
@@ -156,7 +178,7 @@ func GetModelByName(ctx context.Context, modelName, configMapName, secretName, s
 // generateHuggingFaceModel generates or retrieves a vLLM preset for modelName (which must
 // contain a "/") using the provided token.
 func generateHuggingFaceModel(modelName, token string) (model.Model, error) {
-	param, err := generator.GeneratePreset(modelName, token, modelCatalogYAML)
+	param, err := generator.GeneratePreset(modelName, token, embeddedCatalog)
 	if err != nil {
 		return nil, err
 	}

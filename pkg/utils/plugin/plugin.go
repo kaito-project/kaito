@@ -17,6 +17,8 @@ import (
 	"strings"
 	"sync"
 
+	"k8s.io/utils/lru"
+
 	"github.com/kaito-project/kaito/pkg/model"
 )
 
@@ -32,14 +34,36 @@ type Registration struct {
 	// interface. It is used to retrieve the model's compute/storage requirements
 	// and runtime parameters.
 	Instance model.Model
+
+	// Evictable marks a registration as a lazily generated cache entry kept in
+	// a bounded LRU; once evicted it is re-derived on the next lookup. Entries
+	// with a bounded key space (e.g. catalog models) leave this false so they
+	// are pinned and never churned.
+	Evictable bool
 }
 
+// ModelRegistryCacheSize bounds the number of evictable registrations; the
+// least recently used one is dropped when the cache is full.
+const ModelRegistryCacheSize = 64
+
+// ModelRegister holds pinned registrations without bound and evictable ones
+// in a fixed-size LRU cache. Create it with NewModelRegister.
 type ModelRegister struct {
-	sync.RWMutex
-	models map[string]*Registration
+	mu     sync.Mutex
+	pinned map[string]*Registration
+	cache  *lru.Cache
 }
 
-var KaitoModelRegister ModelRegister
+// NewModelRegister returns an empty registry whose LRU cache holds at most
+// cacheSize evictable registrations.
+func NewModelRegister(cacheSize int) *ModelRegister {
+	return &ModelRegister{
+		pinned: make(map[string]*Registration),
+		cache:  lru.New(cacheSize),
+	}
+}
+
+var KaitoModelRegister = NewModelRegister(ModelRegistryCacheSize)
 
 const (
 	// PresetNameCustom is the reserved preset name selecting a bring-your-own
@@ -98,34 +122,45 @@ var LegacyBuiltinToCatalog = map[string]string{
 
 // Register allows model to be added
 func (reg *ModelRegister) Register(r *Registration) {
-	reg.Lock()
-	defer reg.Unlock()
 	if r.Name == "" {
 		panic("model name is not specified")
 	}
-
-	if reg.models == nil {
-		reg.models = make(map[string]*Registration)
+	reg.mu.Lock()
+	defer reg.mu.Unlock()
+	if r.Evictable {
+		delete(reg.pinned, r.Name)
+		reg.cache.Add(r.Name, r)
+		return
 	}
-
-	reg.models[r.Name] = r
+	reg.cache.Remove(r.Name)
+	reg.pinned[r.Name] = r
 }
 
+// MustGet returns the registered model, or nil.
 func (reg *ModelRegister) MustGet(name string) model.Model {
-	reg.Lock()
-	defer reg.Unlock()
-	r, ok := reg.models[name]
-	if !ok {
-		return nil
+	if r := reg.get(name); r != nil {
+		return r.Instance
 	}
-	return r.Instance
+	return nil
 }
 
+// Has reports whether name is registered. Like MustGet, a hit marks an
+// evictable registration as recently used.
 func (reg *ModelRegister) Has(name string) bool {
-	reg.Lock()
-	defer reg.Unlock()
-	_, ok := reg.models[name]
-	return ok
+	return reg.get(name) != nil
+}
+
+// get looks up a registration; a hit on an evictable one marks it recently used.
+func (reg *ModelRegister) get(name string) *Registration {
+	reg.mu.Lock()
+	defer reg.mu.Unlock()
+	if r, ok := reg.pinned[name]; ok {
+		return r
+	}
+	if v, ok := reg.cache.Get(name); ok {
+		return v.(*Registration)
+	}
+	return nil
 }
 
 // IsValidPreset returns true if:

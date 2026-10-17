@@ -26,8 +26,6 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 )
@@ -530,7 +528,7 @@ type Generator struct {
 	ModelRepo      string
 	Token          string
 	Param          model.PresetParam
-	CatalogData    []byte // Optional embedded catalog YAML
+	Catalog        *ModelCatalog // Optional parsed model catalog
 	IsMistralModel bool
 
 	// Analyzed params
@@ -1199,23 +1197,11 @@ func (g *Generator) FinalizeParams() {
 // If found, it populates the generator's ModelConfig and Param fields from the
 // catalog entry, avoiding any HuggingFace API calls.
 func (g *Generator) loadFromCatalog() bool {
-	if len(g.CatalogData) == 0 {
+	if g.Catalog == nil {
 		return false
 	}
 
-	catalog := ModelCatalog{}
-	if err := yaml.Unmarshal(g.CatalogData, &catalog); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to unmarshal model catalog for %q: %v\n", g.ModelRepo, err)
-		return false
-	}
-
-	var entry *CatalogEntry
-	for i, m := range catalog.Models {
-		if strings.EqualFold(m.Name, g.ModelRepo) {
-			entry = &catalog.Models[i]
-			break
-		}
-	}
+	entry := g.Catalog.Find(g.ModelRepo)
 	if entry == nil {
 		return false
 	}
@@ -1323,15 +1309,15 @@ func validateSupportedConfig(config map[string]interface{}) error {
 }
 
 // GeneratePreset is the global function to generate preset param.
-// If catalogData is provided, the generator will check for the model in the
+// If a catalog is provided, the generator will check for the model in the
 // catalog before making any HuggingFace API calls.
-func GeneratePreset(modelRepo, token string, catalogData ...[]byte) (*model.PresetParam, error) {
+func GeneratePreset(modelRepo, token string, catalog ...*ModelCatalog) (*model.PresetParam, error) {
 	if modelRepo == "" {
 		return nil, errors.New("model repo is required")
 	}
 	gen := NewGenerator(modelRepo, token)
-	if len(catalogData) > 0 {
-		gen.CatalogData = catalogData[0]
+	if len(catalog) > 0 {
+		gen.Catalog = catalog[0]
 	}
 	return gen.Generate()
 }

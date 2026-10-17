@@ -138,22 +138,21 @@ var (
 )
 
 func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
-	if v1beta1.IsCPUInferenceWorkspace(ws) {
-		return nil
-	}
-
-	tolerations := []corev1.Toleration{
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpExists,
-			Key:      nodes.CapacityNvidiaGPU,
-		},
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Value:    consts.GPUString,
-			Key:      consts.SKUString,
-			Operator: corev1.TolerationOpEqual,
-		},
+	tolerations := make([]corev1.Toleration, 0, 3)
+	if !v1beta1.IsCPUInferenceWorkspace(ws) {
+		tolerations = append(tolerations,
+			corev1.Toleration{
+				Effect:   corev1.TaintEffectNoSchedule,
+				Operator: corev1.TolerationOpExists,
+				Key:      nodes.CapacityNvidiaGPU,
+			},
+			corev1.Toleration{
+				Effect:   corev1.TaintEffectNoSchedule,
+				Value:    consts.GPUString,
+				Key:      consts.SKUString,
+				Operator: corev1.TolerationOpEqual,
+			},
+		)
 	}
 
 	if sku.IsAzureCloudProvider() {
@@ -697,7 +696,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		// context that fits. An explicit max-model-len in the user's inference
 		// config still takes precedence: it is appended after this flag on the
 		// vLLM command line (see inference_api.py).
-		maxModelLen := 2048 // Default for non-vLLM runtimes and basic CPU inference.
+		maxModelLen := defaultCPUVLLMMaxModelLen(inferenceParam)
 		if runtimeName == pkgmodel.RuntimeNameVLLM && !isCPUInference {
 			maxModelLen = pkgmodel.MaxModelLenAuto
 		}
@@ -1341,6 +1340,14 @@ func resolveMaxNumSeqs(workspaceName string, params *pkgmodel.PresetParam, gpuCo
 		NumNodes:        numNodes,
 	})
 	return maxNumSeqs
+}
+
+func defaultCPUVLLMMaxModelLen(params *pkgmodel.PresetParam) int {
+	const defaultMaxModelLen = 2048
+	if params == nil || params.ModelTokenLimit <= 0 {
+		return defaultMaxModelLen
+	}
+	return min(defaultMaxModelLen, params.ModelTokenLimit)
 }
 
 func applyGeneratorRuntimeOverrides(params *pkgmodel.PresetParam, gpuConfig *sku.GPUConfig) {

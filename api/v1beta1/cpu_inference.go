@@ -52,13 +52,18 @@ func hasNVIDIAAcceleratorResource(resources corev1.ResourceList) bool {
 }
 
 // IsInferenceTemplateCPUTarget returns true when the custom template does not
-// request GPU resources.
+// request GPU resources in either app or init containers.
 func IsInferenceTemplateCPUTarget(template *corev1.PodTemplateSpec) bool {
 	if template == nil || len(template.Spec.Containers) == 0 {
 		return false
 	}
 
 	for _, container := range template.Spec.Containers {
+		if hasNVIDIAAcceleratorResource(container.Resources.Requests) || hasNVIDIAAcceleratorResource(container.Resources.Limits) {
+			return false
+		}
+	}
+	for _, container := range template.Spec.InitContainers {
 		if hasNVIDIAAcceleratorResource(container.Resources.Requests) || hasNVIDIAAcceleratorResource(container.Resources.Limits) {
 			return false
 		}

@@ -106,6 +106,9 @@ runs:
         oras version
       shell: bash
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
     - name: Set up Docker Buildx
       run: |
         # Define a builder name variable that includes the current file name
@@ -194,8 +197,10 @@ runs:
 
         DOCKERFILE=./docker/presets/models/tfs/Dockerfile
         BUILD_ARGS=(--build-arg VERSION=$MODEL_TAG --build-arg MODEL_TYPE=$MODEL_TYPE)
+        PLATFORMS=linux/amd64
         if [ "$MODEL_NAME" = "base-tfs-cpu" ]; then
           DOCKERFILE=./docker/presets/models/tfs-cpu/Dockerfile
+          PLATFORMS=linux/amd64,linux/arm64
         elif [ "$MODEL_NAME" = "base-vllm-cpu" ]; then
           DOCKERFILE=./docker/presets/models/vllm-cpu/Dockerfile
           BUILD_ARGS=(--build-arg VERSION=$MODEL_TAG)
@@ -204,6 +209,7 @@ runs:
         # Build and push to both registries
         docker buildx build \
           --builder img-builder \
+          --platform $PLATFORMS \
           "${BUILD_ARGS[@]}" \
           -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG \
           -t ghcr.io/kaito-project/kaito/kaito-$MODEL_NAME:$MODEL_TAG \

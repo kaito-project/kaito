@@ -106,6 +106,9 @@ runs:
         oras version
       shell: bash
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
     - name: Set up Docker Buildx
       run: |
         # Define a builder name variable that includes the current file name
@@ -197,6 +200,7 @@ runs:
         PLATFORM_ARGS=()
         if [ "$MODEL_NAME" = "base-tfs-cpu" ]; then
           DOCKERFILE=./docker/presets/models/tfs-cpu/Dockerfile
+          PLATFORM_ARGS=(--platform linux/amd64,linux/arm64)
         elif [ "$MODEL_NAME" = "base-vllm-cpu" ]; then
           DOCKERFILE=./docker/presets/models/vllm-cpu/Dockerfile
           BUILD_ARGS=(--build-arg VERSION="$MODEL_TAG")

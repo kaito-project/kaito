@@ -33,7 +33,7 @@ import (
 var (
 	awsCPUInstanceTypePattern  = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
 	awsInstanceFamilyPattern   = regexp.MustCompile(`^([a-z]+)`)
-	awsArmCPUFamilyPattern     = regexp.MustCompile(`^[a-z]+[0-9]+g[a-z]*$`)
+	awsArmCPUFamilyPattern     = regexp.MustCompile(`^(?:a1|[a-z]+[0-9]+g[a-z]*)$`)
 	azureCPUInstancePattern    = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?[a-z]*_v[0-9]+$`)
 	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*_v[0-9]+$`)
 )

@@ -42,6 +42,7 @@ import (
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
@@ -1458,15 +1459,45 @@ func TestSetAdapterPuller(t *testing.T) {
 func TestDefaultTolerations(t *testing.T) {
 	testcases := map[string]struct {
 		cloudProvider string
+		workspace     *v1beta1.Workspace
 		expectSpot    bool
+		expectGPU     bool
 	}{
-		"azure includes spot toleration": {
+		"azure gpu workspace includes gpu and spot tolerations": {
 			cloudProvider: consts.AzureCloudName,
-			expectSpot:    true,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
+			},
+			expectSpot: true,
+			expectGPU:  true,
+		},
+		"azure cpu workspace keeps spot toleration": {
+			cloudProvider: consts.AzureCloudName,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "cpu-workspace"},
+				Inference: &v1beta1.InferenceSpec{
+					Template: &corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{Containers: []corev1.Container{{
+							Name:  "cpu",
+							Image: "example.com/cpu:latest",
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
+								Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
+							},
+						}}},
+					},
+				},
+			},
+			expectSpot: true,
+			expectGPU:  false,
 		},
 		"aws excludes spot toleration": {
 			cloudProvider: consts.AWSCloudName,
-			expectSpot:    false,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
+			},
+			expectSpot: false,
+			expectGPU:  true,
 		},
 	}
 
@@ -1474,19 +1505,54 @@ func TestDefaultTolerations(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
-			actual := defaultTolerations(&v1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
-			})
+			actual := defaultTolerations(tc.workspace)
 			hasSpot := false
+			hasGPU := false
 			for _, toleration := range actual {
 				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
 					hasSpot = true
-					break
+				}
+				if toleration.Key == nodes.CapacityNvidiaGPU || toleration.Key == consts.SKUString {
+					hasGPU = true
 				}
 			}
 
 			if hasSpot != tc.expectSpot {
 				t.Fatalf("spot toleration presence = %v, want %v", hasSpot, tc.expectSpot)
+			}
+			if hasGPU != tc.expectGPU {
+				t.Fatalf("gpu toleration presence = %v, want %v", hasGPU, tc.expectGPU)
+			}
+		})
+	}
+}
+
+func TestDefaultCPUVLLMMaxModelLen(t *testing.T) {
+	testcases := map[string]struct {
+		params *pkgmodel.PresetParam
+		want   int
+	}{
+		"nil params use default": {
+			want: 2048,
+		},
+		"zero token limit uses default": {
+			params: &pkgmodel.PresetParam{},
+			want:   2048,
+		},
+		"smaller model token limit caps default": {
+			params: &pkgmodel.PresetParam{ModelTokenLimit: 1024},
+			want:   1024,
+		},
+		"larger model token limit keeps default": {
+			params: &pkgmodel.PresetParam{ModelTokenLimit: 4096},
+			want:   2048,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			if got := defaultCPUVLLMMaxModelLen(tc.params); got != tc.want {
+				t.Fatalf("defaultCPUVLLMMaxModelLen() = %d, want %d", got, tc.want)
 			}
 		})
 	}

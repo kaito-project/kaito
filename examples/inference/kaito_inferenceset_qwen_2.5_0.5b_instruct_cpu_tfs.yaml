@@ -12,7 +12,7 @@ spec:
       apps: qwen-2-5-0-5b-instruct-cpu-tfs
   template:
     resource:
-      instanceType: Standard_D16s_v5
+      instanceType: Standard_D16s_v6
     inference:
       preset:
         name: Qwen/Qwen2.5-0.5B-Instruct

@@ -19,6 +19,7 @@ External calls (urllib, subprocess, open) are patched via unittest.mock.
 
 import json
 import sys
+import types
 import urllib.error
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -64,6 +65,119 @@ def test_health_check_non200():
 def test_health_check_exception():
     with patch("urllib.request.urlopen", side_effect=OSError("refused")):
         assert bm._health_check() is False
+
+
+# ── _resolve_processor (streamer cache) ───────────────────────────────────────
+
+_STREAM_URI = "az://container-abc"
+
+
+@pytest.fixture
+def assets_cache(tmp_path, monkeypatch):
+    """Stand in for the vLLM modules the streamer lookup imports.
+
+    Unit tests run without vLLM installed, so expose VLLM_ASSETS_CACHE and an
+    is_runai_obj_uri matching vllm.transformers_utils.runai_utils.
+    """
+    envs = types.ModuleType("vllm.envs")
+    envs.VLLM_ASSETS_CACHE = str(tmp_path)
+    runai_utils = types.ModuleType("vllm.transformers_utils.runai_utils")
+    runai_utils.is_runai_obj_uri = lambda uri: uri.startswith(
+        ("s3://", "gs://", "az://")
+    )
+    vllm = types.ModuleType("vllm")
+    vllm.envs = envs
+    monkeypatch.setitem(sys.modules, "vllm", vllm)
+    monkeypatch.setitem(sys.modules, "vllm.envs", envs)
+    monkeypatch.setitem(
+        sys.modules,
+        "vllm.transformers_utils",
+        types.ModuleType("vllm.transformers_utils"),
+    )
+    monkeypatch.setitem(sys.modules, "vllm.transformers_utils.runai_utils", runai_utils)
+    return tmp_path
+
+
+def _models_response(*models):
+    return _make_urlopen_response(200, json.dumps({"data": list(models)}).encode())
+
+
+def _streamer_dir(uri: str = _STREAM_URI) -> Path:
+    """Create the streamer cache dir under the fake VLLM_ASSETS_CACHE."""
+    d = bm._streamer_cache_dir(uri)
+    d.mkdir(parents=True)
+    return d
+
+
+def test_streamer_cache_dir_matches_vllm_layout(assets_cache):
+    # Pinned to vLLM's ObjectStorageModel: <assets>/model_streamer/<sha256(uri)[:8]>.
+    uri = "az://qzhuang-re-b2fc3e4c-1491-5bfa-8774-26fd8d2abbf1"
+    assert bm._streamer_cache_dir(uri) == assets_cache / "model_streamer" / "bcbff5cc"
+
+
+def test_resolve_processor_prefers_streamer_cache(assets_cache, monkeypatch):
+    monkeypatch.setenv("KAITO_PROCESSOR", "custom-model-config-qwen")
+    cache = _streamer_dir()
+    (cache / "tokenizer.json").write_text("{}")
+    resp = _models_response({"id": "qwen", "root": _STREAM_URI, "parent": None})
+    with patch("urllib.request.urlopen", return_value=resp):
+        assert bm._resolve_processor() == str(cache)
+
+
+def test_resolve_processor_streamer_cache_without_tokenizer_falls_back(
+    assets_cache, monkeypatch
+):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    cache = _streamer_dir()
+    (cache / "config.json").write_text("{}")
+    resp = _models_response({"id": "m", "root": _STREAM_URI, "parent": None})
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        patch.object(bm, "_log") as log,
+    ):
+        assert bm._resolve_processor() == "org/model"
+    log.assert_called_once_with(
+        f"streamer_cache_miss root={_STREAM_URI} dir={cache} reason=no_tokenizer_files"
+    )
+
+
+def test_resolve_processor_streamer_cache_ignores_adapters_and_local_roots(
+    assets_cache, monkeypatch
+):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    (_streamer_dir() / "tokenizer.json").write_text("{}")
+    resp = _models_response(
+        {"id": "base", "root": "/workspace/weights", "parent": None},
+        {"id": "lora", "root": _STREAM_URI, "parent": "base"},
+    )
+    with (
+        patch("urllib.request.urlopen", return_value=resp),
+        patch.object(bm, "_log") as log,
+    ):
+        assert bm._resolve_processor() == "org/model"
+    log.assert_not_called()
+
+
+def test_resolve_processor_streamer_cache_unreachable_falls_back(
+    assets_cache, monkeypatch
+):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    (assets_cache / "model_streamer").mkdir()
+    with (
+        patch("urllib.request.urlopen", side_effect=OSError("refused")),
+        patch.object(bm, "_log") as log,
+    ):
+        assert bm._resolve_processor() == "org/model"
+    log.assert_called_once_with("streamer_cache_miss reason=models_api_error: refused")
+
+
+def test_resolve_processor_skips_models_api_when_nothing_streamed(
+    assets_cache, monkeypatch
+):
+    monkeypatch.setenv("KAITO_PROCESSOR", "org/model")
+    with patch("urllib.request.urlopen") as urlopen:
+        assert bm._resolve_processor() == "org/model"
+    urlopen.assert_not_called()
 
 
 # ── _log ──────────────────────────────────────────────────────────────────────

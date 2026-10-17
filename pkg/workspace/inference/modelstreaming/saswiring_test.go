@@ -23,6 +23,7 @@ import (
 
 	"github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 )
 
 // sasCfg returns a StreamingConfig shaped like SASBlobProvider.GetStreamingConfig returns:
@@ -202,4 +203,46 @@ func TestSetStreamingConfig_AzurePathUnchanged(t *testing.T) {
 
 	// ServiceAccountName still set (existing behaviour)
 	assert.Equal(t, defaultSA, spec.ServiceAccountName)
+}
+
+// TestSetStreamingConfig_KaitoProcessor verifies that KAITO_PROCESSOR is set
+// from the HuggingFace ID for preset models and omitted for custom models,
+// which the benchmark resolves from vLLM's model-streamer cache. The decision
+// follows the workspace preset, not the model ID, so a HuggingFace org that
+// shares the "custom-" prefix keeps its processor.
+func TestSetStreamingConfig_KaitoProcessor(t *testing.T) {
+	tests := []struct {
+		name          string
+		preset        string
+		modelID       string
+		wantProcessor string
+	}{
+		{"huggingface preset", "microsoft/phi-4", "microsoft/phi-4", "microsoft/phi-4"},
+		{"huggingface org with custom- prefix", "custom-ai/model", "custom-ai/model", "custom-ai/model"},
+		{"custom model", plugin.PresetNameCustom, plugin.CustomModelNamePrefix + "model-config", ""},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			const wsName = "ws"
+			ws := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: wsName, Namespace: "default"},
+				Inference: &v1beta1.InferenceSpec{
+					Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: v1beta1.ModelName(tc.preset)}},
+				},
+			}
+			spec := &corev1.PodSpec{Containers: []corev1.Container{{Name: wsName}}}
+
+			err := SetStreamingConfig(&StreamingConfig{ModelPath: "az://c/m"}, tc.modelID, "sa")(
+				&generator.WorkspaceGeneratorContext{Workspace: ws}, spec)
+			require.NoError(t, err)
+
+			var processor string
+			for _, e := range spec.Containers[0].Env {
+				if e.Name == "KAITO_PROCESSOR" {
+					processor = e.Value
+				}
+			}
+			assert.Equal(t, tc.wantProcessor, processor)
+		})
+	}
 }

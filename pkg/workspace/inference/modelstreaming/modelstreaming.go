@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/custommodel"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
@@ -175,7 +176,7 @@ func buildCommonStreamingEnvVars(modelID string) []corev1.EnvVar {
 
 // SetStreamingConfig modifies the pod spec for streaming mode:
 //   - Adds provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
-//   - Adds common env vars (e.g. KAITO_PROCESSOR)
+//   - Adds common env vars (e.g. KAITO_PROCESSOR) except for custom models
 //   - Sets serviceAccountName
 //   - When the provider supplies init containers (SAS path): appends the shared volume, mounts
 //     it in the main container, and prepends the transparent entrypoint wrapper.
@@ -190,8 +191,12 @@ func SetStreamingConfig(streamingCfg *StreamingConfig, modelID, defaultSA string
 				// Add provider-specific env vars (e.g. AZURE_STORAGE_ACCOUNT_NAME)
 				spec.Containers[i].Env = append(spec.Containers[i].Env, streamingCfg.ProviderEnvVars...)
 
-				// Add common streaming env vars
-				spec.Containers[i].Env = append(spec.Containers[i].Env, buildCommonStreamingEnvVars(modelID)...)
+				// A custom model has no HuggingFace identity, so KAITO_PROCESSOR
+				// would name nothing; the benchmark reads the tokenizer from
+				// vLLM's model-streamer cache instead.
+				if !custommodel.IsCustom(ctx.Workspace.Inference) {
+					spec.Containers[i].Env = append(spec.Containers[i].Env, buildCommonStreamingEnvVars(modelID)...)
+				}
 				mainIdx = i
 				break
 			}

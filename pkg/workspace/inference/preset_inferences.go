@@ -645,6 +645,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		if err != nil {
 			return err
 		}
+		if !isCPUInference && gpuConfig == nil {
+			return fmt.Errorf("inference target resolution changed during pod generation; retry reconciliation")
+		}
 
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
 			ctx.Model, isCPUInference, volumes, volumeMounts)

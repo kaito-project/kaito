@@ -24,7 +24,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
-func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
+func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceUsesCPUTaint(t *testing.T) {
 	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	defer func() {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
@@ -52,7 +52,13 @@ func TestGenerateNodeClaimManifestWithOptions_CPUWorkspaceOmitsGPUTaint(t *testi
 	if nc == nil {
 		t.Fatalf("expected nodeclaim manifest")
 	}
-	if len(nc.Spec.Taints) != 0 {
-		t.Fatalf("expected no GPU taint for cpu workspace, got %v", nc.Spec.Taints)
+	if len(nc.Spec.Taints) != 1 {
+		t.Fatalf("expected one CPU taint for cpu workspace, got %v", nc.Spec.Taints)
+	}
+	if nc.Spec.Taints[0].Key != consts.SKUString || nc.Spec.Taints[0].Value != consts.CPUString || nc.Spec.Taints[0].Effect != corev1.TaintEffectNoSchedule {
+		t.Fatalf("expected cpu sku taint, got %v", nc.Spec.Taints)
+	}
+	if got := nc.Labels[consts.SKUString]; got != consts.CPUString {
+		t.Fatalf("expected cpu sku label, got %q", got)
 	}
 }

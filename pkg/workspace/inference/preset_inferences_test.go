@@ -2033,6 +2033,60 @@ func TestGetDesiredInferenceImageNameWithResolution_BYOCPUPresetUsesCPUImage(t *
 	}
 }
 
+func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "cpu-node",
+			Labels: map[string]string{
+				"kaito.sh/cpu-inference": "true",
+				corev1.LabelArchStable:   "amd64",
+			},
+		},
+		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	}).Build()
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	workspace.Resource.InstanceType = ""
+	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
+	workspace.Status.TargetNodeCount = 1
+
+	result, err := GeneratePresetInference(context.Background(), workspace, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), kubeClient, nil)
+	if err != nil {
+		t.Fatalf("expected BYO CPU preset generation to succeed, got %v", err)
+	}
+	ss := result.Workload.(*appsv1.StatefulSet)
+	hasCPUToleration := false
+	hasGPUToleration := false
+	for _, toleration := range ss.Spec.Template.Spec.Tolerations {
+		if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+			hasCPUToleration = true
+		}
+		if toleration.Key == consts.SKUString && toleration.Value == consts.GPUString {
+			hasGPUToleration = true
+		}
+	}
+	if !hasCPUToleration {
+		t.Fatalf("expected BYO CPU preset to include cpu dedicated toleration, got %v", ss.Spec.Template.Spec.Tolerations)
+	}
+	if hasGPUToleration {
+		t.Fatalf("expected BYO CPU preset to omit gpu toleration, got %v", ss.Spec.Template.Spec.Tolerations)
+	}
+}
+
 // TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
 // provisioning is gated on models that require runtime CUDA compilation: such a model gets a
 // cuda-toolkit-provisioner init container and a read-write hostPath at the

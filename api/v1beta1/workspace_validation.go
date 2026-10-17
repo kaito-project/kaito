@@ -673,6 +673,12 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			if pErr := r.validatePartition(); pErr != nil {
 				return errs.Also(pErr)
 			}
+			if isCPUInference {
+				return errs.Also(apis.ErrInvalidValue(
+					"basic CPU inference does not support resource.partition",
+					"resource.partition",
+				))
+			}
 			if r.Partition.Mode == PartitionModeMIG && presetName != "" {
 				errs = errs.Also(r.validateMIGModelFit(ctx, presetName, configMapName, secretName, wsNamespace, bypassResourceChecks))
 			}

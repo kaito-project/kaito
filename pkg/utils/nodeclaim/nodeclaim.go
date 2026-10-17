@@ -151,11 +151,11 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		nameLabel:            name,
 		namespaceLabel:       namespace,
 	}
-	if createdBy := obj.GetLabels()[consts.WorkspaceCreatedByInferenceSetLabel]; createdBy != "" {
-		nodeClaimLabels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
-	}
 	if sanitized := kaitov1beta1.SanitizedMatchLabels(labelSelector); len(sanitized) != 0 {
 		nodeClaimLabels = lo.Assign(nodeClaimLabels, sanitized)
+	}
+	if createdBy := obj.GetLabels()[consts.WorkspaceCreatedByInferenceSetLabel]; createdBy != "" {
+		nodeClaimLabels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
 	}
 
 	nodeClaimAnnotations := map[string]string{

@@ -237,6 +237,9 @@ var reservedSelectorLabelKeys = map[string]struct{}{
 	consts.KarpenterWorkspaceNamespaceKey:    {},
 	consts.KarpenterInferenceSetKey:          {},
 	consts.KarpenterInferenceSetNamespaceKey: {},
+
+	// Controller-owned workload isolation labels.
+	consts.WorkspaceCreatedByInferenceSetLabel: {},
 }
 
 // IsReservedSelectorLabel reports whether the given label key is reserved by

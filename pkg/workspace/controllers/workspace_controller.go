@@ -1722,12 +1722,16 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	// Only watch NodeClaim resources if node auto-provisioning is enabled
 	if !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		ncHandler := &nodeClaimEventHandler{
+			logger:         c.klogger,
+			expectations:   c.expectations,
+			enqueueHandler: enqueueWorkspaceForNodeClaim,
+		}
+		if observer, ok := c.nodeProvisioner.(nodeprovision.NodeClaimObserver); ok {
+			ncHandler.observer = observer
+		}
 		bldr = bldr.Watches(&karpenterv1.NodeClaim{},
-			&nodeClaimEventHandler{
-				logger:         c.klogger,
-				expectations:   c.expectations,
-				enqueueHandler: enqueueWorkspaceForNodeClaim,
-			},
+			ncHandler,
 			builder.WithPredicates(nodeclaim.NodeClaimPredicate),
 		)
 	}

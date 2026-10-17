@@ -244,11 +244,6 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		}
 	}
 
-	// Enrich NodesReady with a node-pressure warning (diagnostic only; status unchanged).
-	if w := nodes.NodePressureWarning(nodeList); w != "" {
-		nodeCond.Message = nodeCond.Message + "; warning: " + w
-	}
-
 	// Derive resource condition.
 	if nodeCond.Status == metav1.ConditionTrue && nodeClaimCond.Status == metav1.ConditionTrue {
 		resourceCond.Status = metav1.ConditionTrue

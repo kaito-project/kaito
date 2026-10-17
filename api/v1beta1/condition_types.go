@@ -18,6 +18,7 @@ type ConditionType string
 
 const (
 	// ConditionTypeNodeClaimStatus is the state when checking nodeClaim status.
+	// While False, NodeClaimNotReady means provisioning is in progress; any other reason means the latest attempt failed.
 	ConditionTypeNodeClaimStatus = ConditionType("NodeClaimReady")
 
 	// ConditionTypeNodeStatus is the state when checking node status.

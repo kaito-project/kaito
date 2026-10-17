@@ -94,7 +94,8 @@ rules:
   {{- end }}
   - apiGroups: [""]
     resources: ["events"]
-    verbs: ["create", "patch", "update"]
+    # get/list surface the Warning Events of deleted NodeClaims in Workspace status.
+    verbs: ["create", "patch", "update", "get", "list"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch"]

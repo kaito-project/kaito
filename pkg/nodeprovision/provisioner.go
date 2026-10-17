@@ -18,6 +18,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 )
@@ -97,4 +98,10 @@ type NodeProvisioner interface {
 	// so pods are isolated to provisioned nodes. BYOProvisioner returns nil
 	// (BYO nodes are matched purely via the user-supplied label selector).
 	BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement
+}
+
+// NodeClaimObserver is optionally implemented by a NodeProvisioner to see every NodeClaim change; it must be cheap and concurrency-safe.
+type NodeClaimObserver interface {
+	// ObserveNodeClaim records a NodeClaim change; oldNC is nil unless it is an update, and deleted marks the final state.
+	ObserveNodeClaim(oldNC, newNC *karpenterv1.NodeClaim, deleted bool)
 }

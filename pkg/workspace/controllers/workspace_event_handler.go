@@ -25,6 +25,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
@@ -34,6 +35,8 @@ type nodeClaimEventHandler struct {
 	enqueueHandler handler.TypedEventHandler[client.Object, reconcile.Request]
 	expectations   *utils.ControllerExpectations
 	logger         klog.Logger
+	// observer, when set, sees every NodeClaim change so transient failures are not missed.
+	observer nodeprovision.NodeClaimObserver
 }
 
 var _ handler.TypedEventHandler[client.Object, reconcile.Request] = (*nodeClaimEventHandler)(nil)
@@ -54,12 +57,25 @@ func getControllerKeyForNodeClaim(nc *karpenterv1.NodeClaim) *client.ObjectKey {
 	return nil
 }
 
+func (n *nodeClaimEventHandler) observe(oldObj, newObj client.Object, deleted bool) {
+	if n.observer == nil {
+		return
+	}
+	newNC, ok := newObj.(*karpenterv1.NodeClaim)
+	if !ok {
+		return
+	}
+	oldNC, _ := oldObj.(*karpenterv1.NodeClaim)
+	n.observer.ObserveNodeClaim(oldNC, newNC, deleted)
+}
+
 func (n *nodeClaimEventHandler) Create(ctx context.Context, evt event.TypedCreateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	nc := evt.Object.(*karpenterv1.NodeClaim)
 	if nc.DeletionTimestamp != nil {
 		n.Delete(ctx, event.TypedDeleteEvent[client.Object]{Object: nc}, q)
 		return
 	}
+	n.observe(nil, nc, false)
 	if key := getControllerKeyForNodeClaim(nc); key != nil {
 		n.expectations.CreationObserved(n.logger, key.String())
 		n.enqueueHandler.Create(ctx, evt, q)
@@ -68,6 +84,7 @@ func (n *nodeClaimEventHandler) Create(ctx context.Context, evt event.TypedCreat
 
 func (n *nodeClaimEventHandler) Delete(ctx context.Context, evt event.TypedDeleteEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 	nc := evt.Object.(*karpenterv1.NodeClaim)
+	n.observe(nil, nc, true)
 	if key := getControllerKeyForNodeClaim(nc); key != nil {
 		n.expectations.DeletionObserved(n.logger, key.String())
 	}
@@ -79,6 +96,7 @@ func (n *nodeClaimEventHandler) Generic(ctx context.Context, evt event.TypedGene
 }
 
 func (n *nodeClaimEventHandler) Update(ctx context.Context, evt event.TypedUpdateEvent[client.Object], q workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+	n.observe(evt.ObjectOld, evt.ObjectNew, false)
 	n.enqueueHandler.Update(ctx, evt, q)
 }
 

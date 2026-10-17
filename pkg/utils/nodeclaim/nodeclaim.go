@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -407,46 +409,160 @@ func IsNodeClaimReadyNotDeleting(nodeClaim *karpenterv1.NodeClaim) bool {
 // maxProvisioningErrorMessageLen caps the surfaced message length for readability.
 const maxProvisioningErrorMessageLen = 256
 
-// awaitingReconciliationReason is the benign "not yet reconciled" state Karpenter
+var (
+	// cloudErrorCodePattern matches an Azure SDK error code line, e.g. "ERROR CODE: SubnetIsFull".
+	cloudErrorCodePattern = regexp.MustCompile(`ERROR CODE: (\S+)`)
+	// cloudErrorMessagePattern matches the first JSON "message" field after the error code.
+	cloudErrorMessagePattern = regexp.MustCompile(`"message":\s*"((?:[^"\\]|\\.)*)"`)
+)
+
+// CompactProvisioningMessage moves the error code and message of a verbose cloud error dump to the front, so truncation keeps the cause.
+func CompactProvisioningMessage(msg string) string {
+	code := cloudErrorCodePattern.FindStringSubmatch(msg)
+	if code == nil {
+		return msg
+	}
+	compact := code[1]
+	if m := cloudErrorMessagePattern.FindStringSubmatch(msg[strings.Index(msg, code[0]):]); m != nil {
+		text := m[1]
+		if unquoted, err := strconv.Unquote(`"` + text + `"`); err == nil {
+			text = unquoted
+		}
+		compact += ": " + text
+	}
+	if first, _, _ := strings.Cut(msg, "\n"); strings.TrimSpace(first) != "" {
+		compact += " (" + strings.TrimSpace(first) + ")"
+	}
+	return compact
+}
+
+// FormatProvisioningMessage compacts and truncates a provisioning error message for a condition.
+func FormatProvisioningMessage(msg string) string {
+	return utils.TruncateMessage(CompactProvisioningMessage(msg), maxProvisioningErrorMessageLen)
+}
+
+// AwaitingReconciliationReason is the benign "not yet reconciled" state Karpenter
 // core stamps on freshly-initialized conditions; it is not a provisioning error.
-const awaitingReconciliationReason = "AwaitingReconciliation"
+const AwaitingReconciliationReason = "AwaitingReconciliation"
 
-// FirstNodeClaimProvisioningState returns the reason/message of the earliest
-// non-True Karpenter lifecycle condition (Launched -> Registered -> Initialized)
-// across the NodeClaims. A real provisioning error takes priority over the benign
-// "AwaitingReconciliation" state. Deleting NodeClaims and empty messages are skipped.
-func FirstNodeClaimProvisioningState(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
-	// A real error wins outright; otherwise fall back to the first in-progress state.
-	var pending *status.Condition
+// NodeClassReadinessUnknownReason is the Launched reason recorded while the NodeClass is not reconciled yet; it is not an error.
+const NodeClassReadinessUnknownReason = "NodeClassReadinessUnknown"
 
-	// Earlier lifecycle stages are the root cause, so scan them first.
-	for _, stage := range []string{
-		karpenterv1.ConditionTypeLaunched,
-		karpenterv1.ConditionTypeRegistered,
-		karpenterv1.ConditionTypeInitialized,
-	} {
+// NodeClaimNotReadyReason is reported while NodeClaims are provisioning without an observed failure.
+const NodeClaimNotReadyReason = "NodeClaimNotReady"
+
+// lifecycleStages are the NodeClaim lifecycle conditions in order; an earlier stage causes a later one.
+var lifecycleStages = []string{
+	karpenterv1.ConditionTypeLaunched,
+	karpenterv1.ConditionTypeRegistered,
+	karpenterv1.ConditionTypeInitialized,
+}
+
+// isLifecycleFailure reports a failed latest attempt: a False condition, or Launched=Unknown with a cloud error reason.
+func isLifecycleFailure(c *status.Condition) bool {
+	if c.Status == metav1.ConditionFalse {
+		return true
+	}
+	return c.Type == karpenterv1.ConditionTypeLaunched && c.Status == metav1.ConditionUnknown && c.Reason != "" &&
+		c.Reason != AwaitingReconciliationReason && c.Reason != NodeClassReadinessUnknownReason
+}
+
+func describeCondition(c *status.Condition) string {
+	text := fmt.Sprintf("NodeClaim %s=%s", c.Type, c.Status)
+	if c.Reason != "" {
+		text += fmt.Sprintf(" (%s)", c.Reason)
+	}
+	if c.Message != "" {
+		text += ": " + c.Message
+	}
+	return text
+}
+
+func lifecycleCondition(nc *karpenterv1.NodeClaim, conditionType string) *status.Condition {
+	for i := range nc.Status.Conditions {
+		if nc.Status.Conditions[i].Type == conditionType {
+			return &nc.Status.Conditions[i]
+		}
+	}
+	return nil
+}
+
+// LifecycleFailure returns the NodeClaim's earliest-stage failure, also when it is deleting, as failed NodeClaims are deleted.
+func LifecycleFailure(nc *karpenterv1.NodeClaim) (reason, message string, found bool) {
+	if nc == nil {
+		return "", "", false
+	}
+	for _, stage := range lifecycleStages {
+		c := lifecycleCondition(nc, stage)
+		if c == nil || !isLifecycleFailure(c) {
+			continue
+		}
+		message = c.Message
+		if message == "" {
+			message = describeCondition(c)
+		}
+		return c.Reason, FormatProvisioningMessage(message), true
+	}
+	return "", "", false
+}
+
+// IsConditionTrue reports whether the NodeClaim's condition of the given type is True.
+func IsConditionTrue(nc *karpenterv1.NodeClaim, conditionType string) bool {
+	c := lifecycleCondition(nc, conditionType)
+	return c != nil && c.Status == metav1.ConditionTrue
+}
+
+// NodeClaimProvisioningFailure returns the earliest-stage failure across the live NodeClaims.
+func NodeClaimProvisioningFailure(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
+	for _, stage := range lifecycleStages {
 		for _, nc := range nodeClaims {
 			if nc == nil || !nc.DeletionTimestamp.IsZero() {
 				continue
 			}
-			for i := range nc.Status.Conditions {
-				c := &nc.Status.Conditions[i]
-				if c.Type != stage || c.Status == metav1.ConditionTrue || c.Message == "" {
-					continue
-				}
-				if c.Reason == awaitingReconciliationReason {
-					if pending == nil {
-						pending = c
-					}
-					continue
-				}
-				return c.Reason, utils.TruncateMessage(c.Message, maxProvisioningErrorMessageLen), true
+			if c := lifecycleCondition(nc, stage); c != nil && isLifecycleFailure(c) {
+				return LifecycleFailure(nc)
 			}
 		}
 	}
+	return "", "", false
+}
 
-	if pending != nil {
-		return pending.Reason, utils.TruncateMessage(pending.Message, maxProvisioningErrorMessageLen), true
+// NodeClaimProvisioningProgress describes the earliest-stage lifecycle condition not yet True across the live NodeClaims.
+func NodeClaimProvisioningProgress(nodeClaims []*karpenterv1.NodeClaim) (message string, found bool) {
+	for _, stage := range lifecycleStages {
+		for _, nc := range nodeClaims {
+			if nc == nil || !nc.DeletionTimestamp.IsZero() {
+				continue
+			}
+			if c := lifecycleCondition(nc, stage); c != nil && c.Status != metav1.ConditionTrue {
+				return FormatProvisioningMessage(describeCondition(c)), true
+			}
+		}
+	}
+	return "", false
+}
+
+// ProvisioningFailedReason replaces a failure reason that is not a valid condition reason.
+const ProvisioningFailedReason = "NodeProvisioningFailed"
+
+// conditionReasonPattern is the metav1.Condition reason format enforced by CRD validation.
+var conditionReasonPattern = regexp.MustCompile(`^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$`)
+
+// ValidConditionReason returns reason if it is a valid condition reason, and ProvisioningFailedReason otherwise.
+func ValidConditionReason(reason string) string {
+	if len(reason) > 1024 || !conditionReasonPattern.MatchString(reason) {
+		return ProvisioningFailedReason
+	}
+	return reason
+}
+
+// FirstNodeClaimProvisioningState reports a live NodeClaim failure with its own reason, otherwise progress as NodeClaimNotReady.
+func FirstNodeClaimProvisioningState(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
+	if reason, message, found = NodeClaimProvisioningFailure(nodeClaims); found {
+		return ValidConditionReason(reason), message, true
+	}
+	if message, found = NodeClaimProvisioningProgress(nodeClaims); found {
+		return NodeClaimNotReadyReason, message, true
 	}
 	return "", "", false
 }

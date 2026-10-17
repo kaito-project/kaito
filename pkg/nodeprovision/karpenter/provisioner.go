@@ -15,6 +15,7 @@ package karpenter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -66,16 +67,28 @@ type NodeClassConfig struct {
 // Karpenter API (NodePool / NodeClaim). Cloud-specific details (NodeClass
 // group, kind, name mapping) are provided via NodeClassConfig.
 type KarpenterProvisioner struct {
-	client              client.Client
-	nodeClassConfig     NodeClassConfig
-	nodeResourceManager *resource.NodeManager
+	client               client.Client
+	nodeClassConfig      NodeClassConfig
+	nodeResourceManager  *resource.NodeManager
+	provisioningFailures *provisioningFailureTracker
 }
 
 var _ nodeprovision.NodeProvisioner = (*KarpenterProvisioner)(nil)
+var _ nodeprovision.NodeClaimObserver = (*KarpenterProvisioner)(nil)
 
 // NewKarpenterProvisioner creates a new KarpenterProvisioner.
 func NewKarpenterProvisioner(c client.Client, cfg NodeClassConfig) *KarpenterProvisioner {
-	return &KarpenterProvisioner{client: c, nodeClassConfig: cfg, nodeResourceManager: resource.NewNodeManager(c)}
+	return &KarpenterProvisioner{
+		client:               c,
+		nodeClassConfig:      cfg,
+		nodeResourceManager:  resource.NewNodeManager(c),
+		provisioningFailures: newProvisioningFailureTracker(),
+	}
+}
+
+// ObserveNodeClaim records NodeClaim provisioning failures so they outlive the deleted NodeClaims.
+func (p *KarpenterProvisioner) ObserveNodeClaim(oldNC, newNC *karpenterv1.NodeClaim, deleted bool) {
+	p.provisioningFailures.observe(oldNC, newNC, deleted)
 }
 
 // Name returns the provisioner name.
@@ -222,10 +235,31 @@ func (p *KarpenterProvisioner) newNodeClassObject(nc NodeClassSpec) *unstructure
 	return obj
 }
 
+// NodeClassNotReadyError reports a missing or not Ready NodeClass with its own Ready reason and message.
+type NodeClassNotReadyError struct {
+	Name string
+	// Status is the NodeClass's Ready status, or empty when the NodeClass does not exist.
+	Status  metav1.ConditionStatus
+	Reason  string
+	Message string
+}
+
+func (e *NodeClassNotReadyError) Error() string {
+	if e.Message == "" {
+		return fmt.Sprintf("NodeClass %q is not ready (%s)", e.Name, e.Reason)
+	}
+	return fmt.Sprintf("NodeClass %q is not ready (%s): %s", e.Name, e.Reason, e.Message)
+}
+
+// Failed reports whether the NodeClass is missing or Ready=False rather than not reconciled yet.
+func (e *NodeClassNotReadyError) Failed() bool {
+	return e.Status == "" || e.Status == metav1.ConditionFalse
+}
+
 // checkNodeClassReady performs a single point-in-time check that the named
 // NodeClass exists and has a Ready=True condition. Unlike waitForNodeClassReady,
 // it does not poll — it returns an error immediately if the resource is missing
-// or not ready.
+// or not ready, as a *NodeClassNotReadyError unless the API call fails.
 func (p *KarpenterProvisioner) checkNodeClassReady(ctx context.Context, name string) error {
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(schema.GroupVersionKind{
@@ -234,6 +268,9 @@ func (p *KarpenterProvisioner) checkNodeClassReady(ctx context.Context, name str
 		Kind:    p.nodeClassConfig.Kind,
 	})
 	if err := p.client.Get(ctx, types.NamespacedName{Name: name}, obj); err != nil {
+		if apierrors.IsNotFound(err) {
+			return &NodeClassNotReadyError{Name: name, Reason: "NotFound", Message: "NodeClass does not exist"}
+		}
 		return fmt.Errorf("getting NodeClass %q: %w", name, err)
 	}
 
@@ -242,18 +279,28 @@ func (p *KarpenterProvisioner) checkNodeClassReady(ctx context.Context, name str
 		return fmt.Errorf("reading conditions for NodeClass %q: %w", name, err)
 	}
 	if !found {
-		return fmt.Errorf("NodeClass %q has no status conditions", name)
+		return &NodeClassNotReadyError{Name: name, Status: metav1.ConditionUnknown, Reason: "NotReady", Message: "NodeClass has no status conditions"}
 	}
 	for _, c := range conditions {
 		cond, ok := c.(map[string]interface{})
-		if !ok {
+		if !ok || cond["type"] != "Ready" {
 			continue
 		}
-		if cond["type"] == "Ready" && cond["status"] == "True" {
+		if cond["status"] == "True" {
 			return nil
 		}
+		status := metav1.ConditionUnknown
+		if cond["status"] == "False" {
+			status = metav1.ConditionFalse
+		}
+		reason, _ := cond["reason"].(string)
+		message, _ := cond["message"].(string)
+		if reason == "" {
+			reason = "NotReady"
+		}
+		return &NodeClassNotReadyError{Name: name, Status: status, Reason: reason, Message: nodeclaim.FormatProvisioningMessage(message)}
 	}
-	return fmt.Errorf("NodeClass %q exists but is not Ready", name)
+	return &NodeClassNotReadyError{Name: name, Status: metav1.ConditionUnknown, Reason: "NotReady", Message: "NodeClass has no Ready condition"}
 }
 
 // waitForNodeClassReady polls until the NodeClass has a Ready=True condition.
@@ -377,7 +424,7 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 		return err
 	}
 	if err := p.checkNodeClassReady(ctx, nodeClassName); err != nil {
-		return fmt.Errorf("NodeClass %q is not ready: %w", nodeClassName, err)
+		return err
 	}
 
 	// Count non-karpenter ready nodes to compute delta.
@@ -410,9 +457,12 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 			}
 			return fmt.Errorf("creating NodePool %q: %w", np.Name, err)
 		}
+		p.provisioningFailures.track(np.Name, np.UID)
 		klog.InfoS("Created NodePool", "nodePool", np.Name, "replicas", desiredReplicas, "workspace", klog.KObj(ws))
 		return nil
 	}
+
+	p.provisioningFailures.track(existing.Name, existing.UID)
 
 	// NodePool exists — only increase replicas, never decrease.
 	// This protects running karpenter nodes when BYO nodes appear after provisioning.
@@ -439,6 +489,7 @@ func (p *KarpenterProvisioner) ProvisionNodes(ctx context.Context, ws *kaitov1be
 // Karpenter cascades deletion: NodePool → NodeClaim → Node → VM.
 func (p *KarpenterProvisioner) DeleteNodes(ctx context.Context, ws *kaitov1beta1.Workspace) error {
 	nodePoolName := NodePoolName(ws.Namespace, ws.Name)
+	p.provisioningFailures.untrack(nodePoolName)
 	np := &karpenterv1.NodePool{}
 	if err := p.client.Get(ctx, types.NamespacedName{Name: nodePoolName}, np); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -630,11 +681,6 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		return nil, err
 	}
 
-	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, p.client, p, ws)
-	if err != nil {
-		return nil, fmt.Errorf("listing workspace nodes: %w", err)
-	}
-
 	targetCount := int(ws.Status.TargetNodeCount)
 
 	// NodeClaim condition: are enough karpenter NodeClaims ready?
@@ -646,10 +692,7 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		nodeClaimCond.Status = metav1.ConditionTrue
 		nodeClaimCond.Reason = "NodeClaimsReady"
 		nodeClaimCond.Message = "Enough NodeClaims are ready"
-	} else if reason, message, ok := nodeclaim.FirstNodeClaimProvisioningState(snap.allNodeClaims); ok {
-		// Surface the underlying cloud-provider provisioning error (e.g. quota
-		// exceeded, unauthorized), or the NodeClaim's current in-progress state
-		// (e.g. AwaitingReconciliation), instead of a generic "not enough" message.
+	} else if reason, message, ok := p.nodeClaimNotReadyCause(ctx, ws, snap); ok {
 		nodeClaimCond.Reason = reason
 		nodeClaimCond.Message = message
 	}
@@ -679,11 +722,6 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 		}
 	}
 
-	// Enrich NodesReady with a node-pressure warning (diagnostic only; status unchanged).
-	if w := nodes.NodePressureWarning(nodeList); w != "" {
-		nodeCond.Message = nodeCond.Message + "; warning: " + w
-	}
-
 	// Derive resource condition.
 	if nodeCond.Status == metav1.ConditionTrue && nodeClaimCond.Status == metav1.ConditionTrue {
 		resourceCond.Status = metav1.ConditionTrue
@@ -698,6 +736,61 @@ func (p *KarpenterProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *ka
 	}
 
 	return []metav1.Condition{nodeCond, nodeClaimCond, resourceCond}, nil
+}
+
+const (
+	// NodeClaimLaunchFailedReason reports a NodeClaim deleted before it launched, for an unknown reason.
+	NodeClaimLaunchFailedReason = "NodeClaimLaunchFailed"
+	// NodeClaimRegistrationFailedReason reports a NodeClaim deleted before its node registered, for an unknown reason.
+	NodeClaimRegistrationFailedReason = "NodeClaimRegistrationFailed"
+	// NodeClassNotReadyReason reports a missing or Ready=False NodeClass, which blocks every launch.
+	NodeClassNotReadyReason = "NodeClassNotReady"
+)
+
+// nodeClaimNotReadyCause reports, in order: a failed NodeClass; the NodePool's tracked root cause while the launched
+// NodeClaims do not cover the target; a failure on a live NodeClaim; otherwise NodeClaimNotReady with its progress.
+func (p *KarpenterProvisioner) nodeClaimNotReadyCause(ctx context.Context, ws *kaitov1beta1.Workspace, snap *nodeReadinessSnapshot) (reason, message string, found bool) {
+	nodeClaims := snap.allNodeClaims
+	if nodeClassName, err := resolveNodeClassName(ws, p.nodeClassConfig); err == nil {
+		var notReady *NodeClassNotReadyError
+		if err := p.checkNodeClassReady(ctx, nodeClassName); errors.As(err, &notReady) {
+			// Matches the ProvisionNodes reconcile error, so it is not appended twice.
+			if notReady.Failed() {
+				return NodeClassNotReadyReason, notReady.Error(), true
+			}
+			return nodeclaim.NodeClaimNotReadyReason, notReady.Error(), true
+		} else if err != nil {
+			klog.ErrorS(err, "failed to check NodeClass readiness", "nodeClass", nodeClassName, "workspace", klog.KObj(ws))
+		}
+	}
+
+	if launchedNodeClaimCount(nodeClaims) < snap.targetNodeClaimCount {
+		if c, ok := p.trackedRootCause(ctx, NodePoolName(ws.Namespace, ws.Name)); ok {
+			return c.reason, c.message, true
+		}
+	}
+
+	return nodeclaim.FirstNodeClaimProvisioningState(nodeClaims)
+}
+
+// launchedNodeClaimCount counts the live NodeClaims that launched (or are ready).
+func launchedNodeClaimCount(nodeClaims []*karpenterv1.NodeClaim) int {
+	count := 0
+	for _, nc := range nodeClaims {
+		if nc == nil || !nc.DeletionTimestamp.IsZero() {
+			continue
+		}
+		if nodeclaim.IsNodeClaimReadyNotDeleting(nc) || nodeclaim.IsConditionTrue(nc, karpenterv1.ConditionTypeLaunched) {
+			count++
+		}
+	}
+	return count
+}
+
+// trackedRootCause returns the NodePool's tracked root cause after looking up its deleted NodeClaims' Events.
+func (p *KarpenterProvisioner) trackedRootCause(ctx context.Context, nodePoolName string) (rootCause, bool) {
+	p.lookupProvisioningEvents(ctx, nodePoolName)
+	return p.provisioningFailures.rootCause(nodePoolName)
 }
 
 // BuildNodeSelector returns requirements that pin pods to nodes provisioned

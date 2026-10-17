@@ -1462,6 +1462,7 @@ func TestDefaultTolerations(t *testing.T) {
 		workspace     *v1beta1.Workspace
 		expectSpot    bool
 		expectGPU     bool
+		expectCPU     bool
 	}{
 		"azure gpu workspace includes gpu and spot tolerations": {
 			cloudProvider: consts.AzureCloudName,
@@ -1470,6 +1471,7 @@ func TestDefaultTolerations(t *testing.T) {
 			},
 			expectSpot: true,
 			expectGPU:  true,
+			expectCPU:  false,
 		},
 		"azure cpu workspace keeps spot toleration": {
 			cloudProvider: consts.AzureCloudName,
@@ -1490,6 +1492,7 @@ func TestDefaultTolerations(t *testing.T) {
 			},
 			expectSpot: true,
 			expectGPU:  false,
+			expectCPU:  true,
 		},
 		"aws excludes spot toleration": {
 			cloudProvider: consts.AWSCloudName,
@@ -1498,6 +1501,7 @@ func TestDefaultTolerations(t *testing.T) {
 			},
 			expectSpot: false,
 			expectGPU:  true,
+			expectCPU:  false,
 		},
 	}
 
@@ -1508,12 +1512,16 @@ func TestDefaultTolerations(t *testing.T) {
 			actual := defaultTolerations(tc.workspace)
 			hasSpot := false
 			hasGPU := false
+			hasCPU := false
 			for _, toleration := range actual {
 				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
 					hasSpot = true
 				}
-				if toleration.Key == nodes.CapacityNvidiaGPU || toleration.Key == consts.SKUString {
+				if toleration.Key == nodes.CapacityNvidiaGPU || (toleration.Key == consts.SKUString && toleration.Value == consts.GPUString) {
 					hasGPU = true
+				}
+				if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+					hasCPU = true
 				}
 			}
 
@@ -1523,7 +1531,42 @@ func TestDefaultTolerations(t *testing.T) {
 			if hasGPU != tc.expectGPU {
 				t.Fatalf("gpu toleration presence = %v, want %v", hasGPU, tc.expectGPU)
 			}
+			if hasCPU != tc.expectCPU {
+				t.Fatalf("cpu toleration presence = %v, want %v", hasCPU, tc.expectCPU)
+			}
 		})
+	}
+}
+
+func TestApplyCPUDedicatedPlacement(t *testing.T) {
+	cpuWS := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-a", Namespace: "ns-a"}}
+	cpuWS.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "iset-a"}
+	cpuWS.Inference = &v1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "example.com/cpu:latest"}}}}}
+	cpuWS.Resource = v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}
+
+	spec := &corev1.PodSpec{}
+	applyCPUDedicatedPlacement(cpuWS, spec, true)
+	if spec.Affinity == nil || spec.Affinity.PodAntiAffinity == nil {
+		t.Fatalf("expected pod anti-affinity to be configured")
+	}
+	terms := spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	if len(terms) != 1 {
+		t.Fatalf("expected 1 required pod anti-affinity term, got %d", len(terms))
+	}
+	if terms[0].TopologyKey != corev1.LabelHostname {
+		t.Fatalf("topologyKey = %q, want %q", terms[0].TopologyKey, corev1.LabelHostname)
+	}
+	if got := terms[0].LabelSelector.MatchLabels[consts.WorkspaceCreatedByInferenceSetLabel]; got != "iset-a" {
+		t.Fatalf("inferenceset selector = %q, want iset-a", got)
+	}
+
+	standaloneSpec := &corev1.PodSpec{}
+	applyCPUDedicatedPlacement(&v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-b"}}, standaloneSpec, true)
+	if standaloneSpec.Affinity == nil || standaloneSpec.Affinity.PodAntiAffinity == nil {
+		t.Fatalf("expected standalone cpu workspace to get pod anti-affinity")
+	}
+	if got := standaloneSpec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchLabels[v1beta1.LabelWorkspaceName]; got != "ws-b" {
+		t.Fatalf("workspace selector = %q, want ws-b", got)
 	}
 }
 

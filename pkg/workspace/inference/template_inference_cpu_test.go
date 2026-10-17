@@ -64,7 +64,20 @@ func TestCreateTemplateInference_CPUWorkspaceOmitsDefaultGPUTolerations(t *testi
 	if !ok {
 		t.Fatalf("expected StatefulSet, got %T", obj)
 	}
-	if len(ss.Spec.Template.Spec.Tolerations) != 0 {
+	hasGPU := false
+	hasCPU := false
+	for _, toleration := range ss.Spec.Template.Spec.Tolerations {
+		if toleration.Key == consts.SKUString && toleration.Value == consts.GPUString {
+			hasGPU = true
+		}
+		if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+			hasCPU = true
+		}
+	}
+	if hasGPU {
 		t.Fatalf("expected cpu template inference to omit default gpu tolerations, got %v", ss.Spec.Template.Spec.Tolerations)
+	}
+	if !hasCPU {
+		t.Fatalf("expected cpu template inference to keep cpu dedicated toleration, got %v", ss.Spec.Template.Spec.Tolerations)
 	}
 }

@@ -137,9 +137,9 @@ var (
 	}
 )
 
-func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
+func defaultTolerationsForTarget(isCPUInference bool) []corev1.Toleration {
 	tolerations := make([]corev1.Toleration, 0, 3)
-	if v1beta1.IsCPUInferenceWorkspace(ws) {
+	if isCPUInference {
 		tolerations = append(tolerations, corev1.Toleration{
 			Effect:   corev1.TaintEffectNoSchedule,
 			Value:    consts.CPUString,
@@ -172,6 +172,10 @@ func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
 	}
 
 	return tolerations
+}
+
+func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
+	return defaultTolerationsForTarget(v1beta1.IsCPUInferenceWorkspace(ws))
 }
 
 func GetInferenceImageInfo(ctx context.Context, workspaceObj *v1beta1.Workspace) []corev1.LocalObjectReference {
@@ -534,13 +538,13 @@ func GetBaseImageName() string {
 }
 
 func getCPUTransformersImageName() string {
-	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, "base-tfs-cpu", presetObj.Tag)
+	presetObj := metadata.MustGet("base-tfs-cpu")
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 func getCPUVLLMImageName() string {
-	presetObj := metadata.MustGet("base")
-	return utils.GetPresetImageName(presetObj.Registry, "base-vllm-cpu", presetObj.Tag)
+	presetObj := metadata.MustGet("base-vllm-cpu")
+	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
 func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) string {
@@ -782,7 +786,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			injectRoutingSidecar(spec)
 		}
 
-		spec.Tolerations = defaultTolerations(ctx.Workspace)
+		spec.Tolerations = defaultTolerationsForTarget(isCPUInference)
 		// Add MIG-specific toleration so pods can schedule onto MIG-tainted nodes
 		// if the cluster operator taints them (the NVIDIA device plugin does not by default).
 		// Only the spec-driven "mixed" path has a per-profile taint key.

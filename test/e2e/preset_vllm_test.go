@@ -56,6 +56,23 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		loadTestEnvVars()
 	})
 
+	It("should create the qwen cpu vllm InferenceSet example successfully", Serial, utils.GinkgoLabelFastCheck, func() {
+		enableWorkspaceManagerFeatureGateForE2E(consts.FeatureFlagEnableCPUInference)
+
+		inferenceSetObj := createQwenCPUVLLMInferenceSetFromExample()
+		DeferCleanup(func() {
+			cleanupResourcesForInferenceSet(inferenceSetObj)
+		})
+
+		validateInferenceSetStatus(inferenceSetObj)
+		validateInferenceSetReplicas(inferenceSetObj, 1)
+
+		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
+		validateWorkspaceReadiness(childWS)
+		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
+		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
+	})
+
 	// MRI and InferenceSet tests run first so they are not interrupted by
 	// slow/flaky GPU-provisioning timeouts in the preset workspace tests below.
 	It("should perform P/D disaggregated inference with KV cache transfer successfully", Serial, utils.GinkgoLabelFastCheck, func() {
@@ -260,23 +277,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceSetStatus(inferenceSetObj)
 		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
 		validateInferenceSetSpeculativeDecodingMTPInjected(inferenceSetObj)
-
-		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
-		validateWorkspaceReadiness(childWS)
-		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
-		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
-	})
-
-	It("should create the qwen cpu vllm InferenceSet example successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		enableWorkspaceManagerFeatureGateForE2E(consts.FeatureFlagEnableCPUInference)
-
-		inferenceSetObj := createQwenCPUVLLMInferenceSetFromExample()
-		DeferCleanup(func() {
-			cleanupResourcesForInferenceSet(inferenceSetObj)
-		})
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, 1)
 
 		childWS := getFirstInferenceSetChildWorkspace(inferenceSetObj)
 		validateWorkspaceReadiness(childWS)

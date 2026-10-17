@@ -1912,8 +1912,9 @@ func TestGetDesiredInferenceImageNameWithResolution_BYOCPUPresetUsesCPUImage(t *
 	if err != nil {
 		t.Fatalf("expected BYO CPU preset image resolution to succeed, got %v", err)
 	}
-	if imageName != CPUVLLMImageName {
-		t.Fatalf("expected BYO CPU preset to use %q, got %q", CPUVLLMImageName, imageName)
+	expectedImageName := getCPUVLLMImageName()
+	if imageName != expectedImageName {
+		t.Fatalf("expected BYO CPU preset to use %q, got %q", expectedImageName, imageName)
 	}
 }
 

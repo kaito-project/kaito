@@ -77,4 +77,10 @@ const (
 	// failures the controller can observe, so a bring-your-own deployment has a
 	// single readiness condition for its model rather than two.
 	WorkspaceConditionTypeModelConfigReady = ConditionType("ModelConfigReady")
+
+	// WorkspaceConditionTypeModelCacheReady indicates whether the model cache is ready.
+	WorkspaceConditionTypeModelCacheReady = ConditionType("ModelCacheReady")
+
+	// WorkspaceConditionTypeKVCacheReady indicates whether the KV cache is ready.
+	WorkspaceConditionTypeKVCacheReady = ConditionType("KVCacheReady")
 )

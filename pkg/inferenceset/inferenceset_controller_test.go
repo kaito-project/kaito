@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -33,10 +34,12 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
@@ -881,5 +884,42 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 			assert.Equal(t, tt.wantOldDeleted, oldDeleted, "old workspaces deleted")
 			assert.Equal(t, tt.wantNewDeleted, newDeleted, "new workspaces deleted")
 		})
+	}
+}
+
+func TestAddOrUpdateInferenceSet_PropagatesCacheAnnotationToWorkspace(t *testing.T) {
+	originalFeatureGate := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = false
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = originalFeatureGate
+	}()
+
+	replicas := int32(1)
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	iObj.Spec.Replicas = &replicas
+	iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "test"}}
+	if iObj.Spec.Template.Annotations == nil {
+		iObj.Spec.Template.Annotations = make(map[string]string)
+	}
+	iObj.Spec.Template.Annotations[cache.ConfigAnnotation] = "cache-attachment"
+
+	mockClient := test.NewClient()
+	mockClient.CreateOrUpdateObjectInMap(iObj)
+	mockClient.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Return(nil)
+	mockClient.On("Create", mock.Anything, mock.IsType(&v1beta1.Workspace{}), mock.Anything).Return(nil)
+	mockClient.On("Get", mock.Anything, mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).Return(nil)
+	mockClient.StatusMock.On("Update", mock.Anything, mock.IsType(&v1beta1.InferenceSet{}), mock.Anything).Return(nil)
+
+	reconciler := NewInferenceSetReconciler(mockClient, test.NewTestScheme(), logr.Discard(), record.NewFakeRecorder(4))
+	_, err := reconciler.addOrUpdateInferenceSet(context.Background(), iObj)
+	assert.NoError(t, err)
+
+	workspaceMap := mockClient.ObjectMap[reflect.TypeOf(&v1beta1.Workspace{})]
+	if len(workspaceMap) != 1 {
+		t.Fatalf("expected one workspace to be created, got %d", len(workspaceMap))
+	}
+	for _, obj := range workspaceMap {
+		workspace := obj.(*v1beta1.Workspace)
+		assert.Equal(t, "cache-attachment", workspace.Annotations[cache.ConfigAnnotation])
 	}
 }

@@ -169,7 +169,12 @@ func generateNodePool(ws *kaitov1beta1.Workspace, cfg NodeClassConfig, nodeClass
 		Effect: corev1.TaintEffectNoSchedule,
 	}}
 	if kaitov1beta1.IsCPUInferenceWorkspace(ws) {
-		nodePoolTaints = nil
+		templateLabels[consts.SKUString] = consts.CPUString
+		nodePoolTaints = []corev1.Taint{{
+			Key:    consts.SKUString,
+			Value:  consts.CPUString,
+			Effect: corev1.TaintEffectNoSchedule,
+		}}
 	}
 
 	np := &karpenterv1.NodePool{

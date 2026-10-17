@@ -906,7 +906,7 @@ func findCondition(conditions []status.Condition, conditionType string) *status.
 // BuildNodeSelector returns requirements that pin pods to nodes provisioned
 // for this workspace. The labels are stamped on NodeClaims by Karpenter.
 func (p *KarpenterProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
-	return []corev1.NodeSelectorRequirement{
+	reqs := []corev1.NodeSelectorRequirement{
 		{
 			Key:      consts.KarpenterWorkspaceNameKey,
 			Operator: corev1.NodeSelectorOpIn,
@@ -918,4 +918,19 @@ func (p *KarpenterProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov
 			Values:   []string{ws.Namespace},
 		},
 	}
+	if createdBy := ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; createdBy != "" {
+		reqs = append(reqs, corev1.NodeSelectorRequirement{
+			Key:      consts.KarpenterInferenceSetKey,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{createdBy},
+		})
+	}
+	if kaitov1beta1.IsCPUInferenceWorkspace(ws) {
+		reqs = append(reqs, corev1.NodeSelectorRequirement{
+			Key:      consts.SKUString,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{consts.CPUString},
+		})
+	}
+	return reqs
 }

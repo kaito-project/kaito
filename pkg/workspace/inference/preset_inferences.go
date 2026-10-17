@@ -139,7 +139,14 @@ var (
 
 func defaultTolerations(ws *v1beta1.Workspace) []corev1.Toleration {
 	tolerations := make([]corev1.Toleration, 0, 3)
-	if !v1beta1.IsCPUInferenceWorkspace(ws) {
+	if v1beta1.IsCPUInferenceWorkspace(ws) {
+		tolerations = append(tolerations, corev1.Toleration{
+			Effect:   corev1.TaintEffectNoSchedule,
+			Value:    consts.CPUString,
+			Key:      consts.SKUString,
+			Operator: corev1.TolerationOpEqual,
+		})
+	} else {
 		tolerations = append(tolerations,
 			corev1.Toleration{
 				Effect:   corev1.TaintEffectNoSchedule,
@@ -747,19 +754,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 
 		// Only set nodeAffinity when the user supplied selector labels.
 		// An empty MatchExpressions list is rejected by the Kubernetes API server.
-		if len(nodeRequirements) > 0 {
-			spec.Affinity = &corev1.Affinity{
-				NodeAffinity: &corev1.NodeAffinity{
-					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
-						NodeSelectorTerms: []corev1.NodeSelectorTerm{
-							{
-								MatchExpressions: nodeRequirements,
-							},
-						},
-					},
-				},
-			}
-		}
+		appendRequiredNodeSelectorRequirements(spec, nodeRequirements)
+		applyCPUDedicatedPlacement(ctx.Workspace, spec, isCPUInference)
 		spec.ImagePullSecrets = GetInferenceImageInfo(ctx.Ctx, ctx.Workspace)
 
 		// Use the model's ReadinessTimeout if specified; otherwise fall back to the
@@ -1217,7 +1213,14 @@ func ApplyProvisionerNodeSelector(ctx context.Context, provisioner nodeprovision
 	if len(extra) == 0 {
 		return nil
 	}
+	appendRequiredNodeSelectorRequirements(spec, extra)
+	return nil
+}
 
+func appendRequiredNodeSelectorRequirements(spec *corev1.PodSpec, reqs []corev1.NodeSelectorRequirement) {
+	if spec == nil || len(reqs) == 0 {
+		return
+	}
 	if spec.Affinity == nil {
 		spec.Affinity = &corev1.Affinity{}
 	}
@@ -1234,8 +1237,39 @@ func ApplyProvisionerNodeSelector(ctx context.Context, provisioner nodeprovision
 	if len(nodeSel.NodeSelectorTerms) == 0 {
 		nodeSel.NodeSelectorTerms = []corev1.NodeSelectorTerm{{}}
 	}
-	nodeSel.NodeSelectorTerms[0].MatchExpressions = append(nodeSel.NodeSelectorTerms[0].MatchExpressions, extra...)
-	return nil
+	nodeSel.NodeSelectorTerms[0].MatchExpressions = append(nodeSel.NodeSelectorTerms[0].MatchExpressions, reqs...)
+}
+
+func applyCPUDedicatedPlacement(ws *v1beta1.Workspace, spec *corev1.PodSpec, isCPUInference bool) {
+	if spec == nil || !isCPUInference || ws == nil {
+		return
+	}
+	if spec.Affinity == nil {
+		spec.Affinity = &corev1.Affinity{}
+	}
+	if spec.Affinity.PodAntiAffinity == nil {
+		spec.Affinity.PodAntiAffinity = &corev1.PodAntiAffinity{}
+	}
+
+	selector := map[string]string{}
+	if createdBy := strings.TrimSpace(ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]); createdBy != "" {
+		selector[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
+	} else if ws.Name != "" {
+		selector[v1beta1.LabelWorkspaceName] = ws.Name
+	}
+	if len(selector) == 0 {
+		return
+	}
+
+	spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution = append(
+		spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution,
+		corev1.PodAffinityTerm{
+			TopologyKey: corev1.LabelHostname,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: selector,
+			},
+		},
+	)
 }
 
 // applyInferenceRoleEnv sets inference-related env vars on the main inference

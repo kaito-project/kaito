@@ -2493,6 +2493,50 @@ func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
 	}
 }
 
+func TestGeneratePresetInference_BYOCPUTargetSnapshotChangeReturnsRetryableError(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	mockClient := test.NewClient()
+	cpuNode := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "cpu-node",
+			Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "amd64"},
+		},
+		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	}
+	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
+		Run(func(args mock.Arguments) {
+			nodeListArg := args.Get(1).(*corev1.NodeList)
+			nodeListArg.Items = []corev1.Node{*cpuNode}
+		}).Return(nil).Once()
+	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
+		Run(func(args mock.Arguments) {
+			nodeListArg := args.Get(1).(*corev1.NodeList)
+			nodeListArg.Items = nil
+		}).Return(nil).Once()
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	workspace.Resource.InstanceType = ""
+	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
+	workspace.Status.TargetNodeCount = 1
+
+	_, err := GeneratePresetInference(context.Background(), workspace, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), mockClient, nil)
+	if err == nil {
+		t.Fatalf("expected inconsistent cpu target snapshot to return an error")
+	}
+	if !strings.Contains(err.Error(), "inference target resolution changed during pod generation") {
+		t.Fatalf("expected retryable inconsistent snapshot error, got %v", err)
+	}
+}
+
 // TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
 // provisioning is gated on models that require runtime CUDA compilation: such a model gets a
 // cuda-toolkit-provisioner init container and a read-write hostPath at the

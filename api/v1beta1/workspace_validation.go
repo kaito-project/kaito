@@ -96,6 +96,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 		}
 		if w.Inference != nil {
+			errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 		}
 		// Validate speculative decoding annotation on updates too.
@@ -126,6 +127,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 		}
 
 		runtime := GetWorkspaceRuntimeName(w)
+		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 		// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 		errs = errs.Also(
 			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
@@ -170,6 +172,58 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 			))
 		}
 	}
+	return errs
+}
+
+func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
+	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
+		return nil
+	}
+
+	isCPUTarget, resolveErr := ResolveCPUInferenceTarget(ctx, w.Inference, w.Resource.InstanceType, w.Resource.LabelSelector, kubeClient)
+	if resolveErr != nil {
+		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", resolveErr), "resource.labelSelector"))
+		return errs
+	}
+	if !isCPUTarget {
+		return errs
+	}
+
+	runtimeName := GetWorkspaceRuntimeName(w)
+	if w.GetAnnotations() != nil {
+		runtime := w.GetAnnotations()[AnnotationWorkspaceRuntime]
+		if runtime != "" && runtime != string(model.RuntimeNameHuggingfaceTransformers) && runtime != string(model.RuntimeNameVLLM) {
+			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
+		}
+	}
+	if runtimeName == model.RuntimeNameVLLM && w.Inference != nil {
+		if w.Resource.InstanceType != "" && !IsAMD64CompatibleVLLMCPUInstanceType(w.Resource.InstanceType) {
+			errs = errs.Also(apis.ErrInvalidValue(
+				fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", w.Resource.InstanceType),
+				"resource.instanceType",
+			))
+		}
+		if featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] && w.Resource.InstanceType == "" {
+			isAMD64, err := AreLabelSelectedReadyNodesAMD64(ctx, w.Resource.LabelSelector, "", kubeClient)
+			if err != nil {
+				errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to validate CPU node architecture: %v", err), "resource.labelSelector"))
+			} else if !isAMD64 {
+				errs = errs.Also(apis.ErrInvalidValue(
+					"vLLM CPU runtime only supports amd64 BYO nodes; matched ready nodes must report kubernetes.io/arch=amd64",
+					"resource.labelSelector",
+				))
+			}
+		}
+	}
+
+	count := 1
+	if w.Resource.Count != nil {
+		count = *w.Resource.Count
+	}
+	if count != 1 {
+		errs = errs.Also(apis.ErrInvalidValue("basic CPU inference only supports a single node per Workspace", "resource.count"))
+	}
+
 	return errs
 }
 
@@ -601,6 +655,11 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 	}
 
 	napDisabled := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	isCPUInference, cpuResolveErr := ResolveCPUInferenceTarget(ctx, inference, instanceType, r.LabelSelector, k8sclient.Client)
+	if cpuResolveErr != nil {
+		errs = errs.Also(apis.ErrGeneric(fmt.Sprintf("failed to resolve CPU inference target: %v", cpuResolveErr), "labelSelector"))
+		return errs
+	}
 
 	// Defer GPU-memory sufficiency checks when BYO reconciliation selects the
 	// effective SKU. Admission accepts the workspace and lets it remain Pending
@@ -614,9 +673,19 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			if pErr := r.validatePartition(); pErr != nil {
 				return errs.Also(pErr)
 			}
+			if isCPUInference {
+				return errs.Also(apis.ErrInvalidValue(
+					"basic CPU inference does not support resource.partition",
+					"resource.partition",
+				))
+			}
 			if r.Partition.Mode == PartitionModeMIG && presetName != "" {
 				errs = errs.Also(r.validateMIGModelFit(ctx, presetName, configMapName, secretName, wsNamespace, bypassResourceChecks))
 			}
+			return errs
+		}
+
+		if isCPUInference {
 			return errs
 		}
 
@@ -721,6 +790,18 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 		// GPU partitioning (MIG or accelerator) is only supported on BYO nodes.
 		if r.Partition != nil {
 			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
+		}
+		if isCPUInference {
+			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
+				errs = errs.Also(err)
+			}
+			if runtime == model.RuntimeNameVLLM && !IsAMD64CompatibleVLLMCPUInstanceType(instanceType) {
+				errs = errs.Also(apis.ErrInvalidValue(
+					fmt.Sprintf("vLLM CPU runtime only supports amd64 CPU instance types; %s is not supported", instanceType),
+					"instanceType",
+				))
+			}
+			return errs
 		}
 		// Regardless of if preset is empty or not, we do want to make sure the instance type is valid for NAP and can't skip node validation like BYO.
 		skuHandler, err := sku.GetSKUHandler()
@@ -894,6 +975,57 @@ func (r *ResourceSpec) validateMIGModelFit(ctx context.Context, presetName, conf
 			"partition")
 	}
 	return errs
+}
+
+func ValidateCPUInstanceTypeForNAP(instanceType string) *apis.FieldError {
+	if instanceType == "" {
+		return apis.ErrMissingField("instanceType is required when node auto-provisioning is enabled", "instanceType")
+	}
+
+	provider := os.Getenv("CLOUD_PROVIDER")
+
+	switch provider {
+	case consts.AzureCloudName:
+		if !isAzureCPUInstanceType(instanceType) {
+			if isAzureGPUOrAcceleratorSKU(instanceType) {
+				return apis.ErrInvalidValue(
+					fmt.Sprintf("unsupported CPU instance type %s. Azure N-series GPU/accelerator SKUs are not allowed for the basic CPU path", instanceType),
+					"instanceType",
+				)
+			}
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed Azure CPU instance type such as Standard_D8s_v5 or Standard_E8s_v5", instanceType),
+				"instanceType",
+			)
+		}
+		return nil
+	case consts.AWSCloudName:
+		if !awsCPUInstanceTypePattern.MatchString(instanceType) {
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed AWS CPU instance type such as m6i.2xlarge or r7i.4xlarge", instanceType),
+				"instanceType",
+			)
+		}
+
+		familyPart := strings.ToLower(strings.SplitN(instanceType, ".", 2)[0])
+		matches := awsInstanceFamilyPattern.FindStringSubmatch(familyPart)
+		if len(matches) < 2 {
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. Expected a well-formed AWS CPU instance type such as m6i.2xlarge or r7i.4xlarge", instanceType),
+				"instanceType",
+			)
+		}
+
+		if isAWSGPUOrAcceleratorInstanceType(instanceType) {
+			return apis.ErrInvalidValue(
+				fmt.Sprintf("unsupported CPU instance type %s. GPU/accelerator-oriented AWS families (g*, p*, inf*, trn*, dl*) are not allowed for the basic CPU path", instanceType),
+				"instanceType",
+			)
+		}
+		return nil
+	default:
+		return nil
+	}
 }
 
 func (r *ResourceSpec) validateUpdate(old *ResourceSpec) (errs *apis.FieldError) {

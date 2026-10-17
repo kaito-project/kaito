@@ -116,7 +116,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									InferenceSetHashAnnotation: "8b215f13847260f94d2debfebec7ee9540a7b2c08c0d5cabdfdded1ca133f6cc",
+									InferenceSetHashAnnotation: utilsinferenceset.ComputeInferenceSetHash(&test.MockInferenceSetWithComputeHash),
 								},
 							},
 							Revision: 1,
@@ -422,7 +422,7 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 // --------------------------------------------------------------------------
 
 func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
-	t.Run("updates speculative decoding annotation without clobbering unrelated child annotations", func(t *testing.T) {
+	t.Run("updates speculative decoding and runtime annotations without clobbering unrelated child annotations", func(t *testing.T) {
 		prevProvisioner := consts.ActiveNodeProvisioner
 		consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 		defer func() { consts.ActiveNodeProvisioner = prevProvisioner }()
@@ -430,6 +430,9 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 		iObj.Labels = map[string]string{
 			v1beta1.LabelInferenceRole: "prefill",
+		}
+		iObj.Annotations = map[string]string{
+			v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 		}
 		iObj.Spec.Template.Labels = map[string]string{
 			"team": "serving",
@@ -447,6 +450,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		}
 		ws.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "false",
+			v1beta1.AnnotationWorkspaceRuntime:          string(model.RuntimeNameVLLM),
 			v1beta1.AnnotationCapacityType:              "reserved",
 			v1beta1.AnnotationDisableBenchmark:          "true",
 			"workspace.kaito.io/hash":                   "hash",
@@ -462,6 +466,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
 		assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
 		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
+		assert.Equal(t, string(model.RuntimeNameHuggingfaceTransformers), ws.Annotations[v1beta1.AnnotationWorkspaceRuntime])
 		assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
@@ -693,7 +698,8 @@ func assertWorkspaceCount(t *testing.T, ctx context.Context, cl client.Client, i
 func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"
-	desiredImage := inference.GetBaseImageName()
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
 	oldImage := desiredImage + "-old"
 
 	type wsSpec struct {
@@ -865,7 +871,7 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 			cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
 			c := &InferenceSetReconciler{Client: cl}
 
-			toDelete, err := c.selectWorkspacesToDelete(ctx, wss, tt.desiredReplicas, tt.numToDelete)
+			toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wss, tt.desiredReplicas, tt.numToDelete)
 			assert.NoError(t, err)
 			assert.Len(t, toDelete, tt.wantDeleted)
 
@@ -882,4 +888,36 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 			assert.Equal(t, tt.wantNewDeleted, newDeleted, "new workspaces deleted")
 		})
 	}
+}
+
+func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.T) {
+	ctx := context.Background()
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
+
+	wss := []v1beta1.Workspace{
+		{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
+		{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
+	}
+	objs := []client.Object{
+		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "old-cpu", Image: inference.GetBaseImageName()}}}}}},
+		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "new-cpu", Image: desiredImage}}}}}},
+	}
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
+	c := &InferenceSetReconciler{Client: cl}
+
+	toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wss, 1, 1)
+	assert.NoError(t, err)
+	assert.Len(t, toDelete, 1)
+	assert.Equal(t, "old-cpu", toDelete[0].Name)
 }

@@ -19,10 +19,11 @@ dev environments without a GPU or vllm installed.
 """
 
 import argparse
+import asyncio
 import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -82,6 +83,7 @@ _PARENT = str(Path(__file__).resolve().parent.parent)
 if _PARENT not in sys.path:
     sys.path.insert(0, _PARENT)
 
+import health  # noqa: E402
 import inference_api  # noqa: E402
 from inference_api import (  # noqa: E402
     ModelDownloadMonitor,
@@ -593,6 +595,7 @@ class TestConfigureMiddlewares:
 
         assert args.middleware == [
             "custom.Middleware",
+            "health.HealthMiddleware",
             "benchmark_control.BenchmarkControlMiddleware",
             "rate_limit.RateLimitMiddleware",
         ]
@@ -606,4 +609,95 @@ class TestConfigureMiddlewares:
 
         inference_api.configure_middlewares(args)
 
-        assert args.middleware == ["rate_limit.RateLimitMiddleware"]
+        assert args.middleware == [
+            "health.HealthMiddleware",
+            "rate_limit.RateLimitMiddleware",
+        ]
+
+
+class TestHealthMiddleware:
+    def _make_request(self, path="/health", engine_client=None):
+        return SimpleNamespace(
+            url=SimpleNamespace(path=path),
+            app=SimpleNamespace(state=SimpleNamespace(engine_client=engine_client)),
+        )
+
+    def _dispatch(self, middleware, request, response):
+        async def _call_next(_request):
+            return response
+
+        return asyncio.run(middleware.dispatch(request, _call_next))
+
+    def test_preserves_native_healthy_response(self, monkeypatch):
+        monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
+        middleware = health.HealthMiddleware(app=None)
+        response = SimpleNamespace(status_code=200, content={"status": "native-ok"})
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=AssertionError("should not be called"))
+        )
+
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
+
+        assert actual is response
+
+    def test_preserves_native_unhealthy_response(self, monkeypatch):
+        monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
+        middleware = health.HealthMiddleware(app=None)
+        response = SimpleNamespace(
+            status_code=503, content={"error": "native-unhealthy"}
+        )
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=AssertionError("should not be called"))
+        )
+
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
+
+        assert actual is response
+
+    def test_cpu_openai_layout_falls_back_to_healthy_200(self, monkeypatch):
+        monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
+        middleware = health.HealthMiddleware(app=None)
+        response = SimpleNamespace(status_code=404, content={"detail": "not found"})
+        engine = SimpleNamespace(check_health=AsyncMock(return_value=None))
+
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
+
+        assert actual.status_code == 200
+        assert actual.content == {"status": "ok"}
+        engine.check_health.assert_awaited_once()
+
+    def test_cpu_openai_layout_surfaces_engine_health_failures(self, monkeypatch):
+        monkeypatch.setenv("VLLM_TARGET_DEVICE", "cpu")
+        middleware = health.HealthMiddleware(app=None)
+        response = SimpleNamespace(status_code=404, content={"detail": "not found"})
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=RuntimeError("engine unhealthy"))
+        )
+
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
+
+        assert actual.status_code == 503
+        assert actual.content == {"error": "engine unhealthy"}
+        engine.check_health.assert_awaited_once()
+
+    def test_gpu_404_layout_does_not_synthesize_health(self, monkeypatch):
+        monkeypatch.setenv("VLLM_TARGET_DEVICE", "cuda")
+        middleware = health.HealthMiddleware(app=None)
+        response = SimpleNamespace(status_code=404, content={"detail": "not found"})
+        engine = SimpleNamespace(
+            check_health=AsyncMock(side_effect=AssertionError("should not be called"))
+        )
+
+        actual = self._dispatch(
+            middleware, self._make_request(engine_client=engine), response
+        )
+
+        assert actual is response

@@ -20,10 +20,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/pkg/featuregates"
+	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -92,14 +96,72 @@ func TestValidateInferenceSetMaintenanceWindow(t *testing.T) {
 }
 
 func TestInferenceSetBenchmarkHelpers(t *testing.T) {
+	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{},
 		},
+		Spec: InferenceSetSpec{
+			Template: InferenceSetTemplate{
+				Resource: InferenceSetResourceSpec{InstanceType: "Standard_NC24ads_A100_v4"},
+				Inference: InferenceSpec{
+					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}},
+				},
+			},
+		},
 	}
-	_ = GetInferenceSetRuntimeName(is)
-	_ = IsInferenceSetBenchmarkEnabled(is)
-	_ = ShouldRunInferenceSetBenchmark(is)
+	assert.Equal(t, model.RuntimeNameVLLM, GetInferenceSetRuntimeName(is))
+	assert.True(t, IsInferenceSetBenchmarkEnabled(is))
+	assert.True(t, ShouldRunInferenceSetBenchmark(is))
+
+	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	assert.False(t, ShouldRunInferenceSetBenchmark(is), "basic CPU inference should skip parent benchmark applicability")
+
+	is.Annotations[AnnotationDisableBenchmark] = "true"
+	assert.False(t, ShouldRunInferenceSetBenchmark(is))
+}
+
+func TestResolveInferenceSetBenchmarkApplicability_BYOCPUPresetSkipsParentBenchmark(t *testing.T) {
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldNAP := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAP
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	scheme := runtime.NewScheme()
+	assert.NoError(t, corev1.AddToScheme(scheme))
+	nodeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "cpu-node",
+			Labels: map[string]string{
+				"kaito.sh/cpu-inference": "true",
+				corev1.LabelArchStable:   "amd64",
+			},
+		},
+		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	}).Build()
+
+	is := &InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}},
+		Spec: InferenceSetSpec{
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			Template: InferenceSetTemplate{
+				Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}},
+			},
+		},
+	}
+
+	benchmarkApplicable, err := ResolveInferenceSetBenchmarkApplicability(context.Background(), is, nodeClient)
+	assert.NoError(t, err)
+	assert.False(t, benchmarkApplicable, "BYO CPU presets with empty instanceType should skip parent benchmark applicability")
 }
 
 func TestInferenceSetMIGImmutable(t *testing.T) {

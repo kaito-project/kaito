@@ -23,6 +23,7 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -301,6 +302,34 @@ func TestGenerateNodePool_InferenceSet(t *testing.T) {
 	// InferenceSet labels on template for drift controller mapping
 	assert.Equal(t, "my-infset", np.Spec.Template.Labels[consts.KarpenterInferenceSetKey])
 	assert.Equal(t, "prod", np.Spec.Template.Labels[consts.KarpenterInferenceSetNamespaceKey])
+}
+
+func TestGenerateNodePool_CPUWorkspaceOmitsGPUTaint(t *testing.T) {
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+	one := 1
+	ws := &kaitov1beta1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu-ws", Namespace: "default"},
+		Resource:   kaitov1beta1.ResourceSpec{Count: &one, InstanceType: "Standard_D8s_v5"},
+		Inference: &kaitov1beta1.InferenceSpec{
+			Template: &corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{Name: "cpu", Image: "example.com/cpu:latest"}},
+				},
+			},
+		},
+		Status: kaitov1beta1.WorkspaceStatus{TargetNodeCount: 1},
+	}
+
+	np := generateNodePool(ws, testConfig, testConfig.DefaultName, consts.KarpenterCapacityTypeOnDemand)
+	assert.Equal(t, 1, len(np.Spec.Template.Spec.Taints))
+	assert.Equal(t, consts.SKUString, np.Spec.Template.Spec.Taints[0].Key)
+	assert.Equal(t, consts.CPUString, np.Spec.Template.Spec.Taints[0].Value)
+	assert.Equal(t, consts.CPUString, np.Spec.Template.Labels[consts.SKUString])
 }
 
 func TestGenerateNodePool_WithAnnotation(t *testing.T) {

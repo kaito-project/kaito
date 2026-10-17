@@ -650,37 +650,64 @@ func TestComputeHashIncludesOnlyEnabledSpeculativeDecodingState(t *testing.T) {
 }
 
 func TestSyncInferenceMutablePodSpec(t *testing.T) {
-	existing := &corev1.PodSpec{
-		Containers: []corev1.Container{{
-			Name:         "inference",
-			Command:      []string{"old-cmd"},
-			Args:         []string{"old-arg"},
-			Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
-			VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
-		}},
-		InitContainers: []corev1.Container{{Name: "old-init"}},
-		Volumes:        []corev1.Volume{{Name: "old-vol"}},
-	}
-	desired := &corev1.PodSpec{
-		Containers: []corev1.Container{{
-			Name:         "inference",
-			Command:      []string{"new-cmd"},
-			Args:         []string{"new-arg"},
-			Env:          []corev1.EnvVar{{Name: "NEW", Value: "2"}},
-			VolumeMounts: []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
-		}},
-		InitContainers: []corev1.Container{{Name: "new-init"}},
-		Volumes:        []corev1.Volume{{Name: "new-vol"}},
+	makeSpecs := func() (*corev1.PodSpec, *corev1.PodSpec) {
+		existing := &corev1.PodSpec{
+			Containers: []corev1.Container{{
+				Name:         "inference",
+				Image:        "old-image:latest",
+				Command:      []string{"old-cmd"},
+				Args:         []string{"old-arg"},
+				Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
+				VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+			}},
+			InitContainers: []corev1.Container{{Name: "old-init"}},
+			Volumes:        []corev1.Volume{{Name: "old-vol"}},
+		}
+		desired := &corev1.PodSpec{
+			Containers: []corev1.Container{{
+				Name:         "inference",
+				Image:        "new-image:latest",
+				Command:      []string{"new-cmd"},
+				Args:         []string{"new-arg"},
+				Env:          []corev1.EnvVar{{Name: "NEW", Value: "2"}},
+				VolumeMounts: []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
+			}},
+			InitContainers: []corev1.Container{{Name: "new-init"}},
+			Volumes:        []corev1.Volume{{Name: "new-vol"}},
+		}
+		return existing, desired
 	}
 
-	syncInferenceMutablePodSpec(existing, desired)
+	t.Run("copies image for runtime or cpu-path switch", func(t *testing.T) {
+		existing, desired := makeSpecs()
+		syncInferenceMutablePodSpec(existing, desired, true)
+		assert.Equal(t, desired.Containers[0].Image, existing.Containers[0].Image)
+		assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
+		assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
+		assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
+		assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
+		assert.Equal(t, desired.InitContainers, existing.InitContainers)
+		assert.Equal(t, desired.Volumes, existing.Volumes)
+	})
 
-	assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
-	assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
-	assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
-	assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
-	assert.Equal(t, desired.InitContainers, existing.InitContainers)
-	assert.Equal(t, desired.Volumes, existing.Volumes)
+	t.Run("preserves image for same-runtime mutable spec refresh", func(t *testing.T) {
+		existing, desired := makeSpecs()
+		originalImage := existing.Containers[0].Image
+		syncInferenceMutablePodSpec(existing, desired, false)
+		assert.Equal(t, originalImage, existing.Containers[0].Image)
+		assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
+		assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
+		assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
+		assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
+		assert.Equal(t, desired.InitContainers, existing.InitContainers)
+		assert.Equal(t, desired.Volumes, existing.Volumes)
+	})
+}
+
+func TestInferenceImageVariant(t *testing.T) {
+	assert.Equal(t, "cpu-vllm", inferenceImageVariant("example.com/presets/base-vllm-cpu:1.2.3"))
+	assert.Equal(t, "cpu-transformers", inferenceImageVariant("example.com/presets/base-tfs-cpu:1.2.3"))
+	assert.Equal(t, "base", inferenceImageVariant("example.com/presets/base:1.2.3"))
 }
 
 func TestSyncControllerRevision(t *testing.T) {

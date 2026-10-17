@@ -25,6 +25,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
@@ -268,7 +269,7 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 // BuildNodeSelector returns requirements that pin pods to nodes provisioned
 // for this workspace. The labels are stamped on NodeClaims by gpu-provisioner.
 func (g *AzureGPUProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement {
-	return []corev1.NodeSelectorRequirement{
+	reqs := []corev1.NodeSelectorRequirement{
 		{
 			Key:      kaitov1beta1.LabelWorkspaceName,
 			Operator: corev1.NodeSelectorOpIn,
@@ -280,4 +281,19 @@ func (g *AzureGPUProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov1
 			Values:   []string{ws.Namespace},
 		},
 	}
+	if kaitov1beta1.IsCPUInferenceWorkspace(ws) {
+		if createdBy := ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; createdBy != "" {
+			reqs = append(reqs, corev1.NodeSelectorRequirement{
+				Key:      consts.WorkspaceCreatedByInferenceSetLabel,
+				Operator: corev1.NodeSelectorOpIn,
+				Values:   []string{createdBy},
+			})
+		}
+		reqs = append(reqs, corev1.NodeSelectorRequirement{
+			Key:      consts.SKUString,
+			Operator: corev1.NodeSelectorOpIn,
+			Values:   []string{consts.CPUString},
+		})
+	}
+	return reqs
 }

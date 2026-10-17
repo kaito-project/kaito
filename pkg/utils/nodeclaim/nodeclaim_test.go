@@ -162,6 +162,26 @@ func TestWaitForPendingNodeClaims(t *testing.T) {
 	}
 }
 
+func TestGenerateNodeClaimManifest_PreservesControllerOwnedInferenceSetLabel(t *testing.T) {
+	ws := test.MockWorkspaceWithPreset.DeepCopy()
+	ws.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "cpu-set"}
+	ws.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
+		consts.WorkspaceCreatedByInferenceSetLabel: "user-pool",
+		"nodepool": "cpu",
+	}}
+
+	nc := GenerateNodeClaimManifestWithOptions("0", ws, ManifestOptions{})
+	if nc == nil {
+		t.Fatalf("expected nodeclaim manifest")
+	}
+	if got := nc.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; got != "cpu-set" {
+		t.Fatalf("expected controller-owned created-by label to be preserved, got %q", got)
+	}
+	if got := nc.Labels["nodepool"]; got != "cpu" {
+		t.Fatalf("expected non-reserved selector label to be preserved, got %q", got)
+	}
+}
+
 func TestGenerateNodeClaimManifest(t *testing.T) {
 	testCases := []struct {
 		name                     string
@@ -290,6 +310,14 @@ func TestGenerateNodeClaimManifest(t *testing.T) {
 			assert.Check(t, nodeClaim.Spec.NodeClassRef != nil, "NodeClaim must have NodeClassRef")
 			assert.Equal(t, nodeClaim.Spec.NodeClassRef.Kind, tc.expectedNodeClassKind, "NodeClaim must have expected nodeclass kind")
 			assert.Equal(t, nodeClaim.Spec.NodeClassRef.Group, tc.expectedNodeClassGroup, "NodeClaim must have expected nodeclass group")
+			assert.Equal(t, 1, len(nodeClaim.Spec.Taints), "NodeClaim must have a dedicated sku taint")
+			assert.Equal(t, consts.SKUString, nodeClaim.Spec.Taints[0].Key, "NodeClaim taint key mismatch")
+			if kaitov1beta1.IsCPUInferenceWorkspace(workspace) {
+				assert.Equal(t, consts.CPUString, nodeClaim.Spec.Taints[0].Value, "CPU NodeClaim must use cpu taint")
+				assert.Equal(t, consts.CPUString, nodeClaim.Labels[consts.SKUString], "CPU NodeClaim must carry cpu sku label")
+			} else {
+				assert.Equal(t, consts.GPUString, nodeClaim.Spec.Taints[0].Value, "GPU NodeClaim must use gpu taint")
+			}
 
 			imageFamily, found := nodeClaim.Annotations[kaitov1beta1.AnnotationNodeImageFamily]
 			if tc.expectImageFamilyPresent {

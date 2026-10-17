@@ -28,8 +28,10 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -39,6 +41,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
+	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
@@ -1188,17 +1191,57 @@ func TestSetAdapterPuller(t *testing.T) {
 }
 
 func TestDefaultTolerations(t *testing.T) {
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
 	testcases := map[string]struct {
 		cloudProvider string
+		workspace     *v1beta1.Workspace
 		expectSpot    bool
+		expectGPU     bool
+		expectCPU     bool
 	}{
-		"azure includes spot toleration": {
+		"azure gpu workspace includes gpu and spot tolerations": {
 			cloudProvider: consts.AzureCloudName,
-			expectSpot:    true,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
+			},
+			expectSpot: true,
+			expectGPU:  true,
+			expectCPU:  false,
+		},
+		"azure cpu workspace keeps spot toleration": {
+			cloudProvider: consts.AzureCloudName,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "cpu-workspace"},
+				Inference: &v1beta1.InferenceSpec{
+					Template: &corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{Containers: []corev1.Container{{
+							Name:  "cpu",
+							Image: "example.com/cpu:latest",
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
+								Limits:   corev1.ResourceList{corev1.ResourceCPU: resource.MustParse("2")},
+							},
+						}}},
+					},
+				},
+			},
+			expectSpot: true,
+			expectGPU:  false,
+			expectCPU:  true,
 		},
 		"aws excludes spot toleration": {
 			cloudProvider: consts.AWSCloudName,
-			expectSpot:    false,
+			workspace: &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
+			},
+			expectSpot: false,
+			expectGPU:  true,
+			expectCPU:  false,
 		},
 	}
 
@@ -1206,19 +1249,93 @@ func TestDefaultTolerations(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
 
-			actual := defaultTolerations(&v1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
-			})
+			actual := defaultTolerations(tc.workspace)
 			hasSpot := false
+			hasGPU := false
+			hasCPU := false
 			for _, toleration := range actual {
 				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
 					hasSpot = true
-					break
+				}
+				if toleration.Key == nodes.CapacityNvidiaGPU || (toleration.Key == consts.SKUString && toleration.Value == consts.GPUString) {
+					hasGPU = true
+				}
+				if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+					hasCPU = true
 				}
 			}
 
 			if hasSpot != tc.expectSpot {
 				t.Fatalf("spot toleration presence = %v, want %v", hasSpot, tc.expectSpot)
+			}
+			if hasGPU != tc.expectGPU {
+				t.Fatalf("gpu toleration presence = %v, want %v", hasGPU, tc.expectGPU)
+			}
+			if hasCPU != tc.expectCPU {
+				t.Fatalf("cpu toleration presence = %v, want %v", hasCPU, tc.expectCPU)
+			}
+		})
+	}
+}
+
+func TestApplyCPUDedicatedPlacement(t *testing.T) {
+	cpuWS := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-a", Namespace: "ns-a"}}
+	cpuWS.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "iset-a"}
+	cpuWS.Inference = &v1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "example.com/cpu:latest"}}}}}
+	cpuWS.Resource = v1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}
+
+	spec := &corev1.PodSpec{}
+	applyCPUDedicatedPlacement(cpuWS, spec, true)
+	if spec.Affinity == nil || spec.Affinity.PodAntiAffinity == nil {
+		t.Fatalf("expected pod anti-affinity to be configured")
+	}
+	terms := spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	if len(terms) != 1 {
+		t.Fatalf("expected 1 required pod anti-affinity term, got %d", len(terms))
+	}
+	if terms[0].TopologyKey != corev1.LabelHostname {
+		t.Fatalf("topologyKey = %q, want %q", terms[0].TopologyKey, corev1.LabelHostname)
+	}
+	if got := terms[0].LabelSelector.MatchLabels[consts.WorkspaceCreatedByInferenceSetLabel]; got != "iset-a" {
+		t.Fatalf("inferenceset selector = %q, want iset-a", got)
+	}
+
+	standaloneSpec := &corev1.PodSpec{}
+	applyCPUDedicatedPlacement(&v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-b"}}, standaloneSpec, true)
+	if standaloneSpec.Affinity == nil || standaloneSpec.Affinity.PodAntiAffinity == nil {
+		t.Fatalf("expected standalone cpu workspace to get pod anti-affinity")
+	}
+	if got := standaloneSpec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchLabels[v1beta1.LabelWorkspaceName]; got != "ws-b" {
+		t.Fatalf("workspace selector = %q, want ws-b", got)
+	}
+}
+
+func TestDefaultCPUVLLMMaxModelLen(t *testing.T) {
+	testcases := map[string]struct {
+		params *pkgmodel.PresetParam
+		want   int
+	}{
+		"nil params use default": {
+			want: 2048,
+		},
+		"zero token limit uses default": {
+			params: &pkgmodel.PresetParam{},
+			want:   2048,
+		},
+		"smaller model token limit caps default": {
+			params: &pkgmodel.PresetParam{ModelTokenLimit: 1024},
+			want:   1024,
+		},
+		"larger model token limit keeps default": {
+			params: &pkgmodel.PresetParam{ModelTokenLimit: 4096},
+			want:   2048,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			if got := defaultCPUVLLMMaxModelLen(tc.params); got != tc.want {
+				t.Fatalf("defaultCPUVLLMMaxModelLen() = %d, want %d", got, tc.want)
 			}
 		})
 	}
@@ -1876,6 +1993,145 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	}
 }
 
+func TestGetDesiredInferenceImageNameWithResolution_BYOCPUPresetUsesCPUImage(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "cpu-node",
+			Labels: map[string]string{
+				"kaito.sh/cpu-inference": "true",
+				corev1.LabelArchStable:   "amd64",
+			},
+		},
+		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	}).Build()
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	workspace.Resource.InstanceType = ""
+	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
+
+	imageName, err := GetDesiredInferenceImageNameWithResolution(context.Background(), workspace, kubeClient)
+	if err != nil {
+		t.Fatalf("expected BYO CPU preset image resolution to succeed, got %v", err)
+	}
+	expectedImageName := getCPUVLLMImageName()
+	if imageName != expectedImageName {
+		t.Fatalf("expected BYO CPU preset to use %q, got %q", expectedImageName, imageName)
+	}
+}
+
+func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatalf("failed to add corev1 scheme: %v", err)
+	}
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "cpu-node",
+			Labels: map[string]string{
+				"kaito.sh/cpu-inference": "true",
+				corev1.LabelArchStable:   "amd64",
+			},
+		},
+		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	}).Build()
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	workspace.Resource.InstanceType = ""
+	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
+	workspace.Status.TargetNodeCount = 1
+
+	result, err := GeneratePresetInference(context.Background(), workspace, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), kubeClient, nil)
+	if err != nil {
+		t.Fatalf("expected BYO CPU preset generation to succeed, got %v", err)
+	}
+	ss := result.Workload.(*appsv1.StatefulSet)
+	hasCPUToleration := false
+	hasGPUToleration := false
+	for _, toleration := range ss.Spec.Template.Spec.Tolerations {
+		if toleration.Key == consts.SKUString && toleration.Value == consts.CPUString {
+			hasCPUToleration = true
+		}
+		if toleration.Key == consts.SKUString && toleration.Value == consts.GPUString {
+			hasGPUToleration = true
+		}
+	}
+	if !hasCPUToleration {
+		t.Fatalf("expected BYO CPU preset to include cpu dedicated toleration, got %v", ss.Spec.Template.Spec.Tolerations)
+	}
+	if hasGPUToleration {
+		t.Fatalf("expected BYO CPU preset to omit gpu toleration, got %v", ss.Spec.Template.Spec.Tolerations)
+	}
+}
+
+func TestGeneratePresetInference_BYOCPUTargetSnapshotChangeReturnsRetryableError(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	mockClient := test.NewClient()
+	cpuNode := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "cpu-node",
+			Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "amd64"},
+		},
+		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	}
+	listCalls := 0
+	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
+		Run(func(args mock.Arguments) {
+			nodeListArg := args.Get(1).(*corev1.NodeList)
+			if listCalls == 0 {
+				nodeListArg.Items = []corev1.Node{*cpuNode}
+			} else {
+				nodeListArg.Items = nil
+			}
+			listCalls++
+		}).Return(nil).Times(3)
+
+	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	workspace.Resource.InstanceType = ""
+	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
+	workspace.Status.TargetNodeCount = 1
+
+	_, err := GeneratePresetInference(context.Background(), workspace, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), mockClient, nil)
+	if err == nil {
+		t.Fatalf("expected inconsistent cpu target snapshot to return an error")
+	}
+	if !strings.Contains(err.Error(), "inference target resolution changed during pod generation") {
+		t.Fatalf("expected retryable inconsistent snapshot error, got %v", err)
+	}
+}
+
 // TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
 // provisioning is gated on models that require runtime CUDA compilation: such a model gets a
 // cuda-toolkit-provisioner init container and a read-write hostPath at the
@@ -1982,6 +2238,47 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		for _, e := range podSpec.Containers[0].Env {
 			if e.Name == "CUDA_HOME" {
 				t.Errorf("did not expect CUDA_HOME for a model without runtime CUDA compilation, got %q", e.Value)
+			}
+		}
+	})
+
+	t.Run("cpu preset path skips cuda toolkit provisioning even for deepgemm models", func(t *testing.T) {
+		oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+		defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+		mockClient := test.NewClient()
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
+		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+
+		workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+		workspace.Resource.InstanceType = "Standard_D8s_v5"
+		workspace.Status.WorkerNodes = []string{"test-node-1"}
+		workspace.Status.TargetNodeCount = 1
+		workspace.Inference.Preset.PresetMeta.Name = "test-deepgemm-model"
+		workspace.Inference.Adapters = nil
+		workspace.Inference.Config = ""
+
+		svc := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{Name: workspace.Name, Namespace: workspace.Namespace},
+			Spec:       corev1.ServiceSpec{ClusterIP: "10.0.0.1"},
+		}
+		mockClient.CreateOrUpdateObjectInMap(svc)
+
+		m := plugin.KaitoModelRegister.MustGet("test-deepgemm-model")
+		result, err := GeneratePresetInference(context.TODO(), workspace, test.MockWorkspaceWithPresetHash, m, mockClient, nil)
+		if err != nil {
+			t.Fatalf("GeneratePresetInference returned error: %v", err)
+		}
+		podSpec := result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+		for _, ic := range podSpec.InitContainers {
+			if ic.Name == "cuda-toolkit-provisioner" {
+				t.Fatalf("did not expect cuda-toolkit-provisioner on cpu preset path")
+			}
+		}
+		for _, e := range podSpec.Containers[0].Env {
+			if e.Name == "CUDA_HOME" {
+				t.Fatalf("did not expect CUDA_HOME on cpu preset path, got %q", e.Value)
 			}
 		}
 	})

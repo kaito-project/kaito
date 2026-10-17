@@ -759,7 +759,11 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	} else {
 		// Selectively update the pod spec fields that are relevant to inference,
 		// and leave the rest unchanged in case user has customized them.
-		syncInferenceMutablePodSpec(&existingObj.Spec.Template.Spec, &desiredStatefulSet.Spec.Template.Spec)
+		syncInferenceMutablePodSpec(
+			&existingObj.Spec.Template.Spec,
+			&desiredStatefulSet.Spec.Template.Spec,
+			inferenceImageVariant(workspace.GetInferenceContainerImage(existingObj)) != inferenceImageVariant(workspace.GetInferenceContainerImage(desiredStatefulSet)),
+		)
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
@@ -782,13 +786,27 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	return nil
 }
 
-func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
+func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec, syncImage bool) {
+	if syncImage {
+		existingSpec.Containers[0].Image = desiredSpec.Containers[0].Image
+	}
 	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
 	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
 	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env
 	existingSpec.Containers[0].VolumeMounts = desiredSpec.Containers[0].VolumeMounts
 	existingSpec.InitContainers = desiredSpec.InitContainers
 	existingSpec.Volumes = desiredSpec.Volumes
+}
+
+func inferenceImageVariant(image string) string {
+	switch {
+	case strings.Contains(image, "base-vllm-cpu"):
+		return "cpu-vllm"
+	case strings.Contains(image, "base-tfs-cpu"):
+		return "cpu-transformers"
+	default:
+		return "base"
+	}
 }
 
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label
@@ -830,7 +848,11 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	// that the workspace should benchmark and that the StatefulSet actually
 	// carries the benchmark startup probe. Legacy workspaces created before the
 	// benchmark feature have no probe (backward compatibility).
-	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
+	cpuInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
+	if cpuResolveErr != nil {
+		return cpuResolveErr
+	}
+	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe && !cpuInference
 
 	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
 	maxModelLen := c.collectActualMaxModelLen(ctx, wObj, inferenceReady)
@@ -1638,6 +1660,21 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 	var err error
 	targetNodeCount := int32(1)
 	if wObj.Status.TargetNodeCount == 0 {
+		resolvedCPUInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
+		if cpuResolveErr != nil {
+			return fmt.Errorf("failed to resolve CPU inference target: %w", cpuResolveErr)
+		}
+		if resolvedCPUInference {
+			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+				status.TargetNodeCount = 1
+				return nil
+			}); err != nil {
+				return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+			}
+			wObj.Status.TargetNodeCount = 1
+			return nil
+		}
+
 		// Build the estimate request once, outside the status-update closure.
 		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
 		if reqErr != nil {

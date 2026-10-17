@@ -25,6 +25,7 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -228,8 +229,11 @@ func (c *InferenceSetReconciler) isWorkspaceOnOldImage(ctx context.Context, ws *
 // normal upgrade surge never deletes the incoming replica.
 //
 // Workspaces already being deleted count toward the target without issuing a new delete.
-func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
-	desiredImage := inference.GetBaseImageName()
+func (c *InferenceSetReconciler) selectWorkspacesToDelete(ctx context.Context, iObj *kaitov1beta1.InferenceSet, workspaces []kaitov1beta1.Workspace, desiredReplicas, numToDelete int) ([]*kaitov1beta1.Workspace, error) {
+	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, inferenceset.NewWorkspaceForInferenceSet(iObj), c.Client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve desired inference image: %w", err)
+	}
 
 	// Classify each live Workspace once, recording whether it is Ready and whether it is
 	// running an old base image. Workspaces already terminating count toward the target.
@@ -337,19 +341,24 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		}
 	}
 
-	desiredSpecDecoValue, desiredHasSpecDeco := desired.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	currentSpecDecoValue, currentHasSpecDeco := ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	if desiredHasSpecDeco {
-		if ws.Annotations == nil {
-			ws.Annotations = make(map[string]string)
-		}
-		if !currentHasSpecDeco || currentSpecDecoValue != desiredSpecDecoValue {
-			ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = desiredSpecDecoValue
+	for _, ann := range []string{
+		kaitov1beta1.AnnotationEnableSpeculativeDecoding,
+		kaitov1beta1.AnnotationWorkspaceRuntime,
+	} {
+		desiredValue, desiredHas := desired.Annotations[ann]
+		currentValue, currentHas := ws.Annotations[ann]
+		if desiredHas {
+			if ws.Annotations == nil {
+				ws.Annotations = make(map[string]string)
+			}
+			if !currentHas || currentValue != desiredValue {
+				ws.Annotations[ann] = desiredValue
+				needsUpdate = true
+			}
+		} else if currentHas {
+			delete(ws.Annotations, ann)
 			needsUpdate = true
 		}
-	} else if currentHasSpecDeco {
-		delete(ws.Annotations, kaitov1beta1.AnnotationEnableSpeculativeDecoding)
-		needsUpdate = true
 	}
 
 	if consts.IsKarpenterProvisioner() {
@@ -390,7 +399,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	if replicaNumToDelete > 0 {
 		klog.InfoS("Found extra workspaces, deleting...", "current", len(wsList.Items), "desired", desiredReplicas)
 
-		toDelete, err := c.selectWorkspacesToDelete(ctx, wsList.Items, int(desiredReplicas), replicaNumToDelete)
+		toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wsList.Items, int(desiredReplicas), replicaNumToDelete)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -470,6 +479,12 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 	// check whether all the workspaces are ready
 	totalTPM, readyReplicas, benchmarkedReplicas, hasBenchmarkTPMResult := aggregateBenchmarkResults(wsList.Items)
 
+	benchmarkApplicable, err := kaitov1beta1.ResolveInferenceSetBenchmarkApplicability(ctx, iObj, c.Client)
+	if err != nil {
+		klog.ErrorS(err, "failed to resolve benchmark applicability", "inferenceset", klog.KObj(iObj))
+		return ctrl.Result{}, err
+	}
+
 	// update the replicas in the status
 	if err = inferenceset.UpdateInferenceSetStatus(ctx, c.Client, &client.ObjectKey{Name: iObj.Name, Namespace: iObj.Namespace}, func(status *kaitov1beta1.InferenceSetStatus) error {
 		status.Replicas = int(desiredReplicas)
@@ -483,7 +498,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 			presetName = string(iObj.Spec.Template.Inference.Preset.Name)
 		}
 
-		if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
+		if benchmarkApplicable {
 			if hasBenchmarkTPMResult {
 				if status.Performance == nil {
 					status.Performance = &kaitov1beta1.Performance{}
@@ -509,14 +524,16 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 				}
 			}
 		} else {
-			// Feature flag is off — clear any TPM value that may have been written
-			// when the flag was previously enabled (e.g. annotation removed).
+			// Benchmarking is inapplicable — clear any TPM value and remove the
+			// completion condition so parent status does not stay stuck on a
+			// previous generation's benchmark expectations.
 			if status.Performance != nil {
 				delete(status.Performance.Metrics, controllers.BenchmarkMetricAggregatedPeakTPM)
 				if len(status.Performance.Metrics) == 0 {
 					status.Performance = nil
 				}
 			}
+			meta.RemoveStatusCondition(&status.Conditions, string(kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted))
 		}
 
 		return nil
@@ -539,8 +556,8 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		}
 	}
 
-	// Surface benchmark progress when the annotation is set.
-	if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
+	// Surface benchmark progress when benchmarking applies.
+	if benchmarkApplicable {
 		if benchmarkedReplicas == int(desiredReplicas) && desiredReplicas > 0 {
 			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
@@ -608,8 +625,24 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		return err
 	}
 	if len(wsList.Items) == 0 {
+		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType, iObj.Spec.Selector, c.Client)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		if isCPUTarget {
+			return nil
+		}
 		klog.InfoS("No workspaces found for inferenceset(%s), skipping Gateway API Inference Extension reconciliation", "inferenceset", iObj.Name)
 		return nil
+	}
+	for i := range wsList.Items {
+		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wsList.Items[i].Inference, wsList.Items[i].Resource.InstanceType, wsList.Items[i].Resource.LabelSelector, c.Client)
+		if resolveErr != nil {
+			return resolveErr
+		}
+		if isCPUTarget {
+			return nil
+		}
 	}
 
 	ociRepository := manifests.GenerateInferencePoolOCIRepository(iObj)

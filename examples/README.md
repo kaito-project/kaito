@@ -15,6 +15,22 @@ metadata:
 
 ---
 
+### Basic CPU preset examples
+
+Selected CPU-compatible preset example retained in basic CPU support:
+
+- NAP InferenceSet (default CPU `vllm`): `examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml`
+- NAP InferenceSet (CPU `transformers`/TFS runtime): `examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_tfs.yaml`
+
+Notes:
+- enable the `enableCPUInference` feature gate first
+- these examples use `Qwen/Qwen2.5-0.5B-Instruct`
+- the TFS example selects the Transformers runtime with `metadata.annotations.kaito.sh/runtime: transformers`
+- built-in presets and generic Hugging Face model IDs are supported on the basic CPU preset path
+- the post-load benchmark stage is automatically skipped on basic CPU paths
+
+---
+
 ### Exposing Service via LoadBalancer (Testing Only)
 
 For **testing** purposes, you may annotate your workspace resource with `kaito.sh/enablelb: "True"` to automatically create a `LoadBalancer` type service with a public IP for the inference service:

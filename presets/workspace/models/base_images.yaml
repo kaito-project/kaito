@@ -5,6 +5,13 @@ images:
     runtimeVersion:
       vllm: 0.30.0
       transformers: 5.15.0
+
+  # CPU runtime variants built and published alongside the main base image.
+  - name: base-tfs-cpu
+    tag: 0.6.1
+
+  - name: base-vllm-cpu
+    tag: 0.6.1
     # Tag history:
     # 0.6.1 - bump transformers to 5.15.0
     # 0.6.0 - bump vllm to 0.30.0, lmcache to 0.5.5, torch to 2.13.0, huggingface-hub to 1.31.0, nixl-cu12 to 1.4.1 and guidellm to 0.7.4; allow uvicorn 0.31.1+ as required by vllm's MCP dependency

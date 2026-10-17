@@ -2106,16 +2106,17 @@ func TestGeneratePresetInference_BYOCPUTargetSnapshotChangeReturnsRetryableError
 		},
 		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
 	}
+	listCalls := 0
 	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
 		Run(func(args mock.Arguments) {
 			nodeListArg := args.Get(1).(*corev1.NodeList)
-			nodeListArg.Items = []corev1.Node{*cpuNode}
-		}).Return(nil).Once()
-	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
-		Run(func(args mock.Arguments) {
-			nodeListArg := args.Get(1).(*corev1.NodeList)
-			nodeListArg.Items = nil
-		}).Return(nil).Once()
+			if listCalls == 0 {
+				nodeListArg.Items = []corev1.Node{*cpuNode}
+			} else {
+				nodeListArg.Items = nil
+			}
+			listCalls++
+		}).Return(nil).Times(3)
 
 	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
 	workspace.Resource.InstanceType = ""

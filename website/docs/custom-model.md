@@ -24,7 +24,7 @@ Retained example:
 
 - NAP InferenceSet (default CPU `vllm` runtime): [`examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml`](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml)
 
-This example uses `Qwen/Qwen2.5-0.5B-Instruct` on `Standard_D16s_v5`.
+This example uses `Qwen/Qwen2.5-0.5B-Instruct` on `Standard_D16s_v6`.
 
 ### Basic CPU support matrix
 

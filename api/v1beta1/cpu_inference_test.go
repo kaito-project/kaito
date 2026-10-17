@@ -171,6 +171,22 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		}
 	})
 
+	t.Run("init container gpu request is not detected as cpu inference", func(t *testing.T) {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+		ws := baseWorkspace()
+		ws.Inference.Template.Spec.InitContainers = []corev1.Container{{
+			Name:  "gpu-init",
+			Image: "example.com/gpu-init:latest",
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")},
+				Limits:   corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")},
+			},
+		}}
+		if IsCPUInferenceWorkspace(ws) {
+			t.Fatalf("expected template with gpu init container to not be detected as cpu inference")
+		}
+	})
+
 	t.Run("invalid runtime annotation", func(t *testing.T) {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()

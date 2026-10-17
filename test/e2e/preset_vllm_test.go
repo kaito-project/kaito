@@ -2892,7 +2892,6 @@ func enableWorkspaceManagerFeatureGateForE2E(flagName string) {
 			deployment.Spec.Template.Spec.Containers[0].Args = updatedArgs
 			return utils.TestingCluster.KubeClient.Update(ctx, deployment)
 		}, utils.PollTimeout, utils.PollInterval).Should(Succeed(), "Failed to enable workspace manager feature gate %s", flagName)
-		waitForWorkspaceManagerRollout(deploymentKey)
 	})
 
 	DeferCleanup(func() {
@@ -2908,6 +2907,8 @@ func enableWorkspaceManagerFeatureGateForE2E(flagName string) {
 			waitForWorkspaceManagerRollout(deploymentKey)
 		})
 	})
+
+	waitForWorkspaceManagerRollout(deploymentKey)
 }
 
 func upsertWorkspaceManagerFeatureGateArg(args []string, gateName string, enabled bool) []string {

@@ -653,41 +653,66 @@ func TestComputeHashIncludesOnlyEnabledSpeculativeDecodingState(t *testing.T) {
 func TestSyncInferenceMutablePodSpec(t *testing.T) {
 	makeSpecs := func() (*corev1.PodSpec, *corev1.PodSpec) {
 		existing := &corev1.PodSpec{
-			Containers: []corev1.Container{{
-				Name:         "inference",
-				Image:        "old-image:latest",
-				Command:      []string{"old-cmd"},
-				Args:         []string{"old-arg"},
-				Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
-				VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
-				Resources: corev1.ResourceRequirements{
-					Limits: corev1.ResourceList{
-						corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1"),
+			Containers: []corev1.Container{
+				{
+					Name:         "inference",
+					Image:        "old-image:latest",
+					Command:      []string{"old-cmd"},
+					Args:         []string{"old-arg"},
+					Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
+					VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+					Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1"),
+						},
 					},
+					StartupProbe:  &corev1.Probe{InitialDelaySeconds: 30},
+					LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"}}}},
 				},
-				StartupProbe:  &corev1.Probe{InitialDelaySeconds: 30},
-				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"}}}},
-			}},
+			},
 			InitContainers: []corev1.Container{{Name: "old-init"}},
 			Volumes:        []corev1.Volume{{Name: "old-vol"}},
-			Tolerations:    []corev1.Toleration{{Key: "nvidia.com/gpu", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule}},
-			Affinity:       &corev1.Affinity{NodeAffinity: &corev1.NodeAffinity{RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{}}},
+			Tolerations: []corev1.Toleration{
+				{
+					Key:      "nvidia.com/gpu",
+					Operator: corev1.TolerationOpExists,
+					Effect:   corev1.TaintEffectNoSchedule,
+				},
+			},
+			Affinity: &corev1.Affinity{
+				NodeAffinity: &corev1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{},
+				},
+			},
 		}
 		desired := &corev1.PodSpec{
-			Containers: []corev1.Container{{
-				Name:          "inference",
-				Image:         "new-image:latest",
-				Command:       []string{"new-cmd"},
-				Args:          []string{"new-arg"},
-				Env:           []corev1.EnvVar{{Name: "NEW", Value: "2"}},
-				VolumeMounts:  []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
-				Resources:     corev1.ResourceRequirements{},
-				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health"}}},
-			}},
+			Containers: []corev1.Container{
+				{
+					Name:          "inference",
+					Image:         "new-image:latest",
+					Command:       []string{"new-cmd"},
+					Args:          []string{"new-arg"},
+					Env:           []corev1.EnvVar{{Name: "NEW", Value: "2"}},
+					VolumeMounts:  []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
+					Resources:     corev1.ResourceRequirements{},
+					LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health"}}},
+				},
+			},
 			InitContainers: []corev1.Container{{Name: "new-init"}},
 			Volumes:        []corev1.Volume{{Name: "new-vol"}},
-			Tolerations:    []corev1.Toleration{{Key: "sku", Operator: corev1.TolerationOpEqual, Value: "cpu", Effect: corev1.TaintEffectNoSchedule}},
-			Affinity:       &corev1.Affinity{PodAntiAffinity: &corev1.PodAntiAffinity{RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{{}}}},
+			Tolerations: []corev1.Toleration{
+				{
+					Key:      "sku",
+					Operator: corev1.TolerationOpEqual,
+					Value:    "cpu",
+					Effect:   corev1.TaintEffectNoSchedule,
+				},
+			},
+			Affinity: &corev1.Affinity{
+				PodAntiAffinity: &corev1.PodAntiAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{{}},
+				},
+			},
 		}
 		return existing, desired
 	}

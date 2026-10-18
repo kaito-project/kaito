@@ -759,9 +759,11 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	baseImageUpgrade := false
+	variantChanged := false
 	if existingErr == nil {
+		variantChanged = inferenceImageVariant(workspace.GetInferenceContainerImage(existingObj)) != inferenceImageVariant(workspace.GetInferenceContainerImage(desiredStatefulSet))
 		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
-		if !baseImageUpgrade {
+		if !baseImageUpgrade && !variantChanged {
 			// Without auto-upgrade, keep the LMCache setup supported by the deployed
 			// KAITO base image. Adding the sidecar to an older image would reference a
 			// missing health script and run both the old in-process cache and sidecar.
@@ -793,9 +795,9 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 	replacePodTemplate := baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet)
 
-	// If the current workload revision matches the one in Workspace and no upgrade is pending,
-	// we do not need to update it.
-	if ok && currentRevisionStr == revisionStr && !replacePodTemplate {
+	// Runtime-only CPU variant changes intentionally bypass the revision hash.
+	// Cache mutations and base-image upgrades must also trigger a workload update.
+	if shouldSkipInferenceWorkloadUpdate(ok, currentRevisionStr, revisionStr, replacePodTemplate, variantChanged) {
 		return nil
 	}
 
@@ -817,7 +819,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		syncInferenceMutablePodSpec(
 			&existingObj.Spec.Template.Spec,
 			&desiredStatefulSet.Spec.Template.Spec,
-			inferenceImageVariant(workspace.GetInferenceContainerImage(existingObj)) != inferenceImageVariant(workspace.GetInferenceContainerImage(desiredStatefulSet)),
+			variantChanged,
 		)
 	}
 
@@ -893,6 +895,10 @@ func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredSt
 	return upgradeVersion != "" &&
 		upgradeVersion == inference.GetBaseImageTag() &&
 		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
+}
+
+func shouldSkipInferenceWorkloadUpdate(hasCurrentRevision bool, currentRevisionStr, desiredRevisionStr string, baseImageUpgrade, variantChanged bool) bool {
+	return hasCurrentRevision && currentRevisionStr == desiredRevisionStr && !baseImageUpgrade && !variantChanged
 }
 
 func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types.NamespacedName, reconcileErr error) error {

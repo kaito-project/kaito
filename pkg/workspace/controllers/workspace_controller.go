@@ -810,7 +810,10 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		existingObj.Spec.PersistentVolumeClaimRetentionPolicy = desiredStatefulSet.Spec.PersistentVolumeClaimRetentionPolicy
 	} else {
 		// Selectively update the pod spec fields that are relevant to inference,
-		// and leave the rest unchanged in case user has customized them.
+		// and leave the rest unchanged in case user has customized them. When the
+		// runtime/target variant changes (for example GPU -> CPU), refresh the full
+		// pod spec so target-dependent fields such as resources, affinity,
+		// tolerations and probes do not drift.
 		syncInferenceMutablePodSpec(
 			&existingObj.Spec.Template.Spec,
 			&desiredStatefulSet.Spec.Template.Spec,
@@ -857,7 +860,8 @@ func preserveContainerImages(existing, desired []corev1.Container) {
 
 func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec, syncImage bool) {
 	if syncImage {
-		existingSpec.Containers[0].Image = desiredSpec.Containers[0].Image
+		*existingSpec = *desiredSpec.DeepCopy()
+		return
 	}
 	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
 	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args

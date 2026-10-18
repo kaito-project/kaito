@@ -153,12 +153,35 @@ func (*testModelSmallA10) SupportTuning() bool {
 	return false
 }
 
+type testModelVLLMOnly struct{}
+
+func (*testModelVLLMOnly) GetInferenceParameters() *model.PresetParam {
+	return &model.PresetParam{
+		TotalSafeTensorFileSize: "7Gi",
+		RuntimeParam: model.RuntimeParam{
+			VLLM: model.VLLMParam{
+				ModelName: "test-vllm-only",
+			},
+		},
+	}
+}
+func (*testModelVLLMOnly) GetTuningParameters() *model.PresetParam {
+	return nil
+}
+func (*testModelVLLMOnly) SupportDistributedInference() bool {
+	return false
+}
+func (*testModelVLLMOnly) SupportTuning() bool {
+	return false
+}
+
 func RegisterValidationTestModels() {
 	var test testModel
 	var testStatic testModelStatic
 	var testDownload testModelDownload
 	var testLarge testModelLarge
 	var testSmallA10 testModelSmallA10
+	var testVLLMOnly testModelVLLMOnly
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-validation",
 		Instance: &test,
@@ -178,6 +201,10 @@ func RegisterValidationTestModels() {
 	plugin.KaitoModelRegister.Register(&plugin.Registration{
 		Name:     "test-small-a10",
 		Instance: &testSmallA10,
+	})
+	plugin.KaitoModelRegister.Register(&plugin.Registration{
+		Name:     "test-vllm-only",
+		Instance: &testVLLMOnly,
 	})
 }
 
@@ -2522,6 +2549,7 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 		disableNAP   bool // Whether to disable Node Auto-Provisioning
 		expectErrs   bool
 		errFields    []string // Fields we expect to have errors
+		errContent   string
 	}{
 		{
 			name:         "Inference toggled on",
@@ -2584,6 +2612,44 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 				},
 			},
 			expectErrs: false,
+		},
+		{
+			name: "Runtime changes revalidate inference compatibility",
+			oldWorkspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "runtime-change",
+					Namespace: "kaito",
+					Annotations: map[string]string{
+						AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
+					},
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-vllm-only")}},
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NV36ads_A10_v5",
+					Count:        pointerToInt(1),
+				},
+			},
+			newWorkspace: &Workspace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "runtime-change",
+					Namespace: "kaito",
+					Annotations: map[string]string{
+						AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
+					},
+				},
+				Inference: &InferenceSpec{
+					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-vllm-only")}},
+				},
+				Resource: ResourceSpec{
+					InstanceType: "Standard_NV36ads_A10_v5",
+					Count:        pointerToInt(1),
+				},
+			},
+			expectErrs: true,
+			errFields:  []string{"inference"},
+			errContent: "does not support inference with Huggingface Transformers runtime",
 		},
 		{
 			name: "Upgrade scenario - v0.7 workspace with instanceType when disableNAP=true",
@@ -2662,6 +2728,9 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 					if !strings.Contains(errs.Error(), field) {
 						t.Errorf("validateUpdate() expected errors to contain field %s, but got %s", field, errs.Error())
 					}
+				}
+				if tt.errContent != "" && !strings.Contains(errs.Error(), tt.errContent) {
+					t.Errorf("validateUpdate() expected errors to contain %q, but got %s", tt.errContent, errs.Error())
 				}
 			}
 		})

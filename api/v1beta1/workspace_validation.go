@@ -121,6 +121,11 @@ func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *a
 	}
 	if w.Inference != nil {
 		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
+		if GetWorkspaceRuntimeName(w) != GetWorkspaceRuntimeName(old) {
+			errs = errs.Also(w.Inference.validateCreate(ctx, GetWorkspaceRuntimeName(w), w.Namespace).ViaField("inference"))
+			errs = errs.Also(w.validateInferenceConfig(ctx))
+			errs = errs.Also(w.validateCustomModelStreaming())
+		}
 		errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 	}
 	// Validate speculative decoding annotation on updates too.

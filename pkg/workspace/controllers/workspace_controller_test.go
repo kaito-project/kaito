@@ -2272,10 +2272,64 @@ func TestPreserveLMCacheTopologyForDeployedImage(t *testing.T) {
 	assert.Equal(t, []corev1.Volume{{Name: "keep"}}, desired.Spec.Template.Spec.Volumes)
 
 	preserveDeployedImages(existing, desired)
-	syncInferenceMutablePodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec)
+	syncInferenceMutablePodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec, false)
 	assert.Equal(t, "kaito-base:0.6.3", existing.Spec.Template.Spec.Containers[0].Image)
 	assert.Equal(t, oldLivenessProbe, existing.Spec.Template.Spec.Containers[0].LivenessProbe)
 	assert.False(t, hasContainer(existing.Spec.Template.Spec.InitContainers, lmCacheSidecarName))
+}
+
+func TestShouldSkipInferenceWorkloadUpdate(t *testing.T) {
+	tests := []struct {
+		name               string
+		hasCurrentRevision bool
+		currentRevision    string
+		desiredRevision    string
+		baseImageUpgrade   bool
+		variantChanged     bool
+		expectSkip         bool
+	}{
+		{
+			name:               "skip when revision unchanged and no upgrade or variant change",
+			hasCurrentRevision: true,
+			currentRevision:    "1",
+			desiredRevision:    "1",
+			expectSkip:         true,
+		},
+		{
+			name:               "do not skip when variant changed",
+			hasCurrentRevision: true,
+			currentRevision:    "1",
+			desiredRevision:    "1",
+			variantChanged:     true,
+			expectSkip:         false,
+		},
+		{
+			name:               "do not skip when base image upgrade pending",
+			hasCurrentRevision: true,
+			currentRevision:    "1",
+			desiredRevision:    "1",
+			baseImageUpgrade:   true,
+			expectSkip:         false,
+		},
+		{
+			name:               "do not skip when revision changed",
+			hasCurrentRevision: true,
+			currentRevision:    "1",
+			desiredRevision:    "2",
+			expectSkip:         false,
+		},
+		{
+			name:            "do not skip without current revision annotation",
+			desiredRevision: "1",
+			expectSkip:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expectSkip, shouldSkipInferenceWorkloadUpdate(tt.hasCurrentRevision, tt.currentRevision, tt.desiredRevision, tt.baseImageUpgrade, tt.variantChanged))
+		})
+	}
 }
 
 func TestDetectInferencePodFailure(t *testing.T) {

@@ -126,6 +126,21 @@ func TestValidateCreateWithInference_AllowsCPUNAPInstanceTypes(t *testing.T) {
 		})
 	}
 
+	t.Run("cpu nap path rejects conflicting sku selector", func(t *testing.T) {
+		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+		resourceSpec := &ResourceSpec{
+			InstanceType: "Standard_D8s_v5",
+			Count:        pointerToInt(1),
+			LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{
+				"kaito.sh/cpu-inference": "true",
+				consts.SKUString:         "pool-a",
+			}},
+		}
+		if err := resourceSpec.validateCreateWithInference(context.TODO(), cpuInference, false, model.RuntimeNameVLLM, ""); err == nil {
+			t.Fatalf("expected conflicting sku selector to be rejected for cpu nap workload")
+		}
+	})
+
 	t.Run("cpu nap path still rejects partitioned workloads", func(t *testing.T) {
 		t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
 		resourceSpec := &ResourceSpec{

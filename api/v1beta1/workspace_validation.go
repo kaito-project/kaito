@@ -808,6 +808,12 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 			return errs.Also(apis.ErrGeneric("GPU partitioning is only supported with BYO nodes (disableNodeAutoProvisioning=true)", "partition"))
 		}
 		if isCPUInference {
+			if selectorSKU := SanitizedMatchLabels(r.LabelSelector)[consts.SKUString]; selectorSKU != "" && selectorSKU != consts.CPUString {
+				errs = errs.Also(apis.ErrInvalidValue(
+					fmt.Sprintf("auto-provisioned basic CPU inference reserves labelSelector.matchLabels[%q]=%q; got %q", consts.SKUString, consts.CPUString, selectorSKU),
+					fmt.Sprintf("labelSelector.matchLabels[%s]", consts.SKUString),
+				))
+			}
 			if err := ValidateCPUInstanceTypeForNAP(instanceType); err != nil {
 				errs = errs.Also(err)
 			}

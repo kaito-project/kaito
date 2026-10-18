@@ -36,6 +36,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -653,16 +654,24 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 	makeSpecs := func() (*corev1.PodSpec, *corev1.PodSpec) {
 		existing := &corev1.PodSpec{
 			Containers: []corev1.Container{{
-				Name:          "inference",
-				Image:         "old-image:latest",
-				Command:       []string{"old-cmd"},
-				Args:          []string{"old-arg"},
-				Env:           []corev1.EnvVar{{Name: "OLD", Value: "1"}},
-				VolumeMounts:  []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+				Name:         "inference",
+				Image:        "old-image:latest",
+				Command:      []string{"old-cmd"},
+				Args:         []string{"old-arg"},
+				Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
+				VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+				Resources: corev1.ResourceRequirements{
+					Limits: corev1.ResourceList{
+						corev1.ResourceName("nvidia.com/gpu"): resource.MustParse("1"),
+					},
+				},
+				StartupProbe:  &corev1.Probe{InitialDelaySeconds: 30},
 				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"}}}},
 			}},
 			InitContainers: []corev1.Container{{Name: "old-init"}},
 			Volumes:        []corev1.Volume{{Name: "old-vol"}},
+			Tolerations:    []corev1.Toleration{{Key: "nvidia.com/gpu", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule}},
+			Affinity:       &corev1.Affinity{NodeAffinity: &corev1.NodeAffinity{RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{}}},
 		}
 		desired := &corev1.PodSpec{
 			Containers: []corev1.Container{{
@@ -672,31 +681,33 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 				Args:          []string{"new-arg"},
 				Env:           []corev1.EnvVar{{Name: "NEW", Value: "2"}},
 				VolumeMounts:  []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
+				Resources:     corev1.ResourceRequirements{},
 				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health"}}},
 			}},
 			InitContainers: []corev1.Container{{Name: "new-init"}},
 			Volumes:        []corev1.Volume{{Name: "new-vol"}},
+			Tolerations:    []corev1.Toleration{{Key: "sku", Operator: corev1.TolerationOpEqual, Value: "cpu", Effect: corev1.TaintEffectNoSchedule}},
+			Affinity:       &corev1.Affinity{PodAntiAffinity: &corev1.PodAntiAffinity{RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{{}}}},
 		}
 		return existing, desired
 	}
 
-	t.Run("copies image for runtime or cpu-path switch", func(t *testing.T) {
+	t.Run("replaces full pod spec for runtime or cpu-path switch", func(t *testing.T) {
 		existing, desired := makeSpecs()
 		syncInferenceMutablePodSpec(existing, desired, true)
-		assert.Equal(t, desired.Containers[0].Image, existing.Containers[0].Image)
-		assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
-		assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
-		assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
-		assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
-		assert.Equal(t, desired.Containers[0].LivenessProbe, existing.Containers[0].LivenessProbe)
-		assert.Equal(t, desired.InitContainers, existing.InitContainers)
-		assert.Equal(t, desired.Volumes, existing.Volumes)
+		assert.Equal(t, *desired, *existing)
 	})
 
-	t.Run("preserves image for same-runtime mutable spec refresh", func(t *testing.T) {
+	t.Run("preserves target-dependent fields for same-runtime mutable spec refresh", func(t *testing.T) {
 		existing, desired := makeSpecs()
 		originalImage := existing.Containers[0].Image
+		originalResources := existing.Containers[0].Resources.DeepCopy()
+		originalStartupProbe := existing.Containers[0].StartupProbe.DeepCopy()
+		originalTolerations := append([]corev1.Toleration(nil), existing.Tolerations...)
+		originalAffinity := existing.Affinity.DeepCopy()
+
 		syncInferenceMutablePodSpec(existing, desired, false)
+
 		assert.Equal(t, originalImage, existing.Containers[0].Image)
 		assert.Equal(t, desired.Containers[0].Command, existing.Containers[0].Command)
 		assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
@@ -705,6 +716,10 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 		assert.Equal(t, desired.Containers[0].LivenessProbe, existing.Containers[0].LivenessProbe)
 		assert.Equal(t, desired.InitContainers, existing.InitContainers)
 		assert.Equal(t, desired.Volumes, existing.Volumes)
+		assert.Equal(t, *originalResources, existing.Containers[0].Resources)
+		assert.Equal(t, *originalStartupProbe, *existing.Containers[0].StartupProbe)
+		assert.Equal(t, originalTolerations, existing.Tolerations)
+		assert.Equal(t, *originalAffinity, *existing.Affinity)
 	})
 }
 

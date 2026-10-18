@@ -99,28 +99,35 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 		errs = errs.Also(w.ValidateCreate(ctx))
 	} else {
 		klog.InfoS("Validate update", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
-		old := base.(*Workspace)
-		errs = errs.Also(
-			w.validateUpdate(old).ViaField("spec"),
-			w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
-		)
-		if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
-			errs = errs.Also(w.validateNodeClassNameAnnotation())
-		}
-		errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
-		if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
-			errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
-		}
-		if w.Inference != nil {
-			errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
-			errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
-		}
-		// Validate speculative decoding annotation on updates too.
-		errs = errs.Also(w.validateAnnotations())
-		errs = errs.Also(w.validateSpeculativeDecoding(ctx))
-		if w.Tuning != nil {
-			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
-		}
+		errs = errs.Also(w.ValidateUpdate(ctx, base.(*Workspace)))
+	}
+	return errs
+}
+
+// ValidateUpdate runs the validations applied when a Workspace is updated from
+// old. It can also validate a Workspace projected from another resource, such
+// as the child Workspace of an InferenceSet.
+func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *apis.FieldError) {
+	errs = errs.Also(
+		w.validateUpdate(old).ViaField("spec"),
+		w.Resource.validateUpdate(&old.Resource).ViaField("resource"),
+	)
+	if w.GetAnnotations()[AnnotationNodeClassName] != old.GetAnnotations()[AnnotationNodeClassName] {
+		errs = errs.Also(w.validateNodeClassNameAnnotation())
+	}
+	errs = errs.Also(w.validateCapacityTypeAnnotationUpdate(old))
+	if featuregates.FeatureGates[consts.FeatureFlagModelStreaming] {
+		errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
+	}
+	if w.Inference != nil {
+		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
+		errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
+	}
+	// Validate speculative decoding annotation on updates too.
+	errs = errs.Also(w.validateAnnotations())
+	errs = errs.Also(w.validateSpeculativeDecoding(ctx))
+	if w.Tuning != nil {
+		errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 	}
 	return errs
 }

@@ -108,6 +108,38 @@ func validateInferenceSetSelectorMatchLabels(selector *metav1.LabelSelector, tem
 	return errs
 }
 
+// validateUpdate retains focused update-time checks that are exercised directly
+// in unit tests. Broader template-level update validation flows through the
+// child Workspace validator wired into Validate().
+func (is *InferenceSet) validateUpdate(old *InferenceSet) (errs *apis.FieldError) {
+	if old == nil {
+		return nil
+	}
+	if !partitionsEqual(is.Spec.Template.Resource.Partition, old.Spec.Template.Resource.Partition) {
+		errs = errs.Also(apis.ErrGeneric("field is immutable", "spec.template.resource.partition"))
+	}
+	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
+	return errs
+}
+
+func partitionsEqual(a, b *PartitionSpec) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	if a.Mode != b.Mode {
+		return false
+	}
+	if a.Profile != b.Profile {
+		return false
+	}
+	switch {
+	case a.Count == nil || b.Count == nil:
+		return a.Count == nil && b.Count == nil
+	default:
+		return *a.Count == *b.Count
+	}
+}
+
 func validateInferenceSetMaintenanceWindow(autoUpgrade *AutoUpgradePolicy) (errs *apis.FieldError) {
 	if autoUpgrade == nil || autoUpgrade.MaintenanceWindow == nil {
 		return nil

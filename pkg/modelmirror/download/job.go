@@ -76,7 +76,6 @@ find "/models/${MODEL_ID}/" -mindepth 1 -type d -exec rm -rf {} + 2>/dev/null ||
 
 	envVars := []corev1.EnvVar{
 		{Name: "MODEL_ID", Value: modelID},
-		{Name: "HF_HUB_DISABLE_XET", Value: "0"},
 	}
 
 	// Always declare HF_TOKEN — optional:true means Kubernetes silently skips it

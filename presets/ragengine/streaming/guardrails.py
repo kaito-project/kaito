@@ -163,7 +163,7 @@ async def apply_streaming_guardrails(
                     yield chunk
                 if window.blocked:
                     return
-                yield event.raw_bytes.decode("utf-8")
+                yield event.raw_bytes
 
         async for chunk in _flush_window_or_block(window, guardrails):
             yield chunk

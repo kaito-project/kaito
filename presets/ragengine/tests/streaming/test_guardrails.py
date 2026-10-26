@@ -114,7 +114,7 @@ async def _apply_content_chunks(contents, guardrails, *, finish_reason=None):
         yield "data: [DONE]\n\n"
 
     return [
-        chunk
+        chunk.decode("utf-8") if isinstance(chunk, bytes) else chunk
         async for chunk in apply_streaming_guardrails(
             upstream_chunks(), guardrails, {"messages": []}
         )
@@ -124,6 +124,8 @@ async def _apply_content_chunks(contents, guardrails, *, finish_reason=None):
 def _emitted_text(chunks):
     text = ""
     for chunk in chunks:
+        if isinstance(chunk, bytes):
+            chunk = chunk.decode("utf-8")
         if not chunk.startswith("data: {"):
             continue
         payload = json.loads(chunk.removeprefix("data: ").strip())
@@ -244,7 +246,8 @@ async def test_successful_mixed_stream_closes_upstream_and_preserves_finish():
         )
     ]
     assert _emitted_text(chunks) == "safe"
-    assert finish in chunks
+    assert finish.encode("utf-8") in chunks
+    assert isinstance(chunks[-2], bytes)
     assert chunks[-1] == "data: [DONE]\n\n"
     assert closed
 

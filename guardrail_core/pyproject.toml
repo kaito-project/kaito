@@ -1,7 +1,7 @@
 [project]
 name = "guardrail-core"
 version = "0.1.0"
-description = "KAITO-owned guardrail scanners"
+description = "KAITO-owned guardrail scanners and streaming utilities"
 requires-python = ">=3.12"
 dependencies = [
     "bc-detect-secrets==1.5.43",

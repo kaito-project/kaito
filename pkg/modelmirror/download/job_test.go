@@ -25,6 +25,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func newTestModelMirror() *kaitov1alpha1.ModelMirror {
@@ -120,6 +121,12 @@ func TestBuildDownloadJobScript(t *testing.T) {
 		assert.Contains(t, script, "-mindepth 1 -type d")
 	})
 
+	t.Run("pins pip before installing dependencies", func(t *testing.T) {
+		pinIdx := strings.Index(script, kaitoconsts.PipBootstrapCommand)
+		require.NotEqual(t, -1, pinIdx)
+		assert.Less(t, pinIdx, strings.Index(script, `pip install -q "huggingface-hub==`))
+	})
+
 	t.Run("cache cleanup runs after the download", func(t *testing.T) {
 		downloadIdx := strings.Index(script, `hf download "${MODEL_ID}"`)
 		cleanupIdx := strings.Index(script, `rm -rf "/models/${MODEL_ID}/.cache"`)
@@ -130,6 +137,47 @@ func TestBuildDownloadJobScript(t *testing.T) {
 		// the sampler report "finished" while bytes were still arriving.
 		assert.Less(t, downloadIdx, cleanupIdx)
 	})
+}
+
+func TestBuildDownloadJobXetTrust(t *testing.T) {
+	for _, secretName := range []string{"", "hf-access"} {
+		t.Run("accessSecret="+secretName, func(t *testing.T) {
+			cr := newTestModelMirror()
+			cr.Spec.Source.AccessSecretName = secretName
+			job := BuildDownloadJob(cr, mmconsts.DefaultDownloadJobResources(), nil)
+			require.Len(t, job.Spec.Template.Spec.Containers, 1)
+			require.Len(t, job.Spec.Template.Spec.InitContainers, 1)
+
+			for _, tc := range []struct {
+				container corev1.Container
+				client    string
+			}{
+				{job.Spec.Template.Spec.Containers[0], `hf download "${MODEL_ID}"`},
+				{job.Spec.Template.Spec.InitContainers[0], `exec python3 -c "$SAMPLER_SCRIPT"`},
+			} {
+				t.Run(tc.container.Name, func(t *testing.T) {
+					assert.Contains(t, tc.container.Env, corev1.EnvVar{Name: "HF_HUB_DISABLE_XET", Value: "0"})
+					assert.NotContains(t, tc.container.Env, corev1.EnvVar{Name: "HF_HUB_DISABLE_XET", Value: "1"})
+					require.Len(t, tc.container.Args, 1)
+					script := tc.container.Args[0]
+					install := strings.Index(script, `"certifi==`+mmconsts.CertifiVersion+`"`)
+					resolve := strings.Index(script, `SSL_CERT_FILE="$(python3 -m certifi)"`)
+					export := strings.Index(script, "export SSL_CERT_FILE")
+					client := strings.Index(script, tc.client)
+					require.NotEqual(t, -1, install)
+					require.NotEqual(t, -1, resolve)
+					require.NotEqual(t, -1, export)
+					require.NotEqual(t, -1, client)
+					assert.Less(t, install, resolve)
+					assert.Less(t, resolve, export)
+					assert.Less(t, export, client)
+					// Combining assignment and export would mask a failed lookup under set -e.
+					assert.NotContains(t, script, "export SSL_CERT_FILE=$(")
+					assert.NotContains(t, script, `export SSL_CERT_FILE="$(`)
+				})
+			}
+		})
+	}
 }
 
 func TestBuildDownloadJobServiceAccount(t *testing.T) {

@@ -16,7 +16,7 @@ from setuptools import find_packages, setup
 setup(
     name="guardrail-core",
     version="0.1.0",
-    description="KAITO-owned guardrail scanners",
+    description="KAITO-owned guardrail scanners and streaming utilities",
     packages=find_packages(exclude=["tests", "test_*"]),
     python_requires=">=3.12",
 )

@@ -50,10 +50,13 @@ const (
 	LabelModelMirrorName = "kaito.sh/model-mirror-name"
 
 	// Downloader image
-	DownloaderImage = "mcr.microsoft.com/mirror/docker/library/python:3.11-slim"
+	DownloaderImage = kaitoconsts.PythonHelperImage
 
 	// huggingface-hub version
 	HuggingFaceHubVersion = "1.18.0"
+
+	// certifi version provides the CA bundle used by the HF clients, including native Xet.
+	CertifiVersion = "2026.10.19"
 
 	// prometheus-client version, used by the sampler sidecar to expose progress
 	PrometheusClientVersion = "0.24.1"

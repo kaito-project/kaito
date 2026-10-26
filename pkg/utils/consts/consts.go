@@ -189,6 +189,14 @@ const (
 	RoutingSidecarImage = "mcr.microsoft.com/oss/v2/llm-d/llm-d-routing-sidecar"
 	RoutingSidecarTag   = "v0.8.0"
 
+	// PythonHelperImage is the Python image for helper containers that pip-install their
+	// dependencies at start. Run PipBootstrapCommand before any other pip install.
+	PythonHelperImage = "mcr.microsoft.com/azurelinux/base/python:3.12"
+
+	// PipBootstrapCommand replaces the image's pip with a hash-pinned release. The image's
+	// pip is rpm-installed (no RECORD file), so --ignore-installed is required.
+	PipBootstrapCommand = `pip install --no-cache-dir -q --ignore-installed "pip @ https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"`
+
 	// PortDecodeVLLM is the port vLLM listens on in decode pods.
 	// The routing sidecar occupies port 5000 (PortInferenceServer), so vLLM
 	// is moved to 5001. The sidecar forwards traffic to this port.

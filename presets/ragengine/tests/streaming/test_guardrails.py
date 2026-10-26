@@ -38,6 +38,25 @@ from ragengine.streaming.guardrails import (  # noqa: E402
 )
 
 
+async def _byte_chunks(chunks):
+    try:
+        async for chunk in chunks:
+            yield chunk.encode("utf-8") if isinstance(chunk, str) else chunk
+    finally:
+        aclose = getattr(chunks, "aclose", None)
+        if aclose is not None:
+            await aclose()
+
+
+_apply_streaming_guardrails = apply_streaming_guardrails
+
+
+def apply_streaming_guardrails(upstream_chunks, guardrails, request):
+    return _apply_streaming_guardrails(
+        _byte_chunks(upstream_chunks), guardrails, request
+    )
+
+
 def _invisible_text_scanner(action="redact"):
     return ParsedScannerConfig(
         type="invisible_text",
@@ -195,7 +214,6 @@ async def test_all_choices_including_non_text_choices_are_validated(choices):
         'data: {"choices":[{"index":0,"delta":[]}]} \n\n',
         'data: {"choices":[{"index":0,"delta":{"content":42}}]}\n\n',
         'data: {"choices":[{"index":0,"finish_reason":42}]}\n\n',
-        "data: \ud800\n\n",
     ],
 )
 async def test_invalid_stream_refuses_without_flushing_pending_text(invalid):

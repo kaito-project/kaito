@@ -14,170 +14,24 @@
 import os
 import sys
 
-import pytest
+from guardrail_core import streaming_window
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
-from ragengine.streaming.buffer_window import (
-    StreamingBufferWindow,
-    WindowScanResult,
-)  # noqa: E402
+from ragengine.streaming import buffer_window, guardrails  # noqa: E402
 
 
-class AllowScanner:
-    def scan(
-        self, text: str, *, flush: bool = False, preceding_char: str = ""
-    ) -> WindowScanResult:
-        del flush, preceding_char
-        return WindowScanResult()
+def test_window_compatibility_exports_are_shared_types():
+    for name in (
+        "StreamingBufferWindow",
+        "WindowEmitResult",
+        "WindowScanError",
+        "WindowScanner",
+        "WindowScanResult",
+    ):
+        assert getattr(buffer_window, name) is getattr(streaming_window, name)
 
 
-class BadSubstringScanner:
-    def __init__(self, substring: str = "bad") -> None:
-        self.substring = substring
-        self.scanned_texts: list[str] = []
-        self.flush_values: list[bool] = []
-        self.preceding_chars: list[str] = []
-
-    def scan(
-        self, text: str, *, flush: bool = False, preceding_char: str = ""
-    ) -> WindowScanResult:
-        self.scanned_texts.append(text)
-        self.flush_values.append(flush)
-        self.preceding_chars.append(preceding_char)
-        if self.substring in text:
-            return WindowScanResult(blocked=True)
-        return WindowScanResult()
-
-
-class InvisibleTextRedactScanner:
-    def scan(
-        self, text: str, *, flush: bool = False, preceding_char: str = ""
-    ) -> WindowScanResult:
-        del flush, preceding_char
-        sanitized_text = text.replace("\u200b", "").replace("\u200c", "")
-        if sanitized_text == text:
-            return WindowScanResult()
-        return WindowScanResult(sanitized_text=sanitized_text)
-
-
-def test_safe_text_emits_as_single_confirmed_chunk():
-    window = StreamingBufferWindow(AllowScanner(), holdback_len=0)
-
-    result = window.feed("abcdefgh")
-    flush_result = window.flush()
-
-    assert result.chunks == ("abcdefgh",)
-    assert result.blocked is False
-    assert flush_result.chunks == ()
-
-
-def test_redaction_replaces_pending_text_before_emission():
-    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=0)
-
-    result = window.feed("hello\u200bworld")
-
-    assert result.chunks == ("helloworld",)
-
-
-def test_redaction_recalculates_emit_length_after_text_shrinks():
-    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=5)
-
-    result = window.feed("abc\u200b\u200cdef")
-    flush_result = window.flush()
-
-    assert result.chunks == ("a",)
-    assert flush_result.chunks == ("bcdef",)
-
-
-def test_redaction_can_remove_all_text_during_flush():
-    window = StreamingBufferWindow(InvisibleTextRedactScanner(), holdback_len=5)
-
-    result = window.feed("\u200b\u200c")
-    flush_result = window.flush()
-
-    assert result.chunks == ()
-    assert flush_result.chunks == ()
-
-
-@pytest.mark.parametrize(
-    ("kwargs", "message"),
-    (({"holdback_len": -1}, "holdback"),),
-)
-def test_constructor_rejects_invalid_window_settings(kwargs, message):
-    with pytest.raises(ValueError, match=message):
-        StreamingBufferWindow(AllowScanner(), **kwargs)
-
-
-def test_holdback_tail_is_retained_and_not_emitted():
-    scanner = BadSubstringScanner()
-    window = StreamingBufferWindow(scanner, holdback_len=3)
-
-    result = window.feed("abcdef")
-    flush_result = window.flush()
-
-    assert result.chunks == ("abc",)
-    assert flush_result.chunks == ("def",)
-    assert scanner.scanned_texts == ["abcdef", "def"]
-    assert scanner.flush_values == [False, True]
-    assert scanner.preceding_chars == ["", "c"]
-
-
-def test_blocked_substring_crossing_holdback_boundary_is_detected():
-    window = StreamingBufferWindow(BadSubstringScanner(), holdback_len=1)
-
-    result = window.feed("safe bad")
-
-    assert result.blocked is True
-    assert result.chunks == ()
-    assert window.blocked is True
-
-
-def test_split_bad_substring_is_detected_before_tail_emits():
-    window = StreamingBufferWindow(BadSubstringScanner(), holdback_len=2)
-
-    first_result = window.feed("safe b")
-    second_result = window.feed("ad text")
-
-    assert first_result.chunks == ("safe",)
-    assert window.blocked is True
-    assert second_result.blocked is True
-    assert second_result.chunks == ()
-
-
-def test_final_flush_scans_and_emits_remaining_text():
-    scanner = BadSubstringScanner()
-    window = StreamingBufferWindow(scanner, holdback_len=5)
-
-    result = window.feed("tail")
-    flush_result = window.flush()
-
-    assert result.chunks == ()
-    assert scanner.scanned_texts == ["tail"]
-    assert flush_result.chunks == ("tail",)
-    assert window.flush().chunks == ()
-
-
-def test_blocked_decision_stops_downstream_emission():
-    window = StreamingBufferWindow(BadSubstringScanner(), holdback_len=0)
-
-    blocked_result = window.feed("bad content")
-    later_result = window.feed(" safe content")
-    flush_result = window.flush()
-
-    assert blocked_result.blocked is True
-    assert blocked_result.chunks == ()
-    assert later_result.blocked is True
-    assert later_result.chunks == ()
-    assert flush_result.blocked is True
-    assert flush_result.chunks == ()
-
-
-def test_blocked_decision_clears_pending_buffer():
-    window = StreamingBufferWindow(BadSubstringScanner(), holdback_len=2)
-
-    result = window.feed("safe bad content")
-
-    assert result.blocked is True
-    assert result.chunks == ()
-    assert window._pending_buffer == ""
+def test_streaming_guardrails_use_shared_window():
+    assert guardrails.StreamingBufferWindow is streaming_window.StreamingBufferWindow
+    assert guardrails.WindowScanResult is streaming_window.WindowScanResult

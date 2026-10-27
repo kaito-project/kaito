@@ -20,9 +20,13 @@ from typing import Any
 from fastapi import HTTPException
 from guardrail_core.scanning import scan_output
 from guardrail_core.streaming.sse import SSEFramingError
+from guardrail_core.streaming_window import (
+    StreamingBufferWindow,
+    WindowScanError,
+    WindowScanResult,
+)
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
 from ragengine.streaming.openai import (
     OpenAIChatChunkParseStatus,
     build_openai_chat_delta_sse_chunk,
@@ -169,6 +173,13 @@ async def apply_streaming_guardrails(
             yield chunk
         if not window.blocked:
             _record_successful_redaction(window, guardrails)
+    except WindowScanError as error:
+        logger.error(
+            "streaming_guardrails_scan_failed error_type=%s",
+            type(error.__cause__).__name__,
+        )
+        async for chunk in _emit_refusal(guardrails):
+            yield chunk
     except (SSEFramingError, UnicodeEncodeError) as error:
         logger.warning("Rejecting invalid upstream SSE stream: %s", error)
         async for chunk in _emit_refusal(guardrails):

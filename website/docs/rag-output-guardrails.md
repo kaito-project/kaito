@@ -76,12 +76,15 @@ cancellation; cancellation propagates rather than becoming a refusal.
 The existing redaction-before-block order, holdback sizing, and Secrets
 post-redaction verification remain unchanged.
 
-RAGEngine pins `kaito-guardrail-core==0.1.0` in its requirements. For local
+The holdback window uses `guardrail_core.streaming_window`. Scanner failures
+discard pending text and enter the same refusal flow; RAGEngine logs the failure
+type without logging model text. Cancellation still propagates.
+
+RAGEngine pins `kaito-guardrail-core==0.1.1` in its requirements. For local
 development, run `pip install -r presets/ragengine/requirements-test.txt` from
 the repository root, or use `make rag-service-test`. Both use the published
 package rather than installing shared-library source from this repository.
-The service Dockerfile installs the same pinned dependency through requirements
-and checks the shared imports during the image build.
+The service Dockerfile installs the same pinned dependency through requirements.
 
 ## Configuration
 

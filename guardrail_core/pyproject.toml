@@ -3,7 +3,7 @@ requires = ["setuptools==80.10.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "guardrail-core"
+name = "kaito-guardrail-core"
 version = "0.1.0"
 description = "KAITO-owned guardrail scanners and streaming utilities"
 readme = "README.md"

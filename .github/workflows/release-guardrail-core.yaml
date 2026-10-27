@@ -1,4 +1,4 @@
-name: Release Guardrail Core
+name: Release KAITO Guardrail Core
 
 on:
   workflow_dispatch:
@@ -77,12 +77,12 @@ jobs:
           from pathlib import Path
 
           project = tomllib.loads(Path("guardrail_core/pyproject.toml").read_text())["project"]
-          if project["name"] != "guardrail-core":
+          if project["name"] != "kaito-guardrail-core":
               raise SystemExit("Unexpected distribution name")
           if project["version"] != os.environ["RELEASE_VERSION"]:
               raise SystemExit("Release version does not match package metadata")
           PY
-          tag="guardrail-core-v$RELEASE_VERSION"
+          tag="kaito-guardrail-core-v$RELEASE_VERSION"
           if git show-ref --verify --quiet "refs/tags/$tag"; then
             echo "::error::Release tag already exists: $tag"
             exit 1
@@ -127,7 +127,7 @@ jobs:
       id-token: write
     environment:
       name: guardrail-core-testpypi
-      url: https://test.pypi.org/p/guardrail-core
+      url: https://test.pypi.org/p/kaito-guardrail-core
     steps:
       - name: Download release distributions
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -162,7 +162,7 @@ jobs:
           for attempt in {1..6}; do
             if python -m pip download --no-deps --only-binary=:all: \
               --index-url https://test.pypi.org/simple/ \
-              --dest testpypi-dist "guardrail-core==$RELEASE_VERSION"; then
+              --dest testpypi-dist "kaito-guardrail-core==$RELEASE_VERSION"; then
               break
             fi
             if [[ "$attempt" == 6 ]]; then
@@ -203,7 +203,7 @@ jobs:
           )
           from guardrail_core.streaming.sse import SSEFramer
 
-          assert version("guardrail-core") == os.environ["RELEASE_VERSION"]
+          assert version("kaito-guardrail-core") == os.environ["RELEASE_VERSION"]
           event, = SSEFramer().feed(b"data: [DONE]\n\n")
           assert parse_openai_chat_sse_event(event).status == OpenAIChatChunkParseStatus.DONE
           assert not NativeBanSubstringsScanner(["blocked"]).scan("", "blocked").valid
@@ -218,7 +218,7 @@ jobs:
       id-token: write
     environment:
       name: guardrail-core-pypi
-      url: https://pypi.org/p/guardrail-core
+      url: https://pypi.org/p/kaito-guardrail-core
     steps:
       - name: Download verified distributions
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -252,4 +252,4 @@ jobs:
             --target "$RELEASE_COMMIT" \
             --latest=false \
             --title "$RELEASE_TAG" \
-            --notes "guardrail-core release built from $RELEASE_COMMIT. Includes shared scanners and SSE/OpenAI streaming utilities."
+            --notes "kaito-guardrail-core release built from $RELEASE_COMMIT. Includes shared scanners and SSE/OpenAI streaming utilities."

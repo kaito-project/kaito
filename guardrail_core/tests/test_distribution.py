@@ -61,7 +61,7 @@ def test_wheel_metadata_and_contents(distributions):
         names = wheel.namelist()
         metadata_name = next(name for name in names if name.endswith("/METADATA"))
         metadata = BytesParser().parsebytes(wheel.read(metadata_name))
-        assert metadata["Name"] == "guardrail-core"
+        assert metadata["Name"] == "kaito-guardrail-core"
         assert metadata["Version"] == config["project"]["version"]
         assert metadata["Requires-Python"] == ">=3.12"
         assert metadata["License-Expression"] == "Apache-2.0"
@@ -75,7 +75,8 @@ def test_wheel_metadata_and_contents(distributions):
         assert "guardrail_core/native_scanners.py" in names
         assert "guardrail_core/secrets/scanner.py" in names
         assert all(
-            name.startswith(("guardrail_core/", "guardrail_core-")) for name in names
+            name.startswith(("guardrail_core/", "kaito_guardrail_core-"))
+            for name in names
         )
         assert not any(
             Path(name).name.startswith("test_")

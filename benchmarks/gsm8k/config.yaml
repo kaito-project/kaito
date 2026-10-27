@@ -55,7 +55,10 @@ profiles:
       - "<|im_end|>"
 
 modelProfileOverrides:
+  # Thinking can exhaust the 8192-token budget before these models emit a final
+  # answer. Non-thinking reduces empty responses in the bounded GSM8K evaluation.
   google/gemma-4-12B-it: chat-nonthinking-v1
+  google/gemma-4-26B-A4B-it: chat-nonthinking-v1
   # GLM-5.3 defaults to max reasoning, which frequently exhausts the 8192-token
   # generation budget before emitting a final answer. High effort avoids those empty responses.
   zai-org/GLM-5.3: chat-thinking-high-v1

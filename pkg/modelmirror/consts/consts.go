@@ -53,7 +53,7 @@ const (
 	DownloaderImage = kaitoconsts.PythonHelperImage
 
 	// huggingface-hub version
-	HuggingFaceHubVersion = "1.18.0"
+	HuggingFaceHubVersion = "2.3.0"
 
 	// certifi version provides the CA bundle used by the HF clients, including native Xet.
 	CertifiVersion = "2026.10.19"

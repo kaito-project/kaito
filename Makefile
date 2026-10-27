@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= YOUR_REGISTRY
 IMG_NAME ?= workspace
-VERSION ?= v0.13.0-rc.4
+VERSION ?= v0.13.0
 GPU_PROVISIONER_VERSION ?= 0.4.5
 RAGENGINE_IMG_NAME ?= ragengine
 IMG_TAG ?= $(subst v,,$(VERSION))
@@ -146,7 +146,6 @@ unit-test: ## Run unit tests.
 
 .PHONY: rag-service-test
 rag-service-test: ## Run RAG Engine service tests with pytest.
-	pip install -e ./guardrail_core
 	pip install -r presets/ragengine/requirements-test.txt
 	pip install pytest-cov
 	pytest --cov -o log_cli=true -o log_cli_level=INFO presets/ragengine/tests
@@ -277,6 +276,8 @@ RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
 
 KAITO_BASE_IMG_NAME ?= kaito-base
 KAITO_BASE_IMG_TAG ?= v0.0.1
+KAITO_VLLM_CPU_IMG_NAME ?= kaito-base-vllm-cpu
+KAITO_VLLM_CPU_IMG_TAG ?= v0.0.1
 
 MT_BENCH_IMG_NAME ?= mt-bench-eval
 MT_BENCH_IMG_TAG ?= v0.0.1
@@ -331,6 +332,17 @@ docker-build-kaito-base: docker-buildx ## Build Docker image for KAITO base.
         --pull \
 		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(KAITO_BASE_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
+
+.PHONY: docker-build-kaito-base-vllm-cpu
+docker-build-kaito-base-vllm-cpu: docker-buildx ## Build Docker image for KAITO vLLM CPU base (amd64 only).
+	docker buildx build \
+		--build-arg VERSION=$(KAITO_VLLM_CPU_IMG_TAG) \
+		--platform=linux/amd64 \
+		--output=$(OUTPUT_TYPE) \
+		--file ./docker/presets/models/vllm-cpu/Dockerfile \
+		--pull \
+		$(BUILD_FLAGS) \
+		--tag $(REGISTRY)/$(KAITO_VLLM_CPU_IMG_NAME):$(KAITO_VLLM_CPU_IMG_TAG) .
 
 .PHONY: docker-build-ragservice
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.

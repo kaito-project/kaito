@@ -6,12 +6,14 @@ on:
     paths:
       - "guardrail_core/**"
       - ".github/workflows/unit-tests-streaming.yaml"
+      - ".github/workflows/release-guardrail-core.yaml"
       - "pyproject.toml"
   pull_request:
     branches: [main, release-**]
     paths:
       - "guardrail_core/**"
       - ".github/workflows/unit-tests-streaming.yaml"
+      - ".github/workflows/release-guardrail-core.yaml"
       - "pyproject.toml"
 
 permissions:
@@ -39,10 +41,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Build wheel
+      - name: Build and test distributions
+        env:
+          GUARDRAIL_CORE_DIST: ${{ runner.temp }}/guardrail-core-dist
         run: |
-          python -m pip install build==1.2.2.post1
-          python -m build --wheel --outdir "$RUNNER_TEMP/guardrail-core-dist" ./guardrail_core
+          python -m pip install build==1.2.2.post1 pytest==9.1.1
+          python -m build --outdir "$GUARDRAIL_CORE_DIST" ./guardrail_core
+          python -m pytest guardrail_core/tests/test_distribution.py -q
 
       - name: Install and test outside source tree
         working-directory: ${{ runner.temp }}

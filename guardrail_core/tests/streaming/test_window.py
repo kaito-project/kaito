@@ -16,7 +16,6 @@ import subprocess
 import sys
 
 import pytest
-
 from guardrail_core.streaming_window import (
     StreamingBufferWindow,
     WindowScanError,

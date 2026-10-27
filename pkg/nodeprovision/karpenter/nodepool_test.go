@@ -33,20 +33,30 @@ func TestNodePoolName_Normal(t *testing.T) {
 	assert.Equal(t, "default-myworkspace", name)
 }
 
-func TestNodePoolName_Exactly63(t *testing.T) {
-	ws := strings.Repeat("a", 60)
+func TestNodePoolName_Exactly53(t *testing.T) {
+	ws := strings.Repeat("a", 50)
 	name := NodePoolName("ns", ws)
-	assert.Equal(t, 63, len(name))
+	assert.Equal(t, 53, len(name))
 	assert.Equal(t, "ns-"+ws, name)
 }
 
-func TestNodePoolName_Over63_Truncated(t *testing.T) {
-	ws := strings.Repeat("b", 61)
+func TestNodePoolName_Over53_Truncated(t *testing.T) {
+	ws := strings.Repeat("b", 51)
 	name := NodePoolName("ns", ws)
-	assert.Assert(t, len(name) == 63, "expected length 63, got %d", len(name))
+	assert.Assert(t, len(name) == 53, "expected length 53, got %d", len(name))
 	assert.Assert(t, name[maxNodePoolNameLen-1-hashSuffixLen] == '-', "expected dash at truncation point")
 	suffix := name[maxNodePoolNameLen-hashSuffixLen:]
 	assert.Equal(t, hashSuffixLen, len(suffix))
+}
+
+// The Azure VM name is "aks-" + the NodeClaim name, and Karpenter names
+// NodeClaims "<nodepool>-" + 5 random characters, so the longest NodePool name
+// must keep the VM name within the 63-character hostname label limit. The
+// inputs are the longest a namespace and a Workspace name can be.
+func TestNodePoolName_FitsAzureVMName(t *testing.T) {
+	name := NodePoolName(strings.Repeat("n", 63), strings.Repeat("w", kaitov1beta1.MaxWorkspaceNameLength))
+	vmName := "aks-" + name + "-" + strings.Repeat("x", 5)
+	assert.Assert(t, len(vmName) <= 63, "VM name %q has %d characters", vmName, len(vmName))
 }
 
 func TestNodePoolName_Deterministic(t *testing.T) {

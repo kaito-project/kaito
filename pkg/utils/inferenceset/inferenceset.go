@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"strings"
 
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -163,7 +164,7 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 
 	workspaceObj := &kaitov1beta1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: iObj.Name + "-",
+			GenerateName: workspaceGenerateName(iObj.Name),
 			Namespace:    iObj.Namespace,
 			Labels:       workspaceLabels,
 			Annotations:  annotations,
@@ -179,6 +180,23 @@ func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.
 		Inference: iObj.Spec.Template.Inference.DeepCopy(),
 	}
 	return workspaceObj
+}
+
+// generatedNameSuffixLength is the number of random characters the API server
+// appends to a GenerateName prefix.
+const generatedNameSuffixLength = 5
+
+// workspaceGenerateName returns the GenerateName prefix for the child
+// Workspaces of the named InferenceSet. The InferenceSet name is truncated so
+// generated Workspace names stay within kaitov1beta1.MaxWorkspaceNameLength;
+// the full InferenceSet name remains on the
+// consts.WorkspaceCreatedByInferenceSetLabel label.
+func workspaceGenerateName(inferenceSetName string) string {
+	maxPrefixLength := kaitov1beta1.MaxWorkspaceNameLength - generatedNameSuffixLength - 1 // 1 for the dash separator
+	if len(inferenceSetName) > maxPrefixLength {
+		inferenceSetName = strings.TrimRight(inferenceSetName[:maxPrefixLength], "-")
+	}
+	return inferenceSetName + "-"
 }
 
 // workspaceNodeSelector returns the GPU node selector for child Workspaces:

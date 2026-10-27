@@ -44,7 +44,11 @@ def test_sse_framer_handles_fragmented_event():
     result = parse_openai_chat_sse_event(events[0])
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.parsed_choices == (
-        ParsedOpenAIChoice(choice_index=0, content="hello"),
+        ParsedOpenAIChoice(
+            choice_index=0,
+            content="hello",
+            choice={"index": 0, "delta": {"content": "hello"}},
+        ),
     )
     assert result.contents == ("hello",)
 
@@ -94,7 +98,15 @@ def test_openai_parser_tolerates_chunk_without_delta_content():
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.parsed_choices == (
-        ParsedOpenAIChoice(choice_index=2, finish_reason="stop"),
+        ParsedOpenAIChoice(
+            choice_index=2,
+            finish_reason="stop",
+            choice={
+                "index": 2,
+                "delta": {"role": "assistant"},
+                "finish_reason": "stop",
+            },
+        ),
     )
     assert result.contents == ()
     assert result.finish_reasons == ("stop",)
@@ -111,6 +123,11 @@ def test_openai_parser_extracts_choice_index_content_and_finish_reason():
             choice_index=3,
             content="safe",
             finish_reason="stop",
+            choice={
+                "index": 3,
+                "delta": {"content": "safe"},
+                "finish_reason": "stop",
+            },
         ),
     )
 
@@ -123,11 +140,20 @@ def test_openai_parser_keeps_multiple_choices_aligned():
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
     assert result.parsed_choices == (
-        ParsedOpenAIChoice(choice_index=0, content="first"),
+        ParsedOpenAIChoice(
+            choice_index=0,
+            content="first",
+            choice={"index": 0, "delta": {"content": "first"}},
+        ),
         ParsedOpenAIChoice(
             choice_index=2,
             content="second",
             finish_reason="stop",
+            choice={
+                "index": 2,
+                "delta": {"content": "second"},
+                "finish_reason": "stop",
+            },
         ),
     )
 
@@ -136,7 +162,13 @@ def test_openai_parser_preserves_empty_delta_content():
     result = _parse('{"choices":[{"index":0,"delta":{"content":""}}]}')
 
     assert result.status == OpenAIChatChunkParseStatus.PARSED
-    assert result.parsed_choices == (ParsedOpenAIChoice(choice_index=0, content=""),)
+    assert result.parsed_choices == (
+        ParsedOpenAIChoice(
+            choice_index=0,
+            content="",
+            choice={"index": 0, "delta": {"content": ""}},
+        ),
+    )
 
 
 def test_openai_parser_supports_empty_choices():

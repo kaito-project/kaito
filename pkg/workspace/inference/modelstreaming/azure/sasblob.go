@@ -38,9 +38,9 @@ import (
 var fetchSASScript string
 
 const (
-	// sasInitImage is the minimal Python image the SAS-fetch init container runs on. It carries
-	// no cloud SDKs; azure-identity is pip-installed at container start (see initShellCommand).
-	sasInitImage = "python:3.12-slim"
+	// sasInitImage is the Python image the SAS-fetch init container runs on. It carries no
+	// cloud SDKs; azure-identity is pip-installed at container start (see initShellCommand).
+	sasInitImage = consts.PythonHelperImage
 	// azureIdentityVersion is the azure-identity version pip-installed at runtime by the init
 	// container. Kept in sync with the pin previously in the base image requirements.txt.
 	azureIdentityVersion = "1.19.0"
@@ -49,9 +49,9 @@ const (
 	rfc8785Version = "0.1.4"
 )
 
-// initShellCommand pip-installs azure-identity and rfc8785 and runs fetch_sas.py, which is
-// mounted from a per-workspace ConfigMap at SASScriptMountPath.
-const initShellCommand = "pip install --no-cache-dir -q azure-identity==" + azureIdentityVersion +
+// initShellCommand pins pip, pip-installs azure-identity and rfc8785, and runs fetch_sas.py,
+// which is mounted from a per-workspace ConfigMap at SASScriptMountPath.
+const initShellCommand = consts.PipBootstrapCommand + " && pip install --no-cache-dir -q azure-identity==" + azureIdentityVersion +
 	" rfc8785==" + rfc8785Version +
 	" && python3 " + modelstreaming.SASScriptMountPath + "/" + modelstreaming.SASScriptFileName
 

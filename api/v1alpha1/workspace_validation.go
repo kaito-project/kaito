@@ -29,6 +29,7 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -62,6 +63,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
+		errs = errs.Also(kaitov1beta1.ValidateWorkspaceNameLength(w.Name))
 		errs = errs.Also(w.validateCreate().ViaField("spec"))
 		errs = errs.Also(w.validateSpeculativeDecoding())
 		if w.Inference != nil {

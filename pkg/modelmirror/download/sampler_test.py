@@ -74,6 +74,27 @@ def test_has_incomplete_true_when_present():
         assert sampler.has_incomplete(d) is True
 
 
+def test_hub_v2_unique_incomplete_files_are_counted_until_all_transfers_finish():
+    with tempfile.TemporaryDirectory() as d:
+        incomplete = [
+            ("weights.etag.1234abcd.incomplete", 100),
+            ("weights.etag.5678efab.incomplete", 200),
+        ]
+        _make_model_dir(d, [], incomplete=incomplete)
+        cache = os.path.join(d, sampler.INCOMPLETE_SUBDIR)
+        assert sampler.directory_bytes(d) == 300
+        assert sampler.has_incomplete(d) is True
+        assert sampler.is_finished(d) is False
+        os.replace(
+            os.path.join(cache, incomplete[0][0]), os.path.join(d, "weights.bin")
+        )
+        assert sampler.has_incomplete(d) is True
+        assert sampler.is_finished(d) is False
+        os.remove(os.path.join(cache, incomplete[1][0]))
+        assert sampler.has_incomplete(d) is False
+        assert sampler.is_finished(d) is True
+
+
 def test_has_incomplete_false_when_absent():
     with tempfile.TemporaryDirectory() as d:
         _make_model_dir(d, [("a.bin", 10)])

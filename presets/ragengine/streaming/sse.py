@@ -12,73 +12,36 @@
 # limitations under the License.
 
 from collections.abc import AsyncIterable, AsyncIterator
-from dataclasses import dataclass
 
-SSE_EVENT_SEPARATORS = ("\r\n\r\n", "\n\n")
-
-
-@dataclass(frozen=True)
-class SSEEvent:
-    raw: str
-    lines: tuple[str, ...]
-    data: str | None
-
-    @classmethod
-    def from_raw(cls, raw_event: str) -> "SSEEvent":
-        lines = tuple(raw_event.splitlines())
-        data_lines: list[str] = []
-        for line in lines:
-            if not line.startswith("data:"):
-                continue
-
-            data_line = line[len("data:") :]
-            if data_line.startswith(" "):
-                data_line = data_line[1:]
-            data_lines.append(data_line)
-
-        return cls(
-            raw=raw_event,
-            lines=lines,
-            data="\n".join(data_lines) if data_lines else None,
-        )
+from guardrail_core.streaming.sse import DEFAULT_MAX_EVENT_BYTES
+from guardrail_core.streaming.sse import SSEEvent as SSEEvent
+from guardrail_core.streaming.sse import SSEFramer as ByteSSEFramer
 
 
 class SSEFramer:
-    def __init__(self) -> None:
-        self._buffer = ""
+    """Adapt RAGEngine text chunks without replacing the shared byte parser."""
 
-    def feed(self, text_chunk: str) -> list[SSEEvent]:
-        if not text_chunk:
-            return []
+    def __init__(self, *, max_event_bytes: int = DEFAULT_MAX_EVENT_BYTES) -> None:
+        self._framer = ByteSSEFramer(max_event_bytes=max_event_bytes)
 
-        self._buffer += text_chunk
-        events: list[SSEEvent] = []
+    def feed(self, text_chunk: str | bytes) -> list[SSEEvent]:
+        chunk = (
+            text_chunk.encode("utf-8") if isinstance(text_chunk, str) else text_chunk
+        )
+        return self._framer.feed(chunk)
 
-        while separator := self._next_separator():
-            separator_index, separator_text = separator
-            raw_event = self._buffer[:separator_index]
-            self._buffer = self._buffer[separator_index + len(separator_text) :]
-            if raw_event:
-                events.append(SSEEvent.from_raw(raw_event))
-
-        return events
-
-    def _next_separator(self) -> tuple[int, str] | None:
-        candidates = [
-            (separator_index, separator_text)
-            for separator_text in SSE_EVENT_SEPARATORS
-            if (separator_index := self._buffer.find(separator_text)) != -1
-        ]
-        if not candidates:
-            return None
-
-        return min(candidates, key=lambda candidate: candidate[0])
+    def finish(self) -> list[SSEEvent]:
+        return self._framer.finish()
 
 
 async def iter_sse_events(
-    text_chunks: AsyncIterable[str],
+    text_chunks: AsyncIterable[str | bytes],
+    *,
+    max_event_bytes: int = DEFAULT_MAX_EVENT_BYTES,
 ) -> AsyncIterator[SSEEvent]:
-    framer = SSEFramer()
+    framer = SSEFramer(max_event_bytes=max_event_bytes)
     async for text_chunk in text_chunks:
         for event in framer.feed(text_chunk):
             yield event
+    for event in framer.finish():
+        yield event

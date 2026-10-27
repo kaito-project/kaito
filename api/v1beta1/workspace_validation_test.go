@@ -1990,6 +1990,8 @@ func TestWorkspaceValidateName(t *testing.T) {
 		workspaceName string
 		wantErr       bool
 		errField      string
+		// update validates the Workspace as an update of itself.
+		update bool
 	}{
 		{
 			name:          "Valid name",
@@ -2008,13 +2010,34 @@ func TestWorkspaceValidateName(t *testing.T) {
 			wantErr:       true,
 			errField:      "name",
 		},
+		{
+			name:          "Name at the maximum length",
+			workspaceName: strings.Repeat("a", 52),
+			wantErr:       false,
+		},
+		{
+			name:          "Name over the maximum length on create",
+			workspaceName: strings.Repeat("a", 53),
+			wantErr:       true,
+			errField:      "name",
+		},
+		{
+			name:          "Existing name over the maximum length can still be updated",
+			workspaceName: strings.Repeat("a", 63),
+			wantErr:       false,
+			update:        true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			workspace := testWorkspace.DeepCopy()
 			workspace.Name = tt.workspaceName
-			errs := workspace.Validate(context.Background())
+			ctx := context.Background()
+			if tt.update {
+				ctx = apis.WithinUpdate(ctx, workspace.DeepCopy())
+			}
+			errs := workspace.Validate(ctx)
 			if (errs != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", errs, tt.wantErr)
 			}

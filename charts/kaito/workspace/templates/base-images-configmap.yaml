@@ -9,7 +9,11 @@ data:
   BaseImages: |
     images:
       - name: base
-        tag: 0.6.2
+        tag: 0.6.3
         runtimeVersion:
           vllm: 0.30.0
           transformers: 5.15.0
+      - name: base-vllm-cpu
+        tag: 0.0.1
+        runtimeVersion:
+          vllm: 0.30.0

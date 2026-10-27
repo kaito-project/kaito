@@ -30,10 +30,10 @@ from prometheus_client import (
     start_http_server,
 )
 
-# huggingface_hub creates a .incomplete file per *file*, not per download: the
-# path is derived from that file's etag and opened when its transfer starts, then
-# atomically renamed to the destination when it ends (file_download.py:1852 in
-# v1.18.0, the version pinned in pkg/modelmirror/consts/consts.go). There is no
+# huggingface_hub creates a .incomplete file per *file*, not per download. In
+# v2.3.0, _download_to_tmp_and_move in file_download.py adds a UUID suffix before
+# .incomplete, writes the temporary file, then moves it to the destination.
+# Detect the .incomplete suffix rather than assuming an exact filename. There is no
 # task-level marker, so their presence means "some file is mid-transfer" -- see
 # ProgressState.set_finished for why that is not the same as "download running".
 INCOMPLETE_SUBDIR = os.path.join(".cache", "huggingface", "download")

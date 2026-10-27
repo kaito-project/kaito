@@ -28,7 +28,7 @@ upstream chunks
 | --- | --- |
 | `sse.py` | Frame network chunks into complete SSE events |
 | `openai.py` | Parse and build OpenAI-compatible SSE events |
-| `buffer_window.py` | Compatibility exports from `guardrail_core.streaming_window` |
+| `buffer_window.py` | Retain and scan an un-emitted text tail |
 | `guardrails.py` | Validate policy, run scanners, and emit or block |
 
 The default holdback is 256 characters. Policies with longer banned substrings
@@ -36,18 +36,6 @@ increase it to the longest configured substring length minus one for `str`
 matching, or the full substring length for `word` matching. The window retains
 the pending tail and the preceding character's boundary class, so it supports
 local pattern detection but not scanners that need the complete response.
-
-The shared window counts Unicode characters (Python string code points), never
-UTF-8 bytes. It owns buffering, scanner invocation, release results, and
-`blocked`/`redacted` state. RAGEngine still owns scanner construction, holdback
-calculation, redaction/block ordering, Secrets verification, and refusal events.
-See the [shared window contract](../../../guardrail_core/README.md).
-
-Scanner exceptions raise `WindowScanError` with the original exception chained.
-The failed window discards pending text and stops further release. RAGEngine
-logs the failure type and emits its existing refusal sequence without flushing
-the pending buffer. Cancellation still propagates and closes the upstream
-iterator.
 
 ## Scanner Support
 
@@ -101,7 +89,7 @@ scanners:
 ## Validation
 
 ```bash
-.venv/bin/python -m pytest guardrail_core/guardrail_core/test_streaming_window.py presets/ragengine/tests/streaming -v
+.venv/bin/python -m pytest presets/ragengine/tests/streaming -v
 .venv/bin/ruff check presets/ragengine/streaming presets/ragengine/tests/streaming
 .venv/bin/ruff format --check presets/ragengine/streaming presets/ragengine/tests/streaming
 ```

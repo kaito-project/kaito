@@ -201,21 +201,21 @@ targets:
 - model: google/gemma-4-26B-A4B-it
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1
-  profile: chat-thinking-v1
-  accuracy: 0.78125
-  correct: 100
+  profile: chat-nonthinking-v1
+  accuracy: 0.9453125
+  correct: 121
   evaluated: 128
-  emptyResponses: 27
-  measuredAt: '2026-09-27'
+  emptyResponses: 0
+  measuredAt: '2026-10-22'
 - model: google/gemma-4-26B-A4B-it
   instanceType: Standard_NC40ads_H100_v5
   nodes: 1
-  profile: chat-thinking-v1
-  accuracy: 0.8359375
-  correct: 107
+  profile: chat-nonthinking-v1
+  accuracy: 0.9453125
+  correct: 121
   evaluated: 128
-  emptyResponses: 20
-  measuredAt: '2026-09-27'
+  emptyResponses: 0
+  measuredAt: '2026-10-22'
 - model: google/gemma-4-31B-it
   instanceType: Standard_NC24ads_A100_v4
   nodes: 1

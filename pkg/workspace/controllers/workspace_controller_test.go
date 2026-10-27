@@ -2111,6 +2111,47 @@ func TestShouldUpgradeBaseImage(t *testing.T) {
 	}
 }
 
+func TestPreserveDeployedImages(t *testing.T) {
+	existing := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "workspace", Image: "kaito-base:v1"},
+						{Name: "sidecar", Image: "sidecar:v1"},
+					},
+					InitContainers: []corev1.Container{
+						{Name: "cuda-toolkit-provisioner", Image: "kaito-base:v1"},
+					},
+				},
+			},
+		},
+	}
+	desired := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "workspace", Image: "kaito-base:v2"},
+						{Name: "sidecar", Image: "sidecar:v2"},
+						{Name: "new-sidecar", Image: "new-sidecar:v1"},
+					},
+					InitContainers: []corev1.Container{
+						{Name: "cuda-toolkit-provisioner", Image: "kaito-base:v2"},
+					},
+				},
+			},
+		},
+	}
+
+	preserveDeployedImages(existing, desired)
+
+	assert.Equal(t, "kaito-base:v1", desired.Spec.Template.Spec.Containers[0].Image)
+	assert.Equal(t, "sidecar:v1", desired.Spec.Template.Spec.Containers[1].Image)
+	assert.Equal(t, "new-sidecar:v1", desired.Spec.Template.Spec.Containers[2].Image)
+	assert.Equal(t, "kaito-base:v1", desired.Spec.Template.Spec.InitContainers[0].Image)
+}
+
 func TestDetectInferencePodFailure(t *testing.T) {
 	podList := func(pods ...corev1.Pod) *corev1.PodList {
 		return &corev1.PodList{Items: pods}

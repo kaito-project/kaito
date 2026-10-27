@@ -1033,6 +1033,34 @@ func TestNewWorkspaceForInferenceSetPropagatesCapacityType(t *testing.T) {
 	assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[kaitov1beta1.AnnotationCapacityType])
 }
 
+// The API server appends 5 random characters to GenerateName, so the prefix
+// must leave the generated Workspace name within MaxWorkspaceNameLength.
+func TestNewWorkspaceForInferenceSetGenerateName(t *testing.T) {
+	tests := []struct {
+		name             string
+		inferenceSetName string
+		want             string
+	}{
+		{name: "short name is kept", inferenceSetName: "phi-4-mini", want: "phi-4-mini-"},
+		{name: "longest name kept as is", inferenceSetName: strings.Repeat("a", 46), want: strings.Repeat("a", 46) + "-"},
+		{name: "long name is truncated", inferenceSetName: strings.Repeat("b", 63), want: strings.Repeat("b", 46) + "-"},
+		{
+			name:             "trailing dashes left by truncation are trimmed",
+			inferenceSetName: strings.Repeat("c", 44) + "--" + strings.Repeat("d", 17),
+			want:             strings.Repeat("c", 44) + "-",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is := &kaitov1beta1.InferenceSet{ObjectMeta: metav1.ObjectMeta{Name: tt.inferenceSetName, Namespace: "default"}}
+			ws := NewWorkspaceForInferenceSet(is)
+			assert.Equal(t, tt.want, ws.GenerateName)
+			assert.LessOrEqual(t, len(ws.GenerateName)+5, kaitov1beta1.MaxWorkspaceNameLength)
+			assert.Equal(t, tt.inferenceSetName, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
+		})
+	}
+}
+
 func TestNewWorkspaceForInferenceSetSelectors(t *testing.T) {
 	orig := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
 	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = orig })

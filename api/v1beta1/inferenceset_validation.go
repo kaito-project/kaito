@@ -20,6 +20,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
@@ -71,6 +72,39 @@ func (is *InferenceSet) validateCreate() (errs *apis.FieldError) {
 		errs = errs.Also(apis.ErrInvalidValue(*is.Spec.Replicas, "replicas", "must be non-negative"))
 	}
 	errs = errs.Also(validateInferenceSetMaintenanceWindow(is.Spec.AutoUpgrade))
+	errs = errs.Also(validateInferenceSetSelectorNotEmpty(is.Spec.Selector))
+	errs = errs.Also(validateInferenceSetSelectorMatchLabels(is.Spec.Selector, is.Spec.Template.Labels))
+	return errs
+}
+
+// validateInferenceSetSelectorNotEmpty rejects an unset or empty spec.labelSelector.
+// It is enforced on create only so existing InferenceSets with an empty
+// (immutable) selector remain updatable. Paths are relative to spec.
+func validateInferenceSetSelectorNotEmpty(selector *metav1.LabelSelector) *apis.FieldError {
+	if selector == nil {
+		return apis.ErrMissingField("labelSelector")
+	}
+	if IsEmptyLabelSelector(selector) {
+		return apis.ErrGeneric("labelSelector must not be empty", "labelSelector")
+	}
+	return nil
+}
+
+// validateInferenceSetSelectorMatchLabels rejects template.metadata.labels that
+// conflict with spec.labelSelector.matchLabels, which are copied onto every child
+// Workspace. matchExpressions are not checked: MultiRoleInference may generate
+// selectors whose expressions describe nodes rather than the template labels.
+// Paths are relative to spec.
+func validateInferenceSetSelectorMatchLabels(selector *metav1.LabelSelector, templateLabels map[string]string) (errs *apis.FieldError) {
+	if selector == nil {
+		return nil
+	}
+	for k, v := range selector.MatchLabels {
+		if tv, ok := templateLabels[k]; ok && tv != v {
+			errs = errs.Also(apis.ErrInvalidValue(tv, fmt.Sprintf("template.metadata.labels[%s]", k),
+				fmt.Sprintf("must equal labelSelector.matchLabels[%s] %q", k, v)))
+		}
+	}
 	return errs
 }
 

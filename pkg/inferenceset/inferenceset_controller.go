@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -47,6 +48,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/inferenceset"
+	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/resources"
 	"github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/controllers"
@@ -180,9 +182,11 @@ func (c *InferenceSetReconciler) garbageCollectInferenceSet(ctx context.Context,
 //   - readyReplicas: count of succeeded workspaces
 //   - benchmarkedReplicas: count of those workspaces
 //   - hasBenchmarkTPMResult: true if at least one workspace contributed a TPM value
+//
+// A Workspace being deleted is not a replica, as for selectWorkspacesToDelete and analyzeNotReadyWorkspaces.
 func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM float64, readyReplicas, benchmarkedReplicas int, hasBenchmarkTPMResult bool) {
 	for _, ws := range workspaces {
-		if controllers.DetermineWorkspacePhase(&ws) == "succeeded" {
+		if ws.DeletionTimestamp.IsZero() && controllers.DetermineWorkspacePhase(&ws) == "succeeded" {
 			readyReplicas++
 			if ws.Status.Performance != nil {
 				if m, ok := ws.Status.Performance.Metrics[controllers.BenchmarkMetricPeakTPM]; ok {
@@ -196,6 +200,66 @@ func aggregateBenchmarkResults(workspaces []kaitov1beta1.Workspace) (totalTPM fl
 		}
 	}
 	return
+}
+
+// maxReportedNotReadyWorkspaces bounds the Workspaces listed in the InferenceSetReady message.
+const maxReportedNotReadyWorkspaces = 3
+
+// analyzeNotReadyWorkspaces returns the InferenceSetReady=False reason and message from the root causes of the
+// not-ready Workspaces: terminal ones first, then failing ones, each with node causes before model and inference
+// ones. The reason is the first one's, and the message lists up to maxReportedNotReadyWorkspaces of them.
+func analyzeNotReadyWorkspaces(workspaces []kaitov1beta1.Workspace, readyReplicas int, desiredReplicas int32) (reason, message string) {
+	reason = "inferencesetNotReady"
+	message = fmt.Sprintf("inferenceset is not ready, %d/%d replicas are ready", readyReplicas, desiredReplicas)
+
+	type rootCause struct {
+		workspace string
+		controllers.RootCause
+	}
+	rootCauses := make([]rootCause, 0, len(workspaces))
+	omitted := 0
+	for i := range workspaces {
+		ws := &workspaces[i]
+		if !ws.DeletionTimestamp.IsZero() || controllers.DetermineWorkspacePhase(ws) == "succeeded" {
+			continue
+		}
+		cause, found := controllers.WorkspaceRootCause(ws)
+		if !found {
+			omitted++
+			continue
+		}
+		rootCauses = append(rootCauses, rootCause{workspace: ws.Name, RootCause: cause})
+	}
+	sort.Slice(rootCauses, func(i, j int) bool {
+		if rootCauses[i].Severity != rootCauses[j].Severity {
+			return rootCauses[i].Severity > rootCauses[j].Severity
+		}
+		if rootCauses[i].Stage != rootCauses[j].Stage {
+			return rootCauses[i].Stage < rootCauses[j].Stage
+		}
+		return rootCauses[i].workspace < rootCauses[j].workspace
+	})
+	if len(rootCauses) > maxReportedNotReadyWorkspaces {
+		omitted += len(rootCauses) - maxReportedNotReadyWorkspaces
+		rootCauses = rootCauses[:maxReportedNotReadyWorkspaces]
+	}
+
+	causes := make([]string, 0, len(rootCauses))
+	for i, rc := range rootCauses {
+		if i == 0 {
+			reason = rc.Condition.Reason
+		}
+		causes = append(causes, fmt.Sprintf("workspace %s %s=False (%s): %s",
+			rc.workspace, rc.Condition.Type, rc.Condition.Reason, nodeclaim.FormatProvisioningMessage(rc.Condition.Message)))
+	}
+	if len(causes) == 0 {
+		return reason, message
+	}
+	message += "; " + strings.Join(causes, "; ")
+	if omitted > 0 {
+		message += fmt.Sprintf("; and %d more", omitted)
+	}
+	return reason, message
 }
 
 // isWorkspaceOnOldImage reports whether the Workspace's StatefulSet is running a base
@@ -525,15 +589,17 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 		return reconcile.Result{}, err
 	}
 
-	if readyReplicas == int(desiredReplicas) {
+	// A surge replica created by an upgrade is ready before the replica it replaces is deleted.
+	if readyReplicas >= int(desiredReplicas) {
 		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionTrue,
 			"inferencesetReady", "inferenceset is ready"); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, err
 		}
 	} else {
+		notReadyReason, notReadyMessage := analyzeNotReadyWorkspaces(wsList.Items, readyReplicas, desiredReplicas)
 		if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeReady, metav1.ConditionFalse,
-			"inferencesetNotReady", fmt.Sprintf("inferenceset is not ready, %d/%d replicas are ready", readyReplicas, desiredReplicas)); err != nil {
+			notReadyReason, notReadyMessage); err != nil {
 			klog.ErrorS(err, "failed to update inferenceset status", "inferenceset", klog.KObj(iObj))
 			return reconcile.Result{}, err
 		}
@@ -541,7 +607,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 
 	// Surface benchmark progress when the annotation is set.
 	if kaitov1beta1.ShouldRunInferenceSetBenchmark(iObj) {
-		if benchmarkedReplicas == int(desiredReplicas) && desiredReplicas > 0 {
+		if benchmarkedReplicas >= int(desiredReplicas) && desiredReplicas > 0 {
 			if err = inferenceset.UpdateStatusConditionIfNotMatch(ctx, c.Client, iObj, kaitov1beta1.InferenceSetConditionTypeBenchmarkCompleted, metav1.ConditionTrue,
 				"BenchmarkCompleted", fmt.Sprintf("%d/%d replicas benchmarked", benchmarkedReplicas, desiredReplicas)); err != nil {
 				klog.ErrorS(err, "failed to update inferenceset benchmark status", "inferenceset", klog.KObj(iObj))

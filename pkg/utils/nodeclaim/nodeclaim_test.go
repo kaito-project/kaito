@@ -31,6 +31,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/apis"
+	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 )
@@ -420,4 +421,360 @@ func TestFirstNodeClaimProvisioningStateTruncatesMessage(t *testing.T) {
 	_, message, found := FirstNodeClaimProvisioningState(nodeClaims)
 	assert.Check(t, found)
 	assert.Equal(t, len(message), maxProvisioningErrorMessageLen+len("..."))
+}
+
+// failureOrProgress composes the NodeClaim helpers like the Karpenter provisioner does.
+func failureOrProgress(nodeClaims []*karpenterv1.NodeClaim) (reason, message string, found bool) {
+	if reason, message, found = RawNodeClaimProvisioningFailure(nodeClaims); found {
+		return ValidConditionReason(reason), FormatProvisioningMessage(message), true
+	}
+	if message, found = NodeClaimProvisioningProgress(nodeClaims); found {
+		return NodeClaimNotReadyReason, message, true
+	}
+	return "", "", false
+}
+
+func TestNodeClaimFailureOrProgress(t *testing.T) {
+	nc := func(conds ...status.Condition) *karpenterv1.NodeClaim {
+		return &karpenterv1.NodeClaim{Status: karpenterv1.NodeClaimStatus{Conditions: conds}}
+	}
+	deleting := func(conds ...status.Condition) *karpenterv1.NodeClaim {
+		n := nc(conds...)
+		now := metav1.Now()
+		n.DeletionTimestamp = &now
+		n.Finalizers = []string{"karpenter.sh/termination"}
+		return n
+	}
+
+	testcases := map[string]struct {
+		nodeClaims      []*karpenterv1.NodeClaim
+		expectedFound   bool
+		expectedReason  string
+		expectedMessage string
+	}{
+		"no node claims": {
+			nodeClaims:    nil,
+			expectedFound: false,
+		},
+		"pending launched without a reason is progress": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown}),
+			},
+			expectedFound:   true,
+			expectedReason:  NodeClaimNotReadyReason,
+			expectedMessage: "NodeClaim Launched=Unknown",
+		},
+		"initial AwaitingReconciliation state is surfaced as progress": {
+			// A fresh NodeClaim is Unknown/AwaitingReconciliation; the earliest pending stage is described.
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(
+					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
+					status.Condition{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
+					status.Condition{Type: karpenterv1.ConditionTypeInitialized, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"},
+				),
+			},
+			expectedFound:   true,
+			expectedReason:  NodeClaimNotReadyReason,
+			expectedMessage: "NodeClaim Launched=Unknown (AwaitingReconciliation): object is awaiting reconciliation",
+		},
+		"boot progress after launch is surfaced as progress": {
+			// Registration and initialization stay Unknown while the node boots, which is progress.
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(
+					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionTrue, Reason: "Launched"},
+					status.Condition{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionUnknown, Reason: "RegistrationHookPending", Message: "hook"},
+				),
+			},
+			expectedFound:   true,
+			expectedReason:  NodeClaimNotReadyReason,
+			expectedMessage: "NodeClaim Registered=Unknown (RegistrationHookPending): hook",
+		},
+		"a False lifecycle condition is a failure": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(
+					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionTrue, Reason: "Launched"},
+					status.Condition{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionFalse, Reason: "MultipleNodesFound", Message: "Invariant violated, matched multiple nodes"},
+				),
+			},
+			expectedFound:   true,
+			expectedReason:  "MultipleNodesFound",
+			expectedMessage: "Invariant violated, matched multiple nodes",
+		},
+		"launch failure without a message": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "LaunchFailed"}),
+			},
+			expectedFound:   true,
+			expectedReason:  "LaunchFailed",
+			expectedMessage: "NodeClaim Launched=Unknown (LaunchFailed)",
+		},
+		"failure on a later node claim wins over progress on an earlier one": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(
+					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionTrue, Reason: "Launched"},
+					status.Condition{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionUnknown, Reason: "NodeNotFound", Message: "Node not registered with cluster"},
+				),
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "CreateInstanceFailed", Message: "quota"}),
+			},
+			expectedFound:   true,
+			expectedReason:  "CreateInstanceFailed",
+			expectedMessage: "quota",
+		},
+		"ready node claim has no state": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionTrue}),
+			},
+			expectedFound: false,
+		},
+		"launched failure surfaced": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{
+					Type:    karpenterv1.ConditionTypeLaunched,
+					Status:  metav1.ConditionUnknown,
+					Reason:  "CreateInstanceFailed",
+					Message: "Family Cores quota exceeded",
+				}),
+			},
+			expectedFound:   true,
+			expectedReason:  "CreateInstanceFailed",
+			expectedMessage: "Family Cores quota exceeded",
+		},
+		"launched takes priority over registered": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(
+					status.Condition{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionUnknown, Reason: "NotRegistered", Message: "node not registered"},
+					status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "Unauthorized", Message: "unauthorized to create VM"},
+				),
+			},
+			expectedFound:   true,
+			expectedReason:  "Unauthorized",
+			expectedMessage: "unauthorized to create VM",
+		},
+		"real error takes priority over AwaitingReconciliation across node claims": {
+			// nc1 is still awaiting reconciliation, nc2 has a real error on the
+			// same (Launched) stage. The real error must win regardless of order.
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: "object is awaiting reconciliation"}),
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "CreateInstanceFailed", Message: "Family Cores quota exceeded"}),
+			},
+			expectedFound:   true,
+			expectedReason:  "CreateInstanceFailed",
+			expectedMessage: "Family Cores quota exceeded",
+		},
+		"an invalid failure reason is replaced": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "bad reason!", Message: "boom"}),
+			},
+			expectedFound:   true,
+			expectedReason:  ProvisioningFailedReason,
+			expectedMessage: "boom",
+		},
+		"waiting for the NodeClass to be reconciled is progress": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: nodeClassReadinessUnknownReason, Message: "NodeClass is in Ready=Unknown"}),
+			},
+			expectedFound:   true,
+			expectedReason:  NodeClaimNotReadyReason,
+			expectedMessage: "NodeClaim Launched=Unknown (NodeClassReadinessUnknown): NodeClass is in Ready=Unknown",
+		},
+		"awaiting reconciliation without a message is progress": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				nc(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation", Message: ""}),
+			},
+			expectedFound:   true,
+			expectedReason:  NodeClaimNotReadyReason,
+			expectedMessage: "NodeClaim Launched=Unknown (AwaitingReconciliation)",
+		},
+		"failure of a deleting node claim when no live one fails": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				deleting(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionFalse, Reason: "Gone", Message: "gone"}),
+			},
+			expectedFound:   true,
+			expectedReason:  "Gone",
+			expectedMessage: "gone",
+		},
+		"progress of a deleting node claim is skipped": {
+			nodeClaims: []*karpenterv1.NodeClaim{
+				deleting(status.Condition{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "AwaitingReconciliation"}),
+			},
+			expectedFound: false,
+		},
+	}
+
+	for name, tc := range testcases {
+		t.Run(name, func(t *testing.T) {
+			reason, message, found := failureOrProgress(tc.nodeClaims)
+			assert.Equal(t, found, tc.expectedFound)
+			assert.Equal(t, reason, tc.expectedReason)
+			assert.Equal(t, message, tc.expectedMessage)
+		})
+	}
+}
+
+// azureSubnetFullError mimics an Azure SDK error dump: request line, separator, error code and body.
+const azureSubnetFullError = `PUT https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/MC_rg_cluster_eastus/providers/Microsoft.Network/networkInterfaces/aks-default-ws1-abcde
+--------------------------------------------------------------------------------
+RESPONSE 400: 400 Bad Request
+ERROR CODE: SubnetIsFull
+--------------------------------------------------------------------------------
+{
+  "error": {
+    "code": "SubnetIsFull",
+    "message": "Subnet aks-subnet with address prefix 10.224.0.0/16 does not have enough capacity for 1 IP addresses.",
+    "details": [{"code": "Inner", "message": "inner detail"}]
+  }
+}
+--------------------------------------------------------------------------------
+`
+
+func TestCompactProvisioningMessage(t *testing.T) {
+	cases := map[string]struct {
+		in, expected string
+	}{
+		"plain message unchanged": {
+			in:       "subscription level on-demand vCPU quota for Standard_NC24ads_A100_v4 has been reached",
+			expected: "subscription level on-demand vCPU quota for Standard_NC24ads_A100_v4 has been reached",
+		},
+		"azure error dump": {
+			in: azureSubnetFullError,
+			expected: "SubnetIsFull: Subnet aks-subnet with address prefix 10.224.0.0/16 does not have enough capacity for 1 IP addresses. " +
+				"(PUT https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/MC_rg_cluster_eastus/providers/Microsoft.Network/networkInterfaces/aks-default-ws1-abcde)",
+		},
+		"body cut off by provider truncation": {
+			in:       "virtualMachine.BeginCreateOrUpdate for VM \"aks-x\" failed: PUT https://example\n----\nRESPONSE 409: 409 Conflict\nERROR CODE: OperationNotAllowed\n----\n{\n  \"error\": {\n    \"message\": \"Operation could not be compl...",
+			expected: "OperationNotAllowed (virtualMachine.BeginCreateOrUpdate for VM \"aks-x\" failed: PUT https://example)",
+		},
+		"escaped characters in message": {
+			in:       "PUT https://example\nERROR CODE: InvalidParameter\n{\"error\": {\"message\": \"Parameter \\\"osDisk\\\" is invalid\"}}",
+			expected: "InvalidParameter: Parameter \"osDisk\" is invalid (PUT https://example)",
+		},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, compactProvisioningMessage(tc.in), tc.expected)
+		})
+	}
+}
+
+func TestFormatProvisioningMessageKeepsErrorCode(t *testing.T) {
+	// Plain truncation of the raw dump would keep only the request URL.
+	assert.Check(t, !strings.Contains(utils.TruncateMessage(azureSubnetFullError, maxProvisioningErrorMessageLen), "SubnetIsFull"))
+
+	got := FormatProvisioningMessage(azureSubnetFullError)
+	assert.Check(t, strings.HasPrefix(got, "SubnetIsFull: Subnet aks-subnet"))
+	assert.Check(t, len(got) <= maxProvisioningErrorMessageLen+len("..."))
+}
+
+func TestCloudErrorCodes(t *testing.T) {
+	codes := CloudErrorCodes(azureSubnetFullError)
+	assert.Check(t, codes.Has("SubnetIsFull"))
+	assert.Check(t, codes.Has("Inner"), "JSON error details are matched")
+	assert.Check(t, CloudErrorCodes("failed to create AKS machine \"m\", unhandled provisioning error: code=AllocationFailed, message=x").Has("AllocationFailed"))
+	assert.Equal(t, CloudErrorCodes("subscription level on-demand vCPU quota has been reached").Len(), 0)
+}
+
+func TestRawNodeClaimProvisioningFailure(t *testing.T) {
+	now := metav1.Now()
+	deleting := &karpenterv1.NodeClaim{
+		ObjectMeta: metav1.ObjectMeta{DeletionTimestamp: &now, Finalizers: []string{"karpenter.sh/termination"}},
+		Status: karpenterv1.NodeClaimStatus{Conditions: []status.Condition{
+			{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "CreateInstanceFailed", Message: azureSubnetFullError},
+		}},
+	}
+	live := &karpenterv1.NodeClaim{Status: karpenterv1.NodeClaimStatus{Conditions: []status.Condition{
+		{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: "LaunchFailed", Message: "throttled"},
+	}}}
+	progressing := &karpenterv1.NodeClaim{Status: karpenterv1.NodeClaimStatus{Conditions: []status.Condition{
+		{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionUnknown, Reason: awaitingReconciliationReason},
+	}}}
+
+	reason, message, found := RawNodeClaimProvisioningFailure([]*karpenterv1.NodeClaim{deleting, progressing})
+	assert.Check(t, found)
+	assert.Equal(t, reason, "CreateInstanceFailed")
+	assert.Equal(t, message, azureSubnetFullError, "the message is not formatted")
+
+	reason, _, found = RawNodeClaimProvisioningFailure([]*karpenterv1.NodeClaim{deleting, live})
+	assert.Check(t, found)
+	assert.Equal(t, reason, "LaunchFailed", "a live NodeClaim's failure is preferred")
+
+	_, _, found = RawNodeClaimProvisioningFailure([]*karpenterv1.NodeClaim{progressing, nil})
+	assert.Check(t, !found)
+}
+
+func TestFormatClassifiedProvisioningMessage(t *testing.T) {
+	got := FormatClassifiedProvisioningMessage("CreateInstanceFailed", azureSubnetFullError)
+	assert.Check(t, strings.HasPrefix(got, "CreateInstanceFailed: SubnetIsFull: Subnet aks-subnet"))
+	assert.Check(t, len(got) <= maxProvisioningErrorMessageLen+len("..."))
+}
+
+func TestParseClassifiedProvisioningMessage(t *testing.T) {
+	reason, message := ParseClassifiedProvisioningMessage(FormatClassifiedProvisioningMessage("InsufficientCapacityError", "no instance types available"))
+	assert.Equal(t, "InsufficientCapacityError", reason)
+	assert.Equal(t, "no instance types available", message)
+
+	reason, message = ParseClassifiedProvisioningMessage("no reason in front")
+	assert.Equal(t, "", reason)
+	assert.Equal(t, "no reason in front", message)
+}
+
+func TestIsConditionTrue(t *testing.T) {
+	nc := &karpenterv1.NodeClaim{Status: karpenterv1.NodeClaimStatus{Conditions: []status.Condition{
+		{Type: karpenterv1.ConditionTypeLaunched, Status: metav1.ConditionTrue},
+		{Type: karpenterv1.ConditionTypeRegistered, Status: metav1.ConditionUnknown},
+	}}}
+	assert.Check(t, IsConditionTrue(nc, karpenterv1.ConditionTypeLaunched))
+	assert.Check(t, !IsConditionTrue(nc, karpenterv1.ConditionTypeRegistered))
+	assert.Check(t, !IsConditionTrue(nc, karpenterv1.ConditionTypeInitialized))
+}
+
+// TestLifecycleClassificationMatchesUpstream pins the lifecycle states of the Karpenter modules in go.mod; re-check them on bumps.
+func TestLifecycleClassificationMatchesUpstream(t *testing.T) {
+	const (
+		launched    = karpenterv1.ConditionTypeLaunched
+		registered  = karpenterv1.ConditionTypeRegistered
+		initialized = karpenterv1.ConditionTypeInitialized
+		unknown     = metav1.ConditionUnknown
+		falseStatus = metav1.ConditionFalse
+	)
+	testcases := []struct {
+		source        string
+		conditionType string
+		status        metav1.ConditionStatus
+		reason        string
+		failure       bool
+	}{
+		// operatorpkg status.ConditionSet initializes every condition.
+		{"operatorpkg status/condition_set.go", launched, unknown, "AwaitingReconciliation", false},
+		{"operatorpkg status/condition_set.go", registered, unknown, "AwaitingReconciliation", false},
+		{"operatorpkg status/condition_set.go", initialized, unknown, "AwaitingReconciliation", false},
+		// karpenter pkg/controllers/nodeclaim/lifecycle/launch.go: CreateError reason or LaunchFailed.
+		{"karpenter lifecycle/launch.go", launched, unknown, "LaunchFailed", true},
+		// karpenter pkg/controllers/nodeclaim/lifecycle/registration.go.
+		{"karpenter lifecycle/registration.go", registered, unknown, "NodeNotFound", false},
+		{"karpenter lifecycle/registration.go", registered, falseStatus, "MultipleNodesFound", true},
+		// karpenter pkg/controllers/nodeclaim/lifecycle/initialization.go never sets False.
+		{"karpenter lifecycle/initialization.go", initialized, unknown, "NodeNotFound", false},
+		{"karpenter lifecycle/initialization.go", initialized, unknown, "NodeNotReady", false},
+		{"karpenter lifecycle/initialization.go", initialized, unknown, "StartupTaintsExist", false},
+		{"karpenter lifecycle/initialization.go", initialized, unknown, "KnownEphemeralTaintsExist", false},
+		{"karpenter lifecycle/initialization.go", initialized, unknown, "ResourceNotRegistered", false},
+		// karpenter-provider-azure pkg/cloudprovider/cloudprovider.go CreateError reasons.
+		{"azure cloudprovider.go", launched, unknown, nodeClassReadinessUnknownReason, false},
+		{"azure cloudprovider.go", launched, unknown, "InstanceTypeResolutionFailed", true},
+		{"azure cloudprovider.go", launched, unknown, "CreateInstanceFailed", true},
+		// karpenter-provider-aws CreateError reasons, mapped from EC2 errors by pkg/errors/errors.go.
+		{"aws cloudprovider.go", launched, unknown, nodeClassReadinessUnknownReason, false},
+		{"aws cloudprovider.go", launched, unknown, "InstanceTypeResolutionFailed", true},
+		{"aws instance.go", launched, unknown, "InstanceTypeFilteringFailed", true},
+		{"aws instance.go", launched, unknown, "SubnetResolutionFailed", true},
+		{"aws errors.go", launched, unknown, "VCPULimitExceeded", true},
+		{"aws errors.go", launched, unknown, "Unauthorized", true},
+		{"aws errors.go", launched, unknown, "RequestLimitExceeded", true},
+	}
+	for _, tc := range testcases {
+		t.Run(tc.source+"/"+tc.conditionType+"="+string(tc.status)+"/"+tc.reason, func(t *testing.T) {
+			c := status.Condition{Type: tc.conditionType, Status: tc.status, Reason: tc.reason}
+			assert.Equal(t, isLifecycleFailure(&c), tc.failure)
+		})
+	}
 }

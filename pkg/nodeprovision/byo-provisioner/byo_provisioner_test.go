@@ -186,6 +186,32 @@ func TestSelectInstanceType(t *testing.T) {
 	}
 }
 
+func TestEffectiveInstanceType(t *testing.T) {
+	c := newFakeClient(t, readyGPUNode("n1", "Standard_A", 40000, 1))
+	tests := []struct {
+		name     string
+		selector *metav1.LabelSelector
+		want     string
+	}{
+		{name: "nil selector auto-selects", selector: nil, want: "Standard_A"},
+		{name: "empty selector auto-selects", selector: &metav1.LabelSelector{}, want: "Standard_A"},
+		{name: "empty matchLabels auto-selects", selector: &metav1.LabelSelector{MatchLabels: map[string]string{}}, want: "Standard_A"},
+		{name: "non-empty selector adds no SKU filter", selector: &metav1.LabelSelector{MatchLabels: map[string]string{"apps": "qwen"}}, want: ""},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &kaitov1beta1.Workspace{Resource: kaitov1beta1.ResourceSpec{LabelSelector: tc.selector}}
+			got, err := EffectiveInstanceType(context.Background(), c, ws)
+			if err != nil {
+				t.Fatalf("EffectiveInstanceType() error = %v", err)
+			}
+			if got != tc.want {
+				t.Errorf("EffectiveInstanceType() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func conditionReason(conds []metav1.Condition, condType kaitov1beta1.ConditionType) string {
 	for i := range conds {
 		if conds[i].Type == string(condType) {

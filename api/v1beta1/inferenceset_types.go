@@ -20,7 +20,8 @@ import (
 
 type InferenceSetResourceSpec struct {
 	// InstanceType specifies the GPU node SKU.
-	// Required when node auto-provisioning is enabled; must be empty for BYO nodes.
+	// Required when node auto-provisioning is enabled. Optional for BYO nodes, where it
+	// restricts the GPU nodes to those labeled node.kubernetes.io/instance-type=<instanceType>.
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 
@@ -30,6 +31,13 @@ type InferenceSetResourceSpec struct {
 	// Propagated verbatim to each child Workspace.
 	// +optional
 	Partition *PartitionSpec `json:"partition,omitempty"`
+
+	// LabelSelector specifies the required labels for the GPU nodes and is copied into
+	// resource.labelSelector of each child Workspace. With BYO nodes, leave it unset or
+	// empty ({}), together with instanceType, to auto-select the GPU SKU. With node
+	// auto-provisioning, an unset or empty value inherits spec.labelSelector.
+	// +optional
+	LabelSelector *metav1.LabelSelector `json:"labelSelector,omitempty"`
 }
 
 // InferenceSetTemplate defines the template for creating InferenceSet instances.
@@ -134,7 +142,11 @@ type InferenceSetSpec struct {
 	// If not specified, there is no limit on the number of GPU nodes that can be created.
 	// +optional
 	NodeCountLimit int `json:"nodeCountLimit,omitempty"`
-	// workspace created by InferenceSet controller would use this label in resource.labelSelector
+	// Selector is a label query over the Workspaces managed by this InferenceSet. It must be
+	// non-empty on create, and its matchLabels must not conflict with template.metadata.labels;
+	// they are added to each child Workspace's labels. It does not select GPU nodes; use template.resource.labelSelector.
+	// For backward compatibility, it is inherited as the node selector with node
+	// auto-provisioning when template.resource.labelSelector is unset or empty.
 	// +required
 	Selector *metav1.LabelSelector `json:"labelSelector"`
 	// UpdateStrategy indicates the strategy to use to replace existing workspaces with new ones.

@@ -17,6 +17,8 @@ import (
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 const (
@@ -38,7 +40,7 @@ const (
 	ReasonPVCCreateFailed   = "PVCCreateFailed"
 	ReasonJobCreateFailed   = "JobCreateFailed"
 	ReasonDownloadFailed    = "DownloadFailed"
-	ReasonDownloadOOMKilled = "DownloadOOMKilled"
+	ReasonDownloadOOMKilled = kaitoconsts.ReasonDownloadOOMKilled
 	ReasonDownloadEvicted   = "DownloadEvicted"
 	ReasonDownloadSucceeded = "DownloadSucceeded"
 	ReasonStaticMirror      = "StaticMirror"
@@ -48,10 +50,13 @@ const (
 	LabelModelMirrorName = "kaito.sh/model-mirror-name"
 
 	// Downloader image
-	DownloaderImage = "mcr.microsoft.com/mirror/docker/library/python:3.11-slim"
+	DownloaderImage = kaitoconsts.PythonHelperImage
 
 	// huggingface-hub version
-	HuggingFaceHubVersion = "1.18.0"
+	HuggingFaceHubVersion = "2.3.0"
+
+	// certifi version provides the CA bundle used by the HF clients, including native Xet.
+	CertifiVersion = "2026.10.19"
 
 	// prometheus-client version, used by the sampler sidecar to expose progress
 	PrometheusClientVersion = "0.24.1"

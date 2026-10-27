@@ -550,12 +550,13 @@ spec:
               instanceType:
                 description: |-
                   InstanceType specifies the GPU node SKU.
-                  This field is required when node auto-provisioning is enabled.
-                  This field must be empty when node auto-provisioning is disabled (BYO scenario).
+                  Required when node auto-provisioning is enabled. Optional for BYO nodes, where it
+                  restricts the GPU nodes to those labeled node.kubernetes.io/instance-type=<instanceType>.
                 type: string
               labelSelector:
-                description: LabelSelector specifies the required labels for the GPU
-                  nodes.
+                description: |-
+                  LabelSelector specifies the required labels for the GPU nodes. Leave it unset or empty ({}),
+                  together with instanceType, to let BYO mode auto-select the GPU SKU.
                 properties:
                   matchExpressions:
                     description: matchExpressions is a list of label selector requirements.
@@ -642,8 +643,6 @@ spec:
                 items:
                   type: string
                 type: array
-            required:
-            - labelSelector
             type: object
           status:
             description: WorkspaceStatus defines the observed state of Workspace

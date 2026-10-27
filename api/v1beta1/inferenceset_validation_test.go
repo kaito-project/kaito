@@ -32,7 +32,9 @@ func TestInferenceSetValidate(t *testing.T) {
 			Name:      "test-is",
 			Namespace: "default",
 		},
-		Spec: InferenceSetSpec{},
+		Spec: InferenceSetSpec{
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "llm"}},
+		},
 	}
 	errs := is.Validate(context.Background())
 	assert.Nil(t, errs)
@@ -124,7 +126,12 @@ func TestInferenceSetValidatePassesBaselineToWorkspaceValidation(t *testing.T) {
 		return nil
 	}
 
-	old := &InferenceSet{ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"}}
+	old := &InferenceSet{
+		ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+		Spec: InferenceSetSpec{
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "llm"}},
+		},
+	}
 	updated := old.DeepCopy()
 
 	assert.Nil(t, updated.Validate(context.Background()))
@@ -134,4 +141,82 @@ func TestInferenceSetValidatePassesBaselineToWorkspaceValidation(t *testing.T) {
 	assert.Nil(t, updated.Validate(apis.WithinUpdate(context.Background(), old)))
 	assert.Equal(t, 2, calls)
 	assert.Same(t, old, gotBaseline)
+}
+
+func TestInferenceSetValidateSelector(t *testing.T) {
+	original := ValidateInferenceSetWorkspace
+	t.Cleanup(func() { ValidateInferenceSetWorkspace = original })
+	ValidateInferenceSetWorkspace = func(context.Context, *InferenceSet) *apis.FieldError { return nil }
+
+	newIS := func(selector *metav1.LabelSelector, templateLabels map[string]string) *InferenceSet {
+		return &InferenceSet{
+			ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
+			Spec: InferenceSetSpec{
+				Selector: selector,
+				Template: InferenceSetTemplate{ObjectMeta: metav1.ObjectMeta{Labels: templateLabels}},
+			},
+		}
+	}
+	appIn := func(values ...string) *metav1.LabelSelector {
+		return &metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{
+			{Key: "app", Operator: metav1.LabelSelectorOpIn, Values: values},
+		}}
+	}
+
+	tests := []struct {
+		name    string
+		old     *InferenceSet
+		is      *InferenceSet
+		wantErr string
+	}{
+		{
+			name:    "nil selector is rejected on create",
+			is:      newIS(nil, nil),
+			wantErr: "missing field(s): spec.labelSelector",
+		},
+		{
+			name:    "empty selector is rejected on create",
+			is:      newIS(&metav1.LabelSelector{}, nil),
+			wantErr: "labelSelector must not be empty",
+		},
+		{
+			name: "matchLabels without template labels is accepted",
+			is:   newIS(&metav1.LabelSelector{MatchLabels: map[string]string{"app": "llm"}}, nil),
+		},
+		{
+			name:    "template label conflicting with matchLabels is rejected",
+			is:      newIS(&metav1.LabelSelector{MatchLabels: map[string]string{"app": "llm"}}, map[string]string{"app": "other"}),
+			wantErr: "spec.template.metadata.labels[app]",
+		},
+		{
+			name: "matchExpressions are not checked against template labels",
+			is:   newIS(appIn("llm"), nil),
+		},
+		{
+			name: "existing empty selector remains updatable",
+			old:  newIS(&metav1.LabelSelector{}, nil),
+			is:   newIS(&metav1.LabelSelector{}, nil),
+		},
+		{
+			name: "template labels are not rechecked on update",
+			old:  newIS(&metav1.LabelSelector{MatchLabels: map[string]string{"app": "llm"}}, nil),
+			is:   newIS(&metav1.LabelSelector{MatchLabels: map[string]string{"app": "llm"}}, map[string]string{"app": "other"}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			if tt.old != nil {
+				ctx = apis.WithinUpdate(ctx, tt.old)
+			}
+			errs := tt.is.Validate(ctx)
+			if tt.wantErr == "" {
+				assert.Nil(t, errs)
+				return
+			}
+			assert.NotNil(t, errs)
+			assert.Contains(t, errs.Error(), tt.wantErr)
+		})
+	}
 }

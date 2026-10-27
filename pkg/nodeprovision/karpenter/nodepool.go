@@ -29,9 +29,11 @@ import (
 )
 
 const (
-	// Bounded by the Kubernetes label-value limit: the name is stored in the
-	// karpenter.sh/nodepool label on NodeClaims and Nodes.
-	maxNodePoolNameLen = 63
+	// Keeps the Azure VM name of each node, "aks-" + NodeClaim name, within
+	// the 63-character hostname label limit: Karpenter names NodeClaims
+	// "<nodepool>-" + 5 random characters, so 4 + 53 + 1 + 5 = 63. This also
+	// fits the karpenter.sh/nodepool label on NodeClaims and Nodes.
+	maxNodePoolNameLen = 53
 	hashSuffixLen      = 9
 )
 

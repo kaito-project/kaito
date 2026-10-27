@@ -27,6 +27,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/sku"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 )
 
@@ -98,11 +99,11 @@ func (n *BYOProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1beta1.
 func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error) {
 	nodeCond := metav1.Condition{
 		Type: string(kaitov1beta1.ConditionTypeNodeStatus), Status: metav1.ConditionFalse,
-		Reason: "NodeNotReady", Message: "Not enough Nodes are ready",
+		Reason: consts.ReasonNodeNotReady, Message: "Not enough Nodes are ready",
 	}
 	resourceCond := metav1.Condition{
 		Type: string(kaitov1beta1.ConditionTypeResourceStatus), Status: metav1.ConditionFalse,
-		Reason: "workspaceResourceStatusNotReady", Message: "node status condition not ready",
+		Reason: consts.ReasonResourceNotReady, Message: "node status condition not ready",
 	}
 
 	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, n.client, n, ws)
@@ -138,11 +139,6 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 		nodeCond.Message = msg
 	}
 
-	// Enrich NodesReady with a node-pressure warning (diagnostic only; status unchanged).
-	if w := nodes.NodePressureWarning(nodeList); w != "" {
-		nodeCond.Message = nodeCond.Message + "; warning: " + w
-	}
-
 	// BYO mode: no NodeClaimStatus condition.
 	return []metav1.Condition{nodeCond, resourceCond}, nil
 }
@@ -151,9 +147,9 @@ func (n *BYOProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1b
 //
 // The labelSelector x instanceType matrix is:
 //   - instanceType set: use it as a hard filter, even when no matching node exists
-//   - instanceType unset, labelSelector nil: select the largest GPU-memory SKU
+//   - instanceType unset, labelSelector nil or {}: select the largest GPU-memory SKU
 //     among healthy nodes; return empty when no usable GPU node exists
-//   - instanceType unset, labelSelector set: add no SKU filter and preserve the
+//   - instanceType unset, labelSelector non-empty: add no SKU filter and preserve the
 //     label selector's legacy placement behavior
 //
 // Auto-selection is recomputed from current nodes and is not persisted.
@@ -161,7 +157,7 @@ func EffectiveInstanceType(ctx context.Context, c client.Client, ws *kaitov1beta
 	if ws.Resource.InstanceType != "" {
 		return ws.Resource.InstanceType, nil
 	}
-	if ws.Resource.LabelSelector == nil {
+	if ws.Resource.AutoSelectsSKU() {
 		return SelectInstanceType(ctx, c, ws)
 	}
 	return "", nil

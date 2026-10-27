@@ -95,6 +95,9 @@ spec:
       apps: phi-4-mini
   replicas: 1
   template:
+    metadata:
+      labels:
+        apps: phi-4-mini
     inference:
       preset:
         accessMode: public
@@ -197,6 +200,9 @@ spec:
       apps: phi-4-mini
   replicas: 1
   template:
+    metadata:
+      labels:
+        apps: phi-4-mini
     inference:
       preset:
         accessMode: public

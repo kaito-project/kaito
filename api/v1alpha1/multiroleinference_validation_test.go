@@ -15,6 +15,7 @@ package v1alpha1
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -122,6 +123,24 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 			mri: func() *MultiRoleInference {
 				m := validMRI()
 				m.Name = "Invalid-Name"
+				return m
+			}(),
+			wantErr: true,
+		},
+		{
+			name: "name at the maximum length",
+			mri: func() *MultiRoleInference {
+				m := validMRI()
+				m.Name = strings.Repeat("a", 55)
+				return m
+			}(),
+			wantErr: false,
+		},
+		{
+			name: "name too long for child InferenceSet names",
+			mri: func() *MultiRoleInference {
+				m := validMRI()
+				m.Name = strings.Repeat("a", 56)
 				return m
 			}(),
 			wantErr: true,

@@ -61,7 +61,7 @@ resource:
 - `mode` — the partitioning technology. Currently only `mig` (NVIDIA Multi-Instance GPU) is supported; the field is a discriminator that leaves room for other technologies later.
 - `profile` — the MIG profile in `<compute>g.<memory>gb` form (e.g. `1g.10gb`, `2g.24gb`, `3g.47gb`, `7g.80gb`). Must be a [known NVIDIA profile](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/latest/supported-mig-profiles.html) and large enough for the model.
 - `instanceType` — must be **empty** (BYO). Node auto-provisioning is disabled.
-- `labelSelector` — targets the MIG node(s); required so the pod lands on a partitioned node.
+- `labelSelector` (`resource.labelSelector` for Workspace, `template.resource.labelSelector` for InferenceSet) — targets the MIG node(s) so the pod lands on a partitioned node. An InferenceSet's `spec.labelSelector` only selects its replica Workspaces and does not target nodes on BYO clusters.
 
 **How KAITO maps the request:**
 
@@ -83,13 +83,19 @@ spec:
   replicas: 2
   labelSelector:
     matchLabels:
-      kaito-inferenceset: phi-4-mini
+      apps: phi-4-mini
   template:
+    metadata:
+      labels:
+        apps: phi-4-mini
     inference:
       preset:
         accessMode: public
         name: "microsoft/Phi-4-mini-instruct"
     resource:
+      labelSelector:
+        matchLabels:
+          kaito-inferenceset: phi-4-mini   # target your MIG node(s)
       partition:
         mode: mig
         profile: "2g.24gb"
@@ -128,8 +134,15 @@ spec:
   replicas: 2
   labelSelector:
     matchLabels:
-      kaito-inferenceset: phi-4-mini
+      apps: phi-4-mini
   template:
+    metadata:
+      labels:
+        apps: phi-4-mini
+    resource:
+      labelSelector:
+        matchLabels:
+          kaito-inferenceset: phi-4-mini   # target your MIG node(s)
     inference:
       preset:
         accessMode: public

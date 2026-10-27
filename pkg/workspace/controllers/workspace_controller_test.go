@@ -1462,6 +1462,11 @@ func TestBuildReconcileErrMessageAppender(t *testing.T) {
 
 	withErrAppender := buildReconcileErrMessageAppender(errors.New("boom"))
 	assert.Equal(t, "workspace is ready (last reconcile error: boom)", withErrAppender("workspace is ready"))
+
+	// A NodeClassInvalid message is the ProvisionNodes error itself, truncated when long, so it is not appended twice.
+	nodeClassErr := errors.New(`NodeClass "nc" is not ready (UnhealthyDependents): SubnetsReady=False (SubnetIDInvalid): ` + strings.Repeat("x", 300))
+	truncated := utils.TruncateMessage(nodeClassErr.Error(), 256)
+	assert.Equal(t, truncated, buildReconcileErrMessageAppender(nodeClassErr)(truncated))
 }
 
 func TestApplyInferenceWorkspaceStatus(t *testing.T) {
@@ -2104,6 +2109,47 @@ func TestShouldUpgradeBaseImage(t *testing.T) {
 			assert.Equal(t, tt.expect, got)
 		})
 	}
+}
+
+func TestPreserveDeployedImages(t *testing.T) {
+	existing := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "workspace", Image: "kaito-base:v1"},
+						{Name: "sidecar", Image: "sidecar:v1"},
+					},
+					InitContainers: []corev1.Container{
+						{Name: "cuda-toolkit-provisioner", Image: "kaito-base:v1"},
+					},
+				},
+			},
+		},
+	}
+	desired := &appsv1.StatefulSet{
+		Spec: appsv1.StatefulSetSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "workspace", Image: "kaito-base:v2"},
+						{Name: "sidecar", Image: "sidecar:v2"},
+						{Name: "new-sidecar", Image: "new-sidecar:v1"},
+					},
+					InitContainers: []corev1.Container{
+						{Name: "cuda-toolkit-provisioner", Image: "kaito-base:v2"},
+					},
+				},
+			},
+		},
+	}
+
+	preserveDeployedImages(existing, desired)
+
+	assert.Equal(t, "kaito-base:v1", desired.Spec.Template.Spec.Containers[0].Image)
+	assert.Equal(t, "sidecar:v1", desired.Spec.Template.Spec.Containers[1].Image)
+	assert.Equal(t, "new-sidecar:v1", desired.Spec.Template.Spec.Containers[2].Image)
+	assert.Equal(t, "kaito-base:v1", desired.Spec.Template.Spec.InitContainers[0].Image)
 }
 
 func TestDetectInferencePodFailure(t *testing.T) {

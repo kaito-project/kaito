@@ -427,7 +427,7 @@ func handleURLDataSource(workspaceObj *kaitov1beta1.Workspace) (*corev1.Containe
 	volume, volumeMount := utils.ConfigDataVolume(nil)
 	initContainer := &corev1.Container{
 		Name:    "data-downloader",
-		Image:   "curlimages/curl",
+		Image:   "curlimages/curl:8.23.0",
 		Command: []string{"sh", "-c", dataDownloaderScript},
 		Env: []corev1.EnvVar{
 			{

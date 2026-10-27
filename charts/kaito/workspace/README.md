@@ -5,7 +5,7 @@
 ```bash
 export REGISTRY=mcr.microsoft.com/aks/kaito
 export IMG_NAME=workspace
-export IMG_TAG=0.13.0-rc.2
+export IMG_TAG=0.13.0
 helm install workspace ./charts/kaito/workspace  \
 --set image.repository=${REGISTRY}/${IMG_NAME} --set image.tag=${IMG_TAG} \
 --namespace kaito-workspace --create-namespace
@@ -18,7 +18,7 @@ helm install workspace ./charts/kaito/workspace  \
 | affinity                                       | object | `{}`                                                     | Pod affinity rules.                                           |
 | image.pullPolicy                               | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
 | image.repository                               | string | `mcr.microsoft.com/aks/kaito/workspace`                  | Controller image repository.                                  |
-| image.tag                                      | string | `"0.13.0-rc.2"`                                          | Controller image tag.                                         |
+| image.tag                                      | string | `"0.13.0"`                                               | Controller image tag.                                         |
 | imagePullSecrets                               | list   | `[]`                                                     | List of image pull secret references (`[{name: <secret>}]`).  |
 | nodeSelector                                   | object | `{"kubernetes.io/os": "linux"}`                          | Controller pod node selector.                                 |
 | podAnnotations                                 | object | `{}`                                                     | Extra annotations added to the controller pod.                |
@@ -53,7 +53,7 @@ helm install workspace ./charts/kaito/workspace  \
 | localCSIDriver.useLocalCSIDriver               | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables use of the bundled local CSI driver. |
 | nvidiaDevicePlugin.enabled                     | bool   | `true`                                                   | Allowed values: `true`, `false`. Set to `false` if the cluster already has an NVIDIA device plugin (e.g., via GPU Operator). |
 | nvidiaDevicePlugin.daemonsetName               | string | `"nvidia-device-plugin-daemonset"`                       | DNS-1123 name of the generated DaemonSet.                     |
-| nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.18.2-1"` | Full image reference for the device plugin container. |
+| nvidiaDevicePlugin.image                       | string | `"mcr.microsoft.com/oss/v2/nvidia/k8s-device-plugin:v0.20.1-5"` | Full image reference for the device plugin container. |
 | nvidiaDevicePlugin.imagePullPolicy             | string | `"IfNotPresent"`                                         | Allowed values: `Always`, `IfNotPresent`, `Never`.            |
 | featureGates.vLLM                              | bool   | `true`                                                   | Allowed values: `true`, `false`. Enables the vLLM inference runtime feature gate. |
 | featureGates.disableNodeAutoProvisioning       | bool   | `false`                                                  | Allowed values: `true`, `false`. When `true`, disables Node Auto-Provisioning (NAP) and installs the `gpu-feature-discovery` subchart as a standalone replacement. |

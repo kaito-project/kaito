@@ -437,8 +437,9 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 		}
 
 		// LabelSelector — start from the MRI's labelSelector and inject role info.
-		// The InferenceSet controller propagates Spec.Selector to workspace.Resource.LabelSelector,
-		// so role-specific labels must be in the selector to ensure correct node selection.
+		// Template labels below carry the same keys so child Workspaces match it. With node
+		// auto-provisioning, the InferenceSet controller also inherits it as the Workspace
+		// node selector, so role-specific labels land on the provisioned nodes.
 		desired.Spec.Selector = mri.Spec.LabelSelector.DeepCopy()
 		if desired.Spec.Selector == nil {
 			desired.Spec.Selector = &metav1.LabelSelector{}

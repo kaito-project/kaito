@@ -31,12 +31,14 @@ type ResourceSpec struct {
 	Count *int `json:"count,omitempty"`
 
 	// InstanceType specifies the GPU node SKU.
-	// This field is required when node auto-provisioning is enabled.
-	// This field must be empty when node auto-provisioning is disabled (BYO scenario).
+	// Required when node auto-provisioning is enabled. Optional for BYO nodes, where it
+	// restricts the GPU nodes to those labeled node.kubernetes.io/instance-type=<instanceType>.
 	// +optional
 	InstanceType string `json:"instanceType,omitempty"`
 
-	// LabelSelector specifies the required labels for the GPU nodes.
+	// LabelSelector specifies the required labels for the GPU nodes. Leave it unset or empty ({}),
+	// together with instanceType, to let BYO mode auto-select the GPU SKU.
+	// +optional
 	LabelSelector *metav1.LabelSelector `json:"labelSelector"`
 
 	// Deprecated: PreferredNodes is deprecated in v1beta1 and will be removed in a future version.

@@ -37,7 +37,7 @@ func sasCfg() *StreamingConfig {
 		InitContainers: []corev1.Container{
 			{
 				Name:    "fetch-sas",
-				Image:   "python:3.12-slim",
+				Image:   "mcr.microsoft.com/azurelinux/base/python:3.12",
 				Command: []string{"/bin/sh", "-c", "pip install ... && python3 /scripts/fetch_sas.py"},
 				Env: []corev1.EnvVar{
 					{Name: "STREAM_DATAREFS_URL", Value: "https://example.com/models/m/versions/1"},
@@ -109,7 +109,7 @@ func TestSetStreamingConfig_SASWiring(t *testing.T) {
 	require.Len(t, spec.InitContainers, 1)
 	ic := spec.InitContainers[0]
 	assert.Equal(t, "fetch-sas", ic.Name)
-	assert.Equal(t, "python:3.12-slim", ic.Image, "init container keeps the slim-python image from the provider")
+	assert.Equal(t, "mcr.microsoft.com/azurelinux/base/python:3.12", ic.Image, "init container keeps the python image from the provider")
 
 	// 2. Shared volume appended to pod
 	volumeNames := make([]string, 0, len(spec.Volumes))

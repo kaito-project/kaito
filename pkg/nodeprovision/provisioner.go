@@ -98,3 +98,7 @@ type NodeProvisioner interface {
 	// (BYO nodes are matched purely via the user-supplied label selector).
 	BuildNodeSelector(ctx context.Context, ws *kaitov1beta1.Workspace) []corev1.NodeSelectorRequirement
 }
+
+// ReconcileErrorMessagePrefix starts the reconcile error the Workspace controller appends, followed by ")", to the
+// messages of the conditions returned by CollectNodeStatusInfo.
+const ReconcileErrorMessagePrefix = " (last reconcile error: "

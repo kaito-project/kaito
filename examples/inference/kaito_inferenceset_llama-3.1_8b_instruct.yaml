@@ -20,9 +20,12 @@ spec:
   nodeCountLimit: 10 # optional, total GPU node count limit for InferenceSet
   labelSelector:
     matchLabels:
-      # workspace created by InferenceSet controller would use this label in resource.labelSelector
+      # selects the workspaces managed by this InferenceSet; must match template.metadata.labels
       apps: llama-3-1-8b
   template:
+    metadata:
+      labels:
+        apps: llama-3-1-8b
     resource:
       instanceType: "Standard_NC24ads_A100_v4"
     inference: # fields in inference are the same as in workspace.resource.inference

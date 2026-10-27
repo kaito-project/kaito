@@ -160,7 +160,7 @@ jobs:
       - name: Create AIKit InferenceSet
         run: |
           cat << EOF > aikit-inferenceset.yaml
-          apiVersion: kaito.sh/v1alpha1
+          apiVersion: kaito.sh/v1beta1
           kind: InferenceSet
           metadata:
             name: inferenceset-aikit-test
@@ -187,6 +187,10 @@ jobs:
                 apps: aikit-test
             replicas: 1
             template:
+              resource:
+                labelSelector:
+                  matchLabels:
+                    apps: aikit-test
               inference:
                 template:
                   spec:

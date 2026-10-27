@@ -11,13 +11,19 @@ spec:
   replicas: 2
   labelSelector:
     matchLabels:
-      kaito-inferenceset: phi-4-mini
+      apps: phi-4-mini
   template:
+    metadata:
+      labels:
+        apps: phi-4-mini
     inference:
       preset:
         accessMode: public
         name: microsoft/Phi-4-mini-instruct
     resource:
+      labelSelector:
+        matchLabels:
+          kaito-inferenceset: phi-4-mini   # target your MIG node(s)
       partition:
         mode: mig
         profile: "2g.24gb"

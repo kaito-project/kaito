@@ -244,6 +244,19 @@ func IsReservedSelectorLabel(key string) bool {
 	return ok
 }
 
+// IsEmptyLabelSelector reports whether selector is nil or has no matchLabels
+// and no matchExpressions. Both forms mean "no node selector" for BYO GPU SKU
+// auto-selection.
+func IsEmptyLabelSelector(selector *metav1.LabelSelector) bool {
+	return selector == nil || (len(selector.MatchLabels) == 0 && len(selector.MatchExpressions) == 0)
+}
+
+// AutoSelectsSKU reports whether BYO mode should auto-select the GPU SKU,
+// which happens when neither instanceType nor a non-empty labelSelector is set.
+func (r *ResourceSpec) AutoSelectsSKU() bool {
+	return r.InstanceType == "" && IsEmptyLabelSelector(r.LabelSelector)
+}
+
 // SanitizedMatchLabels returns the MatchLabels of selector with any
 // KAITO-reserved keys removed. Returns nil when selector is nil or has no
 // non-reserved entries. The returned map is always a fresh copy when at

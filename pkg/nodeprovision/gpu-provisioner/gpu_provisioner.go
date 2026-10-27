@@ -25,6 +25,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/nodeclaim"
 	"github.com/kaito-project/kaito/pkg/utils/nodes"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
@@ -171,15 +172,15 @@ func (g *AzureGPUProvisioner) EnsureNodesReady(ctx context.Context, ws *kaitov1b
 func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kaitov1beta1.Workspace) ([]metav1.Condition, error) {
 	nodeCond := metav1.Condition{
 		Type: string(kaitov1beta1.ConditionTypeNodeStatus), Status: metav1.ConditionFalse,
-		Reason: "NodeNotReady", Message: "Not enough Nodes are ready",
+		Reason: consts.ReasonNodeNotReady, Message: "Not enough Nodes are ready",
 	}
 	nodeClaimCond := metav1.Condition{
 		Type: string(kaitov1beta1.ConditionTypeNodeClaimStatus), Status: metav1.ConditionFalse,
-		Reason: "NodeClaimNotReady", Message: "Ready NodeClaims are not enough",
+		Reason: consts.ReasonNodeClaimNotReady, Message: "Ready NodeClaims are not enough",
 	}
 	resourceCond := metav1.Condition{
 		Type: string(kaitov1beta1.ConditionTypeResourceStatus), Status: metav1.ConditionFalse,
-		Reason: "workspaceResourceStatusNotReady", Message: "node claim or node status condition not ready",
+		Reason: consts.ReasonResourceNotReady, Message: "node claim or node status condition not ready",
 	}
 
 	nodeList, err := nodeprovision.ListWorkspaceNodes(ctx, g.nodeClaimManager.Client, g, ws)
@@ -235,18 +236,13 @@ func (g *AzureGPUProvisioner) CollectNodeStatusInfo(ctx context.Context, ws *kai
 		pluginReady, pluginErr := g.nodeResourceManager.CheckIfNodePluginsReady(ctx, ws, existingNodeClaims)
 		if pluginErr != nil {
 			nodeCond.Status = metav1.ConditionFalse
-			nodeCond.Reason = "NodePluginsNotReady"
+			nodeCond.Reason = consts.ReasonNodePluginsNotReady
 			nodeCond.Message = pluginErr.Error()
 		} else if !pluginReady {
 			nodeCond.Status = metav1.ConditionFalse
-			nodeCond.Reason = "NodePluginsNotReady"
+			nodeCond.Reason = consts.ReasonNodePluginsNotReady
 			nodeCond.Message = "waiting all node plugins to be ready"
 		}
-	}
-
-	// Enrich NodesReady with a node-pressure warning (diagnostic only; status unchanged).
-	if w := nodes.NodePressureWarning(nodeList); w != "" {
-		nodeCond.Message = nodeCond.Message + "; warning: " + w
 	}
 
 	// Derive resource condition.

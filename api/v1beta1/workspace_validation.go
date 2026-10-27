@@ -59,6 +59,21 @@ const (
 	MaxAdaptersNumber              = 10
 )
 
+// MaxWorkspaceNameLength caps new Workspace names. The Workspace's
+// StatefulSet shares its name, and the StatefulSet controller labels each pod
+// with controller-revision-hash=<name>-<hash of up to 10 characters>, which
+// must fit the 63-character label value limit (kubernetes/kubernetes#64023).
+const MaxWorkspaceNameLength = 52
+
+// ValidateWorkspaceNameLength rejects a new Workspace name longer than
+// MaxWorkspaceNameLength.
+func ValidateWorkspaceNameLength(name string) *apis.FieldError {
+	if len(name) > MaxWorkspaceNameLength {
+		return apis.ErrInvalidValue(fmt.Sprintf("must be no more than %d characters", MaxWorkspaceNameLength), "name")
+	}
+	return nil
+}
+
 func (w *Workspace) SupportedVerbs() []admissionregistrationv1.OperationType {
 	return []admissionregistrationv1.OperationType{
 		admissionregistrationv1.Create,
@@ -80,6 +95,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 	base := apis.GetBaseline(ctx)
 	if base == nil {
 		klog.InfoS("Validate creation", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
+		errs = errs.Also(ValidateWorkspaceNameLength(w.Name))
 		errs = errs.Also(w.ValidateCreate(ctx))
 	} else {
 		klog.InfoS("Validate update", "workspace", fmt.Sprintf("%s/%s", w.Namespace, w.Name))
@@ -656,7 +672,7 @@ func (r *ResourceSpec) validateCreateWithInference(ctx context.Context, inferenc
 
 			// Auto-selected or explicitly requested SKUs may coexist with other GPU
 			// SKUs. Keep strict uniformity only for the legacy explicit-selector path.
-			relaxed := r.LabelSelector == nil || r.InstanceType != ""
+			relaxed := r.AutoSelectsSKU() || r.InstanceType != ""
 			relaxedBYONodeFit = relaxed
 
 			machineCount = len(nodeItems)

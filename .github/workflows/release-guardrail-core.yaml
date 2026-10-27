@@ -1,0 +1,255 @@
+name: Release Guardrail Core
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Package version matching guardrail_core/pyproject.toml (X.Y.Z)"
+        required: true
+        type: string
+      release_commit:
+        description: "Full commit SHA on main to build and release"
+        required: true
+        type: string
+
+concurrency:
+  group: guardrail-core-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.validate.outputs.commit }}
+      tag: ${{ steps.validate.outputs.tag }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+          disable-sudo: true
+          disable-telemetry: true
+
+      - name: Validate release inputs
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          if [[ "$GITHUB_REF" != refs/heads/main ]]; then
+            echo "::error::Run this workflow from main."
+            exit 1
+          fi
+          if [[ ! "$RELEASE_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Release version must use X.Y.Z without leading zeros."
+            exit 1
+          fi
+          if [[ ! "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Release commit must be a full lowercase commit SHA."
+            exit 1
+          fi
+
+      - name: Check out release commit
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ inputs.release_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate source and package version
+        id: validate
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          RELEASE_COMMIT: ${{ inputs.release_commit }}
+        run: |
+          git merge-base --is-ancestor "$RELEASE_COMMIT" origin/main
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+          python - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          project = tomllib.loads(Path("guardrail_core/pyproject.toml").read_text())["project"]
+          if project["name"] != "guardrail-core":
+              raise SystemExit("Unexpected distribution name")
+          if project["version"] != os.environ["RELEASE_VERSION"]:
+              raise SystemExit("Release version does not match package metadata")
+          PY
+          tag="guardrail-core-v$RELEASE_VERSION"
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            echo "::error::Release tag already exists: $tag"
+            exit 1
+          fi
+          echo "commit=$RELEASE_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Install build and test tools
+        run: python -m pip install build==1.2.2.post1 twine==6.1.0 pytest==9.1.1
+
+      - name: Build and check release distributions
+        env:
+          GUARDRAIL_CORE_DIST: ${{ runner.temp }}/guardrail-core-dist
+        run: |
+          python -m build --outdir "$GUARDRAIL_CORE_DIST" ./guardrail_core
+          python -m twine check --strict "$GUARDRAIL_CORE_DIST/"*
+          python -m pytest guardrail_core/tests/test_distribution.py -q
+
+      - name: Test installed wheel outside source tree
+        working-directory: ${{ runner.temp }}
+        run: |
+          python -m venv guardrail-core-venv
+          guardrail-core-venv/bin/python -m pip install pytest==9.1.1 ./guardrail-core-dist/*.whl
+          mkdir -p guardrail-core-tests/secrets
+          cp -R "$GITHUB_WORKSPACE/guardrail_core/tests/streaming" guardrail-core-tests/streaming
+          cp "$GITHUB_WORKSPACE/guardrail_core/guardrail_core"/test_*.py guardrail-core-tests/
+          cp "$GITHUB_WORKSPACE/guardrail_core/guardrail_core/secrets/test_scanner.py" guardrail-core-tests/secrets/
+          guardrail-core-venv/bin/python -I -m pytest guardrail-core-tests -q
+          guardrail-core-venv/bin/python -m pip check
+
+      - name: Store release distributions
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: guardrail-core-distributions
+          path: ${{ runner.temp }}/guardrail-core-dist/*
+          if-no-files-found: error
+
+  publish-testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: guardrail-core-testpypi
+      url: https://test.pypi.org/p/guardrail-core
+    steps:
+      - name: Download release distributions
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: guardrail-core-distributions
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  verify-testpypi:
+    needs: [build, publish-testpypi]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Download original distributions
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: guardrail-core-distributions
+          path: dist/
+
+      - name: Download and verify TestPyPI wheel
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          for attempt in {1..6}; do
+            if python -m pip download --no-deps --only-binary=:all: \
+              --index-url https://test.pypi.org/simple/ \
+              --dest testpypi-dist "guardrail-core==$RELEASE_VERSION"; then
+              break
+            fi
+            if [[ "$attempt" == 6 ]]; then
+              echo "::error::TestPyPI wheel is not available after six attempts."
+              exit 1
+            fi
+            echo "Waiting for TestPyPI index availability (attempt $attempt/6)."
+            sleep 10
+          done
+          cmp dist/*.whl testpypi-dist/*.whl
+          python - <<'PY'
+          import zipfile
+          from email.parser import BytesParser
+          from pathlib import Path
+
+          with zipfile.ZipFile(next(Path("dist").glob("*.whl"))) as wheel:
+              name = next(name for name in wheel.namelist() if name.endswith("/METADATA"))
+              metadata = BytesParser().parsebytes(wheel.read(name))
+          Path("dependencies.txt").write_text("\n".join(metadata.get_all("Requires-Dist", [])) + "\n")
+          PY
+
+      - name: Install from TestPyPI and smoke test
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          python -m venv smoke-venv
+          smoke-venv/bin/python -m pip install --index-url https://pypi.org/simple/ -r dependencies.txt
+          smoke-venv/bin/python -m pip install --no-index --no-deps testpypi-dist/*.whl
+          smoke-venv/bin/python -I - <<'PY'
+          import os
+          from importlib.metadata import version
+
+          from guardrail_core.native_scanners import NativeBanSubstringsScanner
+          from guardrail_core.secrets import NativeSecretsScanner
+          from guardrail_core.streaming.openai import (
+              OpenAIChatChunkParseStatus,
+              parse_openai_chat_sse_event,
+          )
+          from guardrail_core.streaming.sse import SSEFramer
+
+          assert version("guardrail-core") == os.environ["RELEASE_VERSION"]
+          event, = SSEFramer().feed(b"data: [DONE]\n\n")
+          assert parse_openai_chat_sse_event(event).status == OpenAIChatChunkParseStatus.DONE
+          assert not NativeBanSubstringsScanner(["blocked"]).scan("", "blocked").valid
+          assert NativeSecretsScanner().scan("", "ordinary text").valid
+          PY
+          smoke-venv/bin/python -m pip check
+
+  publish-pypi:
+    needs: [build, verify-testpypi]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment:
+      name: guardrail-core-pypi
+      url: https://pypi.org/p/guardrail-core
+    steps:
+      - name: Download verified distributions
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: guardrail-core-distributions
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+
+  github-release:
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download released distributions
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: guardrail-core-distributions
+          path: dist/
+
+      - name: Create package tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_COMMIT: ${{ needs.build.outputs.commit }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/* \
+            --target "$RELEASE_COMMIT" \
+            --latest=false \
+            --title "$RELEASE_TAG" \
+            --notes "guardrail-core release built from $RELEASE_COMMIT. Includes shared scanners and SSE/OpenAI streaming utilities."

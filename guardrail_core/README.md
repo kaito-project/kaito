@@ -1,6 +1,6 @@
 # KAITO Guardrail Core
 
-`guardrail-core` provides KAITO-owned scanners and `guardrail_core.streaming`, a
+`kaito-guardrail-core` provides KAITO-owned scanners and `guardrail_core.streaming`, a
 standard-library-only submodule for SSE framing and OpenAI chat chunk
 parsing/building. The streaming submodule does not scan, block, or implement
 holdback policy.
@@ -8,16 +8,79 @@ holdback policy.
 ## Installation and development
 
 ```sh
-python -m pip install ./guardrail_core
-python -m pip install build==1.2.2.post1 pytest==8.4.2
-python -m build --wheel ./guardrail_core
-python -m pytest guardrail_core/tests/streaming
+python -m pip install -e ./guardrail_core
+python -m pip install build==1.2.2.post1 twine==6.1.0 pytest==9.1.1
+python -m build ./guardrail_core
+python -m twine check --strict guardrail_core/dist/*
+python -m pytest guardrail_core/tests guardrail_core/guardrail_core
 ```
 
 The streaming tests import the installed package, not a `sys.path`-injected source
-tree. CI builds the `guardrail-core` wheel, installs it without dependencies in a
+tree. CI builds the `kaito-guardrail-core` wheel, installs it without dependencies in a
 fresh virtual environment, and runs the tests from outside the repository on
 Python 3.12 through 3.14.
+
+The distribution name is `kaito-guardrail-core`; Python imports remain `guardrail_core`,
+including `guardrail_core.streaming`. The initial release keeps existing scanner
+dependencies mandatory, although importing streaming itself uses only the standard
+library. Packaging does not change parser, scanner, or holdback behavior.
+
+## Publishing
+
+Only `guardrail_core/` is built, not RAGEngine or the repository as a whole.
+`pyproject.toml` is the single source of package metadata and version. Wheels
+exclude tests; source distributions include tests and the build configuration.
+The package license is a copy of the repository's Apache 2.0 license.
+
+Before the first release, confirm the `kaito-guardrail-core` distribution name and
+maintainer access with Brandon. An administrator must configure:
+
+- A project or pending publisher on both TestPyPI and PyPI for `kaito-guardrail-core`.
+- A GitHub Trusted Publisher on each index: owner `kaito-project`, repository
+  `kaito`, workflow filename `release-guardrail-core.yaml`, and the corresponding
+  GitHub environment below. Publishing uses GitHub OIDC, not an API token.
+- GitHub environments `guardrail-core-testpypi` and `guardrail-core-pypi`, restricted
+  to `main`. Require maintainer approval for `guardrail-core-pypi` before enabling
+  production publishing.
+
+Reference: [kaito-rag-api release workflow](https://github.com/kaito-project/kaito-rag-api/blob/main/.github/workflows/create-release.yaml).
+This package is published from KAITO; no changes to that repository are needed.
+
+After these changes and the intended package version merge into `main`, run the
+[Release KAITO Guardrail Core workflow](../.github/workflows/release-guardrail-core.yaml):
+
+1. Select the workflow on `main`. Supply `release_version`, such as `0.1.0`, and
+   `release_commit`, the full lowercase 40-character commit SHA on `main`.
+   The workflow checks ancestry, metadata/version agreement, and that the package
+   tag does not already exist. It does not update the source version.
+2. Build the source distribution and then its wheel. Validate metadata and
+   distribution contents, then run all scanner and streaming tests against the
+   installed wheel in a fresh environment outside the source checkout.
+3. Publish those artifacts to TestPyPI. Download its wheel using only TestPyPI and
+   compare it byte-for-byte with the original. Install dependencies separately
+   from PyPI, then install the downloaded wheel in a fresh environment and smoke
+   test the version, imports, framing, and scanners. No mixed-index resolution is
+   used.
+4. Approve the `guardrail-core-pypi` environment after verification succeeds.
+   Publish the same stored wheel and source distribution to PyPI, without
+   rebuilding.
+5. Create `kaito-guardrail-core-v<version>` and a GitHub Release pointing to the exact
+   source commit, with those distributions attached. Package tags do not trigger
+   KAITO's application release workflow, and the package release is not marked as
+   the repository's latest release.
+
+For transient publishing or index availability failures, inspect the error and
+rerun only failed jobs in the same workflow run to reuse the original artifacts.
+Existing versions are not silently skipped or overwritten. If a partial upload
+prevents retrying, coordinate recovery with the maintainers; do not rebuild
+different content under the same version. After a successful release, bump the
+version in a new PR before publishing again.
+
+Only after the version exists on production PyPI should RAGEngine and
+production-stack adopt an exact dependency such as `kaito-guardrail-core==0.1.0`.
+Production images should install requirements rather than copy the library source.
+Local development may continue using editable installation. Consumer changes and
+holdback extraction are separate follow-ups.
 
 ## Byte-oriented SSE framing
 

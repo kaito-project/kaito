@@ -59,7 +59,7 @@ see-also:
 
 - **Cache Provider**: An implementation of KAITO's cache interface that validates attachment configuration and injects client settings for a specific caching backend.
 - **Cache Controller**: A new KAITO controller that bridges workspace semantics with cache infrastructure, managing cache lifecycle and readiness signaling.
-- **PodMutations**: The set of changes (environment variables, volumes, volume mounts, init containers, labels) that a cache provider injects into model pods to enable cache access.
+- **PodMutations**: The set of changes (environment variables, volumes, volume mounts, labels) that a cache provider injects into model pods to enable cache access.
 - **Cache Warming**: The process of populating a cache with model weights, reducing cold-start latency. Occurs when ModelMirror downloader uses a cache-aware storage backend.
 
 ## Summary
@@ -375,8 +375,6 @@ type PodMutations struct {
     Volumes []corev1.Volume
     // VolumeMounts to add to model containers.
     VolumeMounts []corev1.VolumeMount
-    // InitContainers to prepend to the pod.
-    InitContainers []corev1.Container
 }
 ```
 ```
@@ -455,10 +453,9 @@ For clusters where the cache backend is already deployed externally (not via KAI
 Create `pkg/cache/controller.go` with the Cache Controller:
 
 - **Provider Discovery**: At startup, resolve the configured provider via the registry. If unavailable, enter degraded state (log warning, emit event) without crashing.
-- **Node Watching**: Watch eligible nodes (Ready, schedulable, matching configured label selector) to inform providers about cache topology.
 - **Provider Lifecycle**: Once `IsAvailable()` confirms the backend is installed, reconcile provider-specific resources from Helm values configuration (e.g., Cache CRs, ConfigMaps, discovery Services). Providers manage their own backend-specific resources internally; the Cache Controller drives the lifecycle. This provisioning step is where providers create the resources that `PodMutations` later references — for example, a ConfigMap containing KV connector configuration that is then mounted into model pods via `PodMutations.Volumes`.
 - **Readiness Monitoring**: Periodically call `provider.IsReady()` and expose a `CacheReady` condition. Workspace controllers query this before injecting PodMutations in Required mode.
-- **RBAC**: Extend KAITO's ClusterRole with rules for provider-specific Cache CRs (get/list/watch/create/update), core API (nodes for topology, events for status). Provider-specific resource types are configurable per provider.
+- **RBAC**: Extend KAITO's ClusterRole with rules for provider-specific Cache CRs (get/list/watch/create/update) and events for status. Provider-specific resource types are configurable per provider.
 
 Register the controller in `cmd/workspace/main.go` behind the feature gate.
 
@@ -539,19 +536,7 @@ volumeMounts:
     mountPath: /models
 ```
 
-**Pattern 3: Init Container Warm-up**
-
-Some providers use init containers to pre-fetch model data into a shared volume (e.g., emptyDir backed by NVMe) before the main model container starts:
-```yaml
-initContainers:
-  - name: cache-warmup
-    image: provider/warmup-agent:latest
-    volumeMounts:
-      - name: model-data
-        mountPath: /cache
-```
-
-**Pattern 4: Inference Engine KV Connector Configuration**
+**Pattern 3: Inference Engine KV Connector Configuration**
 
 KV cache providers inject configuration that tells the inference engine (e.g., vLLM) how to connect to the external KV store. This is typically done via environment variables or command-line arguments:
 ```
@@ -560,7 +545,7 @@ VLLM_KV_TRANSFER_CONFIG={"kv_connector":"MyKVConnector","locator_nodes":"cache-d
 
 The inference engine's KV connector handles put/get operations for attention tensors transparently during prefill and decode.
 
-**Pattern 5: Pod Label + Mutating Webhook**
+**Pattern 4: Pod Label + Mutating Webhook**
 
 Providers that use an external mutating admission webhook (e.g., a CSI driver injector) add labels to the pod template via `PodMutations.Labels`. The webhook watches for labelled pods and injects volumes, volume mounts, or sidecars at admission time:
 ```yaml
@@ -674,7 +659,7 @@ This allows providers to deliver connector configs, endpoint discovery, TLS cert
 | Cache provider not installed when feature gate enabled | Controller cannot verify cache readiness | Provider discovery check at startup + graceful degradation to `Unavailable` state; clear error events |
 | Cache unavailable in `Required` mode blocks workspace indefinitely | Model deployment stuck | Configurable timeout with clear condition messaging; recommend `Opportunistic` mode for non-critical workloads |
 | Provider-specific client library not in model image | Cache configured but model cannot use it | Document image requirements per provider; emit warning event if cache is enabled but provider reports incompatibility |
-| Cache-eligible nodes not labelled correctly | Cache pods cannot schedule | Cache Controller's Node Watching labels eligible nodes automatically; emit event listing expected vs. found labels |
+| Cache-eligible nodes not labelled correctly | Cache pods cannot schedule | The cache backend operator owns topology and reports scheduling failures through its resources and events |
 | Provider resource drift (manual edits to managed resources) | Cache Controller overwrites manual changes on next reconcile | Document which resources are managed; support annotation to opt out of reconciliation |
 | Provider API incompatibility after upgrade | PodMutations generation fails | Pin provider versions in config; use unstructured client for CRD-based providers for forward compatibility |
 | Cache rebalancing causes transient misses during scale events | Elevated latency during topology changes | Transparent to initial integration; future: surface `DegradedWarmup` status via provider |

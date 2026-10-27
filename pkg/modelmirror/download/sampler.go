@@ -22,6 +22,7 @@ import (
 	"k8s.io/utils/ptr"
 
 	mmconsts "github.com/kaito-project/kaito/pkg/modelmirror/consts"
+	kaitoconsts "github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 // samplerScript computes download speed and ETA and serves them as Prometheus
@@ -47,8 +48,11 @@ func buildSamplerContainer(envVars []corev1.EnvVar) corev1.Container {
 	// non-interactive command.
 	shell := fmt.Sprintf(`set -e
 trap 'exit 0' TERM
-pip install -q "huggingface-hub==%s" "prometheus-client==%s"
-exec python3 -c "$SAMPLER_SCRIPT"`, mmconsts.HuggingFaceHubVersion, mmconsts.PrometheusClientVersion)
+%s
+pip install -q "huggingface-hub==%s" "prometheus-client==%s" "certifi==%s"
+SSL_CERT_FILE="$(python3 -m certifi)"
+export SSL_CERT_FILE
+exec python3 -c "$SAMPLER_SCRIPT"`, kaitoconsts.PipBootstrapCommand, mmconsts.HuggingFaceHubVersion, mmconsts.PrometheusClientVersion, mmconsts.CertifiVersion)
 
 	env := append([]corev1.EnvVar{}, envVars...)
 	env = append(env,

@@ -345,7 +345,7 @@ func TestGeneratePullerContainers(t *testing.T) {
 				if assert.Len(t, containers, 1) {
 					c := containers[0]
 					assert.Equal(t, "puller-adapterA", c.Name)
-					assert.Equal(t, "mcr.microsoft.com/aks/skopeo:1.14.4-6", c.Image)
+					assert.Equal(t, "mcr.microsoft.com/aks/skopeo:1.14.4-15", c.Image)
 					if assert.Len(t, c.Args, 1) {
 						assert.Contains(t, c.Args[0], "/mnt/adapter/adapterA")
 					}

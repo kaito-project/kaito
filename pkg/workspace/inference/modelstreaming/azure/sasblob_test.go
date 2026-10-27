@@ -15,6 +15,7 @@ package azure
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/generator"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 )
@@ -83,8 +85,9 @@ func TestSASBlobProvider_GetStreamingConfig(t *testing.T) {
 
 	ic := cfg.InitContainers[0]
 	assert.Equal(t, "fetch-sas", ic.Name)
-	assert.Equal(t, "python:3.12-slim", ic.Image)
+	assert.Equal(t, "mcr.microsoft.com/azurelinux/base/python:3.12", ic.Image)
 	assert.Equal(t, []string{"/bin/sh", "-c", initShellCommand}, ic.Command)
+	assert.True(t, strings.HasPrefix(initShellCommand, consts.PipBootstrapCommand+" && "), "pip must be pinned before other installs")
 	// init container mounts both the shared volume and the script ConfigMap.
 	assert.Len(t, ic.VolumeMounts, 2)
 	mountByName := map[string]string{}

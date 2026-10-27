@@ -31,7 +31,7 @@ RUN apt-get update -y && apt upgrade -y && \
 
 FROM dependencies AS base
 
-ARG UV_VERSION=0.10.10
+ARG UV_VERSION=0.13.4
 
 COPY presets/workspace/dependencies/requirements.txt /workspace/requirements.txt
 

@@ -39,6 +39,7 @@ setuptools
 psutil
 trl>=1.0.0
 nvidia-ml-py3
+certifi>=2026.10.19
 
 # RunAI Model Streamer for model streaming from cloud blob storage (az://, s3://, gs://)
 runai-model-streamer==0.16.0

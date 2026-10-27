@@ -47,6 +47,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
 	autoupgrade "github.com/kaito-project/kaito/pkg/controllers/autoupgrade"
 	drift "github.com/kaito-project/kaito/pkg/controllers/drift"
 	multiroleinference "github.com/kaito-project/kaito/pkg/controllers/multiroleinference"
@@ -323,6 +324,15 @@ func main() {
 	if err = workspaceReconciler.SetupWithManager(mgr); err != nil {
 		klog.ErrorS(err, "unable to create controller", "controller", "Workspace")
 		exitWithErrorFunc()
+	}
+
+	// Cache controller — monitors provider readiness.
+	if featuregates.FeatureGates[consts.FeatureFlagDistributedCache] {
+		cacheController := cache.NewController(kClient, mgr.GetEventRecorderFor("KAITO-Cache-controller"))
+		if err = cacheController.SetupWithManager(mgr); err != nil {
+			klog.ErrorS(err, "unable to create controller", "controller", "Cache")
+			exitWithErrorFunc()
+		}
 	}
 
 	if featuregates.FeatureGates[consts.FeatureFlagEnableInferenceSetController] {

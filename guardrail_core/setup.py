@@ -11,12 +11,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import find_packages, setup
+from setuptools import setup
+from setuptools.command.build_py import build_py
 
-setup(
-    name="guardrail-core",
-    version="0.1.0",
-    description="KAITO-owned guardrail scanners",
-    packages=find_packages(exclude=["tests", "test_*"]),
-    python_requires=">=3.12",
-)
+
+class BuildPy(build_py):
+    def find_package_modules(self, package, package_dir):
+        # Scanner tests currently live alongside the implementation.
+        return [
+            entry
+            for entry in super().find_package_modules(package, package_dir)
+            if not entry[1].startswith("test_")
+        ]
+
+
+setup(cmdclass={"build_py": BuildPy})

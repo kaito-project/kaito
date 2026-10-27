@@ -16,6 +16,8 @@ package inference
 import (
 	"context"
 
+	appsv1 "k8s.io/api/apps/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
@@ -43,9 +45,25 @@ func CreateTemplateInference(ctx context.Context, workspaceObj *kaitov1beta1.Wor
 		}
 	}
 
-	err := resources.CreateResource(ctx, client.Object(ssObj), kubeClient)
-	if client.IgnoreAlreadyExists(err) != nil {
+	existing := &appsv1.StatefulSet{}
+	err := kubeClient.Get(ctx, client.ObjectKeyFromObject(ssObj), existing)
+	if apierrors.IsNotFound(err) {
+		if err := resources.CreateResource(ctx, client.Object(ssObj), kubeClient); err != nil {
+			return nil, err
+		}
+		return ssObj, nil
+	}
+	if err != nil {
 		return nil, err
 	}
-	return ssObj, nil
+
+	if !cache.MutationHashChanged(existing, ssObj) {
+		return existing, nil
+	}
+
+	existing.Spec.Template = ssObj.Spec.Template
+	if err := kubeClient.Update(ctx, existing); err != nil {
+		return nil, err
+	}
+	return existing, nil
 }

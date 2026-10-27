@@ -43,6 +43,7 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/cache"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -401,19 +402,13 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		}
 	}
 
-	desiredSpecDecoValue, desiredHasSpecDeco := desired.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	currentSpecDecoValue, currentHasSpecDeco := ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	if desiredHasSpecDeco {
-		if ws.Annotations == nil {
-			ws.Annotations = make(map[string]string)
-		}
-		if !currentHasSpecDeco || currentSpecDecoValue != desiredSpecDecoValue {
-			ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = desiredSpecDecoValue
+	for _, key := range []string{
+		kaitov1beta1.AnnotationEnableSpeculativeDecoding,
+		cache.ConfigAnnotation,
+	} {
+		if reconcileWorkspaceAnnotation(ws, desired, key) {
 			needsUpdate = true
 		}
-	} else if currentHasSpecDeco {
-		delete(ws.Annotations, kaitov1beta1.AnnotationEnableSpeculativeDecoding)
-		needsUpdate = true
 	}
 
 	if consts.IsKarpenterProvisioner() {
@@ -424,6 +419,26 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 	}
 
 	return needsUpdate
+}
+
+func reconcileWorkspaceAnnotation(ws *kaitov1beta1.Workspace, desired *kaitov1beta1.Workspace, key string) bool {
+	desiredValue, desiredHasValue := desired.Annotations[key]
+	currentValue, currentHasValue := ws.Annotations[key]
+	if desiredHasValue {
+		if ws.Annotations == nil {
+			ws.Annotations = make(map[string]string)
+		}
+		if !currentHasValue || currentValue != desiredValue {
+			ws.Annotations[key] = desiredValue
+			return true
+		}
+		return false
+	}
+	if currentHasValue {
+		delete(ws.Annotations, key)
+		return true
+	}
+	return false
 }
 
 func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iObj *kaitov1beta1.InferenceSet) (reconcile.Result, error) {
@@ -515,7 +530,7 @@ func (c *InferenceSetReconciler) addOrUpdateInferenceSet(ctx context.Context, iO
 
 	// Reconcile existing child workspace metadata against the current InferenceSet template.
 	// Labels remain additive because other controllers may add their own labels.
-	// For annotations, only reconcile kaito.sh/enable-speculative-decoding here:
+	// Reconcile only annotations owned by InferenceSet template propagation:
 	// child Workspaces also carry controller-owned annotations such as hash/revision
 	// and auto-upgrade markers, so replacing the whole map would fight those controllers.
 	desiredWorkspace := inferenceset.NewWorkspaceForInferenceSet(iObj)

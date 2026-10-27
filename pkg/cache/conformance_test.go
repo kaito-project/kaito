@@ -27,6 +27,7 @@ import (
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/internal/cachetest"
+	_ "github.com/kaito-project/kaito/internal/cachetest/dacs"
 	_ "github.com/kaito-project/kaito/internal/cachetest/noop"
 	"github.com/kaito-project/kaito/pkg/cache"
 )

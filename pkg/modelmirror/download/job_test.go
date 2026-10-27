@@ -156,10 +156,12 @@ func TestBuildDownloadJobXetTrust(t *testing.T) {
 				{job.Spec.Template.Spec.InitContainers[0], `exec python3 -c "$SAMPLER_SCRIPT"`},
 			} {
 				t.Run(tc.container.Name, func(t *testing.T) {
-					assert.Contains(t, tc.container.Env, corev1.EnvVar{Name: "HF_HUB_DISABLE_XET", Value: "0"})
-					assert.NotContains(t, tc.container.Env, corev1.EnvVar{Name: "HF_HUB_DISABLE_XET", Value: "1"})
+					for _, env := range tc.container.Env {
+						assert.NotEqual(t, "HF_HUB_DISABLE_XET", env.Name)
+					}
 					require.Len(t, tc.container.Args, 1)
 					script := tc.container.Args[0]
+					assert.Contains(t, script, `"huggingface-hub==2.3.0"`)
 					install := strings.Index(script, `"certifi==`+mmconsts.CertifiVersion+`"`)
 					resolve := strings.Index(script, `SSL_CERT_FILE="$(python3 -m certifi)"`)
 					export := strings.Index(script, "export SSL_CERT_FILE")

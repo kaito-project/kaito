@@ -26,12 +26,10 @@ ENV PYTHONPATH=/app
 
 # Copy requirements.txt first to leverage Docker layer caching
 COPY presets/ragengine/requirements.txt ragengine/requirements.txt
-COPY guardrail_core/ guardrail_core/
 
 # Install dependencies with pip cache mount for faster rebuilds
 # This allows reusing downloaded packages across builds
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install ./guardrail_core && \
     pip install -r ragengine/requirements.txt
 
 # Copy the rest of the application code after dependencies are installed

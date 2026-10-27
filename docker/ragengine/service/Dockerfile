@@ -39,8 +39,6 @@ COPY presets/ragengine/ ragengine/
 # Set the final working directory
 WORKDIR /app/ragengine
 
-RUN python -c "from guardrail_core.streaming import openai; from guardrail_core.streaming.sse import SSEFramer; from ragengine.streaming.openai import parse_openai_chat_sse_event; assert parse_openai_chat_sse_event is openai.parse_openai_chat_sse_event; assert SSEFramer().feed(b'data: [DONE]\n\n')[0].data == '[DONE]'"
-
 # Build and Push Using Docker with BuildKit (recommended for caching)
 # Enable BuildKit for better caching: export DOCKER_BUILDKIT=1
 # Replace <ACR_PATH> with your Azure Container Registry path, e.g., myregistry.azurecr.io

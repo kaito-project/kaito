@@ -6,7 +6,8 @@ parsing/building. The streaming submodule does not scan, block, or implement
 holdback policy.
 
 `guardrail_core.streaming_window` separately provides a policy-independent text
-window. This module is unreleased and is not included in PyPI version `0.1.0`.
+window. This module is prepared for release `0.1.1` and is not included in PyPI
+version `0.1.0`.
 RAGEngine continues using its own window and its pinned PyPI dependency until a
 new shared-library version is published; consumer adoption is a separate change.
 

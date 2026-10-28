@@ -98,6 +98,7 @@ def test_sdist_contains_build_inputs_and_tests(distributions):
         "setup.py",
         "MANIFEST.in",
         "README.md",
+        "RELEASING.md",
         "LICENSE",
         "guardrail_core/streaming/sse.py",
         "guardrail_core/secrets/test_scanner.py",

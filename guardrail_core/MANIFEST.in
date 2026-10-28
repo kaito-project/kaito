@@ -1,2 +1,3 @@
+include RELEASING.md
 recursive-include tests *.py
 recursive-include guardrail_core test_*.py

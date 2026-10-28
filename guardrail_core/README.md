@@ -5,11 +5,8 @@ streaming utilities. `guardrail_core.streaming.sse` and
 `guardrail_core.streaming.openai` frame SSE events and parse/build OpenAI chat
 chunks; they do not scan or enforce policy.
 
-`guardrail_core.streaming.window` separately provides a policy-independent text
-window. This module is prepared for release `0.1.1` and is not included in PyPI
-version `0.1.0`.
-RAGEngine continues using its own window and its pinned PyPI dependency until a
-new shared-library version is published; consumer adoption is a separate change.
+`guardrail_core.streaming.window` provides a policy-independent text window for
+scan-before-release buffering.
 
 ## Installation and development
 
@@ -31,89 +28,28 @@ release checks exercise them independently of RAGEngine. RAGEngine tests install
 the exact published version from its requirements, never an editable source copy.
 
 The distribution name is `kaito-guardrail-core`; Python imports remain `guardrail_core`,
-including `guardrail_core.streaming`. The initial release keeps existing scanner
-dependencies mandatory, although importing streaming itself uses only the standard
-library. Packaging does not change parser, scanner, or holdback behavior.
+including `guardrail_core.streaming`. Scanner dependencies are mandatory, although
+importing streaming itself uses only the standard library.
 
 ## Publishing
 
-Only `guardrail_core/` is built, not RAGEngine or the repository as a whole.
-`pyproject.toml` is the single source of package metadata and version. Wheels
-exclude tests; source distributions include tests and the build configuration.
-The package license is a copy of the repository's Apache 2.0 license.
-
-Before the first release, confirm the `kaito-guardrail-core` distribution name and
-maintainer access with Brandon. An administrator must configure:
-
-- A project or pending publisher on both TestPyPI and PyPI for `kaito-guardrail-core`.
-- A GitHub Trusted Publisher on each index: owner `kaito-project`, repository
-  `kaito`, workflow filename `release-guardrail-core.yaml`, and the corresponding
-  GitHub environment below. Publishing uses GitHub OIDC, not an API token.
-- GitHub environments `guardrail-core-testpypi` and `guardrail-core-pypi`, restricted
-  to `main`. Require maintainer approval for `guardrail-core-pypi` before enabling
-  production publishing.
-
-Reference: [kaito-rag-api release workflow](https://github.com/kaito-project/kaito-rag-api/blob/main/.github/workflows/create-release.yaml).
-This package is published from KAITO; no changes to that repository are needed.
-
-After these changes and the intended package version merge into `main`, run the
-[Release KAITO Guardrail Core workflow](../.github/workflows/release-guardrail-core.yaml):
-
-1. Select the workflow on `main`. Supply `release_version`, such as `0.1.0`, and
-   `release_commit`, the full lowercase 40-character commit SHA on `main`.
-   The workflow checks ancestry, metadata/version agreement, and that the package
-   tag does not already exist. It does not update the source version.
-2. Build the source distribution and then its wheel. Validate metadata and
-   distribution contents, then run all scanner and streaming tests against the
-   installed wheel in a fresh environment outside the source checkout.
-3. Publish those artifacts to TestPyPI. Download its wheel using only TestPyPI and
-   compare it byte-for-byte with the original. Install dependencies separately
-   from PyPI, then install the downloaded wheel in a fresh environment and smoke
-   test the version, imports, framing, and scanners. No mixed-index resolution is
-   used.
-4. Approve the `guardrail-core-pypi` environment after verification succeeds.
-   Publish the same stored wheel and source distribution to PyPI, without
-   rebuilding.
-5. Create `kaito-guardrail-core-v<version>` and a GitHub Release pointing to the exact
-   source commit, with those distributions attached. Package tags do not trigger
-   KAITO's application release workflow, and the package release is not marked as
-   the repository's latest release.
-
-For transient publishing or index availability failures, inspect the error and
-rerun only failed jobs in the same workflow run to reuse the original artifacts.
-Existing versions are not silently skipped or overwritten. If a partial upload
-prevents retrying, coordinate recovery with the maintainers; do not rebuild
-different content under the same version. After a successful release, bump the
-version in a new PR before publishing again.
-
-Only after the version exists on production PyPI should RAGEngine and
-production-stack adopt an exact dependency such as `kaito-guardrail-core==0.1.0`.
-Production images should install requirements rather than copy the library source.
-Local development may continue using editable installation. Consumer changes and
-adoption of the shared window are separate follow-ups.
+See [RELEASING.md](RELEASING.md) for package publishing and consumer adoption.
 
 ## Streaming window
 
-The `guardrail_core.streaming.window` module uses only the Python standard
-library. Importing it does not load scanners, FastAPI, RAGEngine, or Envoy.
-Its public types are:
+`guardrail_core.streaming.window` retains output tails to detect cross-chunk
+matches, releasing only scanner-approved prefixes. It uses only the standard library.
 
-- `StreamingBufferWindow(scanner, *, holdback_len)`
-- `WindowScanner`, a structural protocol with
-  `scan(text, *, flush=False, preceding_char="") -> WindowScanResult`
-- `WindowScanResult(sanitized_text=None, blocked=False)`
-- `WindowEmitResult(chunks, blocked=False)`
-- `WindowScanError`, a scanner failure with the original exception as `__cause__`
-
-### Units and release rules
-
-`holdback_len` must be a non-negative integer count of Python string characters
-(Unicode code points), not UTF-8 bytes, tokens, or grapheme clusters. Non-integers,
-including booleans, raise `TypeError`; negative integers raise `ValueError`.
+- **Input:** `StreamingBufferWindow(scanner, *, holdback_len)` accepts decoded
+  `feed(text: str)`. `WindowScanner.scan(text, *, flush=False, preceding_char="")`
+  returns `WindowScanResult(sanitized_text=None, blocked=False)`.
+- **Units:** `holdback_len` counts Unicode code points, not bytes or graphemes.
+  Non-integers (including bool) raise `TypeError`; negative integers raise `ValueError`.
+- **Output:** `WindowEmitResult.chunks` contains approved text; `blocked` means stop
+  output. `preceding_char` is the last released character, or `""` before release.
 
 ```text
-feed(text) -> append to pending buffer
-  -> if it exceeds holdback: scan the whole buffer
+feed(text) -> buffer -> when it exceeds holdback, scan the whole buffer
        | allow/redact -> release approved prefix, retain tail
        | block        -> discard pending text, return blocked=True
        ` error        -> discard pending text, raise WindowScanError
@@ -122,29 +58,18 @@ normal EOF -> flush() -> scan and release remaining text
 parse failure / cancellation -> discard the window, do not flush
 ```
 
-`feed(text)` appends to the pending buffer. Once it exceeds the holdback, the
-scanner sees the whole pending buffer, including the retained tail, before any
-prefix is released. Zero holdback scans and releases each non-empty feed.
+- Scan includes the retained tail. Zero holdback scans each non-empty feed;
+  insufficient holdback cannot guarantee detection of cross-feed patterns.
+- `sanitized_text` replaces the whole buffer, recalculates release length, and sets
+  `redacted`. Blocking overrides sanitization and permanently prevents release.
+- Scanner exceptions clear the buffer, block the window, and raise `WindowScanError`
+  with the cause chained. Do not retry; cancellation and other `BaseException`s propagate.
+- `flush()` scans with `flush=True` for right-boundary checks; empty flush emits
+  nothing. It does not close the window. Blocked feed/flush never invoke the scanner.
+- Callers own policy, sufficient holdback, refusal messages, error handling, and
+  upstream closure. The window logs no model text and chooses no fail-open policy.
 
-The scanner may return:
-
-- `WindowScanResult()` to allow pending text unchanged.
-- `sanitized_text` to replace the entire pending buffer. Release length is
-  recalculated from the sanitized text; `redacted` becomes true.
-- `blocked=True` to discard pending text and permanently stop release. Blocking
-  takes precedence over `sanitized_text`.
-
-`preceding_char` is the last character actually released, or `""` before the first
-release. `flush()` scans the remaining buffer with `flush=True` before releasing
-it, allowing right-boundary checks at EOF. Flushing an empty buffer emits nothing.
-After blocking, every `feed()` and `flush()` returns an empty, blocked result
-without calling the scanner again. A normal flush does not close the window;
-the caller determines the stream lifecycle.
-
-### Calling the window
-
-Pass decoded text chunks, not SSE bytes. Handle both emitted chunks and the
-blocked flag; flush only when the upstream iteration finishes normally.
+Example (prints `hello world`; replace `print` with downstream emission):
 
 ```python
 from guardrail_core.streaming.window import (
@@ -173,32 +98,13 @@ try:
             break
     else:
         result = window.flush()
-        print("".join(result.chunks), end="")
-        if result.blocked:
-            print("[blocked]")
+        print("[blocked]" if result.blocked else "".join(result.chunks), end="")
 except WindowScanError:
     print("[scan failed]")
 ```
 
-This prints `hello world`. Setting `chunks = ["safe se", "cret"]` demonstrates a
-cross-chunk block: only the already approved prefix is printed before `[blocked]`.
-If the scanner raises, the example prints `[scan failed]` and never flushes the
-failed buffer. Replace `print` with downstream emission in a service. Upstream
-parse errors and cancellation must propagate without entering the normal-EOF
-`else` branch.
-
-### Errors and caller responsibilities
-
-An operational exception from `scanner.scan()` becomes `WindowScanError` with the
-original exception chained. The window discards pending text, becomes blocked,
-and raises without emitting. Do not retry a failed window. Cancellation and other
-`BaseException` control signals propagate unchanged.
-
-The window emits no refusal messages, logs no model text, and chooses no fail-open
-policy. Callers must handle `WindowScanError` explicitly and terminate on
-cancellation. Callers also own scanner construction, sufficient holdback sizing,
-policy ordering, response formatting, and upstream closure. Insufficient holdback
-cannot guarantee detection of cross-feed patterns.
+Use `chunks = ["safe se", "cret"]` to exercise cross-chunk blocking. Parse errors
+and cancellation must propagate without entering the normal-EOF `else` branch.
 
 ## Byte-oriented SSE framing
 

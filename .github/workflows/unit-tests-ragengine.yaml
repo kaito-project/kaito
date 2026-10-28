@@ -51,7 +51,10 @@ jobs:
           echo "NLTK_DATA=$nltk_data" >> "$GITHUB_ENV"
 
       - name: Run unit tests
+        env:
+          PIP_NO_CACHE_DIR: "1"
         run: |
+          python -m pip index versions kaito-guardrail-core --index-url https://pypi.org/simple
           make rag-service-test
 
       - name: Upload Coverage to Codecov

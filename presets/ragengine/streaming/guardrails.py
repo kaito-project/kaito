@@ -20,9 +20,13 @@ from typing import Any
 from fastapi import HTTPException
 from guardrail_core.scanning import scan_output
 from guardrail_core.streaming.sse import SSEFramingError
+from guardrail_core.streaming.window import (
+    StreamingBufferWindow,
+    WindowScanError,
+    WindowScanResult,
+)
 
 from ragengine.guardrails import OutputGuardrails
-from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
 from ragengine.streaming.openai import (
     OpenAIChatChunkParseStatus,
     build_openai_chat_delta_sse_chunk,
@@ -102,7 +106,7 @@ def validate_streaming_guardrails(
 
 
 async def apply_streaming_guardrails(
-    upstream_chunks: AsyncIterator[str | bytes],
+    upstream_chunks: AsyncIterator[bytes],
     guardrails: OutputGuardrails,
     request: dict[str, Any],
 ) -> AsyncIterator[str | bytes]:
@@ -169,7 +173,14 @@ async def apply_streaming_guardrails(
             yield chunk
         if not window.blocked:
             _record_successful_redaction(window, guardrails)
-    except (SSEFramingError, UnicodeEncodeError) as error:
+    except WindowScanError as error:
+        logger.error(
+            "streaming_guardrails_scan_failed error_type=%s",
+            type(error.__cause__).__name__,
+        )
+        async for chunk in _emit_refusal(guardrails):
+            yield chunk
+    except SSEFramingError as error:
         logger.warning("Rejecting invalid upstream SSE stream: %s", error)
         async for chunk in _emit_refusal(guardrails):
             yield chunk
@@ -405,7 +416,7 @@ def _record_successful_redaction(
         guardrails._record_response_action("redact")
 
 
-async def _aclose(upstream_chunks: AsyncIterator[str | bytes]) -> None:
+async def _aclose(upstream_chunks: AsyncIterator[bytes]) -> None:
     aclose = getattr(upstream_chunks, "aclose", None)
     if aclose is not None:
         await aclose()

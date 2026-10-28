@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
@@ -18,6 +19,7 @@ from typing import Any
 
 from fastapi import HTTPException
 from guardrail_core.scanning import scan_output
+from guardrail_core.streaming.sse import SSEFramingError
 
 from ragengine.guardrails import OutputGuardrails
 from ragengine.streaming.buffer_window import StreamingBufferWindow, WindowScanResult
@@ -38,6 +40,7 @@ STREAMING_GUARDRAILS_CAPABILITIES = {
     "sensitive": frozenset({"block", "redact"}),
 }
 STREAMING_GUARDRAILS_SUPPORTED_SCANNERS = frozenset(STREAMING_GUARDRAILS_CAPABILITIES)
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -99,10 +102,10 @@ def validate_streaming_guardrails(
 
 
 async def apply_streaming_guardrails(
-    upstream_chunks: AsyncIterator[str],
+    upstream_chunks: AsyncIterator[bytes],
     guardrails: OutputGuardrails,
     request: dict[str, Any],
-) -> AsyncIterator[str]:
+) -> AsyncIterator[str | bytes]:
     try:
         built_scanners = guardrails._build_scanners_with_configs()
         if not built_scanners:
@@ -123,6 +126,8 @@ async def apply_streaming_guardrails(
 
         async for event in iter_sse_events(upstream_chunks):
             parse_result = parse_openai_chat_sse_event(event)
+            if parse_result.status == OpenAIChatChunkParseStatus.NO_DATA:
+                continue
             if parse_result.status == OpenAIChatChunkParseStatus.DONE:
                 async for chunk in _flush_window_or_block(window, guardrails):
                     yield chunk
@@ -158,12 +163,16 @@ async def apply_streaming_guardrails(
                     yield chunk
                 if window.blocked:
                     return
-                yield _raw_sse_chunk(event.raw)
+                yield event.raw_bytes
 
         async for chunk in _flush_window_or_block(window, guardrails):
             yield chunk
         if not window.blocked:
             _record_successful_redaction(window, guardrails)
+    except SSEFramingError as error:
+        logger.warning("Rejecting invalid upstream SSE stream: %s", error)
+        async for chunk in _emit_refusal(guardrails):
+            yield chunk
     finally:
         await _aclose(upstream_chunks)
 
@@ -396,14 +405,10 @@ def _record_successful_redaction(
         guardrails._record_response_action("redact")
 
 
-async def _aclose(upstream_chunks: AsyncIterator[str]) -> None:
+async def _aclose(upstream_chunks: AsyncIterator[bytes]) -> None:
     aclose = getattr(upstream_chunks, "aclose", None)
     if aclose is not None:
         await aclose()
-
-
-def _raw_sse_chunk(raw_event: str) -> str:
-    return f"{raw_event}\n\n"
 
 
 def raise_if_streaming_guardrails_unsupported(guardrails: OutputGuardrails) -> None:

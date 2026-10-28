@@ -313,7 +313,7 @@ class Inference(CustomLLM):
 
     async def chat_completions_stream_passthrough(
         self, chatCompletionsRequest: CompletionCreateParams, **kwargs: Any
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[bytes]:
         if "/chat/completions" not in LLM_INFERENCE_URL:
             raise HTTPException(
                 status_code=400,
@@ -352,9 +352,9 @@ class Inference(CustomLLM):
                 status_code=500, detail=f"Error during POST request: {str(e)}"
             )
 
-        async def stream_response() -> AsyncIterator[str]:
+        async def stream_response() -> AsyncIterator[bytes]:
             try:
-                async for chunk in response.aiter_text():
+                async for chunk in response.aiter_bytes():
                     if chunk:
                         yield chunk
             except httpx.RequestError as e:

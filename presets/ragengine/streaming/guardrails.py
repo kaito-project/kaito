@@ -20,7 +20,7 @@ from typing import Any
 from fastapi import HTTPException
 from guardrail_core.scanning import scan_output
 from guardrail_core.streaming.sse import SSEFramingError
-from guardrail_core.streaming_window import (
+from guardrail_core.streaming.window import (
     StreamingBufferWindow,
     WindowScanError,
     WindowScanResult,

@@ -28,7 +28,7 @@ upstream chunks
 | --- | --- |
 | `sse.py` | Frame network chunks into complete SSE events |
 | `openai.py` | Parse and build OpenAI-compatible SSE events |
-| `buffer_window.py` | Compatibility exports from `guardrail_core.streaming_window` |
+| `buffer_window.py` | Compatibility exports from `guardrail_core.streaming.window` |
 | `guardrails.py` | Validate policy, run scanners, and emit or block |
 
 The default holdback is 256 characters. Policies with longer banned substrings

@@ -13,7 +13,7 @@
 
 """Compatibility exports for the shared streaming guardrail window."""
 
-from guardrail_core.streaming_window import (
+from guardrail_core.streaming.window import (
     StreamingBufferWindow,
     WindowEmitResult,
     WindowScanError,

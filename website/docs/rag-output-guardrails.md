@@ -76,7 +76,7 @@ cancellation; cancellation propagates rather than becoming a refusal.
 The existing redaction-before-block order, holdback sizing, and Secrets
 post-redaction verification remain unchanged.
 
-The holdback window uses `guardrail_core.streaming_window`. Scanner failures
+The holdback window uses `guardrail_core.streaming.window`. Scanner failures
 discard pending text and enter the same refusal flow; RAGEngine logs the failure
 type without logging model text. Cancellation still propagates.
 

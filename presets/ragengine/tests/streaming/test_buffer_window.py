@@ -14,7 +14,7 @@
 import os
 import sys
 
-from guardrail_core import streaming_window
+from guardrail_core.streaming import window
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
@@ -29,9 +29,9 @@ def test_window_compatibility_exports_are_shared_types():
         "WindowScanner",
         "WindowScanResult",
     ):
-        assert getattr(buffer_window, name) is getattr(streaming_window, name)
+        assert getattr(buffer_window, name) is getattr(window, name)
 
 
 def test_streaming_guardrails_use_shared_window():
-    assert guardrails.StreamingBufferWindow is streaming_window.StreamingBufferWindow
-    assert guardrails.WindowScanResult is streaming_window.WindowScanResult
+    assert guardrails.StreamingBufferWindow is window.StreamingBufferWindow
+    assert guardrails.WindowScanResult is window.WindowScanResult

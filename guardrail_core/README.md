@@ -40,14 +40,19 @@ See [RELEASING.md](RELEASING.md) for package publishing and consumer adoption.
 `guardrail_core.streaming.window` retains output tails to detect cross-chunk
 matches, releasing only scanner-approved prefixes. It uses only the standard library.
 
-```text
-feed(text) -> buffer -> when it exceeds holdback, scan the whole buffer
-       | allow/redact -> release approved prefix, retain tail
-       | block        -> discard pending text, return blocked=True
-       ` error        -> discard pending text, raise WindowScanError
-
-normal EOF -> flush() -> scan and release remaining text
-parse failure / cancellation -> discard the window, do not flush
+```mermaid
+flowchart TD
+    Feed["feed(text)"] --> Buffer["Buffer text"]
+    Buffer -->|Exceeds holdback| Scan["Scan entire buffer"]
+    Buffer -->|Within holdback| Hold["Retain tail"]
+    Scan -->|Allow / redact| Emit["Release approved prefix; retain tail"]
+    Scan -->|Block| Block["Discard buffer; stop output"]
+    Scan -->|Error| Error["Discard buffer; raise WindowScanError"]
+    EOF["Normal EOF: flush()"] --> Final["Scan remaining text"]
+    Final -->|Allow / redact| Release["Release remaining text"]
+    Final -->|Block| Block
+    Final -->|Error| Error
+    Fail["Parse failure / cancellation"] --> Discard["Discard window; do not flush"]
 ```
 
 Example (prints `hello world`; replace `print` with downstream emission):

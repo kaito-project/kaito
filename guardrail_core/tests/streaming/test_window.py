@@ -16,7 +16,7 @@ import subprocess
 import sys
 
 import pytest
-from guardrail_core.streaming_window import (
+from guardrail_core.streaming.window import (
     StreamingBufferWindow,
     WindowScanError,
     WindowScanResult,
@@ -348,7 +348,7 @@ def test_shared_window_import_does_not_load_scanner_or_framework_dependencies():
             sys.executable,
             "-I",
             "-c",
-            "import guardrail_core.streaming_window; import sys; "
+            "import guardrail_core.streaming.window; import sys; "
             "assert not {'fastapi', 'ragengine', 'envoy', 'detect_secrets', "
             "'tiktoken', 'regex', 'json_repair'} & sys.modules.keys()",
         ],

@@ -72,7 +72,7 @@ def test_wheel_metadata_and_contents(distributions):
         assert any(name.endswith(".dist-info/licenses/LICENSE") for name in names)
         assert "guardrail_core/streaming/sse.py" in names
         assert "guardrail_core/streaming/openai.py" in names
-        assert "guardrail_core/streaming_window.py" in names
+        assert "guardrail_core/streaming/window.py" in names
         assert "guardrail_core/native_scanners.py" in names
         assert "guardrail_core/secrets/scanner.py" in names
         assert all(
@@ -103,7 +103,7 @@ def test_sdist_contains_build_inputs_and_tests(distributions):
         "guardrail_core/secrets/test_scanner.py",
         "tests/streaming/test_sse.py",
         "tests/streaming/test_window.py",
-        "guardrail_core/streaming_window.py",
+        "guardrail_core/streaming/window.py",
         "tests/test_distribution.py",
     } <= names
     assert not any(

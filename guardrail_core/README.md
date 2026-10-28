@@ -5,7 +5,7 @@ standard-library-only submodule for SSE framing and OpenAI chat chunk
 parsing/building. The streaming submodule does not scan, block, or implement
 holdback policy.
 
-`guardrail_core.streaming_window` separately provides a policy-independent text
+`guardrail_core.streaming.window` separately provides a policy-independent text
 window. This module is prepared for release `0.1.1` and is not included in PyPI
 version `0.1.0`.
 RAGEngine continues using its own window and its pinned PyPI dependency until a
@@ -94,7 +94,7 @@ adoption of the shared window are separate follow-ups.
 
 ## Streaming window
 
-The `guardrail_core.streaming_window` module uses only the Python standard
+The `guardrail_core.streaming.window` module uses only the Python standard
 library. Importing it does not load scanners, FastAPI, RAGEngine, or Envoy.
 Its public types are:
 

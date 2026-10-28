@@ -88,6 +88,10 @@ except WindowScanError:
 Use `chunks = ["safe se", "cret"]` to exercise cross-chunk blocking. Parse errors
 and cancellation must propagate without entering the normal-EOF `else` branch.
 
+`Scanner` is illustrative; replace it with your scanner adapter. The caller is
+responsible for closing the upstream stream and generating product-specific
+refusal responses.
+
 ## Byte-oriented SSE framing
 
 ```python

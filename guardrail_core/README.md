@@ -1,9 +1,9 @@
 # KAITO Guardrail Core
 
-`kaito-guardrail-core` provides KAITO-owned scanners and `guardrail_core.streaming`, a
-standard-library-only submodule for SSE framing and OpenAI chat chunk
-parsing/building. The streaming submodule does not scan, block, or implement
-holdback policy.
+`kaito-guardrail-core` provides KAITO-owned scanners and standard-library-only
+streaming utilities. `guardrail_core.streaming.sse` and
+`guardrail_core.streaming.openai` frame SSE events and parse/build OpenAI chat
+chunks; they do not scan or enforce policy.
 
 `guardrail_core.streaming.window` separately provides a policy-independent text
 window. This module is prepared for release `0.1.1` and is not included in PyPI
@@ -111,6 +111,17 @@ Its public types are:
 (Unicode code points), not UTF-8 bytes, tokens, or grapheme clusters. Non-integers,
 including booleans, raise `TypeError`; negative integers raise `ValueError`.
 
+```text
+feed(text) -> append to pending buffer
+  -> if it exceeds holdback: scan the whole buffer
+       | allow/redact -> release approved prefix, retain tail
+       | block        -> discard pending text, return blocked=True
+       ` error        -> discard pending text, raise WindowScanError
+
+normal EOF -> flush() -> scan and release remaining text
+parse failure / cancellation -> discard the window, do not flush
+```
+
 `feed(text)` appends to the pending buffer. Once it exceeds the holdback, the
 scanner sees the whole pending buffer, including the retained tail, before any
 prefix is released. Zero holdback scans and releases each non-empty feed.
@@ -129,6 +140,52 @@ it, allowing right-boundary checks at EOF. Flushing an empty buffer emits nothin
 After blocking, every `feed()` and `flush()` returns an empty, blocked result
 without calling the scanner again. A normal flush does not close the window;
 the caller determines the stream lifecycle.
+
+### Calling the window
+
+Pass decoded text chunks, not SSE bytes. Handle both emitted chunks and the
+blocked flag; flush only when the upstream iteration finishes normally.
+
+```python
+from guardrail_core.streaming.window import (
+    StreamingBufferWindow,
+    WindowScanError,
+    WindowScanResult,
+)
+
+
+class Scanner:
+    def scan(
+        self, text: str, *, flush: bool = False, preceding_char: str = ""
+    ) -> WindowScanResult:
+        return WindowScanResult(blocked="secret" in text)
+
+
+window = StreamingBufferWindow(Scanner(), holdback_len=len("secret") - 1)
+chunks = ["hello ", "world"]
+
+try:
+    for text in chunks:
+        result = window.feed(text)
+        print("".join(result.chunks), end="")
+        if result.blocked:
+            print("[blocked]")
+            break
+    else:
+        result = window.flush()
+        print("".join(result.chunks), end="")
+        if result.blocked:
+            print("[blocked]")
+except WindowScanError:
+    print("[scan failed]")
+```
+
+This prints `hello world`. Setting `chunks = ["safe se", "cret"]` demonstrates a
+cross-chunk block: only the already approved prefix is printed before `[blocked]`.
+If the scanner raises, the example prints `[scan failed]` and never flushes the
+failed buffer. Replace `print` with downstream emission in a service. Upstream
+parse errors and cancellation must propagate without entering the normal-EOF
+`else` branch.
 
 ### Errors and caller responsibilities
 

@@ -11,6 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Hold back output tails so scanners can detect matches across text chunks.
+
+Release only scanned prefixes; scan remaining text at normal stream completion.
+"""
+
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -39,12 +44,17 @@ class WindowScanner(Protocol):
 
 @dataclass(frozen=True)
 class WindowEmitResult:
+    """Scanner-approved chunks to release; blocked means stop all further output."""
+
     chunks: tuple[str, ...]
     blocked: bool = False
 
 
 class StreamingBufferWindow:
-    """Hold back Python string characters, not UTF-8 bytes or grapheme clusters."""
+    """Scan pending text with scanner, retaining holdback_len Unicode characters.
+
+    Scanner failures clear pending text and raise WindowScanError.
+    """
 
     def __init__(
         self,
@@ -73,6 +83,7 @@ class StreamingBufferWindow:
         return self._redacted
 
     def feed(self, text: str) -> WindowEmitResult:
+        """Append text, scan before releasing a prefix, and retain the pending tail."""
         if self._blocked:
             return WindowEmitResult(chunks=(), blocked=True)
 
@@ -87,6 +98,10 @@ class StreamingBufferWindow:
         )
 
     def flush(self) -> WindowEmitResult:
+        """Scan and release remaining text only at normal stream completion.
+
+        After parse failures or cancellation, discard the window without flushing.
+        """
         if self._blocked:
             return WindowEmitResult(chunks=(), blocked=True)
         if not self._pending_buffer:

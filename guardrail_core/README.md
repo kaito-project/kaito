@@ -35,6 +35,9 @@ Python imports use `guardrail_core`.
 `guardrail_core.streaming.window` retains output tails to detect cross-chunk
 matches, releasing only scanner-approved prefixes.
 
+`holdback_len` is measured in Unicode code points and must be sufficient for the
+scanner's cross-chunk matching requirements.
+
 ```mermaid
 flowchart TD
     Feed["feed(text)"] --> Buffer["Buffer text"]

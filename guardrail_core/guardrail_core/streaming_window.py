@@ -11,15 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Policy-independent streaming window; all lengths count Unicode characters.
-
-Safety contract:
-- The unscanned tail is retained in ``pending_buffer`` and must not be emitted.
-- Only scanner-confirmed safe prefixes may be emitted downstream.
-- Feed scans include the holdback tail before emitting any prefix.
-- Final flush scans the remaining buffer before emitting any remaining text.
-- Scanner failures raise WindowScanError and permanently block the window.
-"""
+"""Buffer streaming text and release it only after scanning."""
 
 from dataclasses import dataclass
 from typing import Protocol

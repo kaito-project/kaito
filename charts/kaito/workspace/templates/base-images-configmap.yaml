@@ -13,9 +13,9 @@ data:
         runtimeVersion:
           vllm: 0.30.0
           transformers: 5.15.0
-      - name: base-tfs-cpu
-        tag: 0.6.3
       - name: base-vllm-cpu
         tag: 0.0.1
         runtimeVersion:
           vllm: 0.30.0
+      - name: base-tfs-cpu
+        tag: 0.6.3

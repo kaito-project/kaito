@@ -143,7 +143,14 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             "disable_log_stats": False,
             "uvicorn_log_level": "error",
         }
-        if os.environ.get("VLLM_TARGET_DEVICE", "").strip().lower() != "cpu":
+        if os.environ.get("VLLM_TARGET_DEVICE", "").strip().lower() == "cpu":
+            # Despite its name, vLLM also uses gpu_memory_utilization for the
+            # CPU memory budget. Leave headroom for the OS and startup overhead:
+            # vLLM 0.25.1's 0.92 default can exceed available RAM and fail the
+            # CPU worker's startup check before model loading. Explicit CLI or
+            # KAITO config values still override this parser default.
+            engine_default_args["gpu_memory_utilization"] = 0.8
+        else:
             engine_default_args["gpu_memory_utilization"] = (
                 get_max_gpu_memory_utilization()
             )

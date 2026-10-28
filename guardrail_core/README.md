@@ -40,14 +40,6 @@ See [RELEASING.md](RELEASING.md) for package publishing and consumer adoption.
 `guardrail_core.streaming.window` retains output tails to detect cross-chunk
 matches, releasing only scanner-approved prefixes. It uses only the standard library.
 
-- **Input:** `StreamingBufferWindow(scanner, *, holdback_len)` accepts decoded
-  `feed(text: str)`. `WindowScanner.scan(text, *, flush=False, preceding_char="")`
-  returns `WindowScanResult(sanitized_text=None, blocked=False)`.
-- **Units:** `holdback_len` counts Unicode code points, not bytes or graphemes.
-  Non-integers (including bool) raise `TypeError`; negative integers raise `ValueError`.
-- **Output:** `WindowEmitResult.chunks` contains approved text; `blocked` means stop
-  output. `preceding_char` is the last released character, or `""` before release.
-
 ```text
 feed(text) -> buffer -> when it exceeds holdback, scan the whole buffer
        | allow/redact -> release approved prefix, retain tail
@@ -57,17 +49,6 @@ feed(text) -> buffer -> when it exceeds holdback, scan the whole buffer
 normal EOF -> flush() -> scan and release remaining text
 parse failure / cancellation -> discard the window, do not flush
 ```
-
-- Scan includes the retained tail. Zero holdback scans each non-empty feed;
-  insufficient holdback cannot guarantee detection of cross-feed patterns.
-- `sanitized_text` replaces the whole buffer, recalculates release length, and sets
-  `redacted`. Blocking overrides sanitization and permanently prevents release.
-- Scanner exceptions clear the buffer, block the window, and raise `WindowScanError`
-  with the cause chained. Do not retry; cancellation and other `BaseException`s propagate.
-- `flush()` scans with `flush=True` for right-boundary checks; empty flush emits
-  nothing. It does not close the window. Blocked feed/flush never invoke the scanner.
-- Callers own policy, sufficient holdback, refusal messages, error handling, and
-  upstream closure. The window logs no model text and chooses no fail-open policy.
 
 Example (prints `hello world`; replace `print` with downstream emission):
 

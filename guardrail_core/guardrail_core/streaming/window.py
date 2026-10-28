@@ -26,12 +26,23 @@ class WindowScanError(RuntimeError):
 
 @dataclass(frozen=True)
 class WindowScanResult:
+    """Allow text unchanged, replace it with sanitized_text, or block release.
+
+    Sanitization replaces the whole pending buffer and recalculates release
+    length, marking the window redacted. Blocking takes precedence over
+    sanitization.
+    """
+
     sanitized_text: str | None = None
     blocked: bool = False
 
 
 class WindowScanner(Protocol):
-    """Scan the full pending text, using the last emitted character as context."""
+    """Scan pending text, using preceding_char as left-boundary context.
+
+    preceding_char is the last released character, or "" before the first release.
+    flush=True marks normal end-of-stream for right-boundary checks.
+    """
 
     def scan(
         self,
@@ -51,9 +62,13 @@ class WindowEmitResult:
 
 
 class StreamingBufferWindow:
-    """Scan pending text with scanner, retaining holdback_len Unicode characters.
+    """Retain an output tail so scanner matches can span input chunks.
 
-    Scanner failures clear pending text and raise WindowScanError.
+    Scanner exceptions clear the buffer, permanently block release, and raise
+    WindowScanError with the original cause chained. Cancellation and other
+    BaseException signals propagate; callers must stop without flushing.
+    Callers own policy, refusal messages, error handling, and upstream closure.
+    The window logs no model text and chooses no fail-open policy.
     """
 
     def __init__(
@@ -62,6 +77,12 @@ class StreamingBufferWindow:
         *,
         holdback_len: int,
     ) -> None:
+        """Use scanner with a non-negative holdback_len in Unicode code points.
+
+        Units are not bytes or graphemes. Non-integers (including bool) raise
+        TypeError; negative integers raise ValueError. Zero scans each non-empty
+        feed; insufficient holdback cannot guarantee cross-chunk detection.
+        """
         if isinstance(holdback_len, bool) or not isinstance(holdback_len, int):
             raise TypeError("holdback_len must be an integer.")
         if holdback_len < 0:
@@ -83,7 +104,12 @@ class StreamingBufferWindow:
         return self._redacted
 
     def feed(self, text: str) -> WindowEmitResult:
-        """Append text, scan before releasing a prefix, and retain the pending tail."""
+        """Buffer decoded str text and return WindowEmitResult(chunks, blocked).
+
+        Once the buffer exceeds holdback, scan it including the retained tail,
+        then release only the approved prefix. Otherwise return no chunks.
+        Blocked windows return an empty, blocked result without scanning.
+        """
         if self._blocked:
             return WindowEmitResult(chunks=(), blocked=True)
 
@@ -98,9 +124,12 @@ class StreamingBufferWindow:
         )
 
     def flush(self) -> WindowEmitResult:
-        """Scan and release remaining text only at normal stream completion.
+        """At normal EOF, scan remaining text with flush=True and return its result.
 
-        After parse failures or cancellation, discard the window without flushing.
+        WindowEmitResult contains all approved remaining chunks or blocked=True.
+        Empty or blocked windows emit nothing; a normal flush does not close
+        the window. After parse failures or cancellation, discard it without
+        flushing.
         """
         if self._blocked:
             return WindowEmitResult(chunks=(), blocked=True)

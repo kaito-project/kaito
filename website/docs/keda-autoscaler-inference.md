@@ -270,6 +270,95 @@ Events:
 p[string]string{scaledobject.keda.sh/name: phi-4-mini,},MatchExpressions:[]LabelSelectorRequirement{},}) above target
 ```
 
+#### Example: Scale to zero
+
+:::note
+Scale to zero requires KEDA KAITO Scaler v0.7.0+ and KAITO v0.13.0+. The `initialcooldownperiod` annotation and the cooldown defaults described below require KEDA KAITO Scaler v0.7.1+. For the full annotation reference, see the [KEDA KAITO Scaler README](https://github.com/kaito-project/keda-kaito-scaler#scale-to-zero).
+:::
+
+By default, the KEDA KAITO scaler keeps at least one inference replica running. Setting the `scaledobject.kaito.sh/min-replicas` annotation to `"0"` lets an InferenceSet release its GPU capacity entirely while idle (1 → 0) and reacquire it when new requests arrive (0 → 1). Scaling between 1 and the maximum replica count is unchanged.
+
+At zero replicas there are no inference pods to scrape, so the wake-up signal must come from the Endpoint Picker (EPP), the inference gateway's router, which keeps running while the workload is parked at zero. KAITO creates the EPP only when all of the following conditions are met:
+
+- KAITO is installed with the `gatewayAPIInferenceExtension` feature gate enabled. See [Gateway API Inference Extension](./gateway-api-inference-extension.md).
+- The InferenceSet uses the vLLM runtime with a preset inference template.
+- At least one Workspace exists for the InferenceSet. Until an EPP pod is running, metric requests for EPP-sourced metrics fail and KEDA keeps the current replica count.
+
+Request-driven wake-up also requires the `enableEPPFlowControl` feature gate, which is disabled by default. It enables request buffering in the EPP and the flow-control queue metric (`llm_d_epp_flow_control_queue_size`) used in the example below. To enable it, add `--set featureGates.enableEPPFlowControl=true` to the KAITO Helm install command.
+
+- Scale to zero is configured with the `scaledobject.kaito.sh/metrics` annotation, a YAML list with one entry per metric. Each entry sets a `name`, a `type` (`gauge` or `histogram`), an optional `source` (`modelpod` by default, which scrapes the inference pods, or `epp`), and the following thresholds:
+
+  - `activationthreshold`: Wakes the workload from zero when **any** metric exceeds its activation threshold. At least one metric must declare it. It's only valid on `source: epp` metrics and must be paired with a `deactivationthreshold` on the same metric.
+  - `deactivationthreshold`: Parks the workload at zero when **every** metric that declares one is at or below its deactivation threshold. At least one `modelpod` metric must declare it, so that the workload isn't parked while a replica is still generating tokens. When paired with an `activationthreshold`, it must not exceed it.
+  - `upthreshold` / `downthreshold`: Scale between 1 and the maximum replica count, one replica at a time. With scale to zero, these are optional per metric but must be declared together.
+
+- The following global annotations also apply:
+
+  - `scaledobject.kaito.sh/min-replicas`: Set to `"0"` to enable scale to zero.
+  - `scaledobject.kaito.sh/max-replicas`: Maximum number of replicas for the target InferenceSet. Must be at least `1`.
+  - `scaledobject.kaito.sh/cooldownperiod` (optional): Seconds that KEDA waits after the last active trigger reading before scaling the InferenceSet to zero. The default is `1800`. Only valid when `min-replicas` is `"0"`.
+  - `scaledobject.kaito.sh/initialcooldownperiod` (optional): Seconds after `ScaledObject` creation that KEDA waits before scaling the InferenceSet to zero, used until the workload has been active for the first time. It doesn't delay the initial scale-up. The default is `1800`. Only valid when `min-replicas` is `"0"`.
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: kaito.sh/v1beta1
+kind: InferenceSet
+metadata:
+  annotations:
+    scaledobject.kaito.sh/auto-provision: "true"
+    scaledobject.kaito.sh/min-replicas: "0"
+    scaledobject.kaito.sh/max-replicas: "5"
+    # Wait 10 minutes of idleness before releasing the GPU.
+    scaledobject.kaito.sh/cooldownperiod: "600"
+    scaledobject.kaito.sh/metrics: |
+      # 0 -> 1: any request queued at the EPP wakes the workload.
+      - name: llm_d_epp_flow_control_queue_size
+        type: gauge
+        source: epp
+        activationthreshold: 0
+        deactivationthreshold: 0
+      # 1 -> 0: park only once the inference pods are idle.
+      # 1 <-> N: the usual up/down thresholds.
+      - name: vllm:num_requests_running
+        type: gauge
+        deactivationthreshold: 0
+        upthreshold: 10
+        downthreshold: 2
+  name: phi-4-mini
+  namespace: default
+spec:
+  labelSelector:
+    matchLabels:
+      apps: phi-4-mini
+  replicas: 1
+  template:
+    inference:
+      preset:
+        accessMode: public
+        name: microsoft/Phi-4-mini-instruct
+    resource:
+      instanceType: Standard_NC24ads_A100_v4
+EOF
+```
+
+With this configuration:
+
+- While the InferenceSet is at zero replicas, a request buffered in the EPP (`llm_d_epp_flow_control_queue_size` above `0`) scales it from 0 to 1.
+- While it's running, the InferenceSet scales up by one replica when the average `vllm:num_requests_running` per replica is above `10` and all current replicas are ready, and scales down by one replica when it's below `2`.
+- When the EPP queue is empty and no inference pod is running a request, the InferenceSet scales down to zero after the `cooldownperiod` (600 seconds) has passed since the last active trigger reading.
+
+Keep the following wake-up behavior in mind when choosing thresholds and cooldowns:
+
+- With an `activationthreshold` of `0`, a buffered request observed by the scaler wakes the workload. With a threshold `T` greater than `0`, more than `T` requests must be buffered when the scaler reads the metric. This is a queue-depth threshold, not a minimum request rate: bursts can trigger activation even with low average traffic. For steady arrivals buffered for the full request time-to-live (TTL), `T / TTL` approximates the rate needed to accumulate that backlog; earlier request-context cancellation can prevent activation even at higher rates. Use `0` unless you deliberately want to wait for more buffered demand before acquiring a GPU.
+- Cold start isn't instant: the workload has to acquire a GPU node, pull the model, and become ready. Whether the request that triggered the wake-up is served depends on the client's timeout and the gateway's request buffering configuration.
+- The workload can scale back to zero before the GPU is ready. Until KAITO creates the model Service, which happens after the node is provisioned, `modelpod` metrics report `0`, so only the EPP queue keeps the workload active. Requests can leave the queue on TTL expiry or request-context cancellation, including gateway timeouts. If the queue falls to or below its deactivation threshold, KEDA can scale the workload to zero once `cooldownperiod` has passed since the last active trigger reading. Set `cooldownperiod` to at least the worst-case node provisioning time.
+- `cooldownperiod` applies only after the workload has been active once. Before that, KEDA uses `initialcooldownperiod`, counted from `ScaledObject` creation, so a newly deployed InferenceSet that receives no traffic scales to zero once it elapses. Set it to at least the worst-case time to provision the first GPU node.
+
+:::tip
+- InferenceSets owned by a `MultiRoleInference` aren't supported. The KEDA KAITO scaler doesn't create a `ScaledObject` for them.
+- To turn off scale to zero, set `min-replicas` to `1` or higher (or remove it), remove `cooldownperiod` and `initialcooldownperiod`, remove every `activationthreshold` and `deactivationthreshold`, and give every remaining metric an `upthreshold`/`downthreshold` pair, all in the same update. Until all of these changes are in place, the configuration is invalid: the scaler records an `InvalidConfig` warning event on the InferenceSet and keeps the existing `ScaledObject`. If the workload is parked at zero and doesn't come back up, set `spec.replicas` on the InferenceSet to the new minimum.
+:::
+
 ## Summary
 
-KAITO's LLM inference service must scale inference instances dynamically to handle varying numbers of waiting requests: scaling up to prevent blocking when requests increase, and scaling down to optimize GPU usage when requests decrease. With the newly introduced InferenceSet CRD and KEDA KAITO scaler, configuring this setting in KAITO has become much simpler.
+KAITO's LLM inference service must scale inference instances dynamically to handle varying numbers of waiting requests: scaling up to prevent blocking when requests increase, and scaling down to optimize GPU usage when requests decrease. With the newly introduced InferenceSet CRD and KEDA KAITO scaler, configuring this setting in KAITO has become much simpler. With scale to zero, idle inference workloads can also release their GPU capacity entirely and reacquire it when new requests arrive.

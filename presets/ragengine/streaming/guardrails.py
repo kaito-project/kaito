@@ -106,7 +106,7 @@ def validate_streaming_guardrails(
 
 
 async def apply_streaming_guardrails(
-    upstream_chunks: AsyncIterator[str | bytes],
+    upstream_chunks: AsyncIterator[bytes],
     guardrails: OutputGuardrails,
     request: dict[str, Any],
 ) -> AsyncIterator[str | bytes]:
@@ -180,7 +180,7 @@ async def apply_streaming_guardrails(
         )
         async for chunk in _emit_refusal(guardrails):
             yield chunk
-    except (SSEFramingError, UnicodeEncodeError) as error:
+    except SSEFramingError as error:
         logger.warning("Rejecting invalid upstream SSE stream: %s", error)
         async for chunk in _emit_refusal(guardrails):
             yield chunk
@@ -416,7 +416,7 @@ def _record_successful_redaction(
         guardrails._record_response_action("redact")
 
 
-async def _aclose(upstream_chunks: AsyncIterator[str | bytes]) -> None:
+async def _aclose(upstream_chunks: AsyncIterator[bytes]) -> None:
     aclose = getattr(upstream_chunks, "aclose", None)
     if aclose is not None:
         await aclose()

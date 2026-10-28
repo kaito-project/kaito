@@ -52,9 +52,8 @@ For `stream=true`, output guardrails support `ban_substrings`, `invisible_text`,
 are rejected before opening the upstream stream.
 
 RAGEngine uses `guardrail_core.streaming` to frame upstream SSE bytes and parse
-OpenAI chunks. The compatibility adapter also accepts text chunks,
-encoding them as UTF-8. The HTTP upstream preserves bytes so invalid UTF-8
-cannot be silently replaced before validation.
+OpenAI chunks. Streaming input accepts only bytes. The HTTP upstream preserves
+bytes so invalid UTF-8 cannot be silently replaced before validation.
 
 Streaming guardrails permit an empty `choices` list (e.g. usage-only chunks),
 or one choice with integer index `0`. This restriction includes role-only and

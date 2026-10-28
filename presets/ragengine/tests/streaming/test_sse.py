@@ -38,7 +38,7 @@ def test_openai_exports_are_shared_implementations():
         assert getattr(openai, name) is getattr(shared_openai, name)
 
 
-def test_text_adapter_delegates_to_shared_framer(monkeypatch):
+def test_sse_framer_is_the_shared_implementation(monkeypatch):
     calls = []
     original = shared_sse.SSEFramer.feed
 
@@ -48,7 +48,7 @@ def test_text_adapter_delegates_to_shared_framer(monkeypatch):
 
     monkeypatch.setattr(shared_sse.SSEFramer, "feed", feed)
     framer = SSEFramer()
-    events = framer.feed("data: \u4f60\u597d\n\n") + framer.finish()
+    events = framer.feed("data: \u4f60\u597d\n\n".encode()) + framer.finish()
     assert events[0].data == "\u4f60\u597d"
     assert calls == ["data: \u4f60\u597d\n\n".encode()]
 
@@ -57,7 +57,7 @@ def test_text_adapter_delegates_to_shared_framer(monkeypatch):
 @pytest.mark.parametrize("ending", ("\n\n", "\r\n\r\n", "\r\r", "\n\r", "\r\n\r"))
 async def test_async_adapter_finishes_at_eof(ending):
     async def upstream():
-        yield "data: safe" + ending
+        yield ("data: safe" + ending).encode()
 
     events = [event async for event in iter_sse_events(upstream())]
     assert len(events) == 1
@@ -98,7 +98,7 @@ async def test_async_adapter_propagates_decode_failure():
 @pytest.mark.asyncio
 async def test_async_adapter_propagates_size_limit_failure():
     async def upstream():
-        yield "data: too long\n\n"
+        yield b"data: too long\n\n"
 
     with pytest.raises(shared_sse.SSEEventTooLargeError):
         _ = [event async for event in iter_sse_events(upstream(), max_event_bytes=8)]

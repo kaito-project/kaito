@@ -2,15 +2,15 @@
 apiVersion: kaito.sh/v1beta1
 kind: InferenceSet
 metadata:
-  name: qwen-2-5-0-5b-instruct-cpu-vllm
+  name: gemma-4-e4b-it-cpu-vllm
 spec:
   replicas: 1
   labelSelector:
     matchLabels:
-      apps: qwen-2-5-0-5b-instruct-cpu-vllm
+      apps: gemma-4-e4b-it-cpu-vllm
   template:
     resource:
       instanceType: Standard_D16s_v6
     inference:
       preset:
-        name: Qwen/Qwen2.5-0.5B-Instruct
+        name: google/gemma-4-E4B-it

@@ -22,9 +22,9 @@ KAITO also supports basic CPU preset inference referenced through `inference.pre
 
 Retained example:
 
-- NAP InferenceSet (default CPU `vllm` runtime): [`examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml`](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_inferenceset_qwen_2.5_0.5b_instruct_cpu_vllm.yaml)
+- NAP InferenceSet (default CPU `vllm` runtime): [`examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml`](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml)
 
-This example uses `Qwen/Qwen2.5-0.5B-Instruct` on `Standard_D16s_v6`.
+This example uses `google/gemma-4-E4B-it` on `Standard_D16s_v6`.
 
 ### Basic CPU support matrix
 

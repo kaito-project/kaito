@@ -17,6 +17,7 @@ import (
 	"sort"
 	"sync"
 
+	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/cache"
 )
 
@@ -36,9 +37,31 @@ type MutationExpectation struct {
 type Expectations struct {
 	Provider          cache.ProviderName
 	NewForConformance func() cache.Provider
+	E2EExempt         bool
 	ModelWeights      MutationExpectation
 	KVCache           MutationExpectation
+	E2EScenarios      []E2EScenario
+	CacheWarm         func() *CacheWarmConfig
+	E2EWorkspace      func() *E2EWorkspaceConfig
 }
+
+// E2EWorkspaceConfig supplies provider-specific serving configuration.
+type E2EWorkspaceConfig struct {
+	SkipReason string
+	Customizer func(ws *kaitov1beta1.Workspace)
+}
+
+// CacheWarmConfig supplies provider-specific cache warm validation.
+type CacheWarmConfig struct {
+	SkipReason          string
+	Namespace           string
+	WorkspaceCustomizer func(ws *kaitov1beta1.Workspace)
+	ValidatePreWarm     func(h E2EHarness, ws *kaitov1beta1.Workspace) error
+	ValidatePostWarm    func(h E2EHarness, ws *kaitov1beta1.Workspace) error
+}
+
+// RunsE2E reports whether the provider participates in online conformance tests.
+func (e Expectations) RunsE2E() bool { return !e.E2EExempt }
 
 // ForConcern returns the mutation expectation for the given cache concern.
 func (e Expectations) ForConcern(concern cache.CacheConcern) MutationExpectation {

@@ -52,6 +52,8 @@ class StreamingBufferWindow:
         *,
         holdback_len: int,
     ) -> None:
+        if isinstance(holdback_len, bool) or not isinstance(holdback_len, int):
+            raise TypeError("holdback_len must be an integer.")
         if holdback_len < 0:
             raise ValueError("holdback_len must be non-negative.")
 

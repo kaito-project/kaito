@@ -107,8 +107,9 @@ Its public types are:
 
 ### Units and release rules
 
-`holdback_len` is a non-negative count of Python string characters (Unicode code
-points), not UTF-8 bytes, tokens, or grapheme clusters.
+`holdback_len` must be a non-negative integer count of Python string characters
+(Unicode code points), not UTF-8 bytes, tokens, or grapheme clusters. Non-integers,
+including booleans, raise `TypeError`; negative integers raise `ValueError`.
 
 `feed(text)` appends to the pending buffer. Once it exceeds the holdback, the
 scanner sees the whole pending buffer, including the retained tail, before any

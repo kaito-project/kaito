@@ -108,6 +108,12 @@ def test_constructor_rejects_invalid_window_settings(kwargs, message):
         StreamingBufferWindow(AllowScanner(), **kwargs)
 
 
+@pytest.mark.parametrize("holdback_len", [0.0, 1.5, -1.5, "3", None, True, False])
+def test_constructor_rejects_non_integer_holdback(holdback_len):
+    with pytest.raises(TypeError, match="holdback_len must be an integer"):
+        StreamingBufferWindow(AllowScanner(), holdback_len=holdback_len)
+
+
 def test_holdback_tail_is_retained_and_not_emitted():
     scanner = BadSubstringScanner()
     window = StreamingBufferWindow(scanner, holdback_len=3)

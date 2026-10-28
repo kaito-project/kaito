@@ -105,13 +105,13 @@ async def _apply_content_chunks(contents, guardrails, *, finish_reason=None):
 
     async def upstream_chunks():
         for payload in payloads:
-            yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
+            yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n".encode()
         if finish_reason is not None:
             yield (
                 'data: {"choices":[{"index":0,"delta":{},'
                 f'"finish_reason":"{finish_reason}"}}]}}\n\n'
-            )
-        yield "data: [DONE]\n\n"
+            ).encode()
+        yield b"data: [DONE]\n\n"
 
     return [
         chunk.decode("utf-8") if isinstance(chunk, bytes) else chunk
@@ -136,13 +136,13 @@ def _emitted_text(chunks):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "heartbeat",
-    [": keepalive\n\n", "event: ping\n\n", "\n", "data:\n\n", "data: \t\n\n"],
+    [b": keepalive\n\n", b"event: ping\n\n", b"\n", b"data:\n\n", b"data: \t\n\n"],
 )
 async def test_streaming_no_data_is_skipped_without_refusal(heartbeat):
     async def upstream():
         yield heartbeat
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
-        yield "data: [DONE]\n\n"
+        yield b'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+        yield b"data: [DONE]\n\n"
 
     chunks = [
         chunk
@@ -167,8 +167,8 @@ async def test_streaming_no_data_is_skipped_without_refusal(heartbeat):
 )
 async def test_all_choices_including_non_text_choices_are_validated(choices):
     async def upstream():
-        yield f"data: {json.dumps({'choices': choices})}\n\n"
-        yield "data: [DONE]\n\n"
+        yield f"data: {json.dumps({'choices': choices})}\n\n".encode()
+        yield b"data: [DONE]\n\n"
 
     chunks = [
         chunk
@@ -189,13 +189,12 @@ async def test_all_choices_including_non_text_choices_are_validated(choices):
         b"data: unfinished",
         b"data: unfinished\r",
         b"data: \xe4\xbd",
-        'data: {"choices": [}\n\n',
-        'data: {"choices":[{"delta":{"content":"unsafe"}}]}\n\n',
-        'data: {"choices":[{"index":true,"delta":{}}]}\n\n',
-        'data: {"choices":[{"index":0,"delta":[]}]} \n\n',
-        'data: {"choices":[{"index":0,"delta":{"content":42}}]}\n\n',
-        'data: {"choices":[{"index":0,"finish_reason":42}]}\n\n',
-        "data: \ud800\n\n",
+        b'data: {"choices": [}\n\n',
+        b'data: {"choices":[{"delta":{"content":"unsafe"}}]}\n\n',
+        b'data: {"choices":[{"index":true,"delta":{}}]}\n\n',
+        b'data: {"choices":[{"index":0,"delta":[]}]} \n\n',
+        b'data: {"choices":[{"index":0,"delta":{"content":42}}]}\n\n',
+        b'data: {"choices":[{"index":0,"finish_reason":42}]}\n\n',
     ],
 )
 async def test_invalid_stream_refuses_without_flushing_pending_text(invalid):
@@ -204,7 +203,7 @@ async def test_invalid_stream_refuses_without_flushing_pending_text(invalid):
     async def upstream():
         nonlocal closed
         try:
-            yield 'data: {"choices":[{"index":0,"delta":{"content":"un"}}]}\n\n'
+            yield b'data: {"choices":[{"index":0,"delta":{"content":"un"}}]}\n\n'
             yield invalid
         finally:
             closed = True
@@ -223,16 +222,16 @@ async def test_invalid_stream_refuses_without_flushing_pending_text(invalid):
 
 
 @pytest.mark.asyncio
-async def test_successful_mixed_stream_closes_upstream_and_preserves_finish():
+async def test_successful_byte_stream_closes_upstream_and_preserves_finish():
     closed = False
-    finish = 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\r\r'
+    finish = b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\r\r'
 
     async def upstream():
         nonlocal closed
         try:
             yield b'data: {"choices":[{"index":0,"delta":{"role":"assistant"}}]}\r\n\r\n'
-            yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
-            yield 'data: {"choices":[],"usage":{"total_tokens":10}}\n\n'
+            yield b'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+            yield b'data: {"choices":[],"usage":{"total_tokens":10}}\n\n'
             yield finish
             yield b"data: [DONE]\n\n"
             pytest.fail("Upstream must not be consumed past DONE")
@@ -246,17 +245,17 @@ async def test_successful_mixed_stream_closes_upstream_and_preserves_finish():
         )
     ]
     assert _emitted_text(chunks) == "safe"
-    assert finish.encode("utf-8") in chunks
+    assert finish in chunks
     assert isinstance(chunks[-2], bytes)
     assert chunks[-1] == "data: [DONE]\n\n"
     assert closed
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("ending", ("\n\n", "\r\r", "\n\r", "\r\n\r"))
+@pytest.mark.parametrize("ending", (b"\n\n", b"\r\r", b"\n\r", b"\r\n\r"))
 async def test_normal_eof_finishes_framing_before_scanning_holdback(ending):
     async def upstream():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}' + ending
+        yield b'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}' + ending
 
     chunks = [
         chunk
@@ -275,7 +274,7 @@ async def test_block_hit_closes_upstream_without_consuming_following_chunks():
     async def upstream():
         nonlocal closed
         try:
-            yield f"data: {json.dumps({'choices': [{'index': 0, 'delta': {'content': 'unsafe' * 60}}]})}\n\n"
+            yield f"data: {json.dumps({'choices': [{'index': 0, 'delta': {'content': 'unsafe' * 60}}]})}\n\n".encode()
             pytest.fail("Upstream must not be consumed after blocking")
         finally:
             closed = True
@@ -298,7 +297,7 @@ async def test_cancellation_propagates_and_closes_upstream_without_flushing():
     async def upstream():
         nonlocal closed
         try:
-            yield 'data: {"choices":[{"index":0,"delta":{"content":"un"}}]}\n\n'
+            yield b'data: {"choices":[{"index":0,"delta":{"content":"un"}}]}\n\n'
             waiting.set()
             await asyncio.Event().wait()
         finally:
@@ -325,7 +324,7 @@ async def test_downstream_close_closes_upstream():
     async def upstream():
         nonlocal closed
         try:
-            yield f"data: {json.dumps({'choices': [{'index': 0, 'delta': {'content': 'a' * 300}}]})}\n\n"
+            yield f"data: {json.dumps({'choices': [{'index': 0, 'delta': {'content': 'a' * 300}}]})}\n\n".encode()
             await asyncio.Event().wait()
         finally:
             closed = True
@@ -571,8 +570,8 @@ async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event(
     async def upstream_chunks():
         nonlocal closed
         try:
-            yield 'data: {"choices": [}\n\n'
-            yield 'data: {"choices":[{"delta":{"content":"unsafe after"}}]}\n\n'
+            yield b'data: {"choices": [}\n\n'
+            yield b'data: {"choices":[{"delta":{"content":"unsafe after"}}]}\n\n'
         finally:
             closed = True
 
@@ -610,17 +609,17 @@ async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event(
     "event",
     [
         (
-            'data: {"choices":['
-            '{"index":0,"delta":{"content":"first"}},'
-            '{"index":1,"delta":{"content":"second"}}]}\n\n'
+            b'data: {"choices":['
+            b'{"index":0,"delta":{"content":"first"}},'
+            b'{"index":1,"delta":{"content":"second"}}]}\n\n'
         ),
-        'data: {"choices":[{"index":1,"delta":{"content":"second"}}]}\n\n',
+        b'data: {"choices":[{"index":1,"delta":{"content":"second"}}]}\n\n',
     ],
 )
 async def test_apply_streaming_guardrails_rejects_non_single_choice_event(event):
     async def upstream_chunks():
         yield event
-        yield "data: [DONE]\n\n"
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,
@@ -654,11 +653,11 @@ async def test_apply_streaming_guardrails_rejects_non_single_choice_event(event)
 async def test_apply_streaming_guardrails_blocks_secrets_scanner_hit():
     async def upstream_chunks():
         yield (
-            'data: {"choices":[{"index":0,"delta":{"content":'
-            '"Contact me at AKIA1234567890ABCDEF for access."}}]}\n\n'
+            b'data: {"choices":[{"index":0,"delta":{"content":'
+            b'"Contact me at AKIA1234567890ABCDEF for access."}}]}\n\n'
         )
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
+        yield b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,
@@ -692,11 +691,11 @@ async def test_apply_streaming_guardrails_blocks_secrets_scanner_hit():
 async def test_apply_streaming_guardrails_blocks_sensitive_scanner_hit():
     async def upstream_chunks():
         yield (
-            'data: {"choices":[{"index":0,"delta":{"content":'
-            '"Reach me at leaked@example.com anytime."}}]}\n\n'
+            b'data: {"choices":[{"index":0,"delta":{"content":'
+            b'"Reach me at leaked@example.com anytime."}}]}\n\n'
         )
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
+        yield b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,
@@ -729,9 +728,9 @@ async def test_apply_streaming_guardrails_blocks_sensitive_scanner_hit():
 @pytest.mark.asyncio
 async def test_apply_streaming_guardrails_blocks_invisible_text_scanner_hit():
     async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"hello\\u200bworld"}}]}\n\n'
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
+        yield b'data: {"choices":[{"index":0,"delta":{"content":"hello\\u200bworld"}}]}\n\n'
+        yield b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,

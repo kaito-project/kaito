@@ -15,33 +15,17 @@ from collections.abc import AsyncIterable, AsyncIterator
 
 from guardrail_core.streaming.sse import DEFAULT_MAX_EVENT_BYTES
 from guardrail_core.streaming.sse import SSEEvent as SSEEvent
-from guardrail_core.streaming.sse import SSEFramer as ByteSSEFramer
-
-
-class SSEFramer:
-    """Adapt RAGEngine text chunks without replacing the shared byte parser."""
-
-    def __init__(self, *, max_event_bytes: int = DEFAULT_MAX_EVENT_BYTES) -> None:
-        self._framer = ByteSSEFramer(max_event_bytes=max_event_bytes)
-
-    def feed(self, text_chunk: str | bytes) -> list[SSEEvent]:
-        chunk = (
-            text_chunk.encode("utf-8") if isinstance(text_chunk, str) else text_chunk
-        )
-        return self._framer.feed(chunk)
-
-    def finish(self) -> list[SSEEvent]:
-        return self._framer.finish()
+from guardrail_core.streaming.sse import SSEFramer as SSEFramer
 
 
 async def iter_sse_events(
-    text_chunks: AsyncIterable[str | bytes],
+    chunks: AsyncIterable[bytes],
     *,
     max_event_bytes: int = DEFAULT_MAX_EVENT_BYTES,
 ) -> AsyncIterator[SSEEvent]:
     framer = SSEFramer(max_event_bytes=max_event_bytes)
-    async for text_chunk in text_chunks:
-        for event in framer.feed(text_chunk):
+    async for chunk in chunks:
+        for event in framer.feed(chunk):
             yield event
     for event in framer.finish():
         yield event

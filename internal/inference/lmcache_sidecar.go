@@ -19,6 +19,8 @@ import (
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
+	nodev1 "k8s.io/api/node/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -71,12 +73,43 @@ func ConfigureLMCacheSidecar(resolved *lmCacheResolvedConfig) builder.TypedManif
 			klog.InfoS("LMCache sidecar disabled", "workspace", klog.KObj(ctx.Workspace), "reason", reason)
 			return nil
 		}
+		runtimeClassName, err := lmCacheRuntimeClassName(ctx.Ctx, ctx.KubeClient, spec, resolved.driver.SharedDeviceRuntimeClass())
+		if err != nil {
+			return err
+		}
 		tensorParallelSize := resolved.runParams["tensor-parallel-size"]
 		if tensorParallelSize == "" {
 			tensorParallelSize = "1"
 		}
 		injectLMCacheSidecar(spec, ctx.Workspace.Name, tensorParallelSize, resolved.driver.SharedDeviceEnv())
+		if runtimeClassName != "" {
+			spec.RuntimeClassName = &runtimeClassName
+		}
 		return nil
+	}
+}
+
+// lmCacheRuntimeClassName returns the accelerator's shared-device RuntimeClass
+// when the cluster has it, so the sidecar can see devices it does not request.
+// Clusters without it, such as AKS-managed GPU nodes, already run that runtime
+// by default.
+func lmCacheRuntimeClassName(ctx context.Context, kubeClient client.Client, spec *corev1.PodSpec, name string) (string, error) {
+	if name == "" || spec.RuntimeClassName != nil || kubeClient == nil {
+		return "", nil
+	}
+	err := kubeClient.Get(ctx, client.ObjectKey{Name: name}, &nodev1.RuntimeClass{})
+	switch {
+	case err == nil:
+		return name, nil
+	case apierrors.IsNotFound(err):
+		return "", nil
+	case apierrors.IsForbidden(err):
+		// Keep LMCache working on default-runtime clusters when an older chart
+		// lacks RuntimeClass RBAC.
+		klog.ErrorS(err, "cannot read RuntimeClass; LMCache sidecar keeps the default runtime", "runtimeClass", name)
+		return "", nil
+	default:
+		return "", fmt.Errorf("get RuntimeClass %s: %w", name, err)
 	}
 }
 

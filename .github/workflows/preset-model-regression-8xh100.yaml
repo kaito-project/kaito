@@ -23,12 +23,6 @@ name: Preset Model Regression Test (8xH100)
 
 on:
   pull_request:
-    paths:
-      - ".github/workflows/preset-model-regression-8xh100.yaml"
-      - ".github/scripts/preset-regression-tests/**"
-      - ".github/preset-regression-config.json"
-      - "benchmarks/gsm8k/**"
-      - "pkg/catalog/model_catalog.yaml"
   workflow_dispatch:
     inputs:
       cluster_name:
@@ -229,7 +223,10 @@ jobs:
           # Free GPUs, not allocatable: this cluster is shared, so another tenant's pod
           # holding even one GPU leaves too few for a whole-node 8-GPU Workspace. The three
           # GFD labels are required too: the Workspace webhook reads the GPU config from
-          # them and rejects every Workspace if they are missing.
+          # them and rejects every Workspace if they are missing. Taints the inference pods
+          # do not tolerate (for example AKS node auto-repair's remediator taint) would leave
+          # a reserved node unusable, so they disqualify it; keep the tolerated set in sync
+          # with defaultTolerationsForTarget in internal/inference/preset_inferences.go.
           # Via files, not --argjson: a whole-cluster pod list overflows ARG_MAX.
           kubectl get nodes -o json > "${RUNNER_TEMP}/nodes.json"
           kubectl get pods -A -o json > "${RUNNER_TEMP}/pods.json"
@@ -256,10 +253,18 @@ jobs:
                                and .metadata.labels["nvidia.com/gpu.count"] != null
                                and .metadata.labels["nvidia.com/gpu.memory"] != null),
                     ready: (any(.status.conditions[]; .type == "Ready" and .status == "True")
-                            and (.spec.unschedulable != true)) }
+                            and (.spec.unschedulable != true)),
+                    taints: [ (.spec.taints // [])[]
+                              | select(.effect == "NoSchedule" or .effect == "NoExecute")
+                              | select((.effect == "NoSchedule"
+                                        and (.key == "nvidia.com/gpu"
+                                             or (.key == "sku" and .value == "gpu")
+                                             or (.key == "kubernetes.azure.com/scalesetpriority" and .value == "spot")))
+                                       | not)
+                              | "\(.key)\(if .value then "=" + .value else "" end):\(.effect)" ] }
                 | .free = (.alloc - .used)
-                | .eligible = (.ready and .labelled and .reservedBy == "" and .free >= $want)
-                | "\(.name) free=\(.free)/\(.alloc) ready=\(.ready) gfdLabels=\(.labelled) reservedBy=\(.reservedBy // "-") eligible=\(.eligible)" ]
+                | .eligible = (.ready and .labelled and .reservedBy == "" and .free >= $want and (.taints | length) == 0)
+                | "\(.name) free=\(.free)/\(.alloc) ready=\(.ready) gfdLabels=\(.labelled) blockingTaints=\(if (.taints | length) == 0 then "-" else (.taints | join(",")) end) reservedBy=\(.reservedBy // "-") eligible=\(.eligible)" ]
             | .[]')
           echo "$REPORT"
 

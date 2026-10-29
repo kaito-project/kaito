@@ -643,7 +643,9 @@ func TestKVCacheDtypeByArchitecture(t *testing.T) {
 		want         string
 	}{
 		{"GlmMoeDsaForCausalLM", "fp8"},
-		{"DeepseekV4ForCausalLM", "fp8"},
+		{"DeepseekV4ForCausalLM", "fp8_ds_mla"},
+		{"DeepseekV4ForConditionalGeneration", "fp8_ds_mla"},
+		{"DeepseekV41ForCausalLM", "fp8_ds_mla"},
 	} {
 		t.Run(tc.architecture, func(t *testing.T) {
 			gen := NewGenerator("test/model", "")
@@ -652,6 +654,43 @@ func TestKVCacheDtypeByArchitecture(t *testing.T) {
 			assert.Equal(t, tc.want, gen.Param.VLLM.ModelRunParams["kv-cache-dtype"])
 		})
 	}
+}
+
+func TestHybridMambaCacheParamsByArchitecture(t *testing.T) {
+	for _, arch := range []string{
+		"Glm5NextForCausalLM",
+		"Glm5NextForConditionalGeneration",
+		"Glm5NextMTPModel",
+		"NemotronHForCausalLM",
+		"NemotronH_Nano_VL_V2",
+		"Qwen3NextForCausalLM",
+		"Qwen3_5ForConditionalGeneration",
+		"Qwen3_5MoeForConditionalGeneration",
+		"Qwen4ExpForCausalLM",
+		"Qwen4ExpForConditionalGeneration",
+	} {
+		t.Run(arch, func(t *testing.T) {
+			gen := NewGenerator("test/model", "")
+			gen.Param.Metadata.Architectures = []string{arch}
+			gen.FinalizeParams()
+			assert.Equal(t, "align", gen.Param.VLLM.ModelRunParams["mamba-cache-mode"])
+			assert.Contains(t, gen.Param.VLLM.ModelRunParams, "enable-prefix-caching")
+			assert.Equal(t, "4096", gen.Param.VLLM.ModelRunParams["max-num-batched-tokens"])
+		})
+	}
+
+	gen := NewGenerator("test/model", "")
+	gen.Param.Metadata.Architectures = []string{"NemotronHForCausalLM"}
+	gen.Param.VLLM.ModelRunParams = map[string]string{"max-num-batched-tokens": "16384"}
+	gen.FinalizeParams()
+	assert.Equal(t, "16384", gen.Param.VLLM.ModelRunParams["max-num-batched-tokens"])
+
+	gen = NewGenerator("test/model", "")
+	gen.Param.Metadata.Architectures = []string{"LlamaForCausalLM"}
+	gen.FinalizeParams()
+	assert.NotContains(t, gen.Param.VLLM.ModelRunParams, "mamba-cache-mode")
+	assert.NotContains(t, gen.Param.VLLM.ModelRunParams, "enable-prefix-caching")
+	assert.NotContains(t, gen.Param.VLLM.ModelRunParams, "max-num-batched-tokens")
 }
 
 func TestTokenizerModeByArchitecture(t *testing.T) {

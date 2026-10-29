@@ -57,6 +57,14 @@ const (
 	PortRayCluster = 6379
 
 	vllmShutdownTimeoutSeconds = "50"
+	alignedMambaMaxNumSeqs     = 512
+	// hybridBlockAlignmentTokens rounds the hybrid block-size estimate up so it is
+	// never below vLLM's. vLLM rounds the block up to a power-of-two kernel
+	// alignment: the attention backend's smallest kernel block (16 to 64 tokens),
+	// or 128 for MLA. A multiple of 256 is at least as large as any of those
+	// roundings, has room for one more doubling, and adds at most 255 tokens of
+	// slack for small undercounts in the per-rank Mamba state estimate.
+	hybridBlockAlignmentTokens = 256
 )
 
 // Metadata defines the metadata for a model.
@@ -142,6 +150,17 @@ type Metadata struct {
 	// model.
 	// +optional
 	NumLinearLayers int `yaml:"numLinearLayers,omitempty"`
+
+	// AttnElementsPerToken is the per-layer KV-cache element count for one token at
+	// a single TP rank (2*kv_heads*head_dim, or kv_lora_rank+qk_rope_head_dim for
+	// MLA). With NumKeyValueHeads it sizes vLLM's hybrid attention block.
+	// +optional
+	AttnElementsPerToken int `yaml:"attnElementsPerToken,omitempty"`
+
+	// NumKeyValueHeads is the number of KV heads that tensor parallelism shards;
+	// 1 for MLA, whose latent KV cache is replicated on every rank.
+	// +optional
+	NumKeyValueHeads int `yaml:"numKeyValueHeads,omitempty"`
 
 	// AttnType specifies the attention implementation (e.g., MHA, GQA, MQA, MLA),
 	// computed by the preset generator from the model config.
@@ -517,6 +536,20 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 			p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(rc.MaxNumSeqs)
 		}
 	}
+	// vLLM warms up aligned Mamba prefix caching with one prefill per sequence
+	// slot, and that per-sequence scan state is not included in its memory
+	// profile. On large GPUs the default 1024 slots can exhaust the reserved
+	// headroom, so cap the effective value without ever raising it.
+	if p.VLLM.ModelRunParams["mamba-cache-mode"] == "align" {
+		seqs, err := strconv.Atoi(p.VLLM.ModelRunParams["max-num-seqs"])
+		if err != nil && rc.GPUConfig != nil {
+			seqs = rc.GPUConfig.VLLMDefaultMaxNumSeqs()
+			err = nil
+		}
+		if err == nil && seqs > alignedMambaMaxNumSeqs {
+			p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(alignedMambaMaxNumSeqs)
+		}
+	}
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
@@ -579,11 +612,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
-	// Disable LMCache KV cache CPU offloading when it is known to be problematic because:
-	//   - the model is not yet validated with LMCacheMPConnector, or
-	//   - the workload runs on a MIG partition (TODO: support KV cache CPU offloading on MIG).
-	if p.isLMCacheDisabled() ||
-		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
+	// Disable LMCache KV cache CPU offloading on MIG partitions.
+	// TODO: support KV cache CPU offloading on MIG.
+	if rc.GPUConfig != nil && rc.GPUConfig.IsMIG {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
 
@@ -592,6 +623,8 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 	//  2. Tensor Parallelism (TP) – model fits on a single node (multiple GPUs)
 	//  3. Pipeline Parallelism (PP) + TP – model requires multiple nodes
 	p.configureParallelism(rc)
+
+	p.coverHybridBlockWithPrefillBudget()
 
 	// Set explicit port if specified (e.g., decode pods use 5001 to make room
 	// for the routing sidecar on 5000).
@@ -671,6 +704,42 @@ func (p *PresetParam) configureParallelism(rc RuntimeContext) {
 	}
 }
 
+// coverHybridBlockWithPrefillBudget raises --max-num-batched-tokens to an upper
+// bound of vLLM's attention block size for aligned Mamba caching. LMCache
+// requires every prefill step to cover at least one block, and vLLM grows the
+// block until one attention page holds a Mamba state page
+// (Platform._align_hybrid_block_size in vLLM v0.32.0). The bound assumes a
+// 1-byte KV cache because checkpoints can quantize it to FP8.
+func (p *PresetParam) coverHybridBlockWithPrefillBudget() {
+	params := p.VLLM.ModelRunParams
+	if params["mamba-cache-mode"] != "align" || params["kaito-kv-cache-cpu-memory-utilization"] == "0" ||
+		p.MambaStateBytesPerLayer <= 0 || p.AttnElementsPerToken <= 0 || p.NumKeyValueHeads <= 0 {
+		return
+	}
+	batched, err := strconv.Atoi(params["max-num-batched-tokens"])
+	if err != nil {
+		return
+	}
+	tp, err := strconv.Atoi(params["tensor-parallel-size"])
+	if err != nil || tp < 1 {
+		tp = 1
+	}
+	kvHeadsPerRank := max(1, p.NumKeyValueHeads/tp)
+	attnBytesPerToken := p.AttnElementsPerToken / p.NumKeyValueHeads * kvHeadsPerRank
+	if attnBytesPerToken <= 0 {
+		return
+	}
+	mambaBytesPerRank := ceilDiv(p.MambaStateBytesPerLayer, tp)
+	block := ceilDiv(ceilDiv(mambaBytesPerRank, attnBytesPerToken), hybridBlockAlignmentTokens) * hybridBlockAlignmentTokens
+	if batched < block {
+		params["max-num-batched-tokens"] = strconv.Itoa(block)
+	}
+}
+
+func ceilDiv(a, b int) int {
+	return (a + b - 1) / b
+}
+
 // buildMultiNodeRayCommand constructs the shell command for multi-node inference
 // using a Ray cluster. Pod index 0 is the leader; all other pods are workers.
 func (p *PresetParam) buildMultiNodeRayCommand(rc RuntimeContext) []string {
@@ -728,24 +797,6 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 		}
 	}
 	return nil
-}
-
-// isLMCacheDisabled returns true for hybrid architectures that have not yet
-// been validated with LMCacheMPConnector's hybrid KV cache manager support.
-func (p *PresetParam) isLMCacheDisabled() bool {
-	for _, arch := range p.Architectures {
-		switch arch {
-		// These hybrid architectures require per-model configuration, e.g. https://docs.lmcache.ai/recipes/qwen3_5.html.
-		// Disabling LMCache for these models for now.
-		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
-			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
-			"Qwen4ExpForCausalLM", "Qwen4ExpForConditionalGeneration",
-			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",
-			"DeepseekV4ForCausalLM", "DeepseekV41ForCausalLM", "DeepseekV32ForCausalLM":
-			return true
-		}
-	}
-	return false
 }
 
 // RequiresDeepGEMM returns true for architectures that strictly require the

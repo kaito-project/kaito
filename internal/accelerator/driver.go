@@ -41,6 +41,10 @@ type Driver interface {
 	// SharedDeviceEnv exposes the node's devices to a container that has no
 	// device request of its own.
 	SharedDeviceEnv() []corev1.EnvVar
+	// SharedDeviceRuntimeClass names the RuntimeClass whose container runtime
+	// honors SharedDeviceEnv, for clusters that do not make it the default.
+	// It is empty when no such RuntimeClass is needed.
+	SharedDeviceRuntimeClass() string
 	// InferenceBaseImage returns the inference base image for runtime, or an
 	// error when this accelerator does not support the runtime.
 	InferenceBaseImage(runtime pkgmodel.RuntimeName) (pkgmodel.Metadata, error)

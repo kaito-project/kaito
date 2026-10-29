@@ -55,6 +55,31 @@ func (cfg *GPUConfig) SupportsBFloat16() bool {
 	return cfg.CUDAComputeCapability >= 8.0
 }
 
+const (
+	vllmLargeGPUMemThresholdGiB   = 70
+	vllmLargeGPUDefaultMaxNumSeqs = 1024
+	vllmDefaultMaxNumSeqs         = 256
+)
+
+// VLLMDefaultMaxNumSeqs returns the max_num_seqs vLLM picks for the OpenAI API
+// server when the caller does not pass one, mirroring
+// get_batch_defaults in vllm/engine/arg_utils.py:
+// https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/engine/arg_utils.py#L2894-L2952
+// A100 is name-excluded from the large-GPU branch upstream because large batches
+// regress its throughput (vLLM PR #17885), so it keeps the smaller default even
+// though it clears the memory threshold.
+func (cfg *GPUConfig) VLLMDefaultMaxNumSeqs() int {
+	if cfg.GPUCount <= 0 {
+		return vllmDefaultMaxNumSeqs
+	}
+	memPerGPU := cfg.GPUMem.Value() / int64(cfg.GPUCount)
+	isA100 := strings.Contains(strings.ToLower(cfg.GPUModel), "a100")
+	if memPerGPU >= int64(vllmLargeGPUMemThresholdGiB*GiB) && !isA100 {
+		return vllmLargeGPUDefaultMaxNumSeqs
+	}
+	return vllmDefaultMaxNumSeqs
+}
+
 func GetCloudSKUHandler(cloud string) CloudSKUHandler {
 	switch cloud {
 	case consts.AzureCloudName:

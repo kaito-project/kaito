@@ -46,7 +46,7 @@ def test_config_file_resolves_cpu_utilization(tmp_path):
     assert resolve_cpu_memory_utilization(str(config), 0.4) == 0.4
 
 
-def test_server_command_uses_isolated_ipc_and_lazy_l1(caplog):
+def test_server_command_uses_separate_object_groups_isolated_ipc_and_lazy_l1(caplog):
     args = argparse.Namespace(
         config_file="",
         cpu_memory_utilization=0.5,
@@ -61,6 +61,8 @@ def test_server_command_uses_isolated_ipc_and_lazy_l1(caplog):
         command = build_server_command(args)
 
     assert "--isolated-ipc" in command
+    assert "--separate-object-groups" in command
+    assert command[command.index("--chunk-size") + 1] == "256"
     assert "--l1-use-lazy" in command
     assert command[command.index("--host") + 1] == "127.0.0.1"
     assert command[command.index("--l1-init-size-gb") + 1] == "1"

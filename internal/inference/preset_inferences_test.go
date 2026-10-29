@@ -28,7 +28,9 @@ import (
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	nodev1 "k8s.io/api/node/v1"
 	storagev1 "k8s.io/api/storage/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -335,6 +337,7 @@ func TestGeneratePresetInference(t *testing.T) {
 
 			mockClient := testutil.NewClient()
 			tc.callMocks(mockClient)
+			mockNoNVIDIARuntimeClass(mockClient)
 
 			// Keep per-case config, adapters, and status changes out of shared fixtures.
 			workspace := tc.workspace.DeepCopy()
@@ -570,6 +573,7 @@ func TestApplyPresetCacheMutations_CacheGatedOnStreaming(t *testing.T) {
 	mockClient := testutil.NewClient()
 	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	mockNoNVIDIARuntimeClass(mockClient)
 
 	// Preset vLLM workspace with a cache requested but streaming disabled.
 	workspace := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
@@ -686,6 +690,7 @@ func TestApplyPresetCacheMutations_CacheFeatureGate(t *testing.T) {
 			mockClient := testutil.NewClient()
 			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 			mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+			mockNoNVIDIARuntimeClass(mockClient)
 
 			workspace := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 			nodeCount := 1
@@ -1077,6 +1082,7 @@ func TestGetGPUConfig(t *testing.T) {
 
 			mockClient := testutil.NewClient()
 			tc.callMocks(mockClient)
+			mockNoNVIDIARuntimeClass(mockClient)
 
 			model := pkgmodel.KaitoModelRegister.MustGet(tc.model)
 
@@ -2075,6 +2081,80 @@ func TestLMCacheWorkloadEligibility(t *testing.T) {
 	assert.Equal(t, "MIG is unsupported", reason)
 }
 
+func mockNoNVIDIARuntimeClass(c *testutil.MockClient) {
+	c.On("Get", mock.Anything, mock.Anything, mock.IsType(&nodev1.RuntimeClass{}), mock.Anything).
+		Return(apierrors.NewNotFound(nodev1.Resource("runtimeclasses"), "nvidia")).Maybe()
+}
+
+// noRuntimeClassDriver is a GPU driver whose shared devices need no RuntimeClass.
+type noRuntimeClassDriver struct{ iaccel.Driver }
+
+func (noRuntimeClassDriver) SharedDeviceRuntimeClass() string { return "" }
+
+func TestConfigureLMCacheSidecarRuntimeClass(t *testing.T) {
+	nvidiaDriver := iaccel.ForType(accelerator.TypeNVIDIA)
+	runtimeClassName := nvidiaDriver.SharedDeviceRuntimeClass()
+	runtimeClass := &nodev1.RuntimeClass{ObjectMeta: metav1.ObjectMeta{Name: runtimeClassName}, Handler: runtimeClassName}
+	for _, tc := range []struct {
+		name          string
+		driver        iaccel.Driver
+		objects       []client.Object
+		getErr        error
+		podRuntime    *string
+		wantRuntime   *string
+		wantErr       string
+		wantNoSidecar bool
+	}{
+		{name: "RuntimeClass exists", objects: []client.Object{runtimeClass}, wantRuntime: ptr.To(runtimeClassName)},
+		{name: "no RuntimeClass"},
+		{name: "keeps pod RuntimeClass", objects: []client.Object{runtimeClass}, podRuntime: ptr.To("custom"), wantRuntime: ptr.To("custom")},
+		{name: "RBAC denied", getErr: apierrors.NewForbidden(nodev1.Resource("runtimeclasses"), runtimeClassName, fmt.Errorf("denied"))},
+		{name: "transient error", getErr: fmt.Errorf("timeout"), wantErr: "get RuntimeClass " + runtimeClassName + ": timeout", wantNoSidecar: true},
+		// The lookup must be skipped, so an API error cannot surface.
+		{name: "driver without RuntimeClass", driver: noRuntimeClassDriver{nvidiaDriver}, objects: []client.Object{runtimeClass}, getErr: fmt.Errorf("unexpected lookup")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			kubeClient := fake.NewClientBuilder().WithObjects(tc.objects...).WithInterceptorFuncs(interceptor.Funcs{
+				Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+					if tc.getErr != nil {
+						return tc.getErr
+					}
+					return c.Get(ctx, key, obj, opts...)
+				},
+			}).Build()
+			spec := &corev1.PodSpec{RuntimeClassName: tc.podRuntime, Containers: []corev1.Container{{Name: "workspace"}}}
+			driver := tc.driver
+			if driver == nil {
+				driver = nvidiaDriver
+			}
+			modifier := ConfigureLMCacheSidecar(&lmCacheResolvedConfig{
+				runtimeName: pkgmodel.RuntimeNameVLLM,
+				runParams:   map[string]string{"tensor-parallel-size": "1"},
+				driver:      driver,
+			})
+
+			err := modifier(&builder.WorkspaceGeneratorContext{
+				Ctx:        t.Context(),
+				KubeClient: kubeClient,
+				Workspace:  &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "workspace", Namespace: "default"}},
+			}, spec)
+
+			if tc.wantErr != "" {
+				assert.ErrorContains(t, err, tc.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tc.wantRuntime, spec.RuntimeClassName)
+			if tc.wantNoSidecar {
+				assert.Empty(t, spec.InitContainers)
+			} else {
+				require.Len(t, spec.InitContainers, 1)
+				assert.Equal(t, lmCacheSidecarName, spec.InitContainers[0].Name)
+			}
+		})
+	}
+}
+
 func TestConfigureLMCacheSidecarReturnsConfigErrors(t *testing.T) {
 	for _, tc := range []struct {
 		name       string
@@ -2289,6 +2369,7 @@ func TestGeneratePresetInferenceNodeImageWeights(t *testing.T) {
 	mockClient := testutil.NewClient()
 	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 	mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+	mockNoNVIDIARuntimeClass(mockClient)
 
 	workspace := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 	nodeCount := 1
@@ -2420,6 +2501,7 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		mockClient := testutil.NewClient()
 		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+		mockNoNVIDIARuntimeClass(mockClient)
 
 		workspace := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 		nodeCount := 1
@@ -2518,6 +2600,7 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		mockClient := testutil.NewClient()
 		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&corev1.ConfigMap{}), mock.Anything).Return(nil)
 		mockClient.On("Get", mock.IsType(context.TODO()), mock.Anything, mock.IsType(&storagev1.StorageClass{}), mock.Anything).Return(nil)
+		mockNoNVIDIARuntimeClass(mockClient)
 
 		workspace := testutil.MockWorkspaceWithPresetVLLM.DeepCopy()
 		workspace.Resource.InstanceType = "Standard_D8s_v5"
@@ -2711,6 +2794,7 @@ func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 		t.Run(fmt.Sprintf("CPU=%t", cpu), func(t *testing.T) {
 			scheme := runtime.NewScheme()
 			require.NoError(t, corev1.AddToScheme(scheme))
+			require.NoError(t, nodev1.AddToScheme(scheme))
 			node := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "target", Labels: map[string]string{"pool": "inference", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
 			if !cpu {
 				node.Labels[corev1.LabelInstanceTypeStable] = "Standard_NC6s_v3"

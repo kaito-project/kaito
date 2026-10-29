@@ -14,8 +14,6 @@
 package maxnumseqestimator
 
 import (
-	"strings"
-
 	"k8s.io/klog/v2"
 
 	"github.com/kaito-project/kaito/pkg/estimator"
@@ -31,31 +29,15 @@ const (
 	// hard-fails at CUDA graph capture after the weights are already loaded.
 	safetyFactor = 0.9
 
-	// largeGPUMemThresholdGiB, largeGPUDefaultMaxNumSeqs and defaultMaxNumSeqs
-	// mirror vLLM's own default_max_num_seqs selection (see vLLMDefaultMaxNumSeqs).
-	largeGPUMemThresholdGiB   = 70
-	largeGPUDefaultMaxNumSeqs = 1024
-	defaultMaxNumSeqs         = 256
-
 	// paddingHeuristicRatio mirrors the 1.5 constant vLLM uses when choosing a KV
 	// cache group size (see resolveGroupSize).
 	paddingHeuristicRatio = 1.5
 )
 
-// vLLMDefaultMaxNumSeqs returns the max_num_seqs vLLM picks for the OpenAI API
-// server when the caller does not pass one, mirroring
-// get_batch_defaults in vllm/engine/arg_utils.py:
-// https://github.com/vllm-project/vllm/blob/v0.32.0/vllm/engine/arg_utils.py#L2894-L2952
-// A100 is name-excluded from the large-GPU branch upstream because large batches
-// regress its throughput (vLLM PR #17885), so it keeps the smaller default even
-// though it clears the memory threshold.
+// vLLMDefaultMaxNumSeqs returns the max_num_seqs vLLM picks when the caller
+// does not pass one.
 func vLLMDefaultMaxNumSeqs(gpuConfig *sku.GPUConfig) int {
-	memPerGPU := gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount)
-	isA100 := strings.Contains(strings.ToLower(gpuConfig.GPUModel), "a100")
-	if memPerGPU >= int64(largeGPUMemThresholdGiB*sku.GiB) && !isA100 {
-		return largeGPUDefaultMaxNumSeqs
-	}
-	return defaultMaxNumSeqs
+	return gpuConfig.VLLMDefaultMaxNumSeqs()
 }
 
 // resolveGroupSize returns the number of layers vLLM places in each KV cache group,

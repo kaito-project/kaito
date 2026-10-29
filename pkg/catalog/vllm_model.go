@@ -270,6 +270,8 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		MambaStateBytesPerLayer: m.model.MambaStateBytesPerLayer,
 		NumFullAttnLayers:       m.model.NumFullAttnLayers,
 		NumLinearLayers:         m.model.NumLinearLayers,
+		AttnElementsPerToken:    m.model.AttnElementsPerToken,
+		NumKeyValueHeads:        m.model.NumKeyValueHeads,
 		CPUOffloadedWeightSize:  m.model.CPUOffloadedWeightSize,
 	}
 

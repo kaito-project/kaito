@@ -112,14 +112,6 @@ jobs:
         env:
           REGISTRY: ${{ env.CLUSTER_NAME }}.azurecr.io
 
-      - name: Remove existing Go modules directory
-        run: sudo rm -rf ~/go/pkg/mod
-
-      - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v5.5.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
       - name: Log ${{ inputs.node_provisioner }}
         run: |
           if [ "${{ inputs.node_provisioner }}" == "gpuprovisioner" ]; then

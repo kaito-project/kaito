@@ -53,49 +53,124 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		loadTestEnvVars()
 	})
 
-	// MRI and InferenceSet tests run first so they are not interrupted by
-	// slow/flaky GPU-provisioning timeouts in the preset workspace tests below.
-	It("should perform P/D disaggregated inference with KV cache transfer successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		// Fail early if Istio CRDs are not installed
-		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for P/D traffic validation")
+	// The P/D and BBR specs both mutate shared gateway state (listeners and
+	// HTTPRoutes on default/inference-gateway, and the BBR release in the
+	// default namespace), so they must never run concurrently. Ordered runs
+	// them back to back on one Ginkgo process while the other processes keep
+	// running the remaining specs; Serial would instead defer them until all
+	// other specs finish, leaving those processes idle. SpecPriority starts
+	// this longest execution unit first so it neither forms the tail of the
+	// suite nor gets skipped by --fail-fast after a later GPU-provisioning flake.
+	Context("with the shared inference gateway", Ordered, ContinueOnFailure, SpecPriority(100), func() {
+		It("should perform P/D disaggregated inference with KV cache transfer successfully", utils.GinkgoLabelFastCheck, func() {
+			// Fail early if Istio CRDs are not installed
+			Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for P/D traffic validation")
 
-		// Uses the same MRI creation as existing test but adds P/D validation
-		mriObj := createGemma4MultiRoleInference()
-		defer cleanupResourcesForMultiRoleInference(mriObj)
+			// Uses the same MRI creation as existing test but adds P/D validation
+			mriObj := createGemma4MultiRoleInference()
+			defer cleanupResourcesForMultiRoleInference(mriObj)
 
-		validateMultiRoleInferenceChildInferenceSets(mriObj)
+			validateMultiRoleInferenceChildInferenceSets(mriObj)
 
-		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
-		roleReplicas := map[string]int32{}
-		for _, role := range mriObj.Spec.Roles {
-			if role.Replicas != nil {
-				roleReplicas[string(role.Type)] = *role.Replicas
+			childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
+			roleReplicas := map[string]int32{}
+			for _, role := range mriObj.Spec.Roles {
+				if role.Replicas != nil {
+					roleReplicas[string(role.Type)] = *role.Replicas
+				}
 			}
-		}
-		for i := range childInferenceSets {
-			is := &childInferenceSets[i]
-			validateInferenceSetStatus(is)
-			roleName, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]
-			Expect(ok).To(BeTrue(), "InferenceSet %s should have role label %s", is.Name, kaitov1alpha1.LabelInferenceRole)
-			Expect(roleReplicas).To(HaveKey(roleName), "InferenceSet %s has unexpected role %s", is.Name, roleName)
-			expectedReplicas := roleReplicas[roleName]
-			validateInferenceSetReplicas(is, expectedReplicas)
-			validateInferenceSetBenchmarkCompleted(is)
-		}
+			for i := range childInferenceSets {
+				is := &childInferenceSets[i]
+				validateInferenceSetStatus(is)
+				roleName, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]
+				Expect(ok).To(BeTrue(), "InferenceSet %s should have role label %s", is.Name, kaitov1alpha1.LabelInferenceRole)
+				Expect(roleReplicas).To(HaveKey(roleName), "InferenceSet %s has unexpected role %s", is.Name, roleName)
+				expectedReplicas := roleReplicas[roleName]
+				validateInferenceSetReplicas(is, expectedReplicas)
+				validateInferenceSetBenchmarkCompleted(is)
+			}
 
-		validateMultiRoleInferenceGWIEResources(mriObj)
-		validateMultiRoleInferenceStatus(mriObj)
+			validateMultiRoleInferenceGWIEResources(mriObj)
+			validateMultiRoleInferenceStatus(mriObj)
 
-		// P/D-specific validations (require Istio)
-		validateMultiRoleInferenceEPPReady(mriObj)
-		validateMultiRoleInferenceEPPKVCacheScorer(mriObj)
-		validateMultiRoleInferenceDestinationRule(mriObj)
-		validateMultiRoleInferenceChatCompletions(mriObj)
-		validateMultiRoleInferenceKVEvents(mriObj)
-		validateMultiRoleInferencePDDisaggregation(mriObj)
+			// P/D-specific validations (require Istio)
+			validateMultiRoleInferenceEPPReady(mriObj)
+			validateMultiRoleInferenceEPPKVCacheScorer(mriObj)
+			validateMultiRoleInferenceDestinationRule(mriObj)
+			validateMultiRoleInferenceChatCompletions(mriObj)
+			validateMultiRoleInferenceKVEvents(mriObj)
+			validateMultiRoleInferencePDDisaggregation(mriObj)
+		})
+
+		It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", utils.GinkgoLabelFastCheck, func() {
+			Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
+
+			numOfReplicas := 1
+			inferenceSetObj := createGemma4InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+			DeferCleanup(func() {
+				cleanupResourcesForInferenceSet(inferenceSetObj)
+			})
+
+			validateInferenceSetStatus(inferenceSetObj)
+			validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+
+			// Validate NodePool shape and isolation for each child workspace (karpenter only)
+			if nodeProvisionerName == "azkarpenter" {
+				validateInferenceSetNodePools(inferenceSetObj, numOfReplicas)
+			}
+
+			validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+			validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+
+			// --- BBR (Body-Based Routing) validation ---
+			// vLLM serves the InferenceSet name as the OpenAI-compatible model id
+			// (see pkg/model/interface.go buildVLLMInferenceCommand: when the
+			// workspace has WorkspaceCreatedByInferenceSetLabel, served-model-name
+			// is set to the InferenceSet name). BBR mirrors the request body's
+			// "model" field into the X-Gateway-Model-Name header, so both the
+			// HTTPRoute header match and the request payload must use this name.
+			modelName := inferenceSetObj.Name
+			inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
+
+			// findWorkspacePod locates a running pod belonging to a child Workspace
+			// created by the InferenceSet, using the correct label selector.
+			findWorkspacePod := func() (string, string, string) {
+				wsList := &kaitov1beta1.WorkspaceList{}
+				var podName, containerName, namespace string
+				Eventually(func() bool {
+					err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+						client.InNamespace(inferenceSetObj.Namespace),
+						client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
+					if err != nil || len(wsList.Items) == 0 {
+						return false
+					}
+					ws := &wsList.Items[0]
+					podList := &corev1.PodList{}
+					err = utils.TestingCluster.KubeClient.List(ctx, podList,
+						client.InNamespace(ws.Namespace),
+						client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: ws.Name})
+					if err != nil || len(podList.Items) == 0 {
+						return false
+					}
+					for _, pod := range podList.Items {
+						if pod.Status.Phase == corev1.PodRunning {
+							podName = pod.Name
+							containerName = pod.Spec.Containers[0].Name
+							namespace = pod.Namespace
+							return true
+						}
+					}
+					return false
+				}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+					"Should find a running workspace pod for InferenceSet %s", inferenceSetObj.Name)
+				return podName, containerName, namespace
+			}
+
+			validateBBRRouting(inferenceSetObj, modelName, inferencePoolName, findWorkspacePod)
+		})
 	})
 
-	It("should create a gemma-4-12B-it two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-4-12B-it two-node workspace with preset public mode successfully", func() {
 		numOfNode := 2
 		workspaceObj := createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -240,7 +315,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
 	})
 
-	It("should create a XiaomiMiMo/MiMo-7B-Base InferenceSet with speculative decoding enabled", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
+	It("should create a XiaomiMiMo/MiMo-7B-Base InferenceSet with speculative decoding enabled", utils.GinkgoLabelMinimumRequired, func() {
 		// XiaomiMiMo/MiMo-7B-Base is in speculativeDecodingByPreset, so the
 		// InferenceSet -> child Workspace propagation path should inject the
 		// preset-tuned MTP configuration instead of the universal ngram
@@ -262,73 +337,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(childWS)
 		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
 		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
-	})
-
-	It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", Serial, utils.GinkgoLabelFastCheck, func() {
-		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
-
-		numOfReplicas := 1
-		inferenceSetObj := createGemma4InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		DeferCleanup(func() {
-			cleanupResourcesForInferenceSet(inferenceSetObj)
-		})
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-
-		// Validate NodePool shape and isolation for each child workspace (karpenter only)
-		if nodeProvisionerName == "azkarpenter" {
-			validateInferenceSetNodePools(inferenceSetObj, numOfReplicas)
-		}
-
-		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
-		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
-
-		// --- BBR (Body-Based Routing) validation ---
-		// vLLM serves the InferenceSet name as the OpenAI-compatible model id
-		// (see pkg/model/interface.go buildVLLMInferenceCommand: when the
-		// workspace has WorkspaceCreatedByInferenceSetLabel, served-model-name
-		// is set to the InferenceSet name). BBR mirrors the request body's
-		// "model" field into the X-Gateway-Model-Name header, so both the
-		// HTTPRoute header match and the request payload must use this name.
-		modelName := inferenceSetObj.Name
-		inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
-
-		// findWorkspacePod locates a running pod belonging to a child Workspace
-		// created by the InferenceSet, using the correct label selector.
-		findWorkspacePod := func() (string, string, string) {
-			wsList := &kaitov1beta1.WorkspaceList{}
-			var podName, containerName, namespace string
-			Eventually(func() bool {
-				err := utils.TestingCluster.KubeClient.List(ctx, wsList,
-					client.InNamespace(inferenceSetObj.Namespace),
-					client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
-				if err != nil || len(wsList.Items) == 0 {
-					return false
-				}
-				ws := &wsList.Items[0]
-				podList := &corev1.PodList{}
-				err = utils.TestingCluster.KubeClient.List(ctx, podList,
-					client.InNamespace(ws.Namespace),
-					client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: ws.Name})
-				if err != nil || len(podList.Items) == 0 {
-					return false
-				}
-				for _, pod := range podList.Items {
-					if pod.Status.Phase == corev1.PodRunning {
-						podName = pod.Name
-						containerName = pod.Spec.Containers[0].Name
-						namespace = pod.Namespace
-						return true
-					}
-				}
-				return false
-			}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
-				"Should find a running workspace pod for InferenceSet %s", inferenceSetObj.Name)
-			return podName, containerName, namespace
-		}
-
-		validateBBRRouting(inferenceSetObj, modelName, inferencePoolName, findWorkspacePod)
 	})
 
 })

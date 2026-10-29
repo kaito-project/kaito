@@ -15,7 +15,6 @@ import importlib.util
 from pathlib import Path
 
 import pytest
-
 from guardrail_core.config import (
     BanSubstringsConfig,
     ParsedScannerConfig,

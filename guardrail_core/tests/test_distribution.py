@@ -106,7 +106,7 @@ def test_sdist_contains_build_inputs_and_tests(distributions):
         "tests/streaming/test_window.py",
         "guardrail_core/streaming/window.py",
         "guardrail_core/config.py",
-        "guardrail_core/test_config.py",
+        "tests/test_config.py",
         "tests/test_distribution.py",
     } <= names
     assert not any(

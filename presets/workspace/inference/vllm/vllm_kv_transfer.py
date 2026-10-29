@@ -27,8 +27,19 @@ LMCACHE_SERVER_GENERATION_FILE = "/var/run/kaito-lmcache/server-generation"
 LMCACHE_CLIENT_GENERATION_FILE = "/var/run/kaito-lmcache/client-generation"
 
 
+def is_cpu_runtime(args: argparse.Namespace) -> bool:
+    """CPU images may expose device=auto; also honor their target-device env."""
+    return (
+        str(getattr(args, "device", "") or "").strip().lower() == "cpu"
+        or os.environ.get("VLLM_TARGET_DEVICE", "").strip().lower() == "cpu"
+    )
+
+
 def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
     """Configure NIXL or managed LMCache KV transfer when applicable."""
+    if is_cpu_runtime(args):
+        return
+
     inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
     if args.kv_transfer_config is None and inference_role in ("prefill", "decode"):
         args.kv_transfer_config = {
@@ -43,14 +54,6 @@ def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
     ):
         logger.info(
             "kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."
-        )
-        return
-
-    cli_device = str(getattr(args, "device", "") or "").strip().lower()
-    env_device = str(os.environ.get("VLLM_TARGET_DEVICE", "") or "").strip().lower()
-    if cli_device == "cpu" or env_device == "cpu":
-        logger.info(
-            "CPU runtime detected, skip LMCache KV offload because the CPU image does not include the LMCache GPU stack."
         )
         return
 
@@ -90,6 +93,13 @@ def record_lmcache_server_generation(timeout_seconds: float = 10) -> None:
 
 def configure_kv_transfer_and_lmcache(args: argparse.Namespace) -> None:
     """Configure KV transfer and synchronize vLLM with a managed LMCache sidecar."""
+    if is_cpu_runtime(args):
+        logger.info(
+            "CPU runtime detected; skip automatic NIXL/LMCache offload and sidecar setup. "
+            "Native CPU KV cache settings and explicit connectors are left unchanged."
+        )
+        return
+
     set_kv_transfer_config_if_applicable(args)
     if (
         args.kv_transfer_config is not None

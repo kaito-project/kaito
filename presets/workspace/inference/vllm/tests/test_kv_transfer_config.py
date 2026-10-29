@@ -19,15 +19,14 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 # Add parent directory to sys.path for inference_api imports
 parent_dir = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(0, parent_dir)
 
-from inference_api import (  # noqa: E402, I001
-    _cpu_kv_cache_available_memory_gib,
-    configure_cpu_kv_cache_space_if_applicable,
-)
 from vllm_kv_transfer import (  # noqa: E402, I001
+    configure_kv_transfer_and_lmcache,
     record_lmcache_server_generation,
     set_kv_transfer_config_if_applicable,
 )
@@ -44,98 +43,6 @@ def _make_args(**kwargs):
     }
     defaults.update(kwargs)
     return argparse.Namespace(**defaults)
-
-
-class TestConfigureCPUKVCacheSpace:
-    def test_sets_cpu_kv_cache_space_from_available_memory(self):
-        args = _make_args(
-            device="cpu",
-            kaito_kv_cache_cpu_memory_utilization=0.5,
-            tensor_parallel_size=2,
-        )
-        with (
-            patch.dict(os.environ, {}, clear=True),
-            patch("inference_api.psutil.virtual_memory") as vm,
-            patch("inference_api._container_remaining_memory_bytes", return_value=None),
-        ):
-            vm.return_value = argparse.Namespace(available=64 * 1024**3)
-            configure_cpu_kv_cache_space_if_applicable(args)
-            assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "16"
-
-    def test_caps_cpu_kv_cache_space_by_container_budget(self):
-        args = _make_args(
-            device="cpu",
-            kaito_kv_cache_cpu_memory_utilization=0.5,
-            tensor_parallel_size=1,
-        )
-        with (
-            patch.dict(os.environ, {}, clear=True),
-            patch("inference_api.psutil.virtual_memory") as vm,
-            patch(
-                "inference_api._container_remaining_memory_bytes",
-                return_value=8 * 1024**3,
-            ),
-        ):
-            vm.return_value = argparse.Namespace(available=64 * 1024**3)
-            configure_cpu_kv_cache_space_if_applicable(args)
-            assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "3"
-
-    def test_fails_when_per_worker_budget_is_below_1_gib(self):
-        args = _make_args(
-            device="cpu",
-            kaito_kv_cache_cpu_memory_utilization=0.5,
-            tensor_parallel_size=1,
-        )
-        with (
-            patch.dict(os.environ, {}, clear=True),
-            patch("inference_api.psutil.virtual_memory") as vm,
-            patch(
-                "inference_api._container_remaining_memory_bytes",
-                return_value=512 * 1024**2,
-            ),
-        ):
-            vm.return_value = argparse.Namespace(available=64 * 1024**3)
-            try:
-                configure_cpu_kv_cache_space_if_applicable(args)
-            except RuntimeError as exc:
-                assert "below 1 GiB" in str(exc)
-            else:
-                raise AssertionError(
-                    "expected configure_cpu_kv_cache_space_if_applicable to fail"
-                )
-
-    def test_respects_explicit_cpu_kv_cache_override(self):
-        args = _make_args(device="cpu", kaito_kv_cache_cpu_memory_utilization=0.5)
-        with patch.dict(os.environ, {"VLLM_CPU_KVCACHE_SPACE": "8"}, clear=True):
-            configure_cpu_kv_cache_space_if_applicable(args)
-            assert os.environ["VLLM_CPU_KVCACHE_SPACE"] == "8"
-
-    def test_skips_non_cpu_runtime(self):
-        args = _make_args(kaito_kv_cache_cpu_memory_utilization=0.5)
-        with patch.dict(os.environ, {}, clear=True):
-            configure_cpu_kv_cache_space_if_applicable(args)
-            assert "VLLM_CPU_KVCACHE_SPACE" not in os.environ
-
-
-class TestCPUKVCacheMemoryBudget:
-    def test_prefers_host_available_memory_without_cgroup_limit(self):
-        with (
-            patch("inference_api.psutil.virtual_memory") as vm,
-            patch("inference_api._container_remaining_memory_bytes", return_value=None),
-        ):
-            vm.return_value = argparse.Namespace(available=10 * 1024**3)
-            assert _cpu_kv_cache_available_memory_gib() == 10
-
-    def test_reserves_headroom_inside_container_budget(self):
-        with (
-            patch("inference_api.psutil.virtual_memory") as vm,
-            patch(
-                "inference_api._container_remaining_memory_bytes",
-                return_value=8 * 1024**3,
-            ),
-        ):
-            vm.return_value = argparse.Namespace(available=64 * 1024**3)
-            assert _cpu_kv_cache_available_memory_gib() == 6
 
 
 class TestSetKvTransferConfig:
@@ -215,6 +122,16 @@ class TestSetKvTransferConfig:
 
 
 class TestLMCacheMPServer:
+    def test_gpu_still_configures_and_synchronizes_managed_sidecar(self):
+        args = _make_args(device="cuda", kaito_kv_cache_cpu_memory_utilization=0.5)
+        with (
+            patch.dict(os.environ, {"KAITO_LMCACHE_DEPLOYMENT_MODE": "sidecar"}, clear=True),
+            patch("vllm_kv_transfer.record_lmcache_server_generation") as generation,
+        ):
+            configure_kv_transfer_and_lmcache(args)
+            generation.assert_called_once_with()
+        assert args.kv_transfer_config["kv_connector"] == "LMCacheMPConnector"
+
     def test_record_sidecar_generation(self, tmp_path):
         server_generation = tmp_path / "server-generation"
         client_generation = tmp_path / "client-generation"
@@ -233,3 +150,72 @@ class TestLMCacheMPServer:
             record_lmcache_server_generation(timeout_seconds=1)
 
         assert client_generation.read_text() == "generation-1"
+
+
+class TestCPUDoesNotUseGPUOffload:
+    @pytest.mark.parametrize(
+        "device,target", [("cpu", ""), (None, "cpu"), ("auto", "CPU"), (" CPU ", "")]
+    )
+    @pytest.mark.parametrize("role", ["", "prefill", "decode"])
+    @pytest.mark.parametrize("utilization", [None, 0, 0.5])
+    def test_no_automatic_transfer_connector(self, device, target, role, utilization):
+        args = _make_args(
+            device=device, kaito_kv_cache_cpu_memory_utilization=utilization
+        )
+        with patch.dict(
+            os.environ,
+            {
+                "VLLM_TARGET_DEVICE": target,
+                "KAITO_LMCACHE_DEPLOYMENT_MODE": "sidecar",
+                "KAITO_INFERENCE_ROLE": role,
+            },
+            clear=True,
+        ):
+            set_kv_transfer_config_if_applicable(args)
+        assert args.kv_transfer_config is None
+
+    @pytest.mark.parametrize("space", [None, "8"])
+    @pytest.mark.parametrize("memory_bytes", [None, 8 * 1024**3])
+    @pytest.mark.parametrize("device,target", [("cpu", ""), ("auto", "cpu")])
+    def test_cpu_skips_sidecar_setup_and_preserves_native_cache(
+        self, space, memory_bytes, device, target
+    ):
+        args = _make_args(
+            device=device,
+            kaito_kv_cache_cpu_memory_utilization=0.5,
+            kv_cache_memory_bytes=memory_bytes,
+        )
+        env = {"KAITO_LMCACHE_DEPLOYMENT_MODE": "sidecar", "VLLM_TARGET_DEVICE": target}
+        if space is not None:
+            env["VLLM_CPU_KVCACHE_SPACE"] = space
+        with (
+            patch.dict(os.environ, env, clear=True),
+            patch("vllm_kv_transfer.set_kv_transfer_config_if_applicable") as configure,
+            patch("vllm_kv_transfer.record_lmcache_server_generation") as generation,
+        ):
+            configure_kv_transfer_and_lmcache(args)
+            configure.assert_not_called()
+            generation.assert_not_called()
+            assert dict(os.environ) == env
+        assert args.kv_cache_memory_bytes == memory_bytes
+        assert args.kv_transfer_config is None
+
+    @pytest.mark.parametrize(
+        "connector", ["CustomConnector", "NixlConnector", "LMCacheMPConnector"]
+    )
+    @pytest.mark.parametrize(
+        "configure",
+        [set_kv_transfer_config_if_applicable, configure_kv_transfer_and_lmcache],
+    )
+    def test_cpu_does_not_rewrite_explicit_connector(self, connector, configure):
+        custom = {"kv_connector": connector, "kv_role": "kv_both"}
+        args = _make_args(device="cpu", kv_transfer_config=custom)
+        with (
+            patch.dict(
+                os.environ, {"KAITO_LMCACHE_DEPLOYMENT_MODE": "sidecar"}, clear=True
+            ),
+            patch("vllm_kv_transfer.record_lmcache_server_generation") as generation,
+        ):
+            configure(args)
+            generation.assert_not_called()
+        assert args.kv_transfer_config is custom

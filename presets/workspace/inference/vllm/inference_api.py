@@ -23,7 +23,6 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-import psutil
 import rate_limit
 import uvloop
 from _workarounds import model_asset_prefetch
@@ -33,7 +32,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from vllm.entrypoints.openai.models.protocol import LoRAModulePath
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 from vllm.v1.metrics.prometheus import get_prometheus_registry
-from vllm_kv_transfer import configure_kv_transfer_and_lmcache
+from vllm_kv_transfer import configure_kv_transfer_and_lmcache, is_cpu_runtime
 
 try:
     import vllm.entrypoints.launchers.api_server.entry as api_server_entry
@@ -110,7 +109,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             "--kaito-kv-cache-cpu-memory-utilization",
             type=float,
             default=None,
-            help="KV cache CPU memory utilization. Defaults to 0.5 when neither this flag nor the kaito config file set it.",
+            help="GPU KV cache offload utilization of CPU memory. Defaults to 0.5 on GPU when neither this flag nor the kaito config file set it. Ignored on CPU runtimes.",
         )
         self.add_argument(
             "--kaito-disable-rate-limit",
@@ -163,7 +162,10 @@ class KAITOArgumentParser(argparse.ArgumentParser):
 
         # Load KAITO config
         if kaito_args.kaito_config_file:
-            file_config = KaitoInferenceConfig.from_yaml(kaito_args.kaito_config_file)
+            # Defer the offload default until the runtime device is known.
+            file_config = KaitoInferenceConfig.from_yaml(
+                kaito_args.kaito_config_file, default_cpu_memory_utilization=None
+            )
             if kaito_args.kaito_max_probe_steps is None:
                 kaito_args.kaito_max_probe_steps = file_config.max_probe_steps
             if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
@@ -175,12 +177,15 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                 runtime_args.append(f"--{key}")
                 runtime_args.append(str(value))
 
-        # Apply CLI default only after file-config merging so the YAML can
-        # override an unspecified CLI value.
-        if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
+        vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
+        # This is a GPU-to-host offload default, not a native CPU KV cache
+        # budget. Apply it after config merging, and only for GPU inference.
+        if (
+            not is_cpu_runtime(vllm_args)
+            and kaito_args.kaito_kv_cache_cpu_memory_utilization is None
+        ):
             kaito_args.kaito_kv_cache_cpu_memory_utilization = 0.5
 
-        vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
         # Merge KAITO and vLLM args
         return argparse.Namespace(**vars(kaito_args), **vars(vllm_args))
 
@@ -499,111 +504,6 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
-def _device_is_cpu(args: argparse.Namespace) -> bool:
-    cli_device = str(getattr(args, "device", "") or "").strip().lower()
-    env_device = str(os.environ.get("VLLM_TARGET_DEVICE", "") or "").strip().lower()
-    return cli_device == "cpu" or env_device == "cpu"
-
-
-def _read_cgroup_memory_value(path: str) -> int | None:
-    try:
-        raw = Path(path).read_text().strip()
-    except OSError:
-        return None
-    if not raw or raw == "max":
-        return None
-    try:
-        value = int(raw)
-    except ValueError:
-        return None
-    if value <= 0 or value >= (1 << 60):
-        return None
-    return value
-
-
-def _container_remaining_memory_bytes() -> int | None:
-    limit = _read_cgroup_memory_value("/sys/fs/cgroup/memory.max")
-    usage = _read_cgroup_memory_value("/sys/fs/cgroup/memory.current")
-    if limit is not None and usage is not None:
-        return max(0, limit - usage)
-
-    limit = _read_cgroup_memory_value("/sys/fs/cgroup/memory/memory.limit_in_bytes")
-    usage = _read_cgroup_memory_value("/sys/fs/cgroup/memory/memory.usage_in_bytes")
-    if limit is not None and usage is not None:
-        return max(0, limit - usage)
-
-    return None
-
-
-def _cpu_kv_cache_available_memory_gib() -> float:
-    available_bytes = psutil.virtual_memory().available
-    remaining_bytes = _container_remaining_memory_bytes()
-    effective_bytes = available_bytes
-    if remaining_bytes is not None:
-        # Keep host-memory visibility from bypassing the container's cgroup
-        # budget and reserve headroom for model loading plus warmup before
-        # handing the remainder to vLLM's CPU KV cache.
-        reserve_bytes = min(2 * 1024**3, remaining_bytes // 4)
-        effective_bytes = min(available_bytes, max(0, remaining_bytes - reserve_bytes))
-    return effective_bytes / (1024**3)
-
-
-def configure_cpu_kv_cache_space_if_applicable(args: argparse.Namespace) -> None:
-    """Cap vLLM CPU KV cache size for CPU runtimes.
-
-    vLLM's CPU backend otherwise auto-sizes KV cache aggressively from available
-    RAM, which can over-allocate during warmup/compile and get the pod OOMKilled.
-    Reuse KAITO's existing kaito_kv_cache_cpu_memory_utilization knob as a
-    conservative fraction of currently available RAM, unless the operator already
-    provided an explicit override via VLLM_CPU_KVCACHE_SPACE or
-    --kv-cache-memory-bytes.
-    """
-    if not _device_is_cpu(args):
-        return
-
-    if os.environ.get("VLLM_CPU_KVCACHE_SPACE"):
-        logger.info(
-            "VLLM_CPU_KVCACHE_SPACE already set to %s; keeping operator override.",
-            os.environ["VLLM_CPU_KVCACHE_SPACE"],
-        )
-        return
-
-    if getattr(args, "kv_cache_memory_bytes", None):
-        logger.info(
-            "kv_cache_memory_bytes=%s set explicitly; skip VLLM_CPU_KVCACHE_SPACE.",
-            args.kv_cache_memory_bytes,
-        )
-        return
-
-    utilization = getattr(args, "kaito_kv_cache_cpu_memory_utilization", None)
-    if utilization is None or utilization <= 0:
-        logger.info(
-            "CPU runtime detected but kaito_kv_cache_cpu_memory_utilization is unset; "
-            "keep vLLM CPU KV cache auto-sizing."
-        )
-        return
-
-    available_memory_gb = _cpu_kv_cache_available_memory_gib()
-    tensor_parallel_size = max(1, int(getattr(args, "tensor_parallel_size", 1) or 1))
-    kv_cache_space_gb = available_memory_gb * utilization / tensor_parallel_size
-    kv_cache_space_gb_int = int(kv_cache_space_gb)
-    if kv_cache_space_gb_int < 1:
-        raise RuntimeError(
-            "CPU runtime detected but the computed per-worker KV cache budget is below 1 GiB; "
-            "lower tensor parallelism, increase the container memory limit, or set an explicit override"
-        )
-    os.environ["VLLM_CPU_KVCACHE_SPACE"] = str(kv_cache_space_gb_int)
-    logger.info(
-        "CPU runtime detected, set VLLM_CPU_KVCACHE_SPACE=%s GiB "
-        "(raw=%0.2f GiB, available_memory_gb=%0.2f * utilization=%s / tensor_parallel_size=%d)",
-        os.environ["VLLM_CPU_KVCACHE_SPACE"],
-        kv_cache_space_gb,
-        available_memory_gb,
-        utilization,
-        tensor_parallel_size,
-    )
-
-
 def configure_middlewares(args: argparse.Namespace) -> None:
     """Register KAITO middleware according to the parsed opt-out flags."""
     args.middleware = list(args.middleware or [])
@@ -629,7 +529,6 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-    configure_cpu_kv_cache_space_if_applicable(args)
     configure_kv_transfer_and_lmcache(args)
 
     logger.info(f"Starting server on port {args.port}")

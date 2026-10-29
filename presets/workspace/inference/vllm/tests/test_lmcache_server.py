@@ -106,3 +106,10 @@ def test_gpu_visibility_requires_cuda_devices():
         validate_gpu_visibility()
 
     torch.cuda.get_device_properties.assert_called_once_with(0)
+
+
+def test_config_without_utilization_keeps_sidecar_default(tmp_path):
+    config = tmp_path / "inference_config.yaml"
+    config.write_text("vllm: {}\n")
+
+    assert resolve_cpu_memory_utilization(str(config), None) == 0.5

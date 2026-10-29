@@ -12,6 +12,7 @@ KV cache offloading extends vLLM's GPU KV cache with host memory, which can impr
 
 KV cache offloading is automatically disabled for:
 
+- CPU-only inference, including label-only BYO CPU nodes: the LMCache sidecar requires a GPU and is not injected. The vLLM CPU backend manages its own KV cache in host memory.
 - Multi-node pipeline-parallel inference
 - Data-parallel deployments where each GPU runs an independent model replica
 - MIG partitions

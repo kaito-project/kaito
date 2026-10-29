@@ -2892,3 +2892,25 @@ func TestConfigureLMCacheSidecarCPUAndGPU(t *testing.T) {
 		})
 	}
 }
+
+func TestCPUPlacementRequiresAMD64InEveryAlternative(t *testing.T) {
+	ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu"}}
+	for _, terms := range []int{0, 1, 2} {
+		spec := &corev1.PodSpec{Affinity: &corev1.Affinity{NodeAffinity: &corev1.NodeAffinity{RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{}}}}
+		for i := 0; i < terms; i++ {
+			spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms = append(spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms, corev1.NodeSelectorTerm{MatchExpressions: []corev1.NodeSelectorRequirement{{Key: "pool", Operator: corev1.NodeSelectorOpIn, Values: []string{"cpu"}}}})
+		}
+		original := spec.DeepCopy()
+		applyCPUDedicatedPlacement(ws, spec, false)
+		require.Equal(t, original, spec, "GPU affinity must stay unchanged")
+		applyCPUDedicatedPlacement(ws, spec, true)
+		actual := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms
+		require.Len(t, actual, max(terms, 1))
+		for _, term := range actual {
+			require.Contains(t, term.MatchExpressions, corev1.NodeSelectorRequirement{Key: corev1.LabelArchStable, Operator: corev1.NodeSelectorOpIn, Values: []string{"amd64"}})
+			if terms > 0 {
+				require.Contains(t, term.MatchExpressions, original.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0])
+			}
+		}
+	}
+}

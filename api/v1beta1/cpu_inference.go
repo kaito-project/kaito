@@ -356,5 +356,16 @@ func ResolveCPUInferenceSetTarget(ctx context.Context, iObj *InferenceSet, kubeC
 	if iObj == nil {
 		return false, nil
 	}
-	return ResolveCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType, iObj.Spec.Selector, kubeClient)
+	return ResolveCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType, InferenceSetNodeSelector(iObj), kubeClient)
+}
+
+// InferenceSetNodeSelector returns the node selector used by child Workspaces.
+// The top-level selector selects Workspaces; it is only a legacy node selector
+// fallback when automatic node provisioning is enabled.
+func InferenceSetNodeSelector(iObj *InferenceSet) *metav1.LabelSelector {
+	selector := iObj.Spec.Template.Resource.LabelSelector
+	if IsEmptyLabelSelector(selector) && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
+		return iObj.Spec.Selector
+	}
+	return selector
 }

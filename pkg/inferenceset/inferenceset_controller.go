@@ -691,7 +691,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		return err
 	}
 	if len(wsList.Items) == 0 {
-		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, &iObj.Spec.Template.Inference, iObj.Spec.Template.Resource.InstanceType, iObj.Spec.Selector, c.Client)
+		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceSetTarget(ctx, iObj, c.Client)
 		if resolveErr != nil {
 			return resolveErr
 		}

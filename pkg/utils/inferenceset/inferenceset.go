@@ -34,7 +34,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -205,15 +204,11 @@ func workspaceGenerateName(inferenceSetName string) string {
 	return inferenceSetName + "-"
 }
 
-// workspaceNodeSelector returns the GPU node selector for child Workspaces:
+// workspaceNodeSelector returns the node selector for child Workspaces:
 // template.resource.labelSelector, or, for backward compatibility with node
 // auto-provisioning only, spec.labelSelector when the former is unset or empty.
 func workspaceNodeSelector(iObj *kaitov1beta1.InferenceSet) *metav1.LabelSelector {
-	selector := iObj.Spec.Template.Resource.LabelSelector
-	if kaitov1beta1.IsEmptyLabelSelector(selector) && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		return iObj.Spec.Selector
-	}
-	return selector
+	return kaitov1beta1.InferenceSetNodeSelector(iObj)
 }
 
 // ValidateWorkspaceForInferenceSet validates the child Workspace the given

@@ -276,7 +276,6 @@ RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
 
 KAITO_BASE_IMG_NAME ?= kaito-base
 KAITO_BASE_IMG_TAG ?= v0.0.1
-KAITO_BASE_CPU_IMG_NAME ?= kaito-base-tfs-cpu
 KAITO_VLLM_CPU_IMG_NAME ?= kaito-base-vllm-cpu
 KAITO_VLLM_CPU_IMG_TAG ?= v0.0.1
 
@@ -333,18 +332,6 @@ docker-build-kaito-base: docker-buildx ## Build Docker image for KAITO base.
         --pull \
 		$(BUILD_FLAGS) \
         --tag $(REGISTRY)/$(KAITO_BASE_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
-
-.PHONY: docker-build-kaito-base-tfs-cpu
-docker-build-kaito-base-tfs-cpu: docker-buildx ## Build Docker image for KAITO transformers CPU base.
-	docker buildx build \
-        --build-arg VERSION=$(KAITO_BASE_IMG_TAG) \
-		--build-arg MODEL_TYPE=text-generation \
-        --platform="linux/$(ARCH)" \
-        --output=$(OUTPUT_TYPE) \
-        --file ./docker/presets/models/tfs-cpu/Dockerfile \
-        --pull \
-		$(BUILD_FLAGS) \
-        --tag $(REGISTRY)/$(KAITO_BASE_CPU_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
 
 .PHONY: docker-build-kaito-base-vllm-cpu
 docker-build-kaito-base-vllm-cpu: docker-buildx ## Build Docker image for KAITO vLLM CPU base (amd64 only).

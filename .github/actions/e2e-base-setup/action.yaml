@@ -206,13 +206,6 @@ runs:
 
         docker buildx build \
           --builder img-builder \
-          --build-arg VERSION=$VERSION \
-          --build-arg MODEL_TYPE=text-generation \
-          --output type=image,name=$REGISTRY/kaito-base-tfs-cpu:$VERSION,push=true,compression=zstd \
-          -f ./docker/presets/models/tfs-cpu/Dockerfile .
-
-        docker buildx build \
-          --builder img-builder \
           --platform linux/amd64 \
           --build-arg VERSION=$VERSION \
           --output type=image,name=$REGISTRY/kaito-base-vllm-cpu:$VERSION,push=true,compression=zstd \

@@ -2689,3 +2689,51 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		}
 	})
 }
+
+func TestPresetInferenceRuntimeImages(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	for _, tc := range []struct {
+		name, instanceType, runtime     string
+		vllmEnabled, wantCPU, wantError bool
+	}{
+		{"cpu vllm", "Standard_D8s_v5", "vllm", true, true, false},
+		{"cpu default runtime", "Standard_D8s_v5", "", true, true, false},
+		{"cpu transformers rejected", "Standard_D8s_v5", "transformers", true, false, true},
+		{"cpu requires vllm gate", "Standard_D8s_v5", "vllm", false, false, true},
+		{"cpu default requires vllm gate", "Standard_D8s_v5", "", false, false, true},
+		{"gpu transformers unchanged", "Standard_NC6s_v3", "transformers", true, false, false},
+		{"gpu vllm unchanged", "Standard_NC6s_v3", "vllm", true, false, false},
+		{"gpu default without vllm unchanged", "Standard_NC6s_v3", "", false, false, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = tc.vllmEnabled
+			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.Resource.InstanceType = tc.instanceType
+			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
+			image, err := GetDesiredInferenceImageNameWithResolution(context.Background(), ws, nil)
+			if tc.wantError {
+				require.ErrorContains(t, err, "CPU preset inference only supports the vllm runtime")
+				assert.Empty(t, image)
+				assert.Empty(t, GetDesiredInferenceImageName(ws))
+				ws.Status.TargetNodeCount = 1
+				_, err = GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
+				require.ErrorContains(t, err, "CPU preset inference only supports the vllm runtime")
+				return
+			}
+			require.NoError(t, err)
+			want := GetBaseImageName()
+			if tc.wantCPU {
+				want = getCPUVLLMImageName()
+			}
+			assert.Equal(t, want, image)
+			assert.Equal(t, want, GetDesiredInferenceImageName(ws))
+		})
+	}
+}

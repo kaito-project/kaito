@@ -795,7 +795,8 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
 	replacePodTemplate := baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet)
 
-	// Runtime-only CPU variant changes intentionally bypass the revision hash.
+	// Target image variants (GPU/CPU) can change without a revision hash change,
+	// for example when BYO node selectors resolve to a different target.
 	// Cache mutations and base-image upgrades must also trigger a workload update.
 	if shouldSkipInferenceWorkloadUpdate(ok, currentRevisionStr, revisionStr, replacePodTemplate, variantChanged) {
 		return nil
@@ -880,8 +881,6 @@ func inferenceImageVariant(image string) string {
 	switch {
 	case strings.Contains(image, "base-vllm-cpu"):
 		return "cpu-vllm"
-	case strings.Contains(image, "base-tfs-cpu"):
-		return "cpu-transformers"
 	default:
 		return "base"
 	}

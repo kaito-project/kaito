@@ -277,11 +277,6 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 			expectTransformerPopulated: true,
 		},
 		{
-			name:                       "qwen cpu preset model gets Transformers populated",
-			modelName:                  "qwen2.5-0.5b-instruct",
-			expectTransformerPopulated: true,
-		},
-		{
 			name:                       "model not in TransformerInferenceParameters map gets empty Transformers",
 			modelName:                  "unknown-dynamic-model",
 			expectTransformerPopulated: false,

@@ -20,23 +20,21 @@ import subprocess
 import sys
 import threading
 import time
-from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from typing import Any
 
-import psutil
 import rate_limit
 import uvloop
 import vllm.entrypoints.launchers.api_server.entry as api_server_entry
 import vllm.entrypoints.launchers.cli_args as launcher_cli_args
-import yaml
 from _workarounds import model_asset_prefetch
 from huggingface_hub import HfFileSystem, scan_cache_dir
+from kaito_inference_config import KaitoInferenceConfig
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from vllm.entrypoints.openai.models.protocol import LoRAModulePath
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 from vllm.v1.metrics.prometheus import get_prometheus_registry
+from vllm_kv_transfer import configure_kv_transfer_and_lmcache
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -146,7 +144,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
 
         # Load KAITO config
         if kaito_args.kaito_config_file:
-            file_config = KaitoConfig.from_yaml(kaito_args.kaito_config_file)
+            file_config = KaitoInferenceConfig.from_yaml(kaito_args.kaito_config_file)
             if kaito_args.kaito_max_probe_steps is None:
                 kaito_args.kaito_max_probe_steps = file_config.max_probe_steps
             if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
@@ -171,34 +169,6 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         super().print_help(file)
         print("\norignal vLLM server arguments:\n")
         self.vllm_parser.print_help(file)
-
-
-@dataclass
-class KaitoConfig:
-    # Extra arguments for the vllm serving server, will be forwarded to the vllm server.
-    # This should be in key-value format.
-    vllm: dict[str, Any]
-
-    # Maximum number of steps to find the max available seq len fitting in the GPU memory.
-    max_probe_steps: int
-
-    # Optional: CPU memory utilization for the vllm engine in kv cache offload mode. (default: 0.5, set to 0 to disable)
-    kv_cache_cpu_memory_utilization: float
-
-    @staticmethod
-    def from_yaml(yaml_file: str) -> "KaitoConfig":
-        with open(yaml_file) as file:
-            config_data = yaml.safe_load(file)
-        return KaitoConfig(
-            vllm=config_data.get("vllm", {}),
-            max_probe_steps=config_data.get("max_probe_steps", 6),
-            kv_cache_cpu_memory_utilization=config_data.get(
-                "kv_cache_cpu_memory_utilization", 0.5
-            ),
-        )
-
-    def to_yaml(self) -> str:
-        return yaml.dump(self.__dict__)
 
 
 def _model_repo_path(model_id: str | None, cache_dir: str) -> str | None:
@@ -510,54 +480,6 @@ def get_max_gpu_memory_utilization(device_index: int = 0) -> float:
     return gpu_memory_utilization
 
 
-def set_kv_transfer_config_if_applicable(args: argparse.Namespace) -> None:
-    """
-    Set KV transfer config and optionally enable KV cache offloading to CPU RAM.
-    - When KAITO_INFERENCE_ROLE is set: use NixlConnector (kv_both + fail policy).
-    - When kaito_kv_cache_cpu_memory_utilization is set: use LMCacheConnectorV1 with CPU offload.
-    """
-    # Configure kv_transfer_config for P/D disaggregation using NixlConnector.
-    inference_role = os.environ.get("KAITO_INFERENCE_ROLE", "")
-    if args.kv_transfer_config is None and inference_role in ("prefill", "decode"):
-        args.kv_transfer_config = {
-            "kv_connector": "NixlConnector",
-            "kv_role": "kv_both",
-            "kv_load_failure_policy": "fail",
-        }
-
-    if (
-        args.kaito_kv_cache_cpu_memory_utilization is None
-        or args.kaito_kv_cache_cpu_memory_utilization <= 0
-    ):
-        logger.info(
-            "kv_cache_cpu_memory_utilization is not set, do not use KV cache offload to CPU RAM."
-        )
-        return
-
-    os.environ["LMCACHE_CHUNK_SIZE"] = "256"
-    os.environ["LMCACHE_LOCAL_CPU"] = "True"
-    available_memory_gb = (
-        psutil.virtual_memory().total - psutil.virtual_memory().used
-    ) / (1024**3)
-    logger.info(
-        f"Offload KV cache to CPU RAM, size limit: {available_memory_gb} * {args.kaito_kv_cache_cpu_memory_utilization} GB split among {args.tensor_parallel_size} GPUs"
-    )
-
-    # When using tensor parallelism, the KV cache CPU memory allocation must be divided evenly
-    # across all GPUs. Each GPU should only allocate its portion (1/tensor_parallel_size) of the
-    # total available CPU memory to prevent OOM.
-    os.environ["LMCACHE_MAX_LOCAL_CPU_SIZE"] = (
-        f"{available_memory_gb * args.kaito_kv_cache_cpu_memory_utilization / args.tensor_parallel_size}"
-    )
-
-    # Default to LMCacheConnectorV1 when CPU offload is enabled but no kv_transfer_config set.
-    if args.kv_transfer_config is None:
-        args.kv_transfer_config = {
-            "kv_connector": "LMCacheConnectorV1",
-            "kv_role": "kv_both",
-        }
-
-
 def configure_middlewares(args: argparse.Namespace) -> None:
     """Register KAITO middleware according to the parsed opt-out flags."""
     args.middleware = list(args.middleware or [])
@@ -583,7 +505,7 @@ if __name__ == "__main__":
     if args.lora_modules is None:
         args.lora_modules = load_lora_adapters(args.kaito_adapters_dir)
 
-    set_kv_transfer_config_if_applicable(args)
+    configure_kv_transfer_and_lmcache(args)
 
     logger.info(f"Starting server on port {args.port}")
 

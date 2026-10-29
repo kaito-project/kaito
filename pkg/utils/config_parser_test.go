@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseExplicitMaxModelLen(t *testing.T) {
@@ -88,4 +89,22 @@ func TestParseExplicitMaxModelLen(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseInferenceRuntimeConfig(t *testing.T) {
+	config, err := ParseInferenceRuntimeConfig("kv_cache_cpu_memory_utilization: 0\nvllm:\n  kv-transfer-config: '{\"kv_connector\":\"Custom\"}'\n")
+	require.NoError(t, err)
+	require.NotNil(t, config.KVCacheCPUMemoryUtilization)
+	assert.Equal(t, 0.0, *config.KVCacheCPUMemoryUtilization)
+	_, found := config.VLLM["kv-transfer-config"]
+	assert.True(t, found)
+	_, found = config.VLLM["max-model-len"]
+	assert.False(t, found)
+
+	config, err = ParseInferenceRuntimeConfig("vllm:\n  max-model-len: 4096\n")
+	require.NoError(t, err)
+	assert.Nil(t, config.KVCacheCPUMemoryUtilization)
+
+	_, err = ParseInferenceRuntimeConfig("vllm: [")
+	assert.Error(t, err)
 }

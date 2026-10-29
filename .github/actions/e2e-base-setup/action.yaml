@@ -106,6 +106,46 @@ runs:
       env:
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
 
+    - name: Set AKS Kubernetes version
+      shell: bash
+      run: |
+        echo "AKS_K8S_VERSION=${{ inputs.k8s_version }}" >> "$GITHUB_ENV"
+
+    # Cluster creation is started without waiting so it overlaps with the ACR setup
+    # and image builds below; "Wait for cluster creation and attach ACR" blocks on it.
+    - name: Start cluster creation (karpenter)
+      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
+      shell: bash
+      run: |
+        az aks create --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+          --location "$AZURE_LOCATION" --node-vm-size "$AZURE_NODE_VM_SIZE" \
+          --kubernetes-version "$AKS_K8S_VERSION" --generate-ssh-keys \
+          --node-provisioning-mode Auto \
+          --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
+          --enable-managed-identity --enable-oidc-issuer --enable-workload-identity \
+          --enable-blob-driver --no-wait -o none
+      env:
+        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+        AZURE_LOCATION: ${{ inputs.region }}
+        AZURE_NODE_VM_SIZE: ${{ inputs.node_vm_size }}
+
+    - name: Start cluster creation (gpu-provisioner)
+      if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
+      shell: bash
+      run: |
+        az aks create --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+          --location "$AZURE_LOCATION" \
+          --kubernetes-version "$AKS_K8S_VERSION" --generate-ssh-keys \
+          --enable-managed-identity --enable-workload-identity --enable-oidc-issuer \
+          --node-vm-size "$AZURE_NODE_VM_SIZE" \
+          --enable-blob-driver --no-wait -o none
+      env:
+        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
+        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
+        AZURE_LOCATION: ${{ inputs.region }}
+        AZURE_NODE_VM_SIZE: ${{ inputs.node_vm_size }}
+
     - name: Create ACR
       shell: bash
       run: |
@@ -224,24 +264,9 @@ runs:
       env:
         ARCH: amd64
 
-    - name: Set AKS Kubernetes version
+    - name: Wait for cluster creation and attach ACR
       shell: bash
       run: |
-        echo "AKS_K8S_VERSION=${{ inputs.k8s_version }}" >> "$GITHUB_ENV"
-
-    - name: create cluster (karpenter)
-      if: ${{ inputs.node_provisioner == 'azkarpenter' }}
-      shell: bash
-      run: |
-        create_karpenter_cluster() {
-          az aks create --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
-            --location "$AZURE_LOCATION" --node-vm-size "$AZURE_NODE_VM_SIZE" \
-            --kubernetes-version "$AKS_K8S_VERSION" --generate-ssh-keys \
-            --node-provisioning-mode Auto \
-            --network-plugin azure --network-plugin-mode overlay --network-dataplane cilium \
-            --enable-managed-identity --enable-oidc-issuer --enable-workload-identity -o none
-        }
-
         # Attach ACR separately from create: the AcrPull role assignment can transiently
         # fail on AAD role propagation, which must not force an expensive cluster recreate.
         attach_acr_with_retry() {
@@ -259,67 +284,30 @@ runs:
           return 1
         }
 
-        create_karpenter_cluster
+        # az aks wait exits early with a generic error if provisioning fails, so print
+        # the provisioning error that a synchronous az aks create would have reported.
+        if ! az aks wait --created --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --interval 15 --timeout 3600; then
+          echo "::error::cluster $AZURE_CLUSTER_NAME was not created successfully"
+          az aks show --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
+            --query "{provisioningState: provisioningState, status: status}" -o json || true
+          exit 1
+        fi
         attach_acr_with_retry
         az aks get-credentials --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --overwrite-existing
       env:
         AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
         AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
         AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-        AZURE_LOCATION: ${{ inputs.region }}
-        AZURE_NODE_VM_SIZE: ${{ inputs.node_vm_size }}
 
-    - name: create cluster (gpu-provisioner)
-      if: ${{ inputs.node_provisioner == 'gpuprovisioner' }}
-      shell: bash
-      run: |
-        create_gpu_cluster() {
-          az aks create --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
-            --location "$AZURE_LOCATION" \
-            --kubernetes-version "$AKS_K8S_VERSION" --generate-ssh-keys \
-            --enable-managed-identity --enable-workload-identity --enable-oidc-issuer \
-            --node-vm-size "$AZURE_NODE_VM_SIZE" -o none
-        }
-
-        # Attach ACR separately from create: the AcrPull role assignment can transiently
-        # fail on AAD role propagation, which must not force an expensive cluster recreate.
-        attach_acr_with_retry() {
-          local attempts=8 delay=15
-          for i in $(seq 1 $attempts); do
-            if az aks update --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" \
-                --attach-acr "$AZURE_ACR_NAME" -o none; then
-              echo "ACR attached on attempt $i/$attempts"
-              return 0
-            fi
-            echo "::warning::attach-acr attempt $i/$attempts failed (AAD role propagation); retrying in ${delay}s"
-            sleep "$delay"
-          done
-          echo "::error::failed to attach ACR after $attempts attempts"
-          return 1
-        }
-
-        create_gpu_cluster
-        attach_acr_with_retry
-        az aks get-credentials --name "$AZURE_CLUSTER_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --overwrite-existing
-      env:
-        AZURE_ACR_NAME: ${{ env.CLUSTER_NAME }}
-        AZURE_RESOURCE_GROUP: ${{ env.CLUSTER_NAME }}
-        AZURE_CLUSTER_NAME: ${{ env.CLUSTER_NAME }}
-        AZURE_LOCATION: ${{ inputs.region }}
-        AZURE_NODE_VM_SIZE: ${{ inputs.node_vm_size }}
-
-    - name: Provision model-streaming infra (blob CSI + StorageClass + role)
+    - name: Provision model-streaming infra (StorageClass + role)
       shell: bash
       run: |
         set -euo pipefail
         AKS="${CLUSTER_NAME}"
         RG="${CLUSTER_NAME}"
-        # Wait for any in-flight cluster operation (e.g. attach-acr) to settle,
-        # otherwise the update fails with EtagMismatch.
-        az aks wait --updated -n "$AKS" -g "$RG" --interval 15 --timeout 1200
-        echo "Enabling blob CSI driver..."
-        az aks update --enable-blob-driver -n "$AKS" -g "$RG" --yes --only-show-errors -o none
 
+        # The blob CSI driver is enabled at cluster creation (--enable-blob-driver).
         echo "Creating blob-fuse StorageClass..."
         cat <<'EOF' | kubectl apply -f -
         apiVersion: storage.k8s.io/v1

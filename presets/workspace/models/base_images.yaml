@@ -1,11 +1,12 @@
 images:
   # base image with no model weights
   - name: base
-    tag: 0.6.3
+    tag: 0.6.4
     runtimeVersion:
       vllm: 0.30.0
       transformers: 5.15.0
     # Tag history:
+    # 0.6.4 - migrate CPU KV cache offload to use LMCacheMPConnector
     # 0.6.3 - security fix
     # 0.6.2 - resolve startup benchmark tokenizer from vLLM's Run:ai streamer cache
     # 0.6.1 - bump transformers to 5.15.0

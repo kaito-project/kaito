@@ -28,6 +28,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -773,10 +774,12 @@ func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputIma
 				Expect(err).NotTo(HaveOccurred())
 			}
 
+			// Volumes are matched by source as well as name: image-mode jobs use emptyDir
+			// volumes with the same names, so a name-only match could accept a stale job.
 			if inputVolume != nil {
 				volumeMounted := false
 				for _, volume := range job.Spec.Template.Spec.Volumes {
-					if volume.Name == inputVolume.Name {
+					if volume.Name == inputVolume.Name && equality.Semantic.DeepEqual(volume.VolumeSource, inputVolume.VolumeSource) {
 						volumeMounted = true
 					}
 				}
@@ -803,7 +806,7 @@ func validateTuningJobInputOutput(workspaceObj *kaitov1beta1.Workspace, inputIma
 			if outputVolume != nil {
 				volumeMounted := false
 				for _, volume := range job.Spec.Template.Spec.Volumes {
-					if volume.Name == outputVolume.Name {
+					if volume.Name == outputVolume.Name && equality.Semantic.DeepEqual(volume.VolumeSource, outputVolume.VolumeSource) {
 						volumeMounted = true
 					}
 				}
@@ -1399,7 +1402,7 @@ var _ = Describe("Workspace Preset", func() {
 		validateWorkspaceReadiness(workspaceObj)
 	})
 
-	It("should create a gemma-3-4b-it workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-3-4b-it workspace with preset public mode successfully", func() {
 		numOfNode := 1
 		workspaceObj := createGemma3_4BInstructWorkspaceWithPresetPublicMode(numOfNode)
 
@@ -1445,12 +1448,18 @@ var _ = Describe("Workspace Preset", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image", utils.GinkgoLabelFastCheck, func() {
+	// Covers both tuning I/O modes in one workspace: image input/output at revision 1,
+	// then an update to azuredisk-csi PVC input/output at revision 2.
+	It("should create a workspace for tuning with image input/output, and update the workspace to azuredisk-csi pvc volume input/output", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		configMap := createCustomTuningConfigMapForE2E()
-		workspaceObj, jobName, outputRegistryUrl1 := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, nil, nil)
+		workspaceObj, jobName, outputRegistryUrl := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, nil, nil)
 
 		defer cleanupResources(workspaceObj)
+
+		// Prepare the PVCs for the update while the GPU node is provisioning.
+		inputVolume := createInputDatasetVolume("managed-csi", fullDatasetImageName2)
+		outputVolume := createOutputVolume("managed-csi")
 		time.Sleep(30 * time.Second)
 
 		validateCreateNode(workspaceObj, numOfNode)
@@ -1463,11 +1472,11 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateWorkspaceReadiness(workspaceObj)
 
-		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName1, outputRegistryUrl1, nil, nil)
+		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName1, outputRegistryUrl, nil, nil)
 
 		validateRevision(workspaceObj, "1")
 
-		workspaceObj, outputRegistryUrl2 := updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2, nil, nil)
+		workspaceObj, _ = updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2, inputVolume, outputVolume)
 		validateResourceStatus(workspaceObj)
 
 		time.Sleep(30 * time.Second)
@@ -1477,48 +1486,7 @@ var _ = Describe("Workspace Preset", func() {
 
 		validateWorkspaceReadiness(workspaceObj)
 
-		validateTuningJobInputOutput(workspaceObj, fullDatasetImageName2, outputRegistryUrl2, nil, nil)
-
-		validateRevision(workspaceObj, "2")
-	})
-
-	It("should create a workspace for tuning successfully, and update the workspace with another dataset and output image using azuredisk-csi pvc volume", utils.GinkgoLabelFastCheck, func() {
-		numOfNode := 1
-		configMap := createCustomTuningConfigMapForE2E()
-		intputVolume1 := createInputDatasetVolume("managed-csi", fullDatasetImageName1)
-		outputVolume1 := createOutputVolume("managed-csi")
-		workspaceObj, jobName, _ := createPhi3TuningWorkspaceWithPresetPublicMode(configMap.Name, numOfNode, intputVolume1, outputVolume1)
-
-		defer cleanupResources(workspaceObj)
-		time.Sleep(30 * time.Second)
-
-		validateCreateNode(workspaceObj, numOfNode)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-		validateTuningResource(workspaceObj)
-
-		validateACRTuningResultsUploaded(workspaceObj, jobName)
-
-		validateWorkspaceReadiness(workspaceObj)
-
-		validateTuningJobInputOutput(workspaceObj, "", "", intputVolume1, outputVolume1)
-
-		validateRevision(workspaceObj, "1")
-
-		intputVolume2 := createInputDatasetVolume("managed-csi", fullDatasetImageName2)
-		outputVolume2 := createOutputVolume("managed-csi")
-		workspaceObj, _ = updatePhi3TuningWorkspaceWithPresetPublicMode(workspaceObj, fullDatasetImageName2, intputVolume2, outputVolume2)
-		validateResourceStatus(workspaceObj)
-
-		time.Sleep(30 * time.Second)
-		validateTuningResource(workspaceObj)
-
-		validateACRTuningResultsUploaded(workspaceObj, jobName)
-
-		validateWorkspaceReadiness(workspaceObj)
-
-		validateTuningJobInputOutput(workspaceObj, "", "", intputVolume2, outputVolume2)
+		validateTuningJobInputOutput(workspaceObj, "", "", inputVolume, outputVolume)
 
 		validateRevision(workspaceObj, "2")
 	})

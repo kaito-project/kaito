@@ -657,6 +657,9 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 			Args:         []string{"old-arg"},
 			Env:          []corev1.EnvVar{{Name: "OLD", Value: "1"}},
 			VolumeMounts: []corev1.VolumeMount{{Name: "old", MountPath: "/old"}},
+			LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{Exec: &corev1.ExecAction{
+				Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"},
+			}}},
 		}},
 		InitContainers: []corev1.Container{{Name: "old-init"}},
 		Volumes:        []corev1.Volume{{Name: "old-vol"}},
@@ -668,6 +671,9 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 			Args:         []string{"new-arg"},
 			Env:          []corev1.EnvVar{{Name: "NEW", Value: "2"}},
 			VolumeMounts: []corev1.VolumeMount{{Name: "new", MountPath: "/new"}},
+			LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{
+				Path: "/health",
+			}}},
 		}},
 		InitContainers: []corev1.Container{{Name: "new-init"}},
 		Volumes:        []corev1.Volume{{Name: "new-vol"}},
@@ -679,6 +685,7 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 	assert.Equal(t, desired.Containers[0].Args, existing.Containers[0].Args)
 	assert.Equal(t, desired.Containers[0].Env, existing.Containers[0].Env)
 	assert.Equal(t, desired.Containers[0].VolumeMounts, existing.Containers[0].VolumeMounts)
+	assert.Equal(t, desired.Containers[0].LivenessProbe, existing.Containers[0].LivenessProbe)
 	assert.Equal(t, desired.InitContainers, existing.InitContainers)
 	assert.Equal(t, desired.Volumes, existing.Volumes)
 }
@@ -2152,6 +2159,61 @@ func TestPreserveDeployedImages(t *testing.T) {
 	assert.Equal(t, "kaito-base:v1", desired.Spec.Template.Spec.InitContainers[0].Image)
 }
 
+func TestPreserveLMCacheTopologyForDeployedImage(t *testing.T) {
+	oldLivenessProbe := &corev1.Probe{ProbeHandler: corev1.ProbeHandler{
+		HTTPGet: &corev1.HTTPGetAction{Path: "/health"},
+	}}
+	existing := &appsv1.StatefulSet{Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name: "workspace", Image: "kaito-base:0.6.3", LivenessProbe: oldLivenessProbe,
+		}},
+	}}}}
+	desired := &appsv1.StatefulSet{Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name:  "workspace",
+			Image: "kaito-base:0.6.4",
+			Env: []corev1.EnvVar{
+				{Name: "KEEP", Value: "true"},
+				{Name: lmCacheDeploymentModeEnvName, Value: "sidecar"},
+			},
+			VolumeMounts: []corev1.VolumeMount{
+				{Name: "keep", MountPath: "/keep"},
+				{Name: lmCacheRuntimeVolumeName, MountPath: "/var/run/kaito-lmcache"},
+			},
+			LivenessProbe: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{
+					Exec: &corev1.ExecAction{Command: []string{"python3", "/workspace/vllm/lmcache_server.py", "--health-check"}},
+				},
+			},
+		}},
+		InitContainers: []corev1.Container{
+			{Name: "keep-init"},
+			{Name: lmCacheSidecarName, Image: "kaito-base:0.6.4"},
+		},
+		Volumes: []corev1.Volume{
+			{Name: "keep"},
+			{Name: lmCacheRuntimeVolumeName},
+		},
+	}}}}
+
+	sameImage := desired.DeepCopy()
+	sameImage.Spec.Template.Spec.Containers[0].Image = "kaito-base:0.6.3"
+	assert.False(t, preserveLMCacheTopologyForDeployedImage(existing, sameImage))
+
+	assert.True(t, preserveLMCacheTopologyForDeployedImage(existing, desired))
+	assert.Equal(t, oldLivenessProbe, desired.Spec.Template.Spec.Containers[0].LivenessProbe)
+	assert.Equal(t, []corev1.EnvVar{{Name: "KEEP", Value: "true"}}, desired.Spec.Template.Spec.Containers[0].Env)
+	assert.Equal(t, []corev1.VolumeMount{{Name: "keep", MountPath: "/keep"}}, desired.Spec.Template.Spec.Containers[0].VolumeMounts)
+	assert.Equal(t, []corev1.Container{{Name: "keep-init"}}, desired.Spec.Template.Spec.InitContainers)
+	assert.Equal(t, []corev1.Volume{{Name: "keep"}}, desired.Spec.Template.Spec.Volumes)
+
+	preserveDeployedImages(existing, desired)
+	syncInferenceMutablePodSpec(&existing.Spec.Template.Spec, &desired.Spec.Template.Spec)
+	assert.Equal(t, "kaito-base:0.6.3", existing.Spec.Template.Spec.Containers[0].Image)
+	assert.Equal(t, oldLivenessProbe, existing.Spec.Template.Spec.Containers[0].LivenessProbe)
+	assert.False(t, hasContainer(existing.Spec.Template.Spec.InitContainers, lmCacheSidecarName))
+}
+
 func TestDetectInferencePodFailure(t *testing.T) {
 	podList := func(pods ...corev1.Pod) *corev1.PodList {
 		return &corev1.PodList{Items: pods}
@@ -2162,6 +2224,42 @@ func TestDetectInferencePodFailure(t *testing.T) {
 	oomContainer := func(name string) corev1.ContainerStatus {
 		return corev1.ContainerStatus{Name: name, LastTerminationState: corev1.ContainerState{Terminated: &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137}}}
 	}
+
+	t.Run("LMCache failures", func(t *testing.T) {
+		testcases := map[string]struct {
+			status          corev1.ContainerStatus
+			expectedReason  string
+			expectedMessage string
+		}{
+			"running but not ready": {
+				status: corev1.ContainerStatus{
+					Name:  lmCacheSidecarName,
+					State: corev1.ContainerState{Running: &corev1.ContainerStateRunning{}},
+				},
+				expectedReason:  inferenceReasonLMCacheNotReady,
+				expectedMessage: "readiness probe",
+			},
+			"image pull failure": {
+				status:          waitingContainer(lmCacheSidecarName, "ImagePullBackOff"),
+				expectedReason:  inferenceReasonLMCacheNotReady,
+				expectedMessage: "ImagePullBackOff",
+			},
+			"ready": {
+				status:          corev1.ContainerStatus{Name: lmCacheSidecarName, Ready: true},
+				expectedReason:  "",
+				expectedMessage: "",
+			},
+		}
+		for name, tc := range testcases {
+			t.Run(name, func(t *testing.T) {
+				reason, message := detectLMCacheFailure(podList(corev1.Pod{Status: corev1.PodStatus{
+					InitContainerStatuses: []corev1.ContainerStatus{tc.status},
+				}}))
+				assert.Equal(t, tc.expectedReason, reason)
+				assert.Contains(t, message, tc.expectedMessage)
+			})
+		}
+	})
 
 	t.Run("container-level failures", func(t *testing.T) {
 		testcases := map[string]struct {

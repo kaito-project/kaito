@@ -274,8 +274,9 @@ func TestResolveInferenceSetBenchmarkApplicability_BYOCPUPresetSkipsParentBenchm
 	is := &InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{}},
 		Spec: InferenceSetSpec{
-			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}},
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}},
 			Template: InferenceSetTemplate{
+				Resource:  InferenceSetResourceSpec{LabelSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}},
 				Inference: InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}},
 			},
 		},

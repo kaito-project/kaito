@@ -461,3 +461,36 @@ func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
 		t.Fatal("empty workspace cannot select CPU Transformers")
 	}
 }
+
+func TestResolveCPUInferenceSetUsesChildNodeSelector(t *testing.T) {
+	registerCPUValidationTestModels()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	defer func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+	}()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	kubeClient := newCPUValidationClient(t, &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}},
+		Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+	})
+	iObj := &InferenceSet{}
+	iObj.Spec.Selector = &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
+	iObj.Spec.Template.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}
+	iObj.Spec.Template.Inference.Preset = &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}
+	got, err := ResolveCPUInferenceSetTarget(context.Background(), iObj, kubeClient)
+	if err != nil || !got {
+		t.Fatalf("distinct child node selector should resolve CPU, got %v, %v", got, err)
+	}
+	iObj.Spec.Template.Resource.LabelSelector = nil
+	got, err = ResolveCPUInferenceSetTarget(context.Background(), iObj, kubeClient)
+	if err != nil || got {
+		t.Fatalf("BYO must not fall back to Workspace labels, got %v, %v", got, err)
+	}
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	if InferenceSetNodeSelector(iObj) != iObj.Spec.Selector {
+		t.Fatal("provisioned legacy selector fallback lost")
+	}
+}

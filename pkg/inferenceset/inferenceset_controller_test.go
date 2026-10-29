@@ -1165,3 +1165,61 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 	assert.Len(t, toDelete, 1)
 	assert.Equal(t, "old-cpu", toDelete[0].Name)
 }
+
+func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	oldGateway := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = oldGateway
+	})
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = true
+	listErr := errors.New("node lookup unavailable")
+
+	for _, tt := range []struct {
+		name        string
+		cpuEnabled  bool
+		nodeListErr error
+	}{
+		{name: "CPU uses template resource selector", cpuEnabled: true},
+		{name: "CPU lookup error is propagated", cpuEnabled: true, nodeListErr: listErr},
+		{name: "disabled CPU does not look up nodes"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = tt.cpuEnabled
+			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			iObj.Spec.Template.Resource.InstanceType = ""
+			iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
+			iObj.Spec.Template.Resource.LabelSelector = &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}
+			mockClient := test.NewClient()
+			mockClient.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Return(nil).Once()
+			if tt.cpuEnabled {
+				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+					options := &client.ListOptions{}
+					for _, option := range args.Get(2).([]client.ListOption) {
+						option.ApplyToList(options)
+					}
+					assert.Equal(t, "pool=cpu", options.LabelSelector.String(), "must not query the top-level Workspace selector")
+					nodes := args.Get(1).(*corev1.NodeList)
+					nodes.Items = []corev1.Node{{
+						ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}},
+						Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+					}}
+				}).Return(tt.nodeListErr).Once()
+			}
+			c := &InferenceSetReconciler{Client: mockClient}
+			err := c.ensureGatewayAPIInferenceExtension(context.Background(), iObj)
+			if tt.nodeListErr != nil {
+				assert.ErrorIs(t, err, tt.nodeListErr)
+			} else {
+				assert.NoError(t, err)
+			}
+			mockClient.AssertExpectations(t)
+			mockClient.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
+		})
+	}
+}

@@ -1543,3 +1543,61 @@ func TestValidateWorkspaceForInferenceSet_NAPDoesNotPanicOnNilCount(t *testing.T
 		_ = ValidateWorkspaceForInferenceSet(context.Background(), is)
 	})
 }
+
+// CPU detection must inspect the same nodes as the generated Workspace, not
+// similarly labeled nodes selected by the InferenceSet's Workspace selector.
+func TestNewWorkspaceForInferenceSetCPUSelectorConsistency(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+	})
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+
+	scheme := runtime.NewScheme()
+	assert.NoError(t, corev1.AddToScheme(scheme))
+	kubeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(
+		&corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}},
+			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+		},
+		&corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{Name: "gpu-decoy", Labels: map[string]string{"app": "workspaces", consts.NvidiaGPUCount: "1"}},
+			Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+		},
+	).Build()
+
+	for _, tt := range []struct {
+		name         string
+		cpuEnabled   bool
+		nodeSelector *metav1.LabelSelector
+		wantCPU      bool
+	}{
+		{name: "explicit CPU pool wins over GPU Workspace selector", cpuEnabled: true, nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}, wantCPU: true},
+		{name: "GPU pool stays GPU", cpuEnabled: true, nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}},
+		{name: "disabled CPU feature stays disabled", nodeSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}},
+		{name: "BYO nil selector does not inherit Workspace labels", cpuEnabled: true},
+		{name: "BYO empty selector does not inherit Workspace labels", cpuEnabled: true, nodeSelector: &metav1.LabelSelector{}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = tt.cpuEnabled
+			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			iObj.Spec.Template.Resource.InstanceType = ""
+			iObj.Spec.Selector = &metav1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
+			iObj.Spec.Template.Resource.LabelSelector = tt.nodeSelector
+			before := iObj.DeepCopy()
+			ws := NewWorkspaceForInferenceSet(iObj)
+			assert.Equal(t, tt.nodeSelector, ws.Resource.LabelSelector)
+			assert.Equal(t, "workspaces", ws.Labels["app"])
+			got, err := kaitov1beta1.ResolveCPUInferenceSetTarget(context.Background(), iObj, kubeClient)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantCPU, got)
+			childCPU, err := kaitov1beta1.ResolveCPUInferenceWorkspace(context.Background(), ws, kubeClient)
+			assert.NoError(t, err)
+			assert.Equal(t, got, childCPU)
+			assert.Equal(t, before, iObj, "construction and CPU resolution must not mutate the parent")
+		})
+	}
+}

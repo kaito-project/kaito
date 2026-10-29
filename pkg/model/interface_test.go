@@ -885,3 +885,32 @@ func TestBuildVLLMInferenceCommandNoKVCacheOverrideForNonHybrid(t *testing.T) {
 	require.Len(t, cmd, 3)
 	assert.NotContains(t, cmd[2], "kaito-kv-cache-cpu-memory-utilization")
 }
+
+func TestGetInferenceCommandTransformersCPU(t *testing.T) {
+	p := &PresetParam{RuntimeParam: RuntimeParam{Transformers: HuggingfaceTransformersParam{
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  map[string]string{"num_processes": "4", "num_machines": "2", "machine_rank": "1", "multi_gpu": "", "gpu_ids": "all"},
+		InferenceMainFile: "/workspace/tfs/inference_api.py",
+		ModelRunParams:    map[string]string{"device_map": "auto", "torch_dtype": "auto"},
+	}}}
+	before := p.DeepCopy()
+	cmd := p.GetInferenceCommand(RuntimeContext{RuntimeName: RuntimeNameHuggingfaceTransformers,
+		RuntimeContextExtraArguments: RuntimeContextExtraArguments{TargetCPU: true}})
+	require.Len(t, cmd, 3)
+	assert.Contains(t, cmd[2], "--cpu")
+	assert.Contains(t, cmd[2], "--num_processes=1")
+	assert.Contains(t, cmd[2], "--device_map=cpu")
+	assert.Contains(t, cmd[2], "--torch_dtype=bfloat16")
+	assert.NotContains(t, cmd[2], "--multi_gpu")
+	assert.NotContains(t, cmd[2], "--gpu_ids")
+	assert.Contains(t, cmd[2], "--num_machines=1")
+	assert.Contains(t, cmd[2], "--machine_rank=0")
+	assert.Contains(t, cmd[2], "--torch_dtype=bfloat16")
+	assert.Equal(t, before, p)
+	gpu := p.GetInferenceCommand(RuntimeContext{RuntimeName: RuntimeNameHuggingfaceTransformers})
+	assert.Contains(t, gpu[2], "--multi_gpu")
+	assert.Contains(t, gpu[2], "--num_processes=4")
+	assert.Contains(t, gpu[2], "--device_map=auto")
+	assert.Contains(t, gpu[2], "--torch_dtype=auto")
+	assert.NotContains(t, gpu[2], "--cpu")
+}

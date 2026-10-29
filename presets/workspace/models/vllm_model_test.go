@@ -277,6 +277,11 @@ func TestVLLMCompatibleModel_GetInferenceParameters_TransformerLookup(t *testing
 			expectTransformerPopulated: true,
 		},
 		{
+			name:                       "Gemma 4 E4B supports the shared Transformers runtime",
+			modelName:                  "gemma-4-e4b-it",
+			expectTransformerPopulated: true,
+		},
+		{
 			name:                       "model not in TransformerInferenceParameters map gets empty Transformers",
 			modelName:                  "unknown-dynamic-model",
 			expectTransformerPopulated: false,
@@ -1220,4 +1225,27 @@ func TestGetModelByName_Qwen35_4B_SpeculativeDecodingMTP(t *testing.T) {
 	assert.Equal(t, 1, params.SpeculativeDecoding.MTP.NumSpeculativeTokens)
 	assert.Equal(t, "", params.SpeculativeDecoding.MTP.Model,
 		"self-contained Qwen MTP should not inject a separate assistant model")
+}
+
+func TestGemma4TransformersCPUCommand(t *testing.T) {
+	generated, err := generator.GeneratePreset("google/gemma-4-E4B-it", "", modelCatalogYAML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := &vLLMCompatibleModel{model: generated.Metadata}
+	params := m.GetInferenceParameters()
+	before := params.DeepCopy()
+	command := strings.Join(params.GetInferenceCommand(model.RuntimeContext{
+		RuntimeName:                  model.RuntimeNameHuggingfaceTransformers,
+		RuntimeContextExtraArguments: model.RuntimeContextExtraArguments{TargetCPU: true},
+	}), " ")
+	assert.Contains(t, command, "accelerate launch")
+	assert.Contains(t, command, "/workspace/tfs/inference_api.py")
+	assert.Contains(t, command, "--pretrained_model_name_or_path=google/gemma-4-E4B-it")
+	assert.Contains(t, command, "--torch_dtype=bfloat16")
+	assert.Contains(t, command, "--device_map=cpu")
+	assert.Contains(t, command, "--num_processes=1")
+	assert.NotContains(t, command, "--gpu_ids")
+	assert.NotContains(t, command, "vllm")
+	assert.Equal(t, before, params)
 }

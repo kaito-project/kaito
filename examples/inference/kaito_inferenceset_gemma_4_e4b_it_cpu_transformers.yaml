@@ -1,0 +1,32 @@
+# Requires enableCPUInference=true on the workspace manager.
+# Explicit Transformers on a CPU VM reuses the configured kaito-base image.
+# No separate Transformers CPU image, GPU resources, or post-load benchmark.
+# Accept the Gemma license and create a same-namespace hf-token Secret with
+# an HF_TOKEN key authorized to download the gated model before applying.
+# Text-only serving still loads the composite vision/audio model components.
+# Live Gemma Transformers CPU readiness/chat has not been validated.
+apiVersion: kaito.sh/v1beta1
+kind: InferenceSet
+metadata:
+  name: gemma-4-e4b-it-cpu-transformers
+  namespace: default
+  annotations:
+    kaito.sh/runtime: transformers
+spec:
+  replicas: 1
+  nodeCountLimit: 1
+  labelSelector:
+    matchLabels:
+      apps: gemma-4-e4b-it-cpu-transformers
+  template:
+    metadata:
+      labels:
+        apps: gemma-4-e4b-it-cpu-transformers
+    inference:
+      preset:
+        accessMode: public
+        name: google/gemma-4-E4B-it
+        presetOptions:
+          modelAccessSecret: hf-token
+    resource:
+      instanceType: Standard_D16s_v6

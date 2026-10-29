@@ -323,6 +323,15 @@ func IsCPUInferenceTarget(inference *InferenceSpec, instanceType string) bool {
 	return inference.Preset != nil && IsCPUCompatiblePreset(inference.Preset.Name) && isCPUInstanceType(instanceType)
 }
 
+// IsExplicitTransformersCPUWorkspace permits the existing Transformers base image
+// only for an explicitly selected runtime and a declared amd64 CPU VM instance type.
+// Label-only BYO targets retain the vLLM-only CPU contract.
+func IsExplicitTransformersCPUWorkspace(ws *Workspace) bool {
+	return ws != nil && ws.Inference != nil && ws.Inference.Preset != nil &&
+		ws.GetAnnotations()[AnnotationWorkspaceRuntime] == "transformers" &&
+		IsCPUInferenceTarget(ws.Inference, ws.Resource.InstanceType) && IsAMD64CompatibleVLLMCPUInstanceType(ws.Resource.InstanceType)
+}
+
 // IsCPUInferenceWorkspace reports whether the workspace matches the basic CPU path.
 func IsCPUInferenceWorkspace(ws *Workspace) bool {
 	if ws == nil {

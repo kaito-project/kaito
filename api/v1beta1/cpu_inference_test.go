@@ -388,7 +388,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 	})
 }
 
-func TestCPUInferencePresetRequiresVLLM(t *testing.T) {
+func TestCPUInferencePresetRuntimeSelection(t *testing.T) {
 	registerCPUValidationTestModels()
 	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
 	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
@@ -403,7 +403,8 @@ func TestCPUInferencePresetRequiresVLLM(t *testing.T) {
 	}{
 		{"default vllm accepted", "", true, false},
 		{"explicit vllm accepted", "vllm", true, false},
-		{"transformers rejected", "transformers", true, true},
+		{"explicit transformers", "transformers", true, false},
+		{"explicit transformers without vllm gate", "transformers", false, false},
 		{"default requires vllm gate", "", false, true},
 		{"explicit vllm requires gate", "vllm", false, true},
 	} {
@@ -419,5 +420,44 @@ func TestCPUInferencePresetRequiresVLLM(t *testing.T) {
 				t.Fatalf("validation error = %v, want error = %v", err, tc.wantError)
 			}
 		})
+	}
+}
+
+func TestIsExplicitTransformersCPUWorkspace(t *testing.T) {
+	registerCPUValidationTestModels()
+	old := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = old })
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	for _, tc := range []struct {
+		name, instance, runtime string
+		want                    bool
+	}{
+		{"explicit CPU", "Standard_D16s_v6", "transformers", true},
+		{"GPU", "Standard_NC6s_v3", "transformers", false},
+		{"Azure ARM", "Standard_D16ps_v6", "transformers", false},
+		{"AWS ARM", "m7g.4xlarge", "transformers", false},
+		{"label only BYO", "", "transformers", false},
+		{"default runtime", "Standard_D16s_v6", "", false},
+		{"vllm runtime", "Standard_D16s_v6", "vllm", false},
+		{"unknown runtime", "Standard_D16s_v6", "other", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationWorkspaceRuntime: tc.runtime}},
+				Resource:   ResourceSpec{InstanceType: tc.instance},
+				Inference:  &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}},
+			}
+			if got := IsExplicitTransformersCPUWorkspace(ws); got != tc.want {
+				t.Fatalf("got %v, want %v", got, tc.want)
+			}
+			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = false
+			if IsExplicitTransformersCPUWorkspace(ws) {
+				t.Fatal("CPU gate must be enabled")
+			}
+			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+		})
+	}
+	if IsExplicitTransformersCPUWorkspace(nil) || IsExplicitTransformersCPUWorkspace(&Workspace{}) {
+		t.Fatal("empty workspace cannot select CPU Transformers")
 	}
 }

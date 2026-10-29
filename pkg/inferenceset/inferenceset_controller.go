@@ -731,7 +731,7 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 	}
 
 	for _, resource := range []client.Object{ociRepository, helmRelease} {
-		if err := resources.CheckResourceStatus(resource, c.Client, 5*time.Minute); err != nil {
+		if err := resources.CheckResourceStatus(ctx, resource, c.Client, 5*time.Minute); err != nil {
 			return err
 		}
 	}

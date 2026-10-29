@@ -58,7 +58,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(hr).Build()
-		err := CheckResourceStatus(hr, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), hr, cl, 2*time.Second)
 		assert.Nil(t, err)
 	})
 
@@ -69,7 +69,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(hr).Build()
-		err := CheckResourceStatus(hr, cl, 1*time.Millisecond)
+		err := CheckResourceStatus(context.Background(), hr, cl, 1*time.Millisecond)
 		assert.Error(t, err)
 	})
 
@@ -83,7 +83,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(oci).Build()
-		err := CheckResourceStatus(oci, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), oci, cl, 2*time.Second)
 		assert.Nil(t, err)
 	})
 
@@ -94,7 +94,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(oci).Build()
-		err := CheckResourceStatus(oci, cl, 1*time.Millisecond)
+		err := CheckResourceStatus(context.Background(), oci, cl, 1*time.Millisecond)
 		assert.Error(t, err)
 	})
 	t.Run("Should return nil for ready Deployment", func(t *testing.T) {
@@ -109,7 +109,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		}
 
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(dep).Build()
-		err := CheckResourceStatus(dep, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), dep, cl, 2*time.Second)
 		assert.Nil(t, err)
 	})
 
@@ -124,7 +124,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		}
 
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(dep).Build()
-		err := CheckResourceStatus(dep, cl, 1*time.Millisecond)
+		err := CheckResourceStatus(context.Background(), dep, cl, 1*time.Millisecond)
 		assert.Error(t, err)
 	})
 
@@ -139,7 +139,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		}
 
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ss).Build()
-		err := CheckResourceStatus(ss, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), ss, cl, 2*time.Second)
 		assert.Nil(t, err)
 	})
 
@@ -154,7 +154,7 @@ func TestCheckResourceStatus(t *testing.T) {
 		}
 
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ss).Build()
-		err := CheckResourceStatus(ss, cl, 1*time.Millisecond)
+		err := CheckResourceStatus(context.Background(), ss, cl, 1*time.Millisecond)
 		assert.Error(t, err)
 	})
 
@@ -172,14 +172,14 @@ func TestCheckResourceStatus(t *testing.T) {
 		// Create the fake client without adding the dep object
 		cl := fake.NewClientBuilder().WithScheme(scheme).Build()
 
-		err := CheckResourceStatus(dep, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), dep, cl, 2*time.Second)
 		assert.Error(t, err)
 	})
 
 	t.Run("Should return error for unsupported resource type", func(t *testing.T) {
 		unsupportedResource := &appsv1.DaemonSet{}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(unsupportedResource).Build()
-		err := CheckResourceStatus(unsupportedResource, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), unsupportedResource, cl, 2*time.Second)
 		assert.Error(t, err)
 		assert.Equal(t, "unsupported resource type", err.Error())
 	})
@@ -202,7 +202,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(dep).Build()
-		err := CheckResourceStatus(dep, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), dep, cl, 2*time.Second)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "Deployment exceeded its progress deadline")
 	})
@@ -214,7 +214,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(job).Build()
-		err := CheckResourceStatus(job, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), job, cl, 2*time.Second)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "has failed 1 pods")
 	})
@@ -226,7 +226,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(job).Build()
-		err := CheckResourceStatus(job, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), job, cl, 2*time.Second)
 		assert.Error(t, err)
 		assert.Equal(t, err, context.DeadlineExceeded)
 	})
@@ -238,7 +238,7 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(job).Build()
-		err := CheckResourceStatus(job, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), job, cl, 2*time.Second)
 		assert.Nil(t, err)
 	})
 
@@ -250,8 +250,24 @@ func TestCheckResourceStatus(t *testing.T) {
 			},
 		}
 		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(job).Build()
-		err := CheckResourceStatus(job, cl, 2*time.Second)
+		err := CheckResourceStatus(context.Background(), job, cl, 2*time.Second)
 		assert.Nil(t, err)
+	})
+
+	t.Run("Should stop polling when the parent context is cancelled", func(t *testing.T) {
+		ss := &appsv1.StatefulSet{
+			Status: appsv1.StatefulSetStatus{
+				ReadyReplicas: 0,
+			},
+			Spec: appsv1.StatefulSetSpec{
+				Replicas: int32Ptr(1),
+			},
+		}
+		cl := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ss).Build()
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := CheckResourceStatus(ctx, ss, cl, 10*time.Second)
+		assert.ErrorIs(t, err, context.Canceled)
 	})
 }
 

@@ -224,7 +224,7 @@ func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov
 					return
 				}
 			}
-			if err = resources.CheckResourceStatus(deployment, c.Client, time.Duration(10)*time.Minute); err != nil {
+			if err = resources.CheckResourceStatus(ctx, deployment, c.Client, time.Duration(10)*time.Minute); err != nil {
 				return
 			}
 		} else if apierrors.IsNotFound(err) {
@@ -234,7 +234,7 @@ func (c *RAGEngineReconciler) applyRAG(ctx context.Context, ragEngineObj *kaitov
 			if err != nil {
 				return
 			}
-			if err = resources.CheckResourceStatus(workloadObj, c.Client, time.Duration(10)*time.Minute); err != nil {
+			if err = resources.CheckResourceStatus(ctx, workloadObj, c.Client, time.Duration(10)*time.Minute); err != nil {
 				return
 			}
 		}

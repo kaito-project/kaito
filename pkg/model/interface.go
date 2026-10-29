@@ -56,6 +56,7 @@ const (
 	PortRayCluster = 6379
 
 	vllmShutdownTimeoutSeconds = "50"
+	alignedMambaMaxNumSeqs     = 512
 )
 
 // Metadata defines the metadata for a model.
@@ -515,6 +516,20 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 			p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(rc.MaxNumSeqs)
 		}
 	}
+	// vLLM warms up aligned Mamba prefix caching with one prefill per sequence
+	// slot, and that per-sequence scan state is not included in its memory
+	// profile. On large GPUs the default 1024 slots can exhaust the reserved
+	// headroom, so cap the effective value without ever raising it.
+	if p.VLLM.ModelRunParams["mamba-cache-mode"] == "align" {
+		seqs, err := strconv.Atoi(p.VLLM.ModelRunParams["max-num-seqs"])
+		if err != nil && rc.GPUConfig != nil {
+			seqs = rc.GPUConfig.VLLMDefaultMaxNumSeqs()
+			err = nil
+		}
+		if err == nil && seqs > alignedMambaMaxNumSeqs {
+			p.VLLM.ModelRunParams["max-num-seqs"] = strconv.Itoa(alignedMambaMaxNumSeqs)
+		}
+	}
 
 	// Enable KV cache events by default so in-cluster subscribers can consume
 	// BlockStored / BlockRemoved / AllBlocksCleared events over ZMQ on the port
@@ -577,11 +592,9 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
-	// Disable LMCache KV cache CPU offloading when it is known to be problematic because:
-	//   - the model is not yet validated with LMCacheMPConnector, or
-	//   - the workload runs on a MIG partition (TODO: support KV cache CPU offloading on MIG).
-	if p.isLMCacheDisabled() ||
-		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
+	// Disable LMCache KV cache CPU offloading on MIG partitions.
+	// TODO: support KV cache CPU offloading on MIG.
+	if rc.GPUConfig != nil && rc.GPUConfig.IsMIG {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
 
@@ -726,24 +739,6 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 		}
 	}
 	return nil
-}
-
-// isLMCacheDisabled returns true for hybrid architectures that have not yet
-// been validated with LMCacheMPConnector's hybrid KV cache manager support.
-func (p *PresetParam) isLMCacheDisabled() bool {
-	for _, arch := range p.Architectures {
-		switch arch {
-		// These hybrid architectures require per-model configuration, e.g. https://docs.lmcache.ai/recipes/qwen3_5.html.
-		// Disabling LMCache for these models for now.
-		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
-			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
-			"Qwen4ExpForCausalLM", "Qwen4ExpForConditionalGeneration",
-			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",
-			"DeepseekV4ForCausalLM", "DeepseekV41ForCausalLM", "DeepseekV32ForCausalLM":
-			return true
-		}
-	}
-	return false
 }
 
 // RequiresDeepGEMM returns true for architectures that strictly require the

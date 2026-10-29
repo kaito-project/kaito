@@ -723,7 +723,7 @@ func TestGetModelByName_DeepSeekV4Flash(t *testing.T) {
 	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
 	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
 	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
-	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
+	assert.Equal(t, "fp8_ds_mla", runParams["kv-cache-dtype"])
 }
 
 func TestGetModelByName_GLM53Flash(t *testing.T) {
@@ -769,11 +769,13 @@ func TestGetModelByName_GLM53Flash(t *testing.T) {
 	assert.Equal(t, "8", runParams["tensor-parallel-size"])
 	assert.NotContains(t, runParams, "pipeline-parallel-size")
 	assert.NotContains(t, runParams, "distributed-executor-backend")
-	assert.Equal(t, "0", runParams["kaito-kv-cache-cpu-memory-utilization"])
+	assert.NotContains(t, runParams, "kaito-kv-cache-cpu-memory-utilization")
+	assert.Equal(t, "align", runParams["mamba-cache-mode"])
+	assert.Contains(t, runParams, "enable-prefix-caching")
 }
 
 // TestGetModelByName_DeepSeekV4FlashNVFP4 verifies the NVIDIA NVFP4 variant
-// resolves and inherits the same DeepSeek-V4 parser wiring plus fp8 kv-cache.
+// resolves and inherits the same DeepSeek-V4 parser wiring plus sparse-MLA KV cache.
 const hermeticSpeculativeDecodingCatalogYAML = `models:
 - name: nvidia/DeepSeek-V4-Flash-NVFP4
   description: https://huggingface.co/nvidia/DeepSeek-V4-Flash-NVFP4
@@ -835,7 +837,7 @@ func TestGetModelByName_DeepSeekV4FlashNVFP4(t *testing.T) {
 	assert.Equal(t, "deepseek_v4", runParams["tool-call-parser"])
 	assert.Equal(t, "", runParams["enable-auto-tool-choice"])
 	assert.Equal(t, "deepseek_v4", runParams["tokenizer_mode"])
-	assert.Equal(t, "fp8", runParams["kv-cache-dtype"])
+	assert.Equal(t, "fp8_ds_mla", runParams["kv-cache-dtype"])
 }
 
 // TestGetModelByName_MiMo7BBase verifies MiMo-7B-Base resolves and wires the

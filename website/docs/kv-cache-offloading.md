@@ -16,7 +16,6 @@ KV cache offloading is automatically disabled for:
 - Multi-node pipeline-parallel inference
 - Data-parallel deployments where each GPU runs an independent model replica
 - MIG partitions
-- Qwen family and Nemotron-H hybrid architectures that require additional LMCache configuration
 
 KAITO currently supports KV cache offloading to host memory only. Offloading to secondary storage, such as local NVMe disks or remote object storage, is not supported.
 

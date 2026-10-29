@@ -620,6 +620,9 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	encoder := json.NewEncoder(hasher)
 	encoder.Encode(w.Resource)
 	encoder.Encode(w.Inference)
+	if w.Inference != nil && w.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] != "" {
+		encoder.Encode(kaitov1beta1.GetWorkspaceRuntimeName(w))
+	}
 	encoder.Encode(w.Tuning)
 	if w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
 		encoder.Encode(true)
@@ -793,7 +796,9 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	replacePodTemplate := baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet)
+	runtimeChanged := annotations[kaitov1beta1.AnnotationWorkspaceRuntime] != string(kaitov1beta1.GetWorkspaceRuntimeName(wObj))
+	replacePodTemplate := runtimeChanged || baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet) ||
+		!apiequality.Semantic.DeepEqual(existingObj.Spec.Replicas, desiredStatefulSet.Spec.Replicas)
 
 	// Target image variants (GPU/CPU) can change without a revision hash change,
 	// for example when BYO node selectors resolve to a different target.
@@ -825,6 +830,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+	annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(kaitov1beta1.GetWorkspaceRuntimeName(wObj))
 	existingObj.SetAnnotations(annotations)
 
 	// Update it with the latest one generated above.
@@ -1755,26 +1761,30 @@ func formatWorkspaceStatusChanges(oldStatus, newStatus kaitov1beta1.WorkspaceSta
 	return strings.Join(changes, "; ")
 }
 
-// UpdateWorkspaceTargetNodeCount is used for updating the targetNodeCount in workspace status when it is 0.
+// UpdateWorkspaceTargetNodeCount initializes node estimates and enforces CPU single-pod inference.
 func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
 	targetNodeCount := int32(1)
-	if wObj.Status.TargetNodeCount == 0 {
-		resolvedCPUInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
-		if cpuResolveErr != nil {
-			return fmt.Errorf("failed to resolve CPU inference target: %w", cpuResolveErr)
-		}
-		if resolvedCPUInference {
-			if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
-				status.TargetNodeCount = 1
-				return nil
-			}); err != nil {
-				return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
-			}
-			wObj.Status.TargetNodeCount = 1
+	// BYO selectors can change from GPU to CPU after a multinode estimate was
+	// persisted. CPU basic inference always needs one pod, even on that transition.
+	resolvedCPUInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
+	if cpuResolveErr != nil {
+		return fmt.Errorf("failed to resolve CPU inference target: %w", cpuResolveErr)
+	}
+	if resolvedCPUInference {
+		if wObj.Status.TargetNodeCount == 1 {
 			return nil
 		}
-
+		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+			status.TargetNodeCount = 1
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+		}
+		wObj.Status.TargetNodeCount = 1
+		return nil
+	}
+	if wObj.Status.TargetNodeCount == 0 {
 		// Build the estimate request once, outside the status-update closure.
 		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
 		if reqErr != nil {

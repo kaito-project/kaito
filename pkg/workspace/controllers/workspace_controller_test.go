@@ -42,6 +42,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -51,6 +52,7 @@ import (
 	byoprovisioner "github.com/kaito-project/kaito/pkg/nodeprovision/byo-provisioner"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	"github.com/kaito-project/kaito/pkg/utils/plugin"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	workspaceutil "github.com/kaito-project/kaito/pkg/utils/workspace"
 	"github.com/kaito-project/kaito/pkg/workspace/estimator"
@@ -2791,4 +2793,133 @@ func TestEnsureModelMirror_StaticAnnotationsCarryReason(t *testing.T) {
 			assert.Contains(t, msg, tc.wantMessage)
 		})
 	}
+}
+
+func TestRuntimeOnlyUpdateChangesHashAndPodTemplate(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	test.RegisterTestModel()
+	old := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = old }()
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	for _, direction := range []struct{ from, to string }{{"vllm", "transformers"}, {"transformers", "vllm"}} {
+		t.Run(direction.from+"-to-"+direction.to, func(t *testing.T) {
+			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.Annotations = map[string]string{}
+			ws.Annotations[v1beta1.AnnotationWorkspaceRuntime] = direction.from
+			oldHash := ComputeHash(ws)
+			scheme := runtime.NewScheme()
+			require.NoError(t, corev1.AddToScheme(scheme))
+			require.NoError(t, appsv1.AddToScheme(scheme))
+			require.NoError(t, v1beta1.AddToScheme(scheme))
+			c := fake.NewClientBuilder().WithScheme(scheme).Build()
+			r := &WorkspaceReconciler{Client: c}
+			require.NoError(t, r.applyInference(context.Background(), ws))
+			existing := &appsv1.StatefulSet{}
+			require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), existing))
+			require.Equal(t, direction.from, existing.Annotations[v1beta1.AnnotationWorkspaceRuntime])
+			// Simulate a deployed older tag. Runtime switches must not opt in to image upgrades.
+			existing.Spec.Template.Spec.Containers[0].Image = "mcr.microsoft.com/kaito/kaito-base:old"
+			existing.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{InitialDelaySeconds: 999}
+			existing.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{InitialDelaySeconds: 999}
+			require.NoError(t, c.Update(context.Background(), existing))
+			ws.Annotations[v1beta1.AnnotationWorkspaceRuntime] = direction.to
+			require.NotEqual(t, oldHash, ComputeHash(ws))
+			// Even an unchanged revision must not suppress an effective runtime change.
+			require.NoError(t, r.applyInference(context.Background(), ws))
+			actual := &appsv1.StatefulSet{}
+			require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), actual))
+			expected, err := inference.GeneratePresetInference(context.Background(), ws, ws.Annotations[v1beta1.WorkspaceRevisionAnnotation], plugin.KaitoModelRegister.MustGet("test-model"), c, nil)
+			require.NoError(t, err)
+			desired := expected.Workload.(*appsv1.StatefulSet)
+			preserveLMCacheTopologyForDeployedImage(existing, desired)
+			preserveDeployedImages(existing, desired)
+			wantContainer := desired.Spec.Template.Spec.Containers[0]
+			gotContainer := actual.Spec.Template.Spec.Containers[0]
+			require.Equal(t, wantContainer.StartupProbe, gotContainer.StartupProbe)
+			require.Equal(t, wantContainer.ReadinessProbe, gotContainer.ReadinessProbe)
+			require.Equal(t, wantContainer.LivenessProbe, gotContainer.LivenessProbe)
+			require.Equal(t, wantContainer.Env, gotContainer.Env)
+			require.Equal(t, wantContainer.Ports, gotContainer.Ports)
+			require.Equal(t, desired.Spec.Template.Spec.Affinity, actual.Spec.Template.Spec.Affinity)
+			// Argument map iteration order and API quantity serialization are not semantic changes.
+			require.ElementsMatch(t, strings.Fields(wantContainer.Command[2]), strings.Fields(gotContainer.Command[2]))
+			require.JSONEq(t, func() string {
+				b, err := json.Marshal(wantContainer.Resources)
+				require.NoError(t, err)
+				return string(b)
+			}(),
+				func() string {
+					b, err := json.Marshal(gotContainer.Resources)
+					require.NoError(t, err)
+					return string(b)
+				}())
+			require.Equal(t, direction.to, actual.Annotations[v1beta1.AnnotationWorkspaceRuntime])
+			require.Equal(t, "mcr.microsoft.com/kaito/kaito-base:old", actual.Spec.Template.Spec.Containers[0].Image)
+		})
+	}
+}
+
+func TestUpdateWorkspaceTargetNodeCountBYOCPUTransition(t *testing.T) {
+	test.RegisterTestModel()
+	for _, gate := range []string{consts.FeatureFlagEnableCPUInference, consts.FeatureFlagDisableNodeAutoProvisioning} {
+		old := featuregates.FeatureGates[gate]
+		defer func(g string, v bool) { featuregates.FeatureGates[g] = v }(gate, old)
+		featuregates.FeatureGates[gate] = true
+	}
+	scheme := runtime.NewScheme()
+	require.NoError(t, corev1.AddToScheme(scheme))
+	require.NoError(t, appsv1.AddToScheme(scheme))
+	require.NoError(t, v1beta1.AddToScheme(scheme))
+	ws := &v1beta1.Workspace{ObjectMeta: v1.ObjectMeta{Name: "transition", Namespace: "default"},
+		Resource:  v1beta1.ResourceSpec{LabelSelector: &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}},
+		Inference: &v1beta1.InferenceSpec{Preset: &v1beta1.PresetSpec{PresetMeta: v1beta1.PresetMeta{Name: "test-model"}}},
+		Status:    v1beta1.WorkspaceStatus{TargetNodeCount: 3}}
+	node := &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws, node).Build()
+	r := &WorkspaceReconciler{Client: c}
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+	require.Equal(t, int32(1), ws.Status.TargetNodeCount)
+	stored := &v1beta1.Workspace{}
+	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), stored))
+	require.Equal(t, int32(1), stored.Status.TargetNodeCount)
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+}
+
+func TestApplyInferenceCPUTransitionSynchronizesReplicas(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	test.RegisterTestModel()
+	for _, gate := range []string{consts.FeatureFlagEnableCPUInference, consts.FeatureFlagDisableNodeAutoProvisioning, consts.FeatureFlagVLLM} {
+		old := featuregates.FeatureGates[gate]
+		defer func(g string, v bool) { featuregates.FeatureGates[g] = v }(gate, old)
+		featuregates.FeatureGates[gate] = true
+	}
+	scheme := runtime.NewScheme()
+	require.NoError(t, corev1.AddToScheme(scheme))
+	require.NoError(t, appsv1.AddToScheme(scheme))
+	require.NoError(t, v1beta1.AddToScheme(scheme))
+	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	ws.Resource.InstanceType = ""
+	ws.Resource.Count = nil
+	ws.Status.TargetNodeCount = 3
+	node := &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "node", Labels: map[string]string{"apps": "test", corev1.LabelArchStable: "amd64", consts.NvidiaGPUProduct: "NVIDIA-A10-24Q", consts.NvidiaGPUCount: "1", consts.NvidiaGPUMemory: "24512"}}, Status: corev1.NodeStatus{Capacity: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}, Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+	c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws, node).WithObjects(ws, node).Build()
+	r := &WorkspaceReconciler{Client: c}
+	require.NoError(t, r.applyInference(context.Background(), ws))
+	ss := &appsv1.StatefulSet{}
+	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), ss))
+	require.Equal(t, int32(3), *ss.Spec.Replicas)
+	require.NotContains(t, workspaceutil.GetInferenceContainerImage(ss), "base-vllm-cpu")
+	delete(node.Labels, consts.NvidiaGPUProduct)
+	delete(node.Labels, consts.NvidiaGPUCount)
+	delete(node.Labels, consts.NvidiaGPUMemory)
+	require.NoError(t, c.Update(context.Background(), node))
+	node.Status.Capacity = corev1.ResourceList{}
+	require.NoError(t, c.Status().Update(context.Background(), node))
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
+	require.Equal(t, int32(1), ws.Status.TargetNodeCount)
+	require.NoError(t, r.applyInference(context.Background(), ws))
+	require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), ss))
+	require.Equal(t, int32(1), *ss.Spec.Replicas)
+	require.Contains(t, ss.Spec.Template.Spec.Containers[0].Image, "base-vllm-cpu:0.0.2")
+	require.Equal(t, "vllm", ss.Annotations[v1beta1.AnnotationWorkspaceRuntime])
 }

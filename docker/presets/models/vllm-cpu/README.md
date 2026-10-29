@@ -10,7 +10,7 @@ Build locally without publishing:
 
 ```sh
 make docker-build-kaito-base-vllm-cpu \
-  REGISTRY=local KAITO_VLLM_CPU_IMG_TAG=0.0.1 OUTPUT_TYPE=type=docker
+  REGISTRY=local KAITO_BASE_IMG_TAG=0.0.1 OUTPUT_TYPE=type=docker
 ```
 
 The image retains upstream's `vllm serve` entrypoint. For example, on a supported

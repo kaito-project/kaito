@@ -37,6 +37,10 @@ It does not log and skip invalid entries. Construction exceptions from
 `build_scanner()` propagate unchanged. The schema classes retain their existing
 `from_dict()` and `build()` methods.
 
+Configuration and construction stay in `guardrail_core.config`; sensitive-data
+detection and redaction live in an internal scanner module. Consumers continue
+to use the same configuration APIs.
+
 RAGEngine remains pinned to the published 0.1.1 package and retains its existing
 schemas until 0.2.0 is released. Migrating its imports is a subsequent change;
 this avoids making RAGEngine depend on an unpublished package. The 0.2.0 source

@@ -323,7 +323,8 @@ func TestGeneratePresetInference(t *testing.T) {
 			mockClient := test.NewClient()
 			tc.callMocks(mockClient)
 
-			workspace := tc.workspace
+			// Keep per-case config, adapters, and status changes out of shared fixtures.
+			workspace := tc.workspace.DeepCopy()
 			//nolint:staticcheck //SA1019: deprecate Resource.Count field
 			workspace.Resource.Count = &tc.nodeCount
 
@@ -362,8 +363,6 @@ func TestGeneratePresetInference(t *testing.T) {
 				workspace.Inference.Adapters = nil
 			}
 
-			// Always assign (including the zero value) so prior test cases don't leak
-			// a non-empty Config into later runs through the shared MockWorkspace.
 			workspace.Inference.Config = tc.inferenceConfig
 
 			model := plugin.KaitoModelRegister.MustGet(tc.modelName)

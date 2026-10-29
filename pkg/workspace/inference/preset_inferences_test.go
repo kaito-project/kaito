@@ -2474,6 +2474,7 @@ func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
 		t.Fatalf("expected BYO CPU preset generation to succeed, got %v", err)
 	}
 	ss := result.Workload.(*appsv1.StatefulSet)
+	assertNoLMCacheSidecar(t, &ss.Spec.Template.Spec)
 	hasCPUToleration := false
 	hasGPUToleration := false
 	for _, toleration := range ss.Spec.Template.Spec.Tolerations {
@@ -2797,4 +2798,97 @@ func TestGeneratePresetInference_ExplicitTransformersCPU(t *testing.T) {
 	require.NotNil(t, container.StartupProbe.HTTPGet)
 	assert.Equal(t, "/health", container.StartupProbe.HTTPGet.Path)
 	assert.Nil(t, container.StartupProbe.Exec)
+}
+
+// CPU inference must keep the native vLLM probes and must not depend on the
+// GPU-only LMCache server, including when a BYO target has no instance type.
+func assertNoLMCacheSidecar(t *testing.T, spec *corev1.PodSpec) {
+	t.Helper()
+	for _, c := range spec.InitContainers {
+		assert.NotEqual(t, lmCacheSidecarName, c.Name)
+	}
+	for _, v := range spec.Volumes {
+		assert.NotEqual(t, lmCacheRuntimeVolumeName, v.Name)
+	}
+	for _, c := range spec.Containers {
+		for _, e := range c.Env {
+			assert.NotEqual(t, lmCacheDeploymentModeEnvName, e.Name)
+		}
+		for _, m := range c.VolumeMounts {
+			assert.NotEqual(t, lmCacheRuntimeVolumeName, m.Name)
+		}
+	}
+	require.NotEmpty(t, spec.Containers)
+	main := spec.Containers[0]
+	require.NotNil(t, main.LivenessProbe)
+	require.NotNil(t, main.LivenessProbe.HTTPGet)
+	assert.Equal(t, "/health", main.LivenessProbe.HTTPGet.Path)
+	assert.Nil(t, main.LivenessProbe.Exec)
+}
+
+func TestGeneratePresetInference_VLLMCPUSkipsLMCache(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	for _, runtimeName := range []string{"", "vllm"} {
+		t.Run("runtime="+runtimeName, func(t *testing.T) {
+			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.Resource.InstanceType = "Standard_D16s_v6"
+			ws.Status.TargetNodeCount = 1
+			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: runtimeName}
+			result, err := GeneratePresetInference(t.Context(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
+			require.NoError(t, err)
+			spec := &result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+			assert.Equal(t, getCPUVLLMImageName(), spec.Containers[0].Image)
+			assertNoLMCacheSidecar(t, spec)
+		})
+	}
+}
+
+func TestConfigureLMCacheSidecarCPUAndGPU(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		cpu    bool
+		config string
+	}{
+		{name: "CPU defaults", cpu: true},
+		{name: "CPU config cannot enable GPU sidecar", cpu: true, config: "custom-inference-config"},
+		{name: "GPU retains sidecar"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			workspace := &v1beta1.Workspace{
+				ObjectMeta: metav1.ObjectMeta{Name: "workspace", Namespace: "default"},
+				Inference:  &v1beta1.InferenceSpec{Config: tc.config},
+			}
+			spec := &corev1.PodSpec{Containers: []corev1.Container{{
+				Name:          "workspace",
+				LivenessProbe: &corev1.Probe{ProbeHandler: corev1.ProbeHandler{HTTPGet: &corev1.HTTPGetAction{Path: "/health", Port: intstr.FromInt32(5000)}}},
+			}}}
+			before := spec.DeepCopy()
+			modifier := ConfigureLMCacheSidecar(&lmCacheResolvedConfig{
+				runtimeName: pkgmodel.RuntimeNameVLLM,
+				runParams:   map[string]string{"tensor-parallel-size": "1", "kaito-kv-cache-cpu-memory-utilization": "0.5"},
+				targetCPU:   tc.cpu,
+			})
+			// CPU must return before querying a user ConfigMap or modifying the pod.
+			err := modifier(&generator.WorkspaceGeneratorContext{Ctx: t.Context(), Workspace: workspace}, spec)
+			require.NoError(t, err)
+			if tc.cpu {
+				assert.Equal(t, before, spec)
+				assertNoLMCacheSidecar(t, spec)
+			} else {
+				require.Len(t, spec.InitContainers, 1)
+				assert.Equal(t, lmCacheSidecarName, spec.InitContainers[0].Name)
+				assert.Contains(t, spec.Containers[0].Env, corev1.EnvVar{Name: lmCacheDeploymentModeEnvName, Value: lmCacheDeploymentModeSidecar})
+				require.NotNil(t, spec.Containers[0].LivenessProbe.Exec)
+				assert.Contains(t, spec.Containers[0].LivenessProbe.Exec.Command, "--health-check")
+			}
+		})
+	}
 }

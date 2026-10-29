@@ -765,6 +765,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		})
 		lmCacheConfig.runtimeName = runtimeName
 		lmCacheConfig.runParams = inferenceParam.VLLM.ModelRunParams
+		lmCacheConfig.targetCPU = isCPUInference
 
 		// Only set nodeAffinity when the user supplied selector labels.
 		// An empty MatchExpressions list is rejected by the Kubernetes API server.

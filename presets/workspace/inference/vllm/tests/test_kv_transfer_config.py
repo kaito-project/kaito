@@ -125,7 +125,9 @@ class TestLMCacheMPServer:
     def test_gpu_still_configures_and_synchronizes_managed_sidecar(self):
         args = _make_args(device="cuda", kaito_kv_cache_cpu_memory_utilization=0.5)
         with (
-            patch.dict(os.environ, {"KAITO_LMCACHE_DEPLOYMENT_MODE": "sidecar"}, clear=True),
+            patch.dict(
+                os.environ, {"KAITO_LMCACHE_DEPLOYMENT_MODE": "sidecar"}, clear=True
+            ),
             patch("vllm_kv_transfer.record_lmcache_server_generation") as generation,
         ):
             configure_kv_transfer_and_lmcache(args)

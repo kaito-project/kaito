@@ -20,12 +20,11 @@ metadata:
 Selected CPU-compatible preset example retained in basic CPU support:
 
 - NAP InferenceSet (default CPU `vllm`): `examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml`
-- NAP InferenceSet (CPU `transformers`/TFS runtime): `examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_tfs.yaml`
 
 Notes:
 - enable the `enableCPUInference` feature gate first
+- CPU preset inference supports only the `vllm` runtime on amd64 nodes; the `transformers` runtime remains GPU-only
 - these examples use `google/gemma-4-E4B-it`
-- the TFS example selects the Transformers runtime with `metadata.annotations.kaito.sh/runtime: transformers`
 - built-in presets and generic Hugging Face model IDs are supported on the basic CPU preset path
 - the post-load benchmark stage is automatically skipped on basic CPU paths
 

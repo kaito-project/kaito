@@ -750,7 +750,6 @@ func TestSyncInferenceMutablePodSpec(t *testing.T) {
 
 func TestInferenceImageVariant(t *testing.T) {
 	assert.Equal(t, "cpu-vllm", inferenceImageVariant("example.com/presets/base-vllm-cpu:1.2.3"))
-	assert.Equal(t, "cpu-transformers", inferenceImageVariant("example.com/presets/base-tfs-cpu:1.2.3"))
 	assert.Equal(t, "base", inferenceImageVariant("example.com/presets/base:1.2.3"))
 }
 

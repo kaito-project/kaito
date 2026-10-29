@@ -607,7 +607,6 @@ def configure_cpu_kv_cache_space_if_applicable(args: argparse.Namespace) -> None
 def configure_middlewares(args: argparse.Namespace) -> None:
     """Register KAITO middleware according to the parsed opt-out flags."""
     args.middleware = list(args.middleware or [])
-    args.middleware.append("health.HealthMiddleware")
     if args.kaito_disable_benchmark_control:
         logger.info(
             "Benchmark control middleware disabled "

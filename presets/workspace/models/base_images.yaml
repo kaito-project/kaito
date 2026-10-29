@@ -54,7 +54,3 @@ images:
       vllm: 0.30.0
     # Tag history:
     # 0.0.1 - Initial vLLM CPU runtime image
-
-  # Transformers CPU runtime image with no model weights.
-  - name: base-tfs-cpu
-    tag: 0.6.3

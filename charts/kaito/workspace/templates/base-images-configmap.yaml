@@ -17,5 +17,3 @@ data:
         tag: 0.0.1
         runtimeVersion:
           vllm: 0.30.0
-      - name: base-tfs-cpu
-        tag: 0.6.3

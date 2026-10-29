@@ -537,11 +537,6 @@ func GetBaseImageName() string {
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
 }
 
-func getCPUTransformersImageName() string {
-	presetObj := metadata.MustGet("base-tfs-cpu")
-	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
-}
-
 func getCPUVLLMImageName() string {
 	presetObj := metadata.MustGet("base-vllm-cpu")
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
@@ -551,20 +546,17 @@ func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) s
 	if !isCPU {
 		return GetBaseImageName()
 	}
-
-	switch runtimeName {
-	case pkgmodel.RuntimeNameHuggingfaceTransformers:
-		return getCPUTransformersImageName()
-	case pkgmodel.RuntimeNameVLLM:
+	if runtimeName == pkgmodel.RuntimeNameVLLM {
 		return getCPUVLLMImageName()
-	default:
-		return GetBaseImageName()
 	}
+	// Never silently select a GPU image for an unsupported CPU runtime.
+	return ""
 }
 
 // GetDesiredInferenceImageName returns the runtime-aware image that preset inference
 // should use for the given Workspace. Non-preset or nil workspaces fall back to the
-// generic base image.
+// generic base image. Unsupported CPU runtimes return an empty image; callers
+// needing validation errors should use GetDesiredInferenceImageNameWithResolution.
 func GetDesiredInferenceImageName(ws *v1beta1.Workspace) string {
 	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
 		return GetBaseImageName()
@@ -582,7 +574,11 @@ func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1
 	if err != nil {
 		return "", err
 	}
-	return getPresetInferenceImageName(v1beta1.GetWorkspaceRuntimeName(ws), isCPUInference), nil
+	runtimeName := v1beta1.GetWorkspaceRuntimeName(ws)
+	if isCPUInference && runtimeName != pkgmodel.RuntimeNameVLLM {
+		return "", fmt.Errorf("CPU preset inference only supports the vllm runtime, got %s", runtimeName)
+	}
+	return getPresetInferenceImageName(runtimeName, isCPUInference), nil
 }
 
 // GetBaseImageTag returns just the tag portion of the base image reference.
@@ -644,6 +640,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
 		if err != nil {
 			return err
+		}
+		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
+			return fmt.Errorf("CPU preset inference only supports the vllm runtime")
 		}
 		if !isCPUInference && gpuConfig == nil {
 			return fmt.Errorf("inference target resolution changed during pod generation; retry reconciliation")

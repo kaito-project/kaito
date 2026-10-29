@@ -96,7 +96,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 				Name:      "cpu-ws",
 				Namespace: "default",
 				Annotations: map[string]string{
-					AnnotationWorkspaceRuntime: "transformers",
+					AnnotationWorkspaceRuntime: "vllm",
 				},
 			},
 			Resource: ResourceSpec{
@@ -386,4 +386,38 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 			t.Fatalf("expected arm64 byo nodes to be rejected for vllm cpu preset path")
 		}
 	})
+}
+
+func TestCPUInferencePresetRequiresVLLM(t *testing.T) {
+	registerCPUValidationTestModels()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	for _, tc := range []struct {
+		name, runtime          string
+		vllmEnabled, wantError bool
+	}{
+		{"default vllm accepted", "", true, false},
+		{"explicit vllm accepted", "vllm", true, false},
+		{"transformers rejected", "transformers", true, true},
+		{"default requires vllm gate", "", false, true},
+		{"explicit vllm requires gate", "vllm", false, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagVLLM] = tc.vllmEnabled
+			ws := &Workspace{
+				ObjectMeta: metav1.ObjectMeta{Annotations: map[string]string{AnnotationWorkspaceRuntime: tc.runtime}},
+				Resource:   ResourceSpec{InstanceType: "Standard_D8s_v5"},
+				Inference:  &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}},
+			}
+			err := ws.validateCPUInferenceConstraints(context.Background(), nil)
+			if (err != nil) != tc.wantError {
+				t.Fatalf("validation error = %v, want error = %v", err, tc.wantError)
+			}
+		})
+	}
 }

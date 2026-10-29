@@ -218,11 +218,17 @@ func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeCli
 	}
 
 	runtimeName := GetWorkspaceRuntimeName(w)
-	if w.GetAnnotations() != nil {
-		runtime := w.GetAnnotations()[AnnotationWorkspaceRuntime]
-		if runtime != "" && runtime != string(model.RuntimeNameHuggingfaceTransformers) && runtime != string(model.RuntimeNameVLLM) {
-			errs = errs.Also(apis.ErrInvalidValue(runtime, fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime)))
-		}
+	runtimeAnnotation := w.GetAnnotations()[AnnotationWorkspaceRuntime]
+	if runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM) {
+		errs = errs.Also(apis.ErrInvalidValue(
+			fmt.Sprintf("CPU inference only supports the vllm runtime; %s is not supported", runtimeAnnotation),
+			fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime),
+		))
+	} else if w.Inference != nil && w.Inference.Preset != nil && runtimeName != model.RuntimeNameVLLM {
+		errs = errs.Also(apis.ErrInvalidValue(
+			"CPU preset inference requires the vllm feature gate to be enabled",
+			"inference.preset",
+		))
 	}
 	if runtimeName == model.RuntimeNameVLLM && w.Inference != nil {
 		if w.Resource.InstanceType != "" && !IsAMD64CompatibleVLLMCPUInstanceType(w.Resource.InstanceType) {

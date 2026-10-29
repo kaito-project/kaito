@@ -31,7 +31,8 @@ This example uses `google/gemma-4-E4B-it` on `Standard_D16s_v6`.
 | Scenario | Status | Notes |
 |---|---|---|
 | Preset InferenceSet on CPU | supported with `enableCPUInference` | retained example uses default CPU `vllm` runtime |
-| CPU preset with NAP | supported with `enableCPUInference` | specify a CPU instance type |
+| CPU preset with NAP | supported with `enableCPUInference` | specify an amd64 CPU instance type; vLLM runtime only |
+| Transformers preset inference on CPU | not supported | Transformers runtime remains GPU-only |
 | Post-load benchmark stage on CPU | skipped | basic CPU paths do not run the benchmark stage |
 | Multi-node CPU inference | not supported | basic CPU support is single-node only |
 

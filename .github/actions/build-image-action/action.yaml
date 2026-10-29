@@ -106,9 +106,6 @@ runs:
         oras version
       shell: bash
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
     - name: Set up Docker Buildx
       run: |
         # Define a builder name variable that includes the current file name
@@ -136,7 +133,7 @@ runs:
         password: ${{ inputs.ghcr_token }}
 
     - name: Build model image
-      if: inputs.model_name != 'base' && inputs.model_name != 'base-tfs-cpu' && inputs.model_name != 'base-vllm-cpu'
+      if: inputs.model_name != 'base' && inputs.model_name != 'base-vllm-cpu'
       run: |
         PR_BRANCH=${{ inputs.branch_name }}
         ACR_NAME=${{ inputs.acr_name }}
@@ -175,7 +172,7 @@ runs:
       shell: bash
 
     - name: Build runtime image
-      if: inputs.model_name == 'base' || inputs.model_name == 'base-tfs-cpu' || inputs.model_name == 'base-vllm-cpu'
+      if: inputs.model_name == 'base' || inputs.model_name == 'base-vllm-cpu'
       run: |
         PR_BRANCH=${{ inputs.branch_name }}
         ACR_NAME=${{ inputs.acr_name }}
@@ -198,10 +195,7 @@ runs:
         DOCKERFILE=./docker/presets/models/tfs/Dockerfile
         BUILD_ARGS=(--build-arg VERSION="$MODEL_TAG" --build-arg MODEL_TYPE="$MODEL_TYPE")
         PLATFORM_ARGS=()
-        if [ "$MODEL_NAME" = "base-tfs-cpu" ]; then
-          DOCKERFILE=./docker/presets/models/tfs-cpu/Dockerfile
-          PLATFORM_ARGS=(--platform linux/amd64,linux/arm64)
-        elif [ "$MODEL_NAME" = "base-vllm-cpu" ]; then
+        if [ "$MODEL_NAME" = "base-vllm-cpu" ]; then
           DOCKERFILE=./docker/presets/models/vllm-cpu/Dockerfile
           BUILD_ARGS=(--build-arg VERSION="$MODEL_TAG")
           PLATFORM_ARGS=(--platform linux/amd64)

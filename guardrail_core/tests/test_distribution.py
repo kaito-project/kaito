@@ -74,6 +74,7 @@ def test_wheel_metadata_and_contents(distributions):
         assert "guardrail_core/streaming/openai.py" in names
         assert "guardrail_core/streaming/window.py" in names
         assert "guardrail_core/native_scanners.py" in names
+        assert "guardrail_core/config.py" in names
         assert "guardrail_core/secrets/scanner.py" in names
         assert all(
             name.startswith(("guardrail_core/", "kaito_guardrail_core-"))
@@ -104,6 +105,8 @@ def test_sdist_contains_build_inputs_and_tests(distributions):
         "tests/streaming/test_sse.py",
         "tests/streaming/test_window.py",
         "guardrail_core/streaming/window.py",
+        "guardrail_core/config.py",
+        "guardrail_core/test_config.py",
         "tests/test_distribution.py",
     } <= names
     assert not any(

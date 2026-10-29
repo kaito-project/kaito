@@ -8,6 +8,40 @@ chunks; they do not scan or enforce policy.
 `guardrail_core.streaming.window` provides a policy-independent text window for
 scan-before-release buffering.
 
+## Scanner configuration (0.2.0)
+
+`guardrail_core.config` exposes the scanner schemas previously available only in
+RAGEngine, along with `parse_scanner_config()` and `build_scanner()`. Applications
+own policy loading and failure handling; they must not recreate a scanner registry.
+
+```python
+from guardrail_core.config import build_scanner, parse_scanner_config
+
+config = parse_scanner_config(
+    {"type": "ban_substrings", "substrings": ["secret"], "action": "redact"}
+)
+scanner = build_scanner(config)
+result = scanner.scan("", "a secret")
+assert result.output == "a [REDACTED]"
+```
+
+Entries use a flattened mapping with `type`, optional `action` (`block` or
+`redact`), and scanner-specific fields. The default action is `block`. Type and
+field names accept snake_case, camelCase, and hyphenated spelling, matching
+RAGEngine's policy convention. Scanner order and policy-level actions remain the
+caller's responsibility.
+
+The strict parser rejects unknown scanners, unknown or duplicate normalized
+fields, invalid actions, and malformed scanner settings with `ValueError`.
+It does not log and skip invalid entries. Construction exceptions from
+`build_scanner()` propagate unchanged. The schema classes retain their existing
+`from_dict()` and `build()` methods.
+
+RAGEngine remains pinned to the published 0.1.1 package and retains its existing
+schemas until 0.2.0 is released. Migrating its imports is a subsequent change;
+this avoids making RAGEngine depend on an unpublished package. The 0.2.0 source
+and wheel can be tested before publishing; the version bump is not a release.
+
 ## Installation and development
 
 Install the published package:

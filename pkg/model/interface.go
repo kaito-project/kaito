@@ -532,10 +532,10 @@ func (p *PresetParam) buildVLLMInferenceCommand(rc RuntimeContext) []string {
 		p.VLLM.ModelRunParams["performance-mode"] = rc.PerformanceMode
 	}
 
-	// Disable LMCache KV cache CPU offloading when the model needs vLLM's hybrid
-	// KV cache manager, or when the workload runs on a MIG partition.
-	// TODO: support KV cache CPU offloading on MIG.
-	if p.isVLLMHybridKVCacheManagerRequired() ||
+	// Disable LMCache KV cache CPU offloading when it is known to be problematic because:
+	//   - the model is not yet validated with LMCacheMPConnector, or
+	//   - the workload runs on a MIG partition (TODO: support KV cache CPU offloading on MIG).
+	if p.isLMCacheDisabled() ||
 		(rc.GPUConfig != nil && rc.GPUConfig.IsMIG) {
 		p.VLLM.ModelRunParams["kaito-kv-cache-cpu-memory-utilization"] = "0"
 	}
@@ -679,14 +679,14 @@ func (p *PresetParam) getModelFileSize() *resource.Quantity {
 	return nil
 }
 
-// isVLLMHybridKVCacheManagerRequired returns true if the model uses a hybrid
-// architecture (e.g., Mamba/Attention) that requires vLLM's hybrid KV cache manager
-// (https://docs.vllm.ai/en/latest/design/hybrid_kv_cache_manager/)
-func (p *PresetParam) isVLLMHybridKVCacheManagerRequired() bool {
+// isLMCacheDisabled returns true for hybrid architectures that have not yet
+// been validated with LMCacheMPConnector's hybrid KV cache manager support.
+func (p *PresetParam) isLMCacheDisabled() bool {
 	for _, arch := range p.Architectures {
 		switch arch {
+		// These hybrid architectures require per-model configuration, e.g. https://docs.lmcache.ai/recipes/qwen3_5.html.
+		// Disabling LMCache for these models for now.
 		case "NemotronHForCausalLM", "NemotronH_Nano_VL_V2", "NemotronHMTPModel", "NemotronHPuzzleForCausalLM",
-			"Gemma4ForCausalLM", "Gemma4ForConditionalGeneration", "Gemma4UnifiedForConditionalGeneration",
 			"Qwen3_5ForConditionalGeneration", "Qwen3_5MoeForConditionalGeneration",
 			"Qwen4ExpForCausalLM", "Qwen4ExpForConditionalGeneration",
 			"Glm5NextForCausalLM", "Glm5NextForConditionalGeneration", "Glm5NextMTPModel",

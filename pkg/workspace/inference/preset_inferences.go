@@ -247,8 +247,9 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// instead of being downloaded from HuggingFace or streamed from blob storage.
 	localModelWeightsPath := v1beta1.GetLocalWeightsPath(workspaceObj)
 
+	lmCacheConfig := &lmCacheResolvedConfig{}
 	podOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, corev1.PodSpec]{
-		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath),
+		GenerateInferencePodSpec(gpuConfig, numNodes, streamingModelPath, streamingLoadFormat, localModelWeightsPath, lmCacheConfig),
 		SetProvisionerNodeSelector,
 		SetHFToken,
 	}
@@ -274,6 +275,7 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if v1beta1.ShouldRunBenchmark(workspaceObj) {
 		podOpts = append(podOpts, SetBenchmarkConfig(distributed))
 	}
+	podOpts = append(podOpts, ConfigureLMCacheSidecar(lmCacheConfig))
 
 	ssOpts := []generator.TypedManifestModifier[generator.WorkspaceGeneratorContext, appsv1.StatefulSet]{
 		manifests.GenerateStatefulSetManifest(revisionNum, numNodes),
@@ -544,7 +546,9 @@ func GetPresetQuantization(presetName string) string {
 	return m.QuantMethod
 }
 
-func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat, localModelWeightsPath string) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
+func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat,
+	localModelWeightsPath string, lmCacheConfig *lmCacheResolvedConfig,
+) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
 	return func(ctx *generator.WorkspaceGeneratorContext, spec *corev1.PodSpec) error {
 		// additional volume
 		var volumes []corev1.Volume
@@ -662,6 +666,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 				LocalModelWeightsPath: localModelWeightsPath,
 			},
 		})
+		lmCacheConfig.runtimeName = runtimeName
+		lmCacheConfig.runParams = inferenceParam.VLLM.ModelRunParams
 
 		// Only set nodeAffinity when the user supplied selector labels.
 		// An empty MatchExpressions list is rejected by the Kubernetes API server.

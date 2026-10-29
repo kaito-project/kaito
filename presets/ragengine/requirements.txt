@@ -1,4 +1,5 @@
 # RAG Library Requirements
+kaito-guardrail-core==0.1.1
 llama-index==0.14.18
 # Pin llama-index-core to 0.14.18 to avoid the refresh_ref_docs regression in
 # newer releases that leaves FAISS node IDs out of sync with the index struct.

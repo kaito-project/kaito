@@ -28,7 +28,7 @@ upstream chunks
 | --- | --- |
 | `sse.py` | Frame network chunks into complete SSE events |
 | `openai.py` | Parse and build OpenAI-compatible SSE events |
-| `buffer_window.py` | Retain and scan an un-emitted text tail |
+| `buffer_window.py` | Compatibility exports from `guardrail_core.streaming.window` |
 | `guardrails.py` | Validate policy, run scanners, and emit or block |
 
 The default holdback is 256 characters. Policies with longer banned substrings
@@ -36,6 +36,15 @@ increase it to the longest configured substring length minus one for `str`
 matching, or the full substring length for `word` matching. The window retains
 the pending tail and the preceding character's boundary class, so it supports
 local pattern detection but not scanners that need the complete response.
+
+The window comes from the pinned `kaito-guardrail-core==0.1.1` package, not the
+repository's core source. It counts Unicode code points, not UTF-8 bytes.
+RAGEngine retains scanner construction, holdback sizing, policy ordering, Secrets
+verification, refusal formatting, and upstream closure.
+
+Scanner failures raise `WindowScanError`. RAGEngine logs the failure type and
+emits the block message, a `content_filter` finish event, and `[DONE]`, without
+releasing pending text. Cancellation propagates and closes the upstream iterator.
 
 ## Scanner Support
 

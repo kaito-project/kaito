@@ -15,6 +15,7 @@ package e2e
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -52,49 +53,124 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		loadTestEnvVars()
 	})
 
-	// MRI and InferenceSet tests run first so they are not interrupted by
-	// slow/flaky GPU-provisioning timeouts in the preset workspace tests below.
-	It("should perform P/D disaggregated inference with KV cache transfer successfully", Serial, utils.GinkgoLabelFastCheck, func() {
-		// Fail early if Istio CRDs are not installed
-		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for P/D traffic validation")
+	// The P/D and BBR specs both mutate shared gateway state (listeners and
+	// HTTPRoutes on default/inference-gateway, and the BBR release in the
+	// default namespace), so they must never run concurrently. Ordered runs
+	// them back to back on one Ginkgo process while the other processes keep
+	// running the remaining specs; Serial would instead defer them until all
+	// other specs finish, leaving those processes idle. SpecPriority starts
+	// this longest execution unit first so it neither forms the tail of the
+	// suite nor gets skipped by --fail-fast after a later GPU-provisioning flake.
+	Context("with the shared inference gateway", Ordered, ContinueOnFailure, SpecPriority(100), func() {
+		It("should perform P/D disaggregated inference with KV cache transfer successfully", utils.GinkgoLabelFastCheck, func() {
+			// Fail early if Istio CRDs are not installed
+			Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for P/D traffic validation")
 
-		// Uses the same MRI creation as existing test but adds P/D validation
-		mriObj := createGemma4MultiRoleInference()
-		defer cleanupResourcesForMultiRoleInference(mriObj)
+			// Uses the same MRI creation as existing test but adds P/D validation
+			mriObj := createGemma4MultiRoleInference()
+			defer cleanupResourcesForMultiRoleInference(mriObj)
 
-		validateMultiRoleInferenceChildInferenceSets(mriObj)
+			validateMultiRoleInferenceChildInferenceSets(mriObj)
 
-		childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
-		roleReplicas := map[string]int32{}
-		for _, role := range mriObj.Spec.Roles {
-			if role.Replicas != nil {
-				roleReplicas[string(role.Type)] = *role.Replicas
+			childInferenceSets := getMultiRoleInferenceChildInferenceSets(mriObj)
+			roleReplicas := map[string]int32{}
+			for _, role := range mriObj.Spec.Roles {
+				if role.Replicas != nil {
+					roleReplicas[string(role.Type)] = *role.Replicas
+				}
 			}
-		}
-		for i := range childInferenceSets {
-			is := &childInferenceSets[i]
-			validateInferenceSetStatus(is)
-			roleName, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]
-			Expect(ok).To(BeTrue(), "InferenceSet %s should have role label %s", is.Name, kaitov1alpha1.LabelInferenceRole)
-			Expect(roleReplicas).To(HaveKey(roleName), "InferenceSet %s has unexpected role %s", is.Name, roleName)
-			expectedReplicas := roleReplicas[roleName]
-			validateInferenceSetReplicas(is, expectedReplicas)
-			validateInferenceSetBenchmarkCompleted(is)
-		}
+			for i := range childInferenceSets {
+				is := &childInferenceSets[i]
+				validateInferenceSetStatus(is)
+				roleName, ok := is.Labels[kaitov1alpha1.LabelInferenceRole]
+				Expect(ok).To(BeTrue(), "InferenceSet %s should have role label %s", is.Name, kaitov1alpha1.LabelInferenceRole)
+				Expect(roleReplicas).To(HaveKey(roleName), "InferenceSet %s has unexpected role %s", is.Name, roleName)
+				expectedReplicas := roleReplicas[roleName]
+				validateInferenceSetReplicas(is, expectedReplicas)
+				validateInferenceSetBenchmarkCompleted(is)
+			}
 
-		validateMultiRoleInferenceGWIEResources(mriObj)
-		validateMultiRoleInferenceStatus(mriObj)
+			validateMultiRoleInferenceGWIEResources(mriObj)
+			validateMultiRoleInferenceStatus(mriObj)
 
-		// P/D-specific validations (require Istio)
-		validateMultiRoleInferenceEPPReady(mriObj)
-		validateMultiRoleInferenceEPPKVCacheScorer(mriObj)
-		validateMultiRoleInferenceDestinationRule(mriObj)
-		validateMultiRoleInferenceChatCompletions(mriObj)
-		validateMultiRoleInferenceKVEvents(mriObj)
-		validateMultiRoleInferencePDDisaggregation(mriObj)
+			// P/D-specific validations (require Istio)
+			validateMultiRoleInferenceEPPReady(mriObj)
+			validateMultiRoleInferenceEPPKVCacheScorer(mriObj)
+			validateMultiRoleInferenceDestinationRule(mriObj)
+			validateMultiRoleInferenceChatCompletions(mriObj)
+			validateMultiRoleInferenceKVEvents(mriObj)
+			validateMultiRoleInferencePDDisaggregation(mriObj)
+		})
+
+		It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", utils.GinkgoLabelFastCheck, func() {
+			Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
+
+			numOfReplicas := 1
+			inferenceSetObj := createGemma4InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
+			DeferCleanup(func() {
+				cleanupResourcesForInferenceSet(inferenceSetObj)
+			})
+
+			validateInferenceSetStatus(inferenceSetObj)
+			validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
+
+			// Validate NodePool shape and isolation for each child workspace (karpenter only)
+			if nodeProvisionerName == "azkarpenter" {
+				validateInferenceSetNodePools(inferenceSetObj, numOfReplicas)
+			}
+
+			validateInferenceSetBenchmarkCompleted(inferenceSetObj)
+			validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
+
+			// --- BBR (Body-Based Routing) validation ---
+			// vLLM serves the InferenceSet name as the OpenAI-compatible model id
+			// (see pkg/model/interface.go buildVLLMInferenceCommand: when the
+			// workspace has WorkspaceCreatedByInferenceSetLabel, served-model-name
+			// is set to the InferenceSet name). BBR mirrors the request body's
+			// "model" field into the X-Gateway-Model-Name header, so both the
+			// HTTPRoute header match and the request payload must use this name.
+			modelName := inferenceSetObj.Name
+			inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
+
+			// findWorkspacePod locates a running pod belonging to a child Workspace
+			// created by the InferenceSet, using the correct label selector.
+			findWorkspacePod := func() (string, string, string) {
+				wsList := &kaitov1beta1.WorkspaceList{}
+				var podName, containerName, namespace string
+				Eventually(func() bool {
+					err := utils.TestingCluster.KubeClient.List(ctx, wsList,
+						client.InNamespace(inferenceSetObj.Namespace),
+						client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
+					if err != nil || len(wsList.Items) == 0 {
+						return false
+					}
+					ws := &wsList.Items[0]
+					podList := &corev1.PodList{}
+					err = utils.TestingCluster.KubeClient.List(ctx, podList,
+						client.InNamespace(ws.Namespace),
+						client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: ws.Name})
+					if err != nil || len(podList.Items) == 0 {
+						return false
+					}
+					for _, pod := range podList.Items {
+						if pod.Status.Phase == corev1.PodRunning {
+							podName = pod.Name
+							containerName = pod.Spec.Containers[0].Name
+							namespace = pod.Namespace
+							return true
+						}
+					}
+					return false
+				}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
+					"Should find a running workspace pod for InferenceSet %s", inferenceSetObj.Name)
+				return podName, containerName, namespace
+			}
+
+			validateBBRRouting(inferenceSetObj, modelName, inferencePoolName, findWorkspacePod)
+		})
 	})
 
-	It("should create a gemma-4-12B-it two-node workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should create a gemma-4-12B-it two-node workspace with preset public mode successfully", func() {
 		numOfNode := 2
 		workspaceObj := createGemma4_12BInstructWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -117,7 +193,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateChatCompletionsEndpoint(workspaceObj)
 	})
 
-	It("should create a gpt-oss-20b workspace with preset public mode successfully", utils.GinkgoLabelFastCheck, func() {
+	It("should store and retrieve KV cache through LMCache MP on gpt-oss-20b", utils.GinkgoLabelFastCheck, func() {
 		numOfNode := 1
 		workspaceObj := createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode)
 
@@ -137,7 +213,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(workspaceObj)
 		validateWorkspaceBenchmarkCompleted(workspaceObj)
 		validateModelsEndpoint(workspaceObj)
-		validateChatCompletionsEndpoint(workspaceObj)
+		validateLMCacheMP(workspaceObj)
 	})
 
 	It("should create a qwen3.8-27b workspace with preset public mode successfully", utils.GinkgoLabelA100Required, func() {
@@ -239,7 +315,7 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
 	})
 
-	It("should create a XiaomiMiMo/MiMo-7B-Base InferenceSet with speculative decoding enabled", utils.GinkgoLabelFastCheck, utils.GinkgoLabelMinimumRequired, func() {
+	It("should create a XiaomiMiMo/MiMo-7B-Base InferenceSet with speculative decoding enabled", utils.GinkgoLabelMinimumRequired, func() {
 		// XiaomiMiMo/MiMo-7B-Base is in speculativeDecodingByPreset, so the
 		// InferenceSet -> child Workspace propagation path should inject the
 		// preset-tuned MTP configuration instead of the universal ngram
@@ -261,73 +337,6 @@ var _ = Describe("Workspace Preset on vllm runtime", func() {
 		validateWorkspaceReadiness(childWS)
 		validateInferenceSetModelsEndpoint(childWS, inferenceSetObj.Name)
 		validateInferenceSetChatCompletionsEndpoint(childWS, inferenceSetObj.Name)
-	})
-
-	It("should create a Gemma 3 InferenceSet with preset public mode and validate BBR routing", Serial, utils.GinkgoLabelFastCheck, func() {
-		Expect(isIstioCRDAvailable()).To(BeTrue(), "Istio CRDs must be available for BBR routing validation")
-
-		numOfReplicas := 1
-		inferenceSetObj := createGemma4InferenceSetWithPresetPublicModeAndVLLM(numOfReplicas)
-		DeferCleanup(func() {
-			cleanupResourcesForInferenceSet(inferenceSetObj)
-		})
-
-		validateInferenceSetStatus(inferenceSetObj)
-		validateInferenceSetReplicas(inferenceSetObj, int32(numOfReplicas))
-
-		// Validate NodePool shape and isolation for each child workspace (karpenter only)
-		if nodeProvisionerName == "azkarpenter" {
-			validateInferenceSetNodePools(inferenceSetObj, numOfReplicas)
-		}
-
-		validateInferenceSetBenchmarkCompleted(inferenceSetObj)
-		validateGatewayAPIInferenceExtensionResources(inferenceSetObj)
-
-		// --- BBR (Body-Based Routing) validation ---
-		// vLLM serves the InferenceSet name as the OpenAI-compatible model id
-		// (see pkg/model/interface.go buildVLLMInferenceCommand: when the
-		// workspace has WorkspaceCreatedByInferenceSetLabel, served-model-name
-		// is set to the InferenceSet name). BBR mirrors the request body's
-		// "model" field into the X-Gateway-Model-Name header, so both the
-		// HTTPRoute header match and the request payload must use this name.
-		modelName := inferenceSetObj.Name
-		inferencePoolName := kaitoutils.InferencePoolName(inferenceSetObj.Name)
-
-		// findWorkspacePod locates a running pod belonging to a child Workspace
-		// created by the InferenceSet, using the correct label selector.
-		findWorkspacePod := func() (string, string, string) {
-			wsList := &kaitov1beta1.WorkspaceList{}
-			var podName, containerName, namespace string
-			Eventually(func() bool {
-				err := utils.TestingCluster.KubeClient.List(ctx, wsList,
-					client.InNamespace(inferenceSetObj.Namespace),
-					client.MatchingLabels{consts.WorkspaceCreatedByInferenceSetLabel: inferenceSetObj.Name})
-				if err != nil || len(wsList.Items) == 0 {
-					return false
-				}
-				ws := &wsList.Items[0]
-				podList := &corev1.PodList{}
-				err = utils.TestingCluster.KubeClient.List(ctx, podList,
-					client.InNamespace(ws.Namespace),
-					client.MatchingLabels{kaitov1beta1.LabelWorkspaceName: ws.Name})
-				if err != nil || len(podList.Items) == 0 {
-					return false
-				}
-				for _, pod := range podList.Items {
-					if pod.Status.Phase == corev1.PodRunning {
-						podName = pod.Name
-						containerName = pod.Spec.Containers[0].Name
-						namespace = pod.Namespace
-						return true
-					}
-				}
-				return false
-			}, 5*time.Minute, utils.PollInterval).Should(BeTrue(),
-				"Should find a running workspace pod for InferenceSet %s", inferenceSetObj.Name)
-			return podName, containerName, namespace
-		}
-
-		validateBBRRouting(inferenceSetObj, modelName, inferencePoolName, findWorkspacePod)
 	})
 
 })
@@ -1500,6 +1509,158 @@ func createGPTOss20BWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1
 		createAndValidateWorkspace(workspaceObj)
 	})
 	return workspaceObj
+}
+
+// validateLMCacheMP verifies the native LMCache sidecar topology and its data path
+// by storing a long prompt in L1, restarting only vLLM, and confirming that replaying
+// the prompt reads cached chunks and reports external cache-hit tokens.
+func validateLMCacheMP(workspaceObj *kaitov1beta1.Workspace) {
+	const (
+		sidecarName     = "lmcache-mp-server"
+		writeMetricName = "lmcache_mp_l1_write_chunks_total"
+		readMetricName  = "lmcache_mp_l1_read_chunks_total"
+		hitMetricName   = "lmcache_mp_lookup_hit_tokens_total"
+	)
+
+	By("Validating the LMCache native sidecar topology", func() {
+		Eventually(func() error {
+			statefulSet := &appsv1.StatefulSet{}
+			if err := utils.TestingCluster.KubeClient.Get(ctx, client.ObjectKeyFromObject(workspaceObj), statefulSet); err != nil {
+				return err
+			}
+			for _, container := range statefulSet.Spec.Template.Spec.InitContainers {
+				if container.Name == sidecarName && container.RestartPolicy != nil &&
+					*container.RestartPolicy == corev1.ContainerRestartPolicyAlways {
+					return nil
+				}
+			}
+			return fmt.Errorf("StatefulSet does not contain native sidecar %q", sidecarName)
+		}, 2*time.Minute, utils.PollInterval).Should(Succeed())
+	})
+
+	coreClient, err := utils.GetK8sClientset()
+	Expect(err).NotTo(HaveOccurred())
+	k8sConfig, err := utils.GetK8sConfig()
+	Expect(err).NotTo(HaveOccurred())
+	podName := workspaceObj.Name + "-0"
+	modelName := getModelName(string(workspaceObj.Inference.Preset.Name))
+
+	prefix := strings.Repeat("Kubernetes controllers continuously reconcile declared desired state with observed cluster state. ", 384)
+	payload, err := json.Marshal(map[string]any{
+		"model": modelName,
+		"messages": []map[string]string{{
+			"role":    "user",
+			"content": prefix + " Summarize the repeated statement in one sentence.",
+		}},
+		"max_tokens":  8,
+		"temperature": 0,
+	})
+	Expect(err).NotTo(HaveOccurred())
+	encodedPayload := base64.StdEncoding.EncodeToString(payload)
+	requestCommand := fmt.Sprintf(
+		`printf '%%s' '%s' | base64 -d | curl -fsS --max-time 120 -H 'Content-Type: application/json' --data-binary @- http://127.0.0.1:5000/v1/chat/completions | grep -q '"object":"chat.completion'`,
+		encodedPayload,
+	)
+
+	execMain := func(command string) (string, error) {
+		execCtx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+		return utils.ExecSync(execCtx, k8sConfig, coreClient, workspaceObj.Namespace, podName, corev1.PodExecOptions{
+			Command:   []string{"sh", "-c", command},
+			Container: workspaceObj.Name,
+			Stdout:    true,
+			Stderr:    true,
+		})
+	}
+	readMetric := func(name string) (float64, error) {
+		metrics, err := execMain("curl -fsS --max-time 10 http://127.0.0.1:8080/metrics")
+		if err != nil {
+			return 0, err
+		}
+		return sumPrometheusMetric(metrics, name)
+	}
+
+	writesBefore, err := readMetric(writeMetricName)
+	Expect(err).NotTo(HaveOccurred())
+	By("Populating LMCache L1 with a long prompt", func() {
+		Eventually(func() error {
+			_, err := execMain(requestCommand)
+			return err
+		}, 5*time.Minute, utils.PollInterval).Should(Succeed())
+		Eventually(func() float64 {
+			value, _ := readMetric(writeMetricName)
+			return value
+		}, 2*time.Minute, utils.PollInterval).Should(BeNumerically(">", writesBefore))
+	})
+
+	pod, err := coreClient.CoreV1().Pods(workspaceObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
+	Expect(err).NotTo(HaveOccurred())
+	restartsBefore := int32(0)
+	for _, status := range pod.Status.ContainerStatuses {
+		if status.Name == workspaceObj.Name {
+			restartsBefore = status.RestartCount
+			break
+		}
+	}
+
+	By("Restarting vLLM while preserving the LMCache sidecar", func() {
+		_, _ = execMain("kill 1")
+		Eventually(func() bool {
+			pod, getErr := coreClient.CoreV1().Pods(workspaceObj.Namespace).Get(ctx, podName, metav1.GetOptions{})
+			if getErr != nil {
+				return false
+			}
+			for _, status := range pod.Status.ContainerStatuses {
+				if status.Name == workspaceObj.Name {
+					return status.RestartCount > restartsBefore && status.Ready
+				}
+			}
+			return false
+		}, 10*time.Minute, utils.PollInterval).Should(BeTrue())
+	})
+
+	readsBefore, err := readMetric(readMetricName)
+	Expect(err).NotTo(HaveOccurred())
+	hitsBefore, err := readMetric(hitMetricName)
+	Expect(err).NotTo(HaveOccurred())
+	By("Replaying the prompt from LMCache L1", func() {
+		Eventually(func() error {
+			_, err := execMain(requestCommand)
+			return err
+		}, 5*time.Minute, utils.PollInterval).Should(Succeed())
+		Eventually(func() bool {
+			reads, readErr := readMetric(readMetricName)
+			hits, hitErr := readMetric(hitMetricName)
+			return readErr == nil && hitErr == nil && reads > readsBefore && hits > hitsBefore
+		}, 2*time.Minute, utils.PollInterval).Should(BeTrue(), "LMCache must read chunks and report external hit tokens")
+	})
+}
+
+func sumPrometheusMetric(metrics, name string) (float64, error) {
+	found := false
+	total := 0.0
+	for line := range strings.SplitSeq(metrics, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) < 2 || (fields[0] != name && !strings.HasPrefix(fields[0], name+"{")) {
+			continue
+		}
+		value, err := strconv.ParseFloat(fields[len(fields)-1], 64)
+		if err != nil {
+			return 0, fmt.Errorf("parse metric %s value %q: %w", name, fields[len(fields)-1], err)
+		}
+		total += value
+		found = true
+	}
+	if !found {
+		// LMCache registers some counters lazily on their first event. An absent
+		// counter therefore has the same initial value as an exported zero.
+		return 0, nil
+	}
+	return total, nil
 }
 
 func createNemotronNano9BStreamingWorkspaceWithPresetPublicModeAndVLLM(numOfNode int) *kaitov1beta1.Workspace {

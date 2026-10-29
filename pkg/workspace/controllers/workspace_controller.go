@@ -762,6 +762,14 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	if existingErr == nil {
 		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
 		if !baseImageUpgrade {
+			// Without auto-upgrade, keep the LMCache setup supported by the deployed
+			// KAITO base image. Adding the sidecar to an older image would reference a
+			// missing health script and run both the old in-process cache and sidecar.
+			if preserveLMCacheTopologyForDeployedImage(existingObj, desiredStatefulSet) {
+				klog.InfoS("Deferring LMCache topology update until the base image is upgraded", "workspace", klog.KObj(wObj),
+					"deployedImage", workspace.GetInferenceContainerImage(existingObj),
+					"desiredImage", workspace.GetInferenceContainerImage(desiredStatefulSet))
+			}
 			preserveDeployedImages(existingObj, desiredStatefulSet)
 		}
 	}
@@ -848,6 +856,9 @@ func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
 	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
 	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env
 	existingSpec.Containers[0].VolumeMounts = desiredSpec.Containers[0].VolumeMounts
+	// The LMCache sidecar swaps in an exec liveness probe that depends on the
+	// sidecar's runtime volume, so it must follow InitContainers and Volumes.
+	existingSpec.Containers[0].LivenessProbe = desiredSpec.Containers[0].LivenessProbe
 	existingSpec.InitContainers = desiredSpec.InitContainers
 	existingSpec.Volumes = desiredSpec.Volumes
 }
@@ -1122,17 +1133,23 @@ func (c *WorkspaceReconciler) classifyInferencePodFailure(ctx context.Context, w
 		return r, m
 	}
 
-	// 2. Container-level failures (init + main containers).
+	// 2. Report LMCache sidecar failures explicitly so InferenceReady identifies
+	// the optional cache layer as the blocker rather than a generic pod failure.
+	if r, m := detectLMCacheFailure(pods); r != "" {
+		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
+	}
+
+	// 3. Container-level failures (init + main containers).
 	if r, m := detectContainerFailure(pods); r != "" {
 		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
 	}
 
-	// 3. Pod evicted due to node resource pressure.
+	// 4. Pod evicted due to node resource pressure.
 	if r, m := detectEvictedPod(pods); r != "" {
 		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
 	}
 
-	// 4. Pod cannot be scheduled onto any node.
+	// 5. Pod cannot be scheduled onto any node.
 	if r, m := detectUnschedulablePod(pods); r != "" {
 		return r, utils.TruncateMessage(m, maxInferenceMessageLen)
 	}
@@ -1820,7 +1837,6 @@ func (c *WorkspaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			}),
 		)
 	}
-
 	bldr = bldr.WithOptions(controller.Options{MaxConcurrentReconciles: 5})
 
 	go monitorWorkspaces(context.Background(), c.Client)

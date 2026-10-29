@@ -133,7 +133,7 @@ runs:
         password: ${{ inputs.ghcr_token }}
 
     - name: Build model image
-      if: inputs.model_name != 'base'
+      if: inputs.model_name != 'base' && inputs.model_name != 'base-vllm-cpu'
       run: |
         PR_BRANCH=${{ inputs.branch_name }}
         ACR_NAME=${{ inputs.acr_name }}
@@ -171,8 +171,8 @@ runs:
 
       shell: bash
 
-    - name: Build Base Model
-      if: inputs.model_name == 'base'
+    - name: Build runtime image
+      if: inputs.model_name == 'base' || inputs.model_name == 'base-vllm-cpu'
       run: |
         PR_BRANCH=${{ inputs.branch_name }}
         ACR_NAME=${{ inputs.acr_name }}
@@ -192,13 +192,22 @@ runs:
         # Login to ACR registry
         echo $ACR_PASSWORD | docker login $ACR_NAME.azurecr.io -u $ACR_USERNAME --password-stdin
 
+        DOCKERFILE=./docker/presets/models/tfs/Dockerfile
+        BUILD_ARGS=(--build-arg VERSION="$MODEL_TAG" --build-arg MODEL_TYPE="$MODEL_TYPE")
+        PLATFORM_ARGS=()
+        if [ "$MODEL_NAME" = "base-vllm-cpu" ]; then
+          DOCKERFILE=./docker/presets/models/vllm-cpu/Dockerfile
+          BUILD_ARGS=(--build-arg VERSION="$MODEL_TAG")
+          PLATFORM_ARGS=(--platform linux/amd64)
+        fi
+
         # Build and push to both registries
         docker buildx build \
           --builder img-builder \
-          --build-arg VERSION=$MODEL_TAG \
-          --build-arg MODEL_TYPE=$MODEL_TYPE \
+          "${BUILD_ARGS[@]}" \
+          "${PLATFORM_ARGS[@]}" \
           -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$MODEL_TAG \
           -t ghcr.io/kaito-project/kaito/kaito-$MODEL_NAME:$MODEL_TAG \
           -o type=image,push=true,compression=zstd \
-          -f ./docker/presets/models/tfs/Dockerfile .
+          -f "$DOCKERFILE" .
       shell: bash

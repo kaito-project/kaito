@@ -11,11 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import json
 import os
 import sys
 
 import pytest
+from guardrail_core.streaming.sse import DEFAULT_MAX_EVENT_BYTES
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
@@ -103,16 +105,16 @@ async def _apply_content_chunks(contents, guardrails, *, finish_reason=None):
 
     async def upstream_chunks():
         for payload in payloads:
-            yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
+            yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n".encode()
         if finish_reason is not None:
             yield (
                 'data: {"choices":[{"index":0,"delta":{},'
                 f'"finish_reason":"{finish_reason}"}}]}}\n\n'
-            )
-        yield "data: [DONE]\n\n"
+            ).encode()
+        yield b"data: [DONE]\n\n"
 
     return [
-        chunk
+        chunk.decode("utf-8") if isinstance(chunk, bytes) else chunk
         async for chunk in apply_streaming_guardrails(
             upstream_chunks(), guardrails, {"messages": []}
         )
@@ -122,11 +124,257 @@ async def _apply_content_chunks(contents, guardrails, *, finish_reason=None):
 def _emitted_text(chunks):
     text = ""
     for chunk in chunks:
+        if isinstance(chunk, bytes):
+            chunk = chunk.decode("utf-8")
         if not chunk.startswith("data: {"):
             continue
         payload = json.loads(chunk.removeprefix("data: ").strip())
         text += payload["choices"][0].get("delta", {}).get("content", "")
     return text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("scan_stage", ["feed", "done", "finish", "eof"])
+async def test_scanner_exception_refuses_without_releasing_pending_text(
+    monkeypatch, caplog, scan_stage
+):
+    closed = False
+
+    def failing_scan(scanners, prompt, output, fail_fast):
+        raise RuntimeError("scanner failed")
+
+    monkeypatch.setattr("ragengine.streaming.guardrails.scan_output", failing_scan)
+
+    async def upstream():
+        nonlocal closed
+        try:
+            content = "un" * 200 if scan_stage == "feed" else "un"
+            payload = {"choices": [{"index": 0, "delta": {"content": content}}]}
+            yield f"data: {json.dumps(payload)}\n\n".encode()
+            if scan_stage == "finish":
+                yield b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+            elif scan_stage != "eof":
+                yield b"data: [DONE]\n\n"
+        finally:
+            closed = True
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+        )
+    ]
+
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert len(chunks) == 3
+    assert "content_filter" in chunks[-2]
+    assert chunks[-1] == "data: [DONE]\n\n"
+    assert "streaming_guardrails_scan_failed" in caplog.text
+    assert closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "heartbeat",
+    [b": keepalive\n\n", b"event: ping\n\n", b"\n", b"data:\n\n", b"data: \t\n\n"],
+)
+async def test_streaming_no_data_is_skipped_without_refusal(heartbeat):
+    async def upstream():
+        yield heartbeat
+        yield b'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+        yield b"data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+        )
+    ]
+    assert _emitted_text(chunks) == "safe"
+    assert chunks[-1] == "data: [DONE]\n\n"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "choices",
+    [
+        [{"index": 1, "delta": {"role": "assistant"}}],
+        [{"index": -1}],
+        [{"index": 0, "delta": {}}, {"index": 1, "delta": {}}],
+        [{"index": 0, "delta": {"role": "assistant"}}, {"index": 0, "delta": {}}],
+        [{"index": 0, "delta": {}}, {"index": 1, "delta": {"content": "unsafe"}}],
+    ],
+)
+async def test_all_choices_including_non_text_choices_are_validated(choices):
+    async def upstream():
+        yield f"data: {json.dumps({'choices': choices})}\n\n".encode()
+        yield b"data: [DONE]\n\n"
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+        )
+    ]
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert "content_filter" in chunks[-2]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        b"data:\xff\n\n",
+        b"data:" + b"x" * DEFAULT_MAX_EVENT_BYTES,
+        b"data: unfinished",
+        b"data: unfinished\r",
+        b"data: \xe4\xbd",
+        b'data: {"choices": [}\n\n',
+        b'data: {"choices":[{"delta":{"content":"unsafe"}}]}\n\n',
+        b'data: {"choices":[{"index":true,"delta":{}}]}\n\n',
+        b'data: {"choices":[{"index":0,"delta":[]}]} \n\n',
+        b'data: {"choices":[{"index":0,"delta":{"content":42}}]}\n\n',
+        b'data: {"choices":[{"index":0,"finish_reason":42}]}\n\n',
+    ],
+)
+async def test_invalid_stream_refuses_without_flushing_pending_text(invalid):
+    closed = False
+
+    async def upstream():
+        nonlocal closed
+        try:
+            yield b'data: {"choices":[{"index":0,"delta":{"content":"un"}}]}\n\n'
+            yield invalid
+        finally:
+            closed = True
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+        )
+    ]
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert len(chunks) == 3
+    assert "content_filter" in chunks[-2]
+    assert chunks[-1] == "data: [DONE]\n\n"
+    assert closed
+
+
+@pytest.mark.asyncio
+async def test_successful_byte_stream_closes_upstream_and_preserves_finish():
+    closed = False
+    finish = b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\r\r'
+
+    async def upstream():
+        nonlocal closed
+        try:
+            yield b'data: {"choices":[{"index":0,"delta":{"role":"assistant"}}]}\r\n\r\n'
+            yield b'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}\n\n'
+            yield b'data: {"choices":[],"usage":{"total_tokens":10}}\n\n'
+            yield finish
+            yield b"data: [DONE]\n\n"
+            pytest.fail("Upstream must not be consumed past DONE")
+        finally:
+            closed = True
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+        )
+    ]
+    assert _emitted_text(chunks) == "safe"
+    assert finish in chunks
+    assert isinstance(chunks[-2], bytes)
+    assert chunks[-1] == "data: [DONE]\n\n"
+    assert closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("ending", (b"\n\n", b"\r\r", b"\n\r", b"\r\n\r"))
+async def test_normal_eof_finishes_framing_before_scanning_holdback(ending):
+    async def upstream():
+        yield b'data: {"choices":[{"index":0,"delta":{"content":"safe"}}]}' + ending
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+        )
+    ]
+    assert _emitted_text(chunks) == "safe"
+    assert "content_filter" not in "".join(chunks)
+
+
+@pytest.mark.asyncio
+async def test_block_hit_closes_upstream_without_consuming_following_chunks():
+    closed = False
+
+    async def upstream():
+        nonlocal closed
+        try:
+            yield f"data: {json.dumps({'choices': [{'index': 0, 'delta': {'content': 'unsafe' * 60}}]})}\n\n".encode()
+            pytest.fail("Upstream must not be consumed after blocking")
+        finally:
+            closed = True
+
+    chunks = [
+        chunk
+        async for chunk in apply_streaming_guardrails(
+            upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+        )
+    ]
+    assert _emitted_text(chunks) == "blocked-by-policy"
+    assert closed
+
+
+@pytest.mark.asyncio
+async def test_cancellation_propagates_and_closes_upstream_without_flushing():
+    waiting = asyncio.Event()
+    closed = False
+
+    async def upstream():
+        nonlocal closed
+        try:
+            yield b'data: {"choices":[{"index":0,"delta":{"content":"un"}}]}\n\n'
+            waiting.set()
+            await asyncio.Event().wait()
+        finally:
+            closed = True
+
+    output = apply_streaming_guardrails(
+        upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+    )
+    task = asyncio.create_task(anext(output))
+    try:
+        await asyncio.wait_for(waiting.wait(), timeout=1)
+    finally:
+        task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert closed
+    assert [chunk async for chunk in output] == []
+
+
+@pytest.mark.asyncio
+async def test_downstream_close_closes_upstream():
+    closed = False
+
+    async def upstream():
+        nonlocal closed
+        try:
+            yield f"data: {json.dumps({'choices': [{'index': 0, 'delta': {'content': 'a' * 300}}]})}\n\n".encode()
+            await asyncio.Event().wait()
+        finally:
+            closed = True
+
+    output = apply_streaming_guardrails(
+        upstream(), _streaming_guardrails(_ban_substrings_scanner()), {}
+    )
+    assert _emitted_text([await anext(output)]) == "a" * 44
+    await output.aclose()
+    assert closed
 
 
 def test_validate_streaming_guardrails_accepts_block_ban_substrings_policy():
@@ -362,8 +610,8 @@ async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event(
     async def upstream_chunks():
         nonlocal closed
         try:
-            yield 'data: {"choices": [}\n\n'
-            yield 'data: {"choices":[{"delta":{"content":"unsafe after"}}]}\n\n'
+            yield b'data: {"choices": [}\n\n'
+            yield b'data: {"choices":[{"delta":{"content":"unsafe after"}}]}\n\n'
         finally:
             closed = True
 
@@ -401,17 +649,17 @@ async def test_apply_streaming_guardrails_emits_refusal_for_malformed_sse_event(
     "event",
     [
         (
-            'data: {"choices":['
-            '{"index":0,"delta":{"content":"first"}},'
-            '{"index":1,"delta":{"content":"second"}}]}\n\n'
+            b'data: {"choices":['
+            b'{"index":0,"delta":{"content":"first"}},'
+            b'{"index":1,"delta":{"content":"second"}}]}\n\n'
         ),
-        'data: {"choices":[{"index":1,"delta":{"content":"second"}}]}\n\n',
+        b'data: {"choices":[{"index":1,"delta":{"content":"second"}}]}\n\n',
     ],
 )
 async def test_apply_streaming_guardrails_rejects_non_single_choice_event(event):
     async def upstream_chunks():
         yield event
-        yield "data: [DONE]\n\n"
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,
@@ -445,11 +693,11 @@ async def test_apply_streaming_guardrails_rejects_non_single_choice_event(event)
 async def test_apply_streaming_guardrails_blocks_secrets_scanner_hit():
     async def upstream_chunks():
         yield (
-            'data: {"choices":[{"index":0,"delta":{"content":'
-            '"Contact me at AKIA1234567890ABCDEF for access."}}]}\n\n'
+            b'data: {"choices":[{"index":0,"delta":{"content":'
+            b'"Contact me at AKIA1234567890ABCDEF for access."}}]}\n\n'
         )
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
+        yield b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,
@@ -483,11 +731,11 @@ async def test_apply_streaming_guardrails_blocks_secrets_scanner_hit():
 async def test_apply_streaming_guardrails_blocks_sensitive_scanner_hit():
     async def upstream_chunks():
         yield (
-            'data: {"choices":[{"index":0,"delta":{"content":'
-            '"Reach me at leaked@example.com anytime."}}]}\n\n'
+            b'data: {"choices":[{"index":0,"delta":{"content":'
+            b'"Reach me at leaked@example.com anytime."}}]}\n\n'
         )
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
+        yield b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,
@@ -520,9 +768,9 @@ async def test_apply_streaming_guardrails_blocks_sensitive_scanner_hit():
 @pytest.mark.asyncio
 async def test_apply_streaming_guardrails_blocks_invisible_text_scanner_hit():
     async def upstream_chunks():
-        yield 'data: {"choices":[{"index":0,"delta":{"content":"hello\\u200bworld"}}]}\n\n'
-        yield 'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
-        yield "data: [DONE]\n\n"
+        yield b'data: {"choices":[{"index":0,"delta":{"content":"hello\\u200bworld"}}]}\n\n'
+        yield b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+        yield b"data: [DONE]\n\n"
 
     guardrails = OutputGuardrails(
         enabled=True,

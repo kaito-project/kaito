@@ -398,14 +398,14 @@ type RuntimeContextExtraArguments struct {
 	// No HuggingFace download is performed. Mutually exclusive with StreamingModelPath.
 	LocalModelWeightsPath string // e.g. "/opt/kaito/models/deepseekv4flash"
 
-	// TargetCPU switches the preset vLLM command line to CPU execution.
+	// TargetCPU switches the selected preset runtime command line to CPU execution.
 	TargetCPU bool
 }
 
 func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
 	switch rc.RuntimeName {
 	case RuntimeNameHuggingfaceTransformers:
-		return p.buildHuggingfaceInferenceCommand()
+		return p.buildHuggingfaceInferenceCommand(rc)
 	case RuntimeNameVLLM:
 		return p.buildVLLMInferenceCommand(rc)
 	default:
@@ -413,7 +413,26 @@ func (p *PresetParam) GetInferenceCommand(rc RuntimeContext) []string {
 	}
 }
 
-func (p *PresetParam) buildHuggingfaceInferenceCommand() []string {
+func (p *PresetParam) buildHuggingfaceInferenceCommand(rc RuntimeContext) []string {
+	if rc.TargetCPU {
+		// Do not mutate the shared preset or inherit a GPU/distributed launcher.
+		p = p.DeepCopy()
+		if p.Transformers.AccelerateParams == nil {
+			p.Transformers.AccelerateParams = make(map[string]string)
+		}
+		delete(p.Transformers.AccelerateParams, "multi_gpu")
+		delete(p.Transformers.AccelerateParams, "gpu_ids")
+		p.Transformers.AccelerateParams["cpu"] = ""
+		p.Transformers.AccelerateParams["num_processes"] = "1"
+		p.Transformers.AccelerateParams["num_machines"] = "1"
+		p.Transformers.AccelerateParams["machine_rank"] = "0"
+		if p.Transformers.ModelRunParams == nil {
+			p.Transformers.ModelRunParams = make(map[string]string)
+		}
+		p.Transformers.ModelRunParams["device_map"] = "cpu"
+		// Avoid FP16 CPU kernels and keep the model memory footprint below FP32.
+		p.Transformers.ModelRunParams["torch_dtype"] = "bfloat16"
+	}
 	if p.Transformers.ModelName != "" {
 		p.Transformers.ModelRunParams["served_model_name"] = p.Transformers.ModelName
 	}

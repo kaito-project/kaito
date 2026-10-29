@@ -549,7 +549,10 @@ func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) s
 	if runtimeName == pkgmodel.RuntimeNameVLLM {
 		return getCPUVLLMImageName()
 	}
-	// Never silently select a GPU image for an unsupported CPU runtime.
+	if runtimeName == pkgmodel.RuntimeNameHuggingfaceTransformers {
+		return GetBaseImageName()
+	}
+	// Never silently select an image for an unsupported CPU runtime.
 	return ""
 }
 
@@ -561,7 +564,12 @@ func GetDesiredInferenceImageName(ws *v1beta1.Workspace) string {
 	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
 		return GetBaseImageName()
 	}
-	return getPresetInferenceImageName(v1beta1.GetWorkspaceRuntimeName(ws), v1beta1.IsCPUInferenceWorkspace(ws))
+	runtimeName := v1beta1.GetWorkspaceRuntimeName(ws)
+	isCPU := v1beta1.IsCPUInferenceWorkspace(ws)
+	if isCPU && runtimeName != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ws) {
+		return ""
+	}
+	return getPresetInferenceImageName(runtimeName, isCPU)
 }
 
 // GetDesiredInferenceImageNameWithResolution returns the runtime-aware image after
@@ -575,8 +583,8 @@ func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1
 		return "", err
 	}
 	runtimeName := v1beta1.GetWorkspaceRuntimeName(ws)
-	if isCPUInference && runtimeName != pkgmodel.RuntimeNameVLLM {
-		return "", fmt.Errorf("CPU preset inference only supports the vllm runtime, got %s", runtimeName)
+	if isCPUInference && runtimeName != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ws) {
+		return "", fmt.Errorf("CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType, got %s", runtimeName)
 	}
 	return getPresetInferenceImageName(runtimeName, isCPUInference), nil
 }
@@ -641,8 +649,8 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		if err != nil {
 			return err
 		}
-		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM {
-			return fmt.Errorf("CPU preset inference only supports the vllm runtime")
+		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ctx.Workspace) {
+			return fmt.Errorf("CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
 		}
 		if !isCPUInference && gpuConfig == nil {
 			return fmt.Errorf("inference target resolution changed during pod generation; retry reconciliation")

@@ -16,29 +16,31 @@ The script downloads model weights during server bootstrap, eliminating the need
 
 ## Basic CPU preset support
 
-KAITO also supports basic CPU preset inference referenced through `inference.preset.name`. This path requires the `enableCPUInference` feature gate to be enabled on the workspace manager. Both built-in presets and generic Hugging Face model IDs are allowed, as long as the model can resolve through the normal vLLM-compatible preset flow.
+KAITO also supports basic CPU preset inference referenced through `inference.preset.name`. This path requires the `enableCPUInference` feature gate to be enabled on the workspace manager. CPU inference defaults to vLLM. Built-in presets and generic Hugging Face model IDs are allowed when supported by the selected runtime. To use Transformers, explicitly set `metadata.annotations["kaito.sh/runtime"]: transformers` and an amd64 CPU VM `resource.instanceType`; this reuses the configured `kaito-base` image (no separate Transformers CPU image). Transformers requires a preset with existing Transformers parameters; label-only BYO CPU selection remains vLLM-only.
 
 ### Preset CPU examples
 
-Retained example:
+Examples:
 
 - NAP InferenceSet (default CPU `vllm` runtime): [`examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml`](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_vllm.yaml)
 
-This example uses `google/gemma-4-E4B-it` on `Standard_D16s_v6`.
+- NAP InferenceSet (explicit CPU `transformers` runtime): [`examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_transformers.yaml`](https://github.com/kaito-project/kaito/tree/main/examples/inference/kaito_inferenceset_gemma_4_e4b_it_cpu_transformers.yaml)
+
+Both examples use `google/gemma-4-E4B-it`. Both request `Standard_D16s_v6`. For Transformers, first accept the gated model license on Hugging Face and create a Secret named `hf-token` in the same namespace with an `HF_TOKEN` key containing a token authorized to download the model. The example references it through `presetOptions.modelAccessSecret`. The runtime annotation on the InferenceSet is propagated to child Workspaces. CPU Transformers launches one process with `--cpu` and `--device_map=cpu`, and uses the native `/health` probe. Gemma uses `bfloat16`. This is text-only serving, but the existing loader still loads the composite model, including its vision/audio components; size memory accordingly. The example has not been validated with a live Gemma Transformers CPU deployment.
 
 ### Basic CPU support matrix
 
 | Scenario | Status | Notes |
 |---|---|---|
 | Preset InferenceSet on CPU | supported with `enableCPUInference` | retained example uses default CPU `vllm` runtime |
-| CPU preset with NAP | supported with `enableCPUInference` | specify an amd64 CPU instance type; vLLM runtime only |
-| Transformers preset inference on CPU | not supported | Transformers runtime remains GPU-only |
+| CPU preset with NAP | supported with `enableCPUInference` | specify an amd64 CPU instance type |
+| Transformers preset inference on CPU | supported with `enableCPUInference` | explicit runtime annotation + amd64 CPU instance type; existing `kaito-base` image and compatible preset |
 | Post-load benchmark stage on CPU | skipped | basic CPU paths do not run the benchmark stage |
 | Multi-node CPU inference | not supported | basic CPU support is single-node only |
 
 ## Limitations
 
 - **Single-node only**: Distributed inference across multiple nodes is not supported for basic CPU paths.
-- **Preset compatibility still depends on model resolution/runtime support**: generic Hugging Face model IDs must resolve through the normal vLLM-compatible preset flow.
+- **Preset compatibility still depends on model resolution/runtime support**: generic Hugging Face model IDs must resolve through the selected runtime; Transformers needs existing Transformers preset parameters.
 - **CPU benchmark stage skipped**: basic CPU inference does not run the post-load benchmark stage.
 - **No custom-model autoscaling**: These CPU paths do not attempt to wire autoscaling behavior.

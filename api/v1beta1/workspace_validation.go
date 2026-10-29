@@ -219,12 +219,12 @@ func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeCli
 
 	runtimeName := GetWorkspaceRuntimeName(w)
 	runtimeAnnotation := w.GetAnnotations()[AnnotationWorkspaceRuntime]
-	if runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM) {
+	if runtimeAnnotation != "" && runtimeAnnotation != string(model.RuntimeNameVLLM) && !IsExplicitTransformersCPUWorkspace(w) {
 		errs = errs.Also(apis.ErrInvalidValue(
-			fmt.Sprintf("CPU inference only supports the vllm runtime; %s is not supported", runtimeAnnotation),
+			fmt.Sprintf("CPU inference requires vllm or explicit transformers with an amd64 CPU instanceType; %s is not supported", runtimeAnnotation),
 			fmt.Sprintf("metadata.annotations[%s]", AnnotationWorkspaceRuntime),
 		))
-	} else if w.Inference != nil && w.Inference.Preset != nil && runtimeName != model.RuntimeNameVLLM {
+	} else if w.Inference != nil && w.Inference.Preset != nil && runtimeName != model.RuntimeNameVLLM && !IsExplicitTransformersCPUWorkspace(w) {
 		errs = errs.Also(apis.ErrInvalidValue(
 			"CPU preset inference requires the vllm feature gate to be enabled",
 			"inference.preset",

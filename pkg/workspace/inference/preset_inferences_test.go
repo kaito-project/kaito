@@ -2704,7 +2704,8 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 	}{
 		{"cpu vllm", "Standard_D8s_v5", "vllm", true, true, false},
 		{"cpu default runtime", "Standard_D8s_v5", "", true, true, false},
-		{"cpu transformers rejected", "Standard_D8s_v5", "transformers", true, false, true},
+		{"cpu transformers existing base", "Standard_D8s_v5", "transformers", true, false, false},
+		{"cpu transformers without vllm gate", "Standard_D8s_v5", "transformers", false, false, false},
 		{"cpu requires vllm gate", "Standard_D8s_v5", "vllm", false, false, true},
 		{"cpu default requires vllm gate", "Standard_D8s_v5", "", false, false, true},
 		{"gpu transformers unchanged", "Standard_NC6s_v3", "transformers", true, false, false},
@@ -2718,12 +2719,12 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: tc.runtime}
 			image, err := GetDesiredInferenceImageNameWithResolution(context.Background(), ws, nil)
 			if tc.wantError {
-				require.ErrorContains(t, err, "CPU preset inference only supports the vllm runtime")
+				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
 				assert.Empty(t, image)
 				assert.Empty(t, GetDesiredInferenceImageName(ws))
 				ws.Status.TargetNodeCount = 1
 				_, err = GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
-				require.ErrorContains(t, err, "CPU preset inference only supports the vllm runtime")
+				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
 				return
 			}
 			require.NoError(t, err)
@@ -2735,4 +2736,65 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 			assert.Equal(t, want, GetDesiredInferenceImageName(ws))
 		})
 	}
+}
+
+func TestGeneratePresetInference_ExplicitTransformersCPU(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = false
+	ws := test.MockWorkspaceWithPreset.DeepCopy()
+	ws.Resource.InstanceType = "Standard_D16s_v6"
+	ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: "transformers"}
+	ws.Status.TargetNodeCount = 1
+	ws.Inference.Preset.PresetOptions.ModelAccessSecret = "hf-token"
+	ss, err := GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
+	require.NoError(t, err)
+	pod := ss.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+	container := pod.Containers[0]
+	assert.Equal(t, GetBaseImageName(), container.Image)
+	var hfToken *corev1.EnvVar
+	for i := range container.Env {
+		if container.Env[i].Name == "HF_TOKEN" {
+			hfToken = &container.Env[i]
+			break
+		}
+	}
+	require.NotNil(t, hfToken)
+	require.NotNil(t, hfToken.ValueFrom)
+	require.NotNil(t, hfToken.ValueFrom.SecretKeyRef)
+	assert.Equal(t, "hf-token", hfToken.ValueFrom.SecretKeyRef.Name)
+	assert.Equal(t, "HF_TOKEN", hfToken.ValueFrom.SecretKeyRef.Key)
+	command := strings.Join(container.Command, " ")
+	assert.Contains(t, command, "--cpu")
+	assert.Contains(t, command, "--num_processes=1")
+	assert.Contains(t, command, "--device_map=cpu")
+	assert.Contains(t, command, "--torch_dtype=bfloat16")
+
+	assert.NotContains(t, command, "--multi_gpu")
+	assert.NotContains(t, command, "--num_processes=0")
+	assert.NotContains(t, command, "VLLM_TARGET_DEVICE")
+	for _, c := range append(pod.Containers, pod.InitContainers...) {
+		for _, resources := range []corev1.ResourceList{c.Resources.Requests, c.Resources.Limits} {
+			for name := range resources {
+				assert.NotContains(t, string(name), "nvidia.com/")
+			}
+		}
+	}
+	hasCPU := false
+	for _, toleration := range pod.Tolerations {
+		if toleration.Key == consts.SKUString {
+			assert.NotEqual(t, consts.GPUString, toleration.Value)
+			hasCPU = hasCPU || toleration.Value == consts.CPUString
+		}
+	}
+	assert.True(t, hasCPU)
+	require.NotNil(t, container.StartupProbe.HTTPGet)
+	assert.Equal(t, "/health", container.StartupProbe.HTTPGet.Path)
+	assert.Nil(t, container.StartupProbe.Exec)
 }

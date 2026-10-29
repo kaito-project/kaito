@@ -14,6 +14,6 @@ data:
           vllm: 0.30.0
           transformers: 5.15.0
       - name: base-vllm-cpu
-        tag: 0.0.1
+        tag: 0.0.2
         runtimeVersion:
           vllm: 0.30.0

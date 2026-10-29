@@ -332,6 +332,12 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	ssOpts = append(ssOpts, manifests.SetStatefulSetPodSpec(podSpec))
 
 	workload, err := generator.GenerateManifest(gctx, ssOpts...)
+	if err == nil {
+		if workload.Annotations == nil {
+			workload.Annotations = make(map[string]string)
+		}
+		workload.Annotations[v1beta1.AnnotationWorkspaceRuntime] = string(v1beta1.GetWorkspaceRuntimeName(workspaceObj))
+	}
 	result := &PresetInferenceResult{Workload: workload}
 	return result, err
 }
@@ -1261,6 +1267,24 @@ func applyCPUDedicatedPlacement(ws *v1beta1.Workspace, spec *corev1.PodSpec, isC
 	}
 	if spec.Affinity == nil {
 		spec.Affinity = &corev1.Affinity{}
+	}
+	// Required node selector terms are ORed. Add the image architecture to
+	// every term so no alternate placement path can admit an arm64 node.
+	if spec.Affinity.NodeAffinity == nil {
+		spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+	}
+	nodeSelector := spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+	if nodeSelector == nil {
+		nodeSelector = &corev1.NodeSelector{}
+		spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = nodeSelector
+	}
+	if len(nodeSelector.NodeSelectorTerms) == 0 {
+		nodeSelector.NodeSelectorTerms = []corev1.NodeSelectorTerm{{}}
+	}
+	for i := range nodeSelector.NodeSelectorTerms {
+		nodeSelector.NodeSelectorTerms[i].MatchExpressions = append(nodeSelector.NodeSelectorTerms[i].MatchExpressions, corev1.NodeSelectorRequirement{
+			Key: corev1.LabelArchStable, Operator: corev1.NodeSelectorOpIn, Values: []string{"amd64"},
+		})
 	}
 	if spec.Affinity.PodAntiAffinity == nil {
 		spec.Affinity.PodAntiAffinity = &corev1.PodAntiAffinity{}

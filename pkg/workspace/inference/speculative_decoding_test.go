@@ -114,6 +114,64 @@ func TestVllmFormat(t *testing.T) {
 			},
 		},
 		{
+			name: "dspark",
+			sd: &pkgmodel.SpeculativeDecodingConfig{
+				Method: "dspark",
+				DSpark: &pkgmodel.DSparkConfig{
+					NumSpeculativeTokens:       5,
+					DraftSampleMethod:          "probabilistic",
+					RejectionSampleMethod:      "block",
+					EnableAdaptiveVerification: true,
+				},
+				EngineArgs: map[string]string{"max-num-seqs": "256"},
+			},
+			check: func(t *testing.T, jsonStr string) {
+				var m map[string]any
+				if err := json.Unmarshal([]byte(jsonStr), &m); err != nil {
+					t.Fatalf("invalid JSON: %v", err)
+				}
+				want := map[string]any{
+					"method":                       "dspark",
+					"num_speculative_tokens":       float64(5),
+					"draft_sample_method":          "probabilistic",
+					"rejection_sample_method":      "block",
+					"enable_adaptive_verification": true,
+				}
+				if len(m) != len(want) {
+					t.Errorf("got keys %v, want exactly %v (engine args must not leak into speculative-config)", m, want)
+				}
+				for k, v := range want {
+					if m[k] != v {
+						t.Errorf("%s = %v, want %v", k, m[k], v)
+					}
+				}
+			},
+		},
+		{
+			// DeepSeek-V4-Flash recipe: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash
+			name: "dspark renders only the fields a recipe sets",
+			sd: &pkgmodel.SpeculativeDecodingConfig{
+				Method: "dspark",
+				DSpark: &pkgmodel.DSparkConfig{
+					NumSpeculativeTokens: 7,
+					DraftSampleMethod:    "probabilistic",
+				},
+			},
+			check: func(t *testing.T, jsonStr string) {
+				want := `{"draft_sample_method":"probabilistic","method":"dspark","num_speculative_tokens":7}`
+				if jsonStr != want {
+					t.Errorf("got %s, want %s", jsonStr, want)
+				}
+			},
+		},
+		{
+			name: "dspark nil sub-config",
+			sd: &pkgmodel.SpeculativeDecodingConfig{
+				Method: "dspark",
+			},
+			wantErr: true,
+		},
+		{
 			name: "unknown method",
 			sd: &pkgmodel.SpeculativeDecodingConfig{
 				Method: "eagle",
@@ -353,7 +411,7 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := applySpeculativeDecoding(tc.ws, tc.runtime, tc.preset, tc.userOverride)
+			got, err := applySpeculativeDecoding(tc.ws, tc.runtime, tc.preset, tc.userOverride, tc.ws.Status.TargetNodeCount > 1)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -378,4 +436,89 @@ func TestApplySpeculativeDecoding(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestApplySpeculativeDecodingDSpark(t *testing.T) {
+	newPreset := func() (*pkgmodel.PresetParam, *pkgmodel.SpeculativeDecodingConfig) {
+		shared := &pkgmodel.SpeculativeDecodingConfig{
+			Method: "dspark",
+			DSpark: &pkgmodel.DSparkConfig{
+				NumSpeculativeTokens:       5,
+				DraftSampleMethod:          "probabilistic",
+				RejectionSampleMethod:      "block",
+				EnableAdaptiveVerification: true,
+			},
+			EngineArgs: map[string]string{
+				"max-num-batched-tokens": "4096",
+				"max-num-seqs":           "256",
+			},
+		}
+		return &pkgmodel.PresetParam{
+			RuntimeParam: pkgmodel.RuntimeParam{
+				VLLM: pkgmodel.VLLMParam{ModelRunParams: map[string]string{"max-num-batched-tokens": "8192"}},
+			},
+			SpeculativeDecoding: shared,
+		}, shared
+	}
+	ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{
+		Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: "true"},
+	}}
+
+	tests := []struct {
+		name             string
+		pipelineParallel bool
+		wantAdaptive     bool
+	}{
+		{name: "single node keeps adaptive verification", wantAdaptive: true},
+		{name: "pipeline parallel turns adaptive verification off", pipelineParallel: true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			preset, shared := newPreset()
+			got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, preset, false, tc.pipelineParallel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != SpecDecoInjected {
+				t.Errorf("decision = %v, want %v", got, SpecDecoInjected)
+			}
+			params := preset.VLLM.ModelRunParams
+			flag := params["speculative-config"]
+			for _, want := range []string{`"method":"dspark"`, `"num_speculative_tokens":5`} {
+				if !strings.Contains(flag, want) {
+					t.Errorf("speculative-config %q missing %q", flag, want)
+				}
+			}
+			if got := strings.Contains(flag, `"enable_adaptive_verification":true`); got != tc.wantAdaptive {
+				t.Errorf("adaptive verification enabled = %v, want %v in %q", got, tc.wantAdaptive, flag)
+			}
+			if params["max-num-batched-tokens"] != "4096" {
+				t.Errorf("max-num-batched-tokens = %q, want engine arg 4096 to override the preset default", params["max-num-batched-tokens"])
+			}
+			if params["max-num-seqs"] != "256" {
+				t.Errorf("max-num-seqs = %q, want 256", params["max-num-seqs"])
+			}
+			if !shared.DSpark.EnableAdaptiveVerification {
+				t.Error("shared preset config was mutated")
+			}
+		})
+	}
+
+	t.Run("user speculative-config skips engine args", func(t *testing.T) {
+		preset, _ := newPreset()
+		got, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, preset, true, false)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if got != SpecDecoConfigMapOverride {
+			t.Errorf("decision = %v, want %v", got, SpecDecoConfigMapOverride)
+		}
+		params := preset.VLLM.ModelRunParams
+		if _, ok := params["speculative-config"]; ok {
+			t.Error("speculative-config injected despite user override")
+		}
+		if params["max-num-batched-tokens"] != "8192" || params["max-num-seqs"] != "" {
+			t.Errorf("engine args applied despite user override: %v", params)
+		}
+	})
 }

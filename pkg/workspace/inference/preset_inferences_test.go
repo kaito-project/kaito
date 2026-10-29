@@ -2392,3 +2392,69 @@ func TestGeneratePresetInferenceCUDAToolkitProvisioner(t *testing.T) {
 		}
 	})
 }
+
+// TestDeepSeekV41FlashDSparkCommandOnH100 builds the vLLM command KAITO renders
+// for DeepSeek-V4.1-Flash-1017 with speculative decoding enabled on an 8x H100
+// node and checks it matches the configuration validated there.
+func TestDeepSeekV41FlashDSparkCommandOnH100(t *testing.T) {
+	m, err := metadata.GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4.1-Flash-1017", "")
+	if err != nil {
+		t.Fatalf("resolve model: %v", err)
+	}
+	gpuConfig := &sku.GPUConfig{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"}
+
+	for _, tc := range []struct {
+		name       string
+		annotation string
+		wantFlags  []string
+		denyFlags  []string
+	}{
+		{
+			name:       "enabled",
+			annotation: "true",
+			wantFlags: []string{
+				`--speculative-config='{"draft_sample_method":"probabilistic","enable_adaptive_verification":true,"method":"dspark","num_speculative_tokens":5,"rejection_sample_method":"block"}'`,
+				"--max-num-batched-tokens=4096",
+				"--max-num-seqs=256",
+				"--max-cudagraph-capture-size=1024",
+				"--gpu-memory-utilization=0.92",
+			},
+		},
+		{
+			name:       "disabled",
+			annotation: "false",
+			denyFlags:  []string{"--speculative-config", "--max-num-seqs", "--max-num-batched-tokens", "--max-cudagraph-capture-size"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{
+				Name:        "dsv41",
+				Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: tc.annotation},
+			}}
+			params := m.GetInferenceParameters().DeepCopy()
+			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, false, false); err != nil {
+				t.Fatalf("applySpeculativeDecoding: %v", err)
+			}
+			applyGeneratorRuntimeOverrides(params, gpuConfig)
+			cmd := params.GetInferenceCommand(pkgmodel.RuntimeContext{
+				RuntimeName: pkgmodel.RuntimeNameVLLM,
+				GPUConfig:   gpuConfig,
+				SKUNumGPUs:  gpuConfig.GPUCount,
+				NumNodes:    1,
+				MaxNumSeqs:  resolveMaxNumSeqs(ws.Name, params, gpuConfig, 1),
+				MaxModelLen: pkgmodel.MaxModelLenAuto,
+			})
+			command := strings.Join(cmd, " ")
+			for _, flag := range tc.wantFlags {
+				if !strings.Contains(command, flag) {
+					t.Errorf("command missing %s\n%s", flag, command)
+				}
+			}
+			for _, flag := range tc.denyFlags {
+				if strings.Contains(command, flag) {
+					t.Errorf("command unexpectedly contains %s\n%s", flag, command)
+				}
+			}
+		})
+	}
+}

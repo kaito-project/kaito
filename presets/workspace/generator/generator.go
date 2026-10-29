@@ -37,6 +37,7 @@ const (
 	DefaultModelTokenLimit           = 2048
 	HuggingFaceWebsite               = "https://huggingface.co"
 	SpeculativeDecodingMethodMTP     = "mtp"
+	SpeculativeDecodingMethodDSpark  = "dspark"
 	mtpSpeculativeDecodingTokenCount = 1
 	defaultGPUMemoryUtilization      = "0.92"
 )
@@ -74,6 +75,32 @@ func mtpSpecDecoEntryWithModel(userFacing, draftModel string) specDecoEntry {
 			},
 		},
 	}
+}
+
+// dsparkSpecDecoEntry returns a DSpark entry. DSpark's draft block size and
+// sampling methods are trained with each checkpoint, so every preset passes
+// the configuration from its own vLLM recipe (see dsparkDeepSeekV41Flash).
+// engineArgs are the scheduler limits the preset needs alongside it.
+func dsparkSpecDecoEntry(userFacing string, dspark model.DSparkConfig, engineArgs map[string]string) specDecoEntry {
+	return specDecoEntry{
+		UserFacing: userFacing,
+		Config: &model.SpeculativeDecodingConfig{
+			Method:     SpeculativeDecodingMethodDSpark,
+			DSpark:     &dspark,
+			EngineArgs: engineArgs,
+		},
+	}
+}
+
+// dsparkDeepSeekV41Flash is the DeepSeek-V4.1-Flash recipe's DSpark config
+// for NVIDIA GPUs: the trained 5-token draft block, probabilistic drafting,
+// block rejection sampling and adaptive verification.
+// source: https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash?features=spec_decoding
+var dsparkDeepSeekV41Flash = model.DSparkConfig{
+	NumSpeculativeTokens:       5,
+	DraftSampleMethod:          "probabilistic",
+	RejectionSampleMethod:      "block",
+	EnableAdaptiveVerification: true,
 }
 
 var (
@@ -425,6 +452,17 @@ var (
 		"qwen/qwen3.6-35b-a3b":             mtpSpecDecoEntry("Qwen/Qwen3.6-35B-A3B"),
 		"qwen/qwen3.6-27b":                 mtpSpecDecoEntry("Qwen/Qwen3.6-27B"),
 		"qwen/qwen3.5-397b-a17b-gptq-int4": mtpSpecDecoEntry("Qwen/Qwen3.5-397B-A17B-GPTQ-Int4"),
+		// Validated on 8x H100 80GB (TP8, vLLM 0.30.0). The recipe's H100 row
+		// caps batched tokens at 4096 to fit the sparse-attention indexer
+		// buffer; at that budget vLLM's default 1024 sequences x 5 draft slots
+		// overrun DSpark's input buffer in the startup profiling run, and
+		// adaptive verification's startup profiling above 256 sequences leaves
+		// no room for KV cache. These caps are conservative on larger GPUs.
+		"deepseek-ai/deepseek-v4.1-flash-1017": dsparkSpecDecoEntry("deepseek-ai/DeepSeek-V4.1-Flash-1017", dsparkDeepSeekV41Flash, map[string]string{
+			"max-num-batched-tokens":     "4096",
+			"max-num-seqs":               "256",
+			"max-cudagraph-capture-size": "1024",
+		}),
 	}
 
 	// maxNumSeqsTargets lists architecture/GPU pairs whose Mamba-cache-block

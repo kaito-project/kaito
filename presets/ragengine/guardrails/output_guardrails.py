@@ -305,8 +305,8 @@ def _parse_policy_scanner_configs(
             if key not in {"type", "action"}
         }
         try:
-            # Keep RAGEngine's field compatibility and skip-on-error policy;
-            # parse_scanner_config rejects inputs accepted by these schemas.
+            # 保留旧行为：过滤列表中的空字符串和非字符串项，而不是直接报错。
+            # 不使用严格的 parse_scanner_config()，避免原来可用的配置失效。
             cfg = schema_cls.from_dict(normalized_raw)
         except (TypeError, ValueError) as e:
             logger.warning(

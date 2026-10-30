@@ -30,7 +30,7 @@ metadata:
   name: ragengine-example
 spec:
   compute:
-    instanceType: "Standard_NC6s_v3"
+    instanceType: "Standard_NV36ads_A10_v5"
     labelSelector:
       matchLabels:
         apps: ragengine-example
@@ -64,7 +64,7 @@ metadata:
   name: ragengine-with-storage
 spec:
   compute:
-    instanceType: "Standard_NC6s_v3"
+    instanceType: "Standard_NV36ads_A10_v5"
     labelSelector:
       matchLabels:
         apps: ragengine-example

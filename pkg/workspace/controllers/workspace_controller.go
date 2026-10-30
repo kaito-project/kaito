@@ -860,12 +860,11 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 
-	// After a base image auto-upgrade, clear the recorded benchmark result and reset
-	// the BenchmarkCompleted condition so the post-load benchmark re-runs against the
-	// new image on the next reconcile, re-recording all metrics (including the runtime
-	// metadata such as engineVersion) with fresh values.
-	if baseImageUpgrade {
-		if err := c.resetBenchmarkOnUpgrade(ctx, wObj); err != nil {
+	// After a successful serving configuration rollout, discard metrics from the
+	// previous image, runtime or target so the post-load benchmark can run again.
+	// Ordinary reconciles and runtime marker-only migrations retain their results.
+	if replacePodTemplate || variantChanged || targetChanged {
+		if err := c.resetBenchmarkOnRollout(ctx, wObj); err != nil {
 			return err
 		}
 	}
@@ -1732,10 +1731,10 @@ func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.Workspac
 	meta.SetStatusCondition(&status.Conditions, updated)
 }
 
-// resetBenchmarkOnUpgrade clears the recorded benchmark result and removes the
+// resetBenchmarkOnRollout clears the recorded benchmark result and removes the
 // BenchmarkCompleted condition, so the post-load benchmark re-runs against the new
-// image on the next reconcile.
-func (c *WorkspaceReconciler) resetBenchmarkOnUpgrade(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+// serving configuration on the next reconcile.
+func (c *WorkspaceReconciler) resetBenchmarkOnRollout(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	return workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
 		func(status *kaitov1beta1.WorkspaceStatus) error {
 			status.Performance = nil

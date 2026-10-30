@@ -78,6 +78,17 @@ var (
 // GetInferenceParameters() should look up its Transformers config from this map
 // instead of hardcoding the values inline.
 var TransformerInferenceParameters = map[string]model.HuggingfaceTransformersParam{
+	// Gemma 4 E4B text inference uses the shared Transformers runtime image.
+	"gemma-4-e4b-it": {
+		BaseCommand:       "accelerate launch",
+		AccelerateParams:  defaultAccelerateParams,
+		InferenceMainFile: defaultTransformersMainFile,
+		ModelRunParams: map[string]string{
+			"torch_dtype":        "bfloat16",
+			"pipeline":           "text-generation",
+			"allow_remote_files": "",
+		},
+	},
 	// Phi-4 family
 	"phi-4": {
 		BaseCommand:       "accelerate launch",

@@ -31,6 +31,7 @@ const (
 	AWSCloudName                  = "aws"
 	ArcCloudName                  = "arc"
 	GPUString                     = "gpu"
+	CPUString                     = "cpu"
 	SKUString                     = "sku"
 	MaxRevisionHistoryLimit       = 10
 	GiBToBytes                    = 1024 * 1024 * 1024 // Conversion factor from GiB to bytes
@@ -68,6 +69,7 @@ const (
 	FeatureFlagModelStreaming                     = "ModelStreaming"
 	FeatureFlagEnableBaseImageAutoUpgrade         = "enableBaseImageAutoUpgrade"
 	FeatureFlagEnableEPPFlowControl               = "enableEPPFlowControl"
+	FeatureFlagEnableCPUInference                 = "enableCPUInference"
 
 	FeatureFlagDistributedCache = "distributedCache"
 

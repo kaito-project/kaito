@@ -30,7 +30,9 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	inferencesetutil "github.com/kaito-project/kaito/pkg/utils/inferenceset"
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 )
 
@@ -662,6 +664,35 @@ func TestReconcileInferenceSet_AllUpToDate(t *testing.T) {
 	assert.Equal(t, 0, *updated.Status.AutoUpgrade.NumDriftedWorkspaces)
 }
 
+func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage(t *testing.T) {
+	setTestRegistry(t)
+	const (
+		ns     = "default"
+		isName = "test-is-cpu"
+	)
+
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+	is := makeInferenceSet(isName, ns, true, nil)
+	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	is.Spec.Template.Inference.Preset = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}
+	ws := makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
+	desiredImage := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(is))
+	ss := makeStatefulSet("ws-1", ns, desiredImage)
+	cl := newFakeClient(is, ws, ss)
+	r := &AutoUpgradeRunner{Client: cl}
+
+	r.reconcileInferenceSet(context.Background(), is)
+
+	updated := &kaitov1beta1.InferenceSet{}
+	_ = cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated)
+	require.NotNil(t, updated.Status.AutoUpgrade)
+	require.NotNil(t, updated.Status.AutoUpgrade.NumDriftedWorkspaces)
+	assert.Equal(t, 0, *updated.Status.AutoUpgrade.NumDriftedWorkspaces)
+}
+
 func TestReconcileInferenceSet_WaitsForUpgrading(t *testing.T) {
 	setTestRegistry(t)
 	desiredTag := inference.GetBaseImageTag()
@@ -920,4 +951,84 @@ func TestReconcileSurge_OutsideMaintenanceWindow(t *testing.T) {
 	r.reconcileInferenceSet(context.Background(), is)
 
 	assert.Len(t, listWorkspacesInNamespace(t, cl, ns), 1, "no new workspace should be created outside the window")
+}
+
+// A stale GPU version must not leave CPU upgrades waiting forever. Each strategy
+// must resolve the CPU image independently of the generic GPU base image version.
+func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
+	setTestRegistry(t)
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate })
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+	for _, strategy := range []kaitov1beta1.AutoUpgradeStrategy{
+		kaitov1beta1.InPlaceUpgradeStrategy,
+		kaitov1beta1.SurgeBasedUpgradeStrategy,
+	} {
+		t.Run(string(strategy), func(t *testing.T) {
+			is := makeSurgeInferenceSet("cpu-upgrade", "default")
+			is.Spec.AutoUpgrade.Strategy = strategy
+			is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+			desiredImage := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(is))
+			desiredTag, err := inference.GetImageTag(desiredImage)
+			require.NoError(t, err)
+			require.Contains(t, desiredImage, "kaito-base-vllm-cpu:")
+			require.NotEqual(t, inference.GetBaseImageTag(), desiredTag, "fixture must exercise independently versioned CPU and GPU images")
+
+			for _, oldTag := range []string{"0.0.1", inference.GetBaseImageTag()} {
+				t.Run("old-authorization-"+oldTag, func(t *testing.T) {
+					ws := makeWorkspace("old-cpu", is.Namespace, is.Name, kaitov1beta1.WorkspaceStateReady, map[string]string{
+						kaitov1alpha1.LabelUpgradeToVersion: oldTag,
+					})
+					ss := makeStatefulSet(ws.Name, ws.Namespace, "mcr.microsoft.com/aks/kaito/kaito-base-vllm-cpu:0.0.1")
+					cl := newFakeClient(is.DeepCopy(), ws, ss)
+					r := &AutoUpgradeRunner{Client: cl}
+					r.reconcileInferenceSet(context.Background(), is.DeepCopy())
+
+					updated := &kaitov1beta1.Workspace{}
+					require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(ws), updated))
+					if strategy == kaitov1beta1.InPlaceUpgradeStrategy {
+						assert.Equal(t, desiredTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
+						assert.NotEqual(t, oldTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
+					} else {
+						all := listWorkspacesInNamespace(t, cl, is.Namespace)
+						require.Len(t, all, 2)
+						for i := range all {
+							if all[i].Name != ws.Name {
+								assert.Equal(t, desiredImage, inference.GetDesiredInferenceImageName(&all[i]))
+							}
+						}
+						// Surge creates a fresh workspace, not an in-place authorization.
+						assert.Equal(t, oldTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestReconcileInferenceSet_InvalidSelectedImageFailsClosed(t *testing.T) {
+	// Invalid registry makes the selected image invalid. Neither strategy may
+	// create an authorization or mutate status before the tag is validated.
+	t.Setenv("PRESET_REGISTRY_NAME", "invalid registry")
+	for _, strategy := range []kaitov1beta1.AutoUpgradeStrategy{
+		kaitov1beta1.InPlaceUpgradeStrategy,
+		kaitov1beta1.SurgeBasedUpgradeStrategy,
+	} {
+		t.Run(string(strategy), func(t *testing.T) {
+			is := makeSurgeInferenceSet("invalid-image", "default")
+			is.Spec.AutoUpgrade.Strategy = strategy
+			ws := makeWorkspace("old", is.Namespace, is.Name, kaitov1beta1.WorkspaceStateReady, nil)
+			ss := makeStatefulSet(ws.Name, ws.Namespace, "registry.example/kaito-base:0.0.1")
+			cl := newFakeClient(is, ws, ss)
+			r := &AutoUpgradeRunner{Client: cl}
+			r.reconcileInferenceSet(context.Background(), is)
+			all := listWorkspacesInNamespace(t, cl, is.Namespace)
+			require.Len(t, all, 1)
+			assert.Empty(t, all[0].Labels[kaitov1alpha1.LabelUpgradeToVersion])
+			updated := &kaitov1beta1.InferenceSet{}
+			require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(is), updated))
+			assert.Nil(t, updated.Status.AutoUpgrade)
+		})
+	}
 }

@@ -154,6 +154,9 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	if sanitized := kaitov1beta1.SanitizedMatchLabels(labelSelector); len(sanitized) != 0 {
 		nodeClaimLabels = lo.Assign(nodeClaimLabels, sanitized)
 	}
+	if createdBy := obj.GetLabels()[consts.WorkspaceCreatedByInferenceSetLabel]; createdBy != "" {
+		nodeClaimLabels[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
+	}
 
 	nodeClaimAnnotations := map[string]string{
 		karpenterv1.DoNotDisruptAnnotationKey: "true", // To prevent Karpenter from scaling down.
@@ -172,6 +175,10 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 	}
 
 	cloudName := os.Getenv("CLOUD_PROVIDER")
+	isCPUWorkspace := false
+	if workspaceObj, ok := obj.(*kaitov1beta1.Workspace); ok {
+		isCPUWorkspace = kaitov1beta1.IsCPUInferenceWorkspace(workspaceObj)
+	}
 
 	var nodeClassRefKind string
 	var nodeClassRefGroup string
@@ -198,13 +205,6 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 				Kind:  nodeClassRefKind,
 				Group: nodeClassRefGroup,
 			},
-			Taints: []corev1.Taint{
-				{
-					Key:    consts.SKUString,
-					Value:  consts.GPUString,
-					Effect: corev1.TaintEffectNoSchedule,
-				},
-			},
 			Requirements: []karpenterv1.NodeSelectorRequirementWithMinValues{
 				{
 					Key:      consts.LabelNodePool,
@@ -230,6 +230,21 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		},
 	}
 
+	if isCPUWorkspace {
+		nodeClaimLabels[consts.SKUString] = consts.CPUString
+		nodeClaimObj.Spec.Taints = []corev1.Taint{{
+			Key:    consts.SKUString,
+			Value:  consts.CPUString,
+			Effect: corev1.TaintEffectNoSchedule,
+		}}
+	} else {
+		nodeClaimObj.Spec.Taints = []corev1.Taint{{
+			Key:    consts.SKUString,
+			Value:  consts.GPUString,
+			Effect: corev1.TaintEffectNoSchedule,
+		}}
+	}
+
 	if cloudName == consts.AzureCloudName {
 		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
 			Key:      azurev1beta1.LabelSKUName,
@@ -239,7 +254,7 @@ func GenerateNodeClaimManifestWithOptions(storageRequirement string, obj client.
 		nodeClaimObj.Spec.Requirements = append(nodeClaimObj.Spec.Requirements, nodeSelector)
 	}
 
-	if cloudName == consts.AWSCloudName {
+	if cloudName == consts.AWSCloudName && !isCPUWorkspace {
 		nodeSelector := karpenterv1.NodeSelectorRequirementWithMinValues{
 			Key:      "karpenter.k8s.aws/instance-gpu-count",
 			Operator: corev1.NodeSelectorOpGt,

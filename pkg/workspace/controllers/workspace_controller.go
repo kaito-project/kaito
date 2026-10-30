@@ -620,6 +620,9 @@ func ComputeHash(w *kaitov1beta1.Workspace) string {
 	encoder := json.NewEncoder(hasher)
 	encoder.Encode(w.Resource)
 	encoder.Encode(w.Inference)
+	if w.Inference != nil && w.Annotations[kaitov1beta1.AnnotationWorkspaceRuntime] != "" {
+		encoder.Encode(kaitov1beta1.GetWorkspaceRuntimeName(w))
+	}
 	encoder.Encode(w.Tuning)
 	if w.GetAnnotations()[kaitov1beta1.AnnotationEnableSpeculativeDecoding] == "true" {
 		encoder.Encode(true)
@@ -759,9 +762,18 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	baseImageUpgrade := false
+	variantChanged := false
+	targetChanged := false
 	if existingErr == nil {
+		targetChanged = inferencePodUsesGPU(&existingObj.Spec.Template.Spec) != inferencePodUsesGPU(&desiredStatefulSet.Spec.Template.Spec)
+		if targetChanged {
+			if err := validateInferenceClaimTemplateMigration(existingObj, desiredStatefulSet); err != nil {
+				return err
+			}
+		}
+		variantChanged = inferenceImageVariant(workspace.GetInferenceContainerImage(existingObj)) != inferenceImageVariant(workspace.GetInferenceContainerImage(desiredStatefulSet))
 		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
-		if !baseImageUpgrade {
+		if !baseImageUpgrade && !variantChanged {
 			// Without auto-upgrade, keep the LMCache setup supported by the deployed
 			// KAITO base image. Adding the sidecar to an older image would reference a
 			// missing health script and run both the old in-process cache and sidecar.
@@ -791,11 +803,27 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	replacePodTemplate := baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet)
+	deployedRuntime := annotations[kaitov1beta1.AnnotationWorkspaceRuntime]
+	migrateRuntime := deployedRuntime == ""
+	if migrateRuntime {
+		deployedRuntime = string(inferDeployedRuntime(existingObj))
+	}
+	desiredRuntime := string(kaitov1beta1.GetWorkspaceRuntimeName(wObj))
+	// Unknown legacy runtimes are not evidence of a switch. Do not guess the
+	// desired runtime and permanently hide a real mismatch behind a new marker.
+	runtimeChanged := deployedRuntime != "" && deployedRuntime != desiredRuntime
+	replacePodTemplate := runtimeChanged || baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet) ||
+		!apiequality.Semantic.DeepEqual(existingObj.Spec.Replicas, desiredStatefulSet.Spec.Replicas)
 
-	// If the current workload revision matches the one in Workspace and no upgrade is pending,
-	// we do not need to update it.
-	if ok && currentRevisionStr == revisionStr && !replacePodTemplate {
+	// Target image variants (GPU/CPU) can change without a revision hash change,
+	// for example when BYO node selectors resolve to a different target.
+	// Cache mutations and base-image upgrades must also trigger a workload update.
+	if shouldSkipInferenceWorkloadUpdate(ok, currentRevisionStr, revisionStr, replacePodTemplate, variantChanged || targetChanged) {
+		if migrateRuntime && deployedRuntime != "" {
+			annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = deployedRuntime
+			existingObj.SetAnnotations(annotations)
+			return c.Update(ctx, existingObj)
+		}
 		return nil
 	}
 
@@ -810,11 +838,21 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		existingObj.Spec.PersistentVolumeClaimRetentionPolicy = desiredStatefulSet.Spec.PersistentVolumeClaimRetentionPolicy
 	} else {
 		// Selectively update the pod spec fields that are relevant to inference,
-		// and leave the rest unchanged in case user has customized them.
-		syncInferenceMutablePodSpec(&existingObj.Spec.Template.Spec, &desiredStatefulSet.Spec.Template.Spec)
+		// and leave the rest unchanged in case user has customized them. When the
+		// runtime/target variant changes (for example GPU -> CPU), refresh the full
+		// pod spec so target-dependent fields such as resources, affinity,
+		// tolerations and probes do not drift.
+		syncInferenceMutablePodSpec(
+			&existingObj.Spec.Template.Spec,
+			&desiredStatefulSet.Spec.Template.Spec,
+			variantChanged || targetChanged,
+		)
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
+	if replacePodTemplate || !migrateRuntime || deployedRuntime != "" {
+		annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = desiredRuntime
+	}
 	existingObj.SetAnnotations(annotations)
 
 	// Update it with the latest one generated above.
@@ -822,14 +860,31 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 
-	// After a base image auto-upgrade, clear the recorded benchmark result and reset
-	// the BenchmarkCompleted condition so the post-load benchmark re-runs against the
-	// new image on the next reconcile, re-recording all metrics (including the runtime
-	// metadata such as engineVersion) with fresh values.
-	if baseImageUpgrade {
-		if err := c.resetBenchmarkOnUpgrade(ctx, wObj); err != nil {
+	// After a successful serving configuration rollout, discard metrics from the
+	// previous image, runtime or target so the post-load benchmark can run again.
+	// Ordinary reconciles and runtime marker-only migrations retain their results.
+	if replacePodTemplate || variantChanged || targetChanged {
+		if err := c.resetBenchmarkOnRollout(ctx, wObj); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// StatefulSet claim templates are immutable and override same-named pod volumes.
+// Refuse unsafe target migrations rather than silently retaining node-local GPU
+// storage on CPU pods or issuing an invalid StatefulSet update.
+func validateInferenceClaimTemplateMigration(existing, desired *appsv1.StatefulSet) error {
+	existingClaims := make(map[string]bool, len(existing.Spec.VolumeClaimTemplates))
+	for _, claim := range existing.Spec.VolumeClaimTemplates {
+		existingClaims[claim.Name] = true
+	}
+	desiredClaims := make(map[string]bool, len(desired.Spec.VolumeClaimTemplates))
+	for _, claim := range desired.Spec.VolumeClaimTemplates {
+		desiredClaims[claim.Name] = true
+	}
+	if !apiequality.Semantic.DeepEqual(existingClaims, desiredClaims) {
+		return fmt.Errorf("cannot change CPU/GPU target for StatefulSet %s/%s: immutable volumeClaimTemplates differ; create a new Workspace for the target and migrate or discard cached model weights before deleting the old Workspace and its PVCs", existing.Namespace, existing.Name)
 	}
 	return nil
 }
@@ -851,7 +906,11 @@ func preserveContainerImages(existing, desired []corev1.Container) {
 	}
 }
 
-func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
+func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec, syncImage bool) {
+	if syncImage {
+		*existingSpec = *desiredSpec.DeepCopy()
+		return
+	}
 	existingSpec.Containers[0].Command = desiredSpec.Containers[0].Command
 	existingSpec.Containers[0].Args = desiredSpec.Containers[0].Args
 	existingSpec.Containers[0].Env = desiredSpec.Containers[0].Env
@@ -863,14 +922,80 @@ func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec) {
 	existingSpec.Volumes = desiredSpec.Volumes
 }
 
+// inferencePodUsesGPU detects target changes even when both runtimes use the
+// shared kaito-base image. Include MIG resources, whose names extend nvidia.com/.
+func inferencePodUsesGPU(spec *corev1.PodSpec) bool {
+	for _, container := range spec.Containers {
+		for _, resources := range []corev1.ResourceList{container.Resources.Requests, container.Resources.Limits} {
+			for name, quantity := range resources {
+				if strings.HasPrefix(string(name), "nvidia.com/") && quantity.Sign() > 0 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func inferenceImageVariant(image string) string {
+	switch {
+	case strings.Contains(image, "base-vllm-cpu"):
+		return "cpu-vllm"
+	default:
+		return "base"
+	}
+}
+
 // shouldUpgradeBaseImage checks if an auto-upgrade has been requested via the upgrade label
 // and the image hasn't been updated yet. The label value must match the controller's
 // current desired base image tag to prevent stale labels from triggering upgrades.
 func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet) bool {
 	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
-	return upgradeVersion != "" &&
-		upgradeVersion == inference.GetBaseImageTag() &&
+	desiredTag, err := inference.GetImageTag(workspace.GetInferenceContainerImage(desiredStatefulSet))
+	return err == nil && upgradeVersion != "" && upgradeVersion == desiredTag &&
 		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
+}
+
+// inferDeployedRuntime identifies a legacy workload from its serving container,
+// never from the desired Workspace or unrelated sidecars. The shared GPU image
+// supports both engines, so its image name alone is not sufficient evidence.
+func inferDeployedRuntime(ss *appsv1.StatefulSet) pkgmodel.RuntimeName {
+	containers := ss.Spec.Template.Spec.Containers
+	if len(containers) == 0 {
+		return ""
+	}
+	serving := &containers[0]
+	for i := range containers {
+		if containers[i].Name == ss.Name {
+			serving = &containers[i]
+			break
+		}
+	}
+	command := strings.Join(serving.Command, " ") + " " + strings.Join(serving.Args, " ")
+	vllm := strings.Contains(command, "/workspace/vllm/") || strings.Contains(command, "vllm.entrypoints.")
+	transformers := strings.Contains(command, "/workspace/tfs/") || strings.Contains(command, "transformers serve")
+	if vllm != transformers {
+		if vllm {
+			return pkgmodel.RuntimeNameVLLM
+		}
+		return pkgmodel.RuntimeNameHuggingfaceTransformers
+	}
+	if vllm { // Conflicting commands are not safe to classify.
+		return ""
+	}
+	for _, env := range serving.Env {
+		if env.Name == "VLLM_TARGET_DEVICE" && env.Value != "" {
+			return pkgmodel.RuntimeNameVLLM
+		}
+	}
+	if inferenceImageVariant(serving.Image) == "cpu-vllm" {
+		return pkgmodel.RuntimeNameVLLM
+	}
+	return ""
+}
+
+func shouldSkipInferenceWorkloadUpdate(hasCurrentRevision bool, currentRevisionStr, desiredRevisionStr string, baseImageUpgrade, variantChanged bool) bool {
+	return hasCurrentRevision && currentRevisionStr == desiredRevisionStr && !baseImageUpgrade && !variantChanged
 }
 
 func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types.NamespacedName, reconcileErr error) error {
@@ -902,7 +1027,11 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	// that the workspace should benchmark and that the StatefulSet actually
 	// carries the benchmark startup probe. Legacy workspaces created before the
 	// benchmark feature have no probe (backward compatibility).
-	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
+	cpuInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
+	if cpuResolveErr != nil {
+		return cpuResolveErr
+	}
+	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe && !cpuInference
 
 	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
 	maxModelLen := c.collectActualMaxModelLen(ctx, wObj, inferenceReady)
@@ -1602,10 +1731,10 @@ func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.Workspac
 	meta.SetStatusCondition(&status.Conditions, updated)
 }
 
-// resetBenchmarkOnUpgrade clears the recorded benchmark result and removes the
+// resetBenchmarkOnRollout clears the recorded benchmark result and removes the
 // BenchmarkCompleted condition, so the post-load benchmark re-runs against the new
-// image on the next reconcile.
-func (c *WorkspaceReconciler) resetBenchmarkOnUpgrade(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+// serving configuration on the next reconcile.
+func (c *WorkspaceReconciler) resetBenchmarkOnRollout(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	return workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
 		func(status *kaitov1beta1.WorkspaceStatus) error {
 			status.Performance = nil
@@ -1724,11 +1853,38 @@ func formatWorkspaceStatusChanges(oldStatus, newStatus kaitov1beta1.WorkspaceSta
 	return strings.Join(changes, "; ")
 }
 
-// UpdateWorkspaceTargetNodeCount is used for updating the targetNodeCount in workspace status when it is 0.
+// UpdateWorkspaceTargetNodeCount initializes node estimates and tracks BYO target changes.
 func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
 	targetNodeCount := int32(1)
-	if wObj.Status.TargetNodeCount == 0 {
+	// BYO selectors can change from GPU to CPU after a multinode estimate was
+	// persisted. CPU basic inference always needs one pod, even on that transition.
+	resolvedCPUInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
+	if cpuResolveErr != nil {
+		return fmt.Errorf("failed to resolve CPU inference target: %w", cpuResolveErr)
+	}
+	if resolvedCPUInference {
+		// Record the CPU visit before changing the count. A failed status update
+		// or controller restart must not hide the need to re-estimate on GPU.
+		if err := c.recordNodeCountTarget(ctx, wObj, "cpu"); err != nil {
+			return err
+		}
+		if wObj.Status.TargetNodeCount == 1 {
+			return nil
+		}
+		if err := workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace}, func(status *kaitov1beta1.WorkspaceStatus) error {
+			status.TargetNodeCount = 1
+			return nil
+		}); err != nil {
+			return fmt.Errorf("failed to update Workspace status targetNodeCount: %w", err)
+		}
+		wObj.Status.TargetNodeCount = 1
+		return nil
+	}
+	// Re-estimate only when leaving a recorded CPU target; ordinary GPU
+	// reconciliation retains the existing estimate and performs no extra I/O.
+	leavingCPU := wObj.Annotations[nodeCountTargetAnnotation] == "cpu"
+	if wObj.Status.TargetNodeCount == 0 || leavingCPU {
 		// Build the estimate request once, outside the status-update closure.
 		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
 		if reqErr != nil {
@@ -1762,7 +1918,10 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 				} else {
 					// For non-vLLM runtime, use the Resource.Count directly
 					//nolint:staticcheck //SA1019: deprecate Resource.Count field
-					targetNodeCount = int32(*wObj.Resource.Count)
+					if wObj.Resource.Count != nil {
+						//nolint:staticcheck //SA1019: deprecate Resource.Count field
+						targetNodeCount = int32(*wObj.Resource.Count)
+					}
 					klog.Infof("[EstimateNodeCount] workspace=%s using Resource.Count=%d for non-vLLM runtime", wObj.Name, targetNodeCount)
 				}
 			}
@@ -1773,8 +1932,32 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 		}
 		// Update the wObj to reflect the latest status change.
 		wObj.Status.TargetNodeCount = targetNodeCount
+		if leavingCPU {
+			return c.recordNodeCountTarget(ctx, wObj, "gpu")
+		}
 	}
 
+	return nil
+}
+
+const nodeCountTargetAnnotation = "kaito.sh/node-count-target"
+
+// Patch only this controller-owned marker, preserving unrelated metadata. GPU
+// is recorded only after successful estimation and status persistence, so any
+// failure leaves the CPU marker in place for a retry on the next reconcile.
+func (c *WorkspaceReconciler) recordNodeCountTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, target string) error {
+	if wObj.Annotations[nodeCountTargetAnnotation] == target {
+		return nil
+	}
+	patch, err := json.Marshal(map[string]interface{}{
+		"metadata": map[string]interface{}{"annotations": map[string]string{nodeCountTargetAnnotation: target}},
+	})
+	if err != nil {
+		return err
+	}
+	if err := c.Patch(ctx, wObj, client.RawPatch(types.MergePatchType, patch)); err != nil {
+		return fmt.Errorf("failed to record node count target: %w", err)
+	}
 	return nil
 }
 

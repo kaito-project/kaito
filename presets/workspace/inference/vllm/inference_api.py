@@ -25,8 +25,6 @@ from pathlib import Path
 
 import rate_limit
 import uvloop
-import vllm.entrypoints.launchers.api_server.entry as api_server_entry
-import vllm.entrypoints.launchers.cli_args as launcher_cli_args
 from _workarounds import model_asset_prefetch
 from huggingface_hub import HfFileSystem, scan_cache_dir
 from kaito_inference_config import KaitoInferenceConfig
@@ -34,7 +32,17 @@ from prometheus_client import CONTENT_TYPE_LATEST, Gauge, generate_latest
 from vllm.entrypoints.openai.models.protocol import LoRAModulePath
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 from vllm.v1.metrics.prometheus import get_prometheus_registry
-from vllm_kv_transfer import configure_kv_transfer_and_lmcache
+from vllm_kv_transfer import configure_kv_transfer_and_lmcache, is_cpu_runtime
+
+try:
+    import vllm.entrypoints.launchers.api_server.entry as api_server_entry
+    import vllm.entrypoints.launchers.cli_args as launcher_cli_args
+except ModuleNotFoundError:
+    # vLLM 0.25.1 CPU images expose the older OpenAI entrypoint layout instead
+    # of the newer launchers package. Support both layouts so the same KAITO
+    # wrapper works for GPU and CPU images.
+    import vllm.entrypoints.openai.api_server as api_server_entry
+    import vllm.entrypoints.openai.cli_args as launcher_cli_args
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -101,7 +109,7 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             "--kaito-kv-cache-cpu-memory-utilization",
             type=float,
             default=None,
-            help="KV cache CPU memory utilization. Defaults to 0.5 when neither this flag nor the kaito config file set it.",
+            help="GPU KV cache offload utilization of CPU memory. Defaults to 0.5 on GPU when neither this flag nor the kaito config file set it. Ignored on CPU runtimes.",
         )
         self.add_argument(
             "--kaito-disable-rate-limit",
@@ -131,10 +139,12 @@ class KAITOArgumentParser(argparse.ArgumentParser):
         engine_default_args = {
             "model": "/workspace/vllm/weights",
             "cpu_offload_gb": 0,
-            "gpu_memory_utilization": get_max_gpu_memory_utilization(),
             "disable_log_stats": False,
             "uvicorn_log_level": "error",
         }
+        # Resolve the implicit memory budget only after CLI/YAML device parsing.
+        # None is a sentinel; explicit utilization values bypass the GPU probe.
+        engine_default_args["gpu_memory_utilization"] = None
         self.vllm_parser.set_defaults(**engine_default_args)
 
     def parse_args(self, *args, **kwargs):
@@ -144,7 +154,10 @@ class KAITOArgumentParser(argparse.ArgumentParser):
 
         # Load KAITO config
         if kaito_args.kaito_config_file:
-            file_config = KaitoInferenceConfig.from_yaml(kaito_args.kaito_config_file)
+            # Defer the offload default until the runtime device is known.
+            file_config = KaitoInferenceConfig.from_yaml(
+                kaito_args.kaito_config_file, default_cpu_memory_utilization=None
+            )
             if kaito_args.kaito_max_probe_steps is None:
                 kaito_args.kaito_max_probe_steps = file_config.max_probe_steps
             if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
@@ -156,12 +169,22 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                 runtime_args.append(f"--{key}")
                 runtime_args.append(str(value))
 
-        # Apply CLI default only after file-config merging so the YAML can
-        # override an unspecified CLI value.
-        if kaito_args.kaito_kv_cache_cpu_memory_utilization is None:
+        vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
+        if vllm_args.gpu_memory_utilization is None:
+            # Despite its name, this is also the native CPU memory budget.
+            # vLLM 0.25.1's 0.92 default can exceed available RAM; leave OS and
+            # startup headroom without overriding explicit CLI/YAML settings.
+            vllm_args.gpu_memory_utilization = (
+                0.8 if is_cpu_runtime(vllm_args) else get_max_gpu_memory_utilization()
+            )
+        # This is a GPU-to-host offload default, not a native CPU KV cache
+        # budget. Apply it after config merging, and only for GPU inference.
+        if (
+            not is_cpu_runtime(vllm_args)
+            and kaito_args.kaito_kv_cache_cpu_memory_utilization is None
+        ):
             kaito_args.kaito_kv_cache_cpu_memory_utilization = 0.5
 
-        vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
         # Merge KAITO and vLLM args
         return argparse.Namespace(**vars(kaito_args), **vars(vllm_args))
 

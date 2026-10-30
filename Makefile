@@ -277,7 +277,6 @@ RAGENGINE_SERVICE_APP_VERSION := $(subst v,,$(RAGENGINE_SERVICE_IMG_TAG))
 KAITO_BASE_IMG_NAME ?= kaito-base
 KAITO_BASE_IMG_TAG ?= v0.0.1
 KAITO_VLLM_CPU_IMG_NAME ?= kaito-base-vllm-cpu
-KAITO_VLLM_CPU_IMG_TAG ?= v0.0.1
 
 MT_BENCH_IMG_NAME ?= mt-bench-eval
 MT_BENCH_IMG_TAG ?= v0.0.1
@@ -336,13 +335,14 @@ docker-build-kaito-base: docker-buildx ## Build Docker image for KAITO base.
 .PHONY: docker-build-kaito-base-vllm-cpu
 docker-build-kaito-base-vllm-cpu: docker-buildx ## Build Docker image for KAITO vLLM CPU base (amd64 only).
 	docker buildx build \
-		--build-arg VERSION=$(KAITO_VLLM_CPU_IMG_TAG) \
+		--build-arg VERSION=$(KAITO_BASE_IMG_TAG) \
 		--platform=linux/amd64 \
 		--output=$(OUTPUT_TYPE) \
 		--file ./docker/presets/models/vllm-cpu/Dockerfile \
 		--pull \
 		$(BUILD_FLAGS) \
-		--tag $(REGISTRY)/$(KAITO_VLLM_CPU_IMG_NAME):$(KAITO_VLLM_CPU_IMG_TAG) .
+		--tag $(REGISTRY)/$(KAITO_VLLM_CPU_IMG_NAME):$(KAITO_BASE_IMG_TAG) .
+
 
 .PHONY: docker-build-ragservice
 docker-build-ragservice: docker-buildx ## Build Docker image for RAG Engine service.

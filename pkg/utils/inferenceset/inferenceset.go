@@ -34,7 +34,6 @@ import (
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
@@ -135,6 +134,12 @@ func ListWorkspaces(ctx context.Context, iObj *kaitov1beta1.InferenceSet, kubeCl
 // the InferenceSet admission webhook validates the very object it produces.
 func NewWorkspaceForInferenceSet(iObj *kaitov1beta1.InferenceSet) *kaitov1beta1.Workspace {
 	annotations := maps.Clone(iObj.Spec.Template.Annotations)
+	if runtime := iObj.GetAnnotations()[kaitov1beta1.AnnotationWorkspaceRuntime]; runtime != "" {
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
+		annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = runtime
+	}
 	// Benchmark is on by default; only propagate the opt-out when explicitly disabled.
 	if !kaitov1beta1.IsInferenceSetBenchmarkEnabled(iObj) {
 		if annotations == nil {
@@ -199,15 +204,11 @@ func workspaceGenerateName(inferenceSetName string) string {
 	return inferenceSetName + "-"
 }
 
-// workspaceNodeSelector returns the GPU node selector for child Workspaces:
+// workspaceNodeSelector returns the node selector for child Workspaces:
 // template.resource.labelSelector, or, for backward compatibility with node
 // auto-provisioning only, spec.labelSelector when the former is unset or empty.
 func workspaceNodeSelector(iObj *kaitov1beta1.InferenceSet) *metav1.LabelSelector {
-	selector := iObj.Spec.Template.Resource.LabelSelector
-	if kaitov1beta1.IsEmptyLabelSelector(selector) && !featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] {
-		return iObj.Spec.Selector
-	}
-	return selector
+	return kaitov1beta1.InferenceSetNodeSelector(iObj)
 }
 
 // ValidateWorkspaceForInferenceSet validates the child Workspace the given
@@ -252,7 +253,11 @@ func ComputeInferenceSetHash(iObj *kaitov1beta1.InferenceSet) string {
 
 	hasher := sha256.New()
 	encoder := json.NewEncoder(hasher)
-	encoder.Encode(iObj.Spec)
+	payload := map[string]interface{}{
+		"spec":              iObj.Spec,
+		"runtimeAnnotation": iObj.GetAnnotations()[kaitov1beta1.AnnotationWorkspaceRuntime],
+	}
+	encoder.Encode(payload)
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 

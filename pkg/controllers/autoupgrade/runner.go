@@ -115,9 +115,17 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 // Workspace controller rolls that Workspace's StatefulSet to the new base image in
 // place. Only one Workspace is upgraded at a time.
 func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
-	// Get the current controller-embedded base image tag.
-	desiredImage := inference.GetBaseImageName()
-	desiredTag := inference.GetBaseImageTag()
+	// Get the current controller-embedded target image for this InferenceSet.
+	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, inferencesetutil.NewWorkspaceForInferenceSet(inferenceSetObj), r.Client)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+	desiredTag, err := inference.GetImageTag(desiredImage)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)
+		return
+	}
 
 	// List Workspaces belonging to this InferenceSet.
 	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
@@ -324,8 +332,16 @@ func (r *AutoUpgradeRunner) tagWorkspaceForUpgrade(ctx context.Context, isObj *k
 // replica count, with no explicit surge bookkeeping — repeats until no drifted Workspaces
 // remain.
 func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
-	desiredImage := inference.GetBaseImageName()
-	desiredTag := inference.GetBaseImageTag()
+	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, inferencesetutil.NewWorkspaceForInferenceSet(inferenceSetObj), r.Client)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
+		return
+	}
+	desiredTag, err := inference.GetImageTag(desiredImage)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)
+		return
+	}
 
 	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
 	if err != nil {

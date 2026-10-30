@@ -120,7 +120,7 @@ func TestInferenceSetSyncControllerRevision(t *testing.T) {
 						*dep = appsv1.ControllerRevision{
 							ObjectMeta: v1.ObjectMeta{
 								Annotations: map[string]string{
-									InferenceSetHashAnnotation: "8b215f13847260f94d2debfebec7ee9540a7b2c08c0d5cabdfdded1ca133f6cc",
+									InferenceSetHashAnnotation: utilsinferenceset.ComputeInferenceSetHash(&test.MockInferenceSetWithComputeHash),
 								},
 							},
 							Revision: 1,
@@ -426,7 +426,7 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 // --------------------------------------------------------------------------
 
 func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
-	t.Run("updates speculative decoding annotation without clobbering unrelated child annotations", func(t *testing.T) {
+	t.Run("updates speculative decoding and runtime annotations without clobbering unrelated child annotations", func(t *testing.T) {
 		prevProvisioner := consts.ActiveNodeProvisioner
 		consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 		defer func() { consts.ActiveNodeProvisioner = prevProvisioner }()
@@ -434,6 +434,9 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 		iObj.Labels = map[string]string{
 			v1beta1.LabelInferenceRole: "prefill",
+		}
+		iObj.Annotations = map[string]string{
+			v1beta1.AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
 		}
 		iObj.Spec.Template.Labels = map[string]string{
 			"team": "serving",
@@ -451,6 +454,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		}
 		ws.Annotations = map[string]string{
 			v1beta1.AnnotationEnableSpeculativeDecoding: "false",
+			v1beta1.AnnotationWorkspaceRuntime:          string(model.RuntimeNameVLLM),
 			v1beta1.AnnotationCapacityType:              "reserved",
 			v1beta1.AnnotationDisableBenchmark:          "true",
 			"workspace.kaito.io/hash":                   "hash",
@@ -466,6 +470,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
 		assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
 		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
+		assert.Equal(t, string(model.RuntimeNameHuggingfaceTransformers), ws.Annotations[v1beta1.AnnotationWorkspaceRuntime])
 		assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
@@ -734,7 +739,8 @@ func assertWorkspaceCount(t *testing.T, ctx context.Context, cl client.Client, i
 func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"
-	desiredImage := inference.GetBaseImageName()
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
 	oldImage := desiredImage + "-old"
 
 	type wsSpec struct {
@@ -906,7 +912,7 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 			cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
 			c := &InferenceSetReconciler{Client: cl}
 
-			toDelete, err := c.selectWorkspacesToDelete(ctx, wss, tt.desiredReplicas, tt.numToDelete)
+			toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wss, tt.desiredReplicas, tt.numToDelete)
 			assert.NoError(t, err)
 			assert.Len(t, toDelete, tt.wantDeleted)
 
@@ -1125,5 +1131,95 @@ func TestAddOrUpdateInferenceSet_PropagatesCacheAnnotationToWorkspace(t *testing
 	for _, obj := range workspaceMap {
 		workspace := obj.(*v1beta1.Workspace)
 		assert.Equal(t, "cache-attachment", workspace.Annotations[cache.ConfigAnnotation])
+	}
+}
+
+func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.T) {
+	ctx := context.Background()
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	defer func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate }()
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+
+	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
+
+	wss := []v1beta1.Workspace{
+		{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
+		{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
+	}
+	objs := []client.Object{
+		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "old-cpu", Image: inference.GetBaseImageName()}}}}}},
+		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "new-cpu", Image: desiredImage}}}}}},
+	}
+
+	scheme := runtime.NewScheme()
+	_ = appsv1.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
+	_ = v1beta1.AddToScheme(scheme)
+	cl := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).Build()
+	c := &InferenceSetReconciler{Client: cl}
+
+	toDelete, err := c.selectWorkspacesToDelete(ctx, iObj, wss, 1, 1)
+	assert.NoError(t, err)
+	assert.Len(t, toDelete, 1)
+	assert.Equal(t, "old-cpu", toDelete[0].Name)
+}
+
+func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	oldGateway := featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+		featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = oldGateway
+	})
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	featuregates.FeatureGates[consts.FeatureFlagGatewayAPIInferenceExtension] = true
+	listErr := errors.New("node lookup unavailable")
+
+	for _, tt := range []struct {
+		name        string
+		cpuEnabled  bool
+		nodeListErr error
+	}{
+		{name: "CPU uses template resource selector", cpuEnabled: true},
+		{name: "CPU lookup error is propagated", cpuEnabled: true, nodeListErr: listErr},
+		{name: "disabled CPU does not look up nodes"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = tt.cpuEnabled
+			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			iObj.Spec.Template.Resource.InstanceType = ""
+			iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
+			iObj.Spec.Template.Resource.LabelSelector = &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}
+			mockClient := test.NewClient()
+			mockClient.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Return(nil).Once()
+			if tt.cpuEnabled {
+				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
+					options := &client.ListOptions{}
+					for _, option := range args.Get(2).([]client.ListOption) {
+						option.ApplyToList(options)
+					}
+					assert.Equal(t, "pool=cpu", options.LabelSelector.String(), "must not query the top-level Workspace selector")
+					nodes := args.Get(1).(*corev1.NodeList)
+					nodes.Items = []corev1.Node{{
+						ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}},
+						Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
+					}}
+				}).Return(tt.nodeListErr).Once()
+			}
+			c := &InferenceSetReconciler{Client: mockClient}
+			err := c.ensureGatewayAPIInferenceExtension(context.Background(), iObj)
+			if tt.nodeListErr != nil {
+				assert.ErrorIs(t, err, tt.nodeListErr)
+			} else {
+				assert.NoError(t, err)
+			}
+			mockClient.AssertExpectations(t)
+			mockClient.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
+		})
 	}
 }

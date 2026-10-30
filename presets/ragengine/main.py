@@ -430,7 +430,7 @@ async def chat_completions(request: dict):
         status = STATUS_SUCCESS
         return response
     except HTTPException as http_exc:
-        # Preserve HTTP exceptions like 422 from reranker
+        # Preserve HTTP exceptions raised by the inference client
         raise http_exc
     except OutputGuardrailsError as guardrails_exc:
         raise HTTPException(status_code=500, detail=str(guardrails_exc))

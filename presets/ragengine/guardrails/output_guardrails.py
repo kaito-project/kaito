@@ -305,8 +305,8 @@ def _parse_policy_scanner_configs(
             if key not in {"type", "action"}
         }
         try:
-            # Preserve existing behavior: patterns ["secret", "", 123] becomes ["secret"].
-            # The strict parse_scanner_config() would reject this scanner configuration.
+            # Preserve legacy permissive parsing; the shared strict parser rejects
+            # some previously accepted configs.
             cfg = schema_cls.from_dict(normalized_raw)
         except (TypeError, ValueError) as e:
             logger.warning(

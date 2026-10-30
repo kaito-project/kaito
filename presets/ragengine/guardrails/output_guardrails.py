@@ -305,8 +305,8 @@ def _parse_policy_scanner_configs(
             if key not in {"type", "action"}
         }
         try:
-            # 保留旧行为：过滤列表中的空字符串和非字符串项，而不是直接报错。
-            # 不使用严格的 parse_scanner_config()，避免原来可用的配置失效。
+            # Use from_dict() to keep accepting policies with empty or non-string
+            # list items; parse_scanner_config() rejects them instead of filtering.
             cfg = schema_cls.from_dict(normalized_raw)
         except (TypeError, ValueError) as e:
             logger.warning(

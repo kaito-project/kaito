@@ -1814,7 +1814,7 @@ func formatWorkspaceStatusChanges(oldStatus, newStatus kaitov1beta1.WorkspaceSta
 	return strings.Join(changes, "; ")
 }
 
-// UpdateWorkspaceTargetNodeCount initializes node estimates and enforces CPU single-pod inference.
+// UpdateWorkspaceTargetNodeCount initializes node estimates and tracks BYO target changes.
 func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	var err error
 	targetNodeCount := int32(1)
@@ -1825,6 +1825,11 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 		return fmt.Errorf("failed to resolve CPU inference target: %w", cpuResolveErr)
 	}
 	if resolvedCPUInference {
+		// Record the CPU visit before changing the count. A failed status update
+		// or controller restart must not hide the need to re-estimate on GPU.
+		if err := c.recordNodeCountTarget(ctx, wObj, "cpu"); err != nil {
+			return err
+		}
 		if wObj.Status.TargetNodeCount == 1 {
 			return nil
 		}
@@ -1837,7 +1842,10 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 		wObj.Status.TargetNodeCount = 1
 		return nil
 	}
-	if wObj.Status.TargetNodeCount == 0 {
+	// Re-estimate only when leaving a recorded CPU target; ordinary GPU
+	// reconciliation retains the existing estimate and performs no extra I/O.
+	leavingCPU := wObj.Annotations[nodeCountTargetAnnotation] == "cpu"
+	if wObj.Status.TargetNodeCount == 0 || leavingCPU {
 		// Build the estimate request once, outside the status-update closure.
 		req, reqErr := workspace.NodeEstimateRequestFromWorkspace(ctx, wObj, c.Client)
 		if reqErr != nil {
@@ -1871,7 +1879,10 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 				} else {
 					// For non-vLLM runtime, use the Resource.Count directly
 					//nolint:staticcheck //SA1019: deprecate Resource.Count field
-					targetNodeCount = int32(*wObj.Resource.Count)
+					if wObj.Resource.Count != nil {
+						//nolint:staticcheck //SA1019: deprecate Resource.Count field
+						targetNodeCount = int32(*wObj.Resource.Count)
+					}
 					klog.Infof("[EstimateNodeCount] workspace=%s using Resource.Count=%d for non-vLLM runtime", wObj.Name, targetNodeCount)
 				}
 			}
@@ -1882,8 +1893,32 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 		}
 		// Update the wObj to reflect the latest status change.
 		wObj.Status.TargetNodeCount = targetNodeCount
+		if leavingCPU {
+			return c.recordNodeCountTarget(ctx, wObj, "gpu")
+		}
 	}
 
+	return nil
+}
+
+const nodeCountTargetAnnotation = "kaito.sh/node-count-target"
+
+// Patch only this controller-owned marker, preserving unrelated metadata. GPU
+// is recorded only after successful estimation and status persistence, so any
+// failure leaves the CPU marker in place for a retry on the next reconcile.
+func (c *WorkspaceReconciler) recordNodeCountTarget(ctx context.Context, wObj *kaitov1beta1.Workspace, target string) error {
+	if wObj.Annotations[nodeCountTargetAnnotation] == target {
+		return nil
+	}
+	patch, err := json.Marshal(map[string]interface{}{
+		"metadata": map[string]interface{}{"annotations": map[string]string{nodeCountTargetAnnotation: target}},
+	})
+	if err != nil {
+		return err
+	}
+	if err := c.Patch(ctx, wObj, client.RawPatch(types.MergePatchType, patch)); err != nil {
+		return fmt.Errorf("failed to record node count target: %w", err)
+	}
 	return nil
 }
 

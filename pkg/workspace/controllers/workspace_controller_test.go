@@ -2930,3 +2930,96 @@ func TestApplyInferenceCPUTransitionSynchronizesReplicas(t *testing.T) {
 	require.Contains(t, ss.Spec.Template.Spec.Containers[0].Image, "base-vllm-cpu:0.0.2")
 	require.Equal(t, "vllm", ss.Annotations[v1beta1.AnnotationWorkspaceRuntime])
 }
+
+func TestUpdateWorkspaceTargetNodeCountBYOGPURoundTrip(t *testing.T) {
+	test.RegisterTestModel()
+	for _, gate := range []string{consts.FeatureFlagEnableCPUInference, consts.FeatureFlagDisableNodeAutoProvisioning} {
+		old := featuregates.FeatureGates[gate]
+		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
+		featuregates.FeatureGates[gate] = true
+	}
+	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	ws.Inference.Preset.Name = "test-distributed-model"
+	ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: "vllm"}
+	ws.Resource = v1beta1.ResourceSpec{LabelSelector: &v1.LabelSelector{MatchLabels: map[string]string{"pool": "switching"}}}
+	ws.Status.TargetNodeCount = 0
+	node := &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "switching", Labels: map[string]string{
+		"pool": "switching", corev1.LabelArchStable: "amd64", consts.NvidiaGPUProduct: "NVIDIA-T4", consts.NvidiaGPUCount: "1", consts.NvidiaGPUMemory: "8192",
+	}}, Status: corev1.NodeStatus{
+		Capacity:   corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")},
+		Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}},
+	}}
+	c := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithStatusSubresource(ws, node).WithObjects(ws, node).Build()
+	r := &WorkspaceReconciler{Client: c, Estimator: &nodesestimator.NodeEstimator{}}
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(t.Context(), ws))
+	gpuCount := ws.Status.TargetNodeCount
+	require.Greater(t, gpuCount, int32(1), "test model must require GPU pipeline parallelism")
+	gpuLabels := node.DeepCopy().Labels
+	gpuStatus := node.DeepCopy().Status
+	for _, label := range []string{consts.NvidiaGPUProduct, consts.NvidiaGPUCount, consts.NvidiaGPUMemory} {
+		delete(node.Labels, label)
+	}
+	require.NoError(t, c.Update(t.Context(), node))
+	node.Status.Capacity = nil
+	require.NoError(t, c.Status().Update(t.Context(), node))
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(t.Context(), ws))
+	require.Equal(t, int32(1), ws.Status.TargetNodeCount)
+	node.Labels = gpuLabels
+	require.NoError(t, c.Update(t.Context(), node))
+	node.Status = gpuStatus
+	require.NoError(t, c.Status().Update(t.Context(), node))
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(t.Context(), ws))
+	require.Equal(t, gpuCount, ws.Status.TargetNodeCount)
+	stored := &v1beta1.Workspace{}
+	require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(ws), stored))
+	require.Equal(t, gpuCount, stored.Status.TargetNodeCount)
+	version := stored.ResourceVersion
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(t.Context(), ws))
+	require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(ws), stored))
+	require.Equal(t, version, stored.ResourceVersion, "unchanged estimate must not write status")
+	// Force another CPU visit, then verify a failed GPU re-estimate is retried.
+	require.NoError(t, r.recordNodeCountTarget(t.Context(), ws, "cpu"))
+	node.Status.Conditions = nil
+	require.NoError(t, c.Status().Update(t.Context(), node))
+	require.Error(t, r.UpdateWorkspaceTargetNodeCount(t.Context(), ws))
+	require.Equal(t, gpuCount, ws.Status.TargetNodeCount)
+	require.Equal(t, "cpu", ws.Annotations[nodeCountTargetAnnotation])
+}
+
+func targetTransitionScheme(t *testing.T) *runtime.Scheme {
+	t.Helper()
+	scheme := runtime.NewScheme()
+	require.NoError(t, corev1.AddToScheme(scheme))
+	require.NoError(t, appsv1.AddToScheme(scheme))
+	require.NoError(t, storagev1.AddToScheme(scheme))
+	require.NoError(t, v1beta1.AddToScheme(scheme))
+	return scheme
+}
+
+func targetTransitionGPUNode() *corev1.Node {
+	return &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "gpu-node", Labels: map[string]string{
+		"apps": "test", corev1.LabelArchStable: "amd64", corev1.LabelInstanceTypeStable: "Standard_NC24ads_A100_v4",
+	}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+}
+
+func TestUpdateWorkspaceTargetNodeCountTransformersWithoutCount(t *testing.T) {
+	test.RegisterTestModel()
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO })
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	ws.Resource = v1beta1.ResourceSpec{
+		InstanceType:  ws.Resource.InstanceType,
+		LabelSelector: ws.Resource.LabelSelector,
+	}
+	ws.Annotations = map[string]string{
+		v1beta1.AnnotationWorkspaceRuntime: "transformers",
+		nodeCountTargetAnnotation:          "cpu",
+	}
+	ws.Status.TargetNodeCount = 1
+	c := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithStatusSubresource(ws).WithObjects(ws, targetTransitionGPUNode()).Build()
+	r := &WorkspaceReconciler{Client: c}
+	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(t.Context(), ws))
+	require.Equal(t, int32(1), ws.Status.TargetNodeCount)
+	require.Equal(t, "gpu", ws.Annotations[nodeCountTargetAnnotation])
+}

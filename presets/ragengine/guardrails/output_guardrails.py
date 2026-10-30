@@ -18,6 +18,7 @@ from hashlib import sha256
 from typing import Any
 
 import yaml
+from guardrail_core.config import build_scanner
 from guardrail_core.scanning import scan_output
 
 from ragengine import config
@@ -219,8 +220,9 @@ class OutputGuardrails:
         scanners: list[tuple[ParsedScannerConfig, Any]] = []
         for parsed in self.scanner_configs:
             try:
-                scanner_action_on_hit = parsed.action_on_hit or self.action_on_hit
-                scanners.append((parsed, parsed.config.build(scanner_action_on_hit)))
+                scanners.append(
+                    (parsed, build_scanner(parsed, default_action=self.action_on_hit))
+                )
                 output_guardrails_scanner_build_total.labels(
                     type=parsed.type, status=STATUS_SUCCESS
                 ).inc()
@@ -303,6 +305,8 @@ def _parse_policy_scanner_configs(
             if key not in {"type", "action"}
         }
         try:
+            # Keep RAGEngine's field compatibility and skip-on-error policy;
+            # parse_scanner_config rejects inputs accepted by these schemas.
             cfg = schema_cls.from_dict(normalized_raw)
         except (TypeError, ValueError) as e:
             logger.warning(

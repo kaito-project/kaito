@@ -79,7 +79,7 @@ The holdback window uses `guardrail_core.streaming.window`. Scanner failures
 discard pending text and enter the same refusal flow; RAGEngine logs the failure
 type without logging model text. Cancellation still propagates.
 
-RAGEngine pins `kaito-guardrail-core==0.1.1` in its requirements. For local
+RAGEngine pins `kaito-guardrail-core==0.2.0` in its requirements. For local
 development, run `pip install -r presets/ragengine/requirements-test.txt` from
 the repository root, or use `make rag-service-test`. Both use the published
 package rather than installing shared-library source from this repository.
@@ -134,6 +134,12 @@ Policy parsing is permissive by design:
 - invalid scanner configs are skipped
 - invalid actions fall back to the default action
 - one invalid scanner does not prevent other valid scanners from running
+
+Scanner schemas and construction use `guardrail_core.config`. RAGEngine keeps
+a thin policy adapter rather than using the shared strict `parse_scanner_config`
+entry point: the default action remains `redact`, camelCase and hyphenated field
+names remain accepted, and invalid entries are logged and skipped. This reuse
+does not change scanning, streaming holdback, or response formats.
 
 This example uses explicit scanner-level `action` values, so it does not need a
 top-level `action`. A top-level `action` is optional and serves only as the

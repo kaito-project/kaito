@@ -53,7 +53,8 @@ func TestLegacyRuntimeMarkerMigrationPreservesPodTemplate(t *testing.T) {
 			require.NoError(t, corev1.AddToScheme(scheme))
 			require.NoError(t, appsv1.AddToScheme(scheme))
 			require.NoError(t, v1beta1.AddToScheme(scheme))
-			c := fake.NewClientBuilder().WithScheme(scheme).Build()
+			seedCompletedBenchmark(ws)
+			c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws).Build()
 			r := &WorkspaceReconciler{Client: c}
 			require.NoError(t, r.applyInference(context.Background(), ws))
 			deployed := &appsv1.StatefulSet{}
@@ -82,6 +83,7 @@ func TestLegacyRuntimeMarkerMigrationPreservesPodTemplate(t *testing.T) {
 			after := &appsv1.StatefulSet{}
 			require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), after))
 			require.Equal(t, before.Spec, after.Spec, "marker migration must not roll out or reset any PodSpec field")
+			requireBenchmarkStatus(t, c, ws, false)
 			if engine == "unknown" {
 				require.NotContains(t, after.Annotations, v1beta1.AnnotationWorkspaceRuntime)
 			} else {
@@ -91,6 +93,7 @@ func TestLegacyRuntimeMarkerMigrationPreservesPodTemplate(t *testing.T) {
 			again := &appsv1.StatefulSet{}
 			require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), again))
 			require.Equal(t, after, again, "a second reconcile must be idempotent")
+			requireBenchmarkStatus(t, c, ws, false)
 		})
 	}
 }
@@ -109,7 +112,8 @@ func TestLegacyRuntimeSwitchWithoutMarker(t *testing.T) {
 			require.NoError(t, corev1.AddToScheme(scheme))
 			require.NoError(t, appsv1.AddToScheme(scheme))
 			require.NoError(t, v1beta1.AddToScheme(scheme))
-			c := fake.NewClientBuilder().WithScheme(scheme).Build()
+			seedCompletedBenchmark(ws)
+			c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws).WithObjects(ws).Build()
 			r := &WorkspaceReconciler{Client: c}
 			require.NoError(t, r.applyInference(context.Background(), ws))
 			before := &appsv1.StatefulSet{}
@@ -128,6 +132,7 @@ func TestLegacyRuntimeSwitchWithoutMarker(t *testing.T) {
 			require.NotEqual(t, before.Spec.Template.Spec.Containers[0].StartupProbe, after.Spec.Template.Spec.Containers[0].StartupProbe)
 			require.NotEqual(t, before.Spec.Template.Spec.Containers[0].ReadinessProbe, after.Spec.Template.Spec.Containers[0].ReadinessProbe)
 			require.Equal(t, "mcr.microsoft.com/kaito/kaito-base:old", after.Spec.Template.Spec.Containers[0].Image)
+			requireBenchmarkStatus(t, c, ws, true)
 		})
 	}
 }

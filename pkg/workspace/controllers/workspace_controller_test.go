@@ -2954,7 +2954,8 @@ func TestHandleInferenceWorkloadTransformersTargetTransition(t *testing.T) {
 			if cpuToGPU {
 				ws.Resource.InstanceType = "Standard_D4s_v3"
 			}
-			kubeClient := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithObjects(targetTransitionGPUNode()).Build()
+			seedCompletedBenchmark(ws)
+			kubeClient := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithStatusSubresource(ws).WithObjects(ws, targetTransitionGPUNode()).Build()
 			model, err := models.GetModelByName(t.Context(), string(ws.Inference.Preset.Name), ws.Inference.Config, "", ws.Namespace, kubeClient)
 			require.NoError(t, err)
 			initialResult, err := inference.GeneratePresetInference(t.Context(), ws, ws.Annotations[v1beta1.WorkspaceRevisionAnnotation], model, kubeClient, nil)
@@ -2990,6 +2991,7 @@ func TestHandleInferenceWorkloadTransformersTargetTransition(t *testing.T) {
 			require.NoError(t, err)
 			assert.JSONEq(t, string(wantJSON), string(gotJSON))
 			assert.Equal(t, cpuToGPU, inferencePodUsesGPU(&actual.Spec.Template.Spec))
+			requireBenchmarkStatus(t, kubeClient, ws, true)
 		})
 	}
 }
@@ -3009,7 +3011,8 @@ func TestHandleInferenceWorkloadRejectsClaimTemplateTargetMigration(t *testing.T
 	ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: "transformers", v1beta1.WorkspaceRevisionAnnotation: "1"}
 	ws.Resource.InstanceType = "Standard_NC24ads_A100_v4"
 	storageClass := &storagev1.StorageClass{ObjectMeta: v1.ObjectMeta{Name: consts.LocalNVMeStorageClass}}
-	kubeClient := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithObjects(storageClass, targetTransitionGPUNode()).Build()
+	seedCompletedBenchmark(ws)
+	kubeClient := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithStatusSubresource(ws).WithObjects(ws, storageClass, targetTransitionGPUNode()).Build()
 	model, err := models.GetModelByName(t.Context(), string(ws.Inference.Preset.Name), ws.Inference.Config, "", ws.Namespace, kubeClient)
 	require.NoError(t, err)
 	initialResult, err := inference.GeneratePresetInference(t.Context(), ws, ws.Annotations[v1beta1.WorkspaceRevisionAnnotation], model, kubeClient, nil)
@@ -3031,6 +3034,7 @@ func TestHandleInferenceWorkloadRejectsClaimTemplateTargetMigration(t *testing.T
 	actual := &appsv1.StatefulSet{}
 	require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(initial), actual))
 	assert.Equal(t, before, actual, "reject before mutating the existing workload")
+	requireBenchmarkStatus(t, kubeClient, ws, false)
 }
 
 func TestValidateInferenceClaimTemplateMigration(t *testing.T) {

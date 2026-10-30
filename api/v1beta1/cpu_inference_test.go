@@ -494,3 +494,52 @@ func TestResolveCPUInferenceSetUsesChildNodeSelector(t *testing.T) {
 		t.Fatal("provisioned legacy selector fallback lost")
 	}
 }
+
+func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
+	registerCPUValidationTestModels()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldVLLM := featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldVLLM
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	for _, tc := range []struct {
+		instance        string
+		cpu, amd64, gpu bool
+	}{
+		{"Standard_D16s_v6", true, true, false},
+		{"standard_d16s_v6", true, true, false},
+		{"STANDARD_D16S_V6", true, true, false},
+		{"standard_d16ps_v6", true, false, false},
+		{"StAnDaRd_D16pS_v6", true, false, false},
+		{"standard_nc6s_v3", false, false, true},
+		{"STANDARD_ND96ASR_V4", false, false, true},
+		{"StAnDaRd_NV12s_v3", false, false, true},
+	} {
+		t.Run(tc.instance, func(t *testing.T) {
+			if got := isAzureGPUOrAcceleratorSKU(tc.instance); got != tc.gpu {
+				t.Fatalf("GPU classification = %v, want %v", got, tc.gpu)
+			}
+			if got := isCPUInstanceType(tc.instance); got != tc.cpu {
+				t.Fatalf("CPU classification = %v, want %v", got, tc.cpu)
+			}
+			if got := IsAMD64CompatibleVLLMCPUInstanceType(tc.instance); got != tc.amd64 {
+				t.Fatalf("amd64 classification = %v, want %v", got, tc.amd64)
+			}
+			inference := &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}}
+			got, err := ResolveCPUInferenceTarget(context.Background(), inference, tc.instance, nil, nil)
+			if err != nil || got != tc.cpu {
+				t.Fatalf("CPU resolution = %v, %v; want %v", got, err, tc.cpu)
+			}
+			if tc.cpu {
+				ws := &Workspace{Resource: ResourceSpec{InstanceType: tc.instance}, Inference: inference}
+				err := ws.validateCPUInferenceConstraints(context.Background(), nil)
+				if (err == nil) != tc.amd64 {
+					t.Fatalf("vLLM CPU admission error = %v, amd64 = %v", err, tc.amd64)
+				}
+			}
+		})
+	}
+}

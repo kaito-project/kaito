@@ -85,7 +85,7 @@ func IsCPUCompatiblePreset(name ModelName) bool {
 }
 
 func isAzureGPUOrAcceleratorSKU(instanceType string) bool {
-	return strings.HasPrefix(instanceType, "Standard_") && sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX)
+	return strings.HasPrefix(strings.ToLower(instanceType), "standard_") && sku.HasSKUNamePrefix(instanceType, N_SERIES_PREFIX)
 }
 
 func isAzureCPUInstanceType(instanceType string) bool {
@@ -116,7 +116,7 @@ func isCPUInstanceType(instanceType string) bool {
 		return false
 	}
 
-	if strings.HasPrefix(instanceType, "Standard_") {
+	if strings.HasPrefix(strings.ToLower(instanceType), "standard_") {
 		return !isAzureGPUOrAcceleratorSKU(instanceType)
 	}
 
@@ -145,7 +145,7 @@ func IsAMD64CompatibleVLLMCPUInstanceType(instanceType string) bool {
 		return false
 	}
 
-	if strings.HasPrefix(instanceType, "Standard_") {
+	if strings.HasPrefix(strings.ToLower(instanceType), "standard_") {
 		return !isAzureARMCPUInstanceType(instanceType)
 	}
 

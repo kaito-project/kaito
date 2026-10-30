@@ -60,6 +60,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/workspace/inference"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming"
 	"github.com/kaito-project/kaito/pkg/workspace/inference/modelstreaming/registry"
+	"github.com/kaito-project/kaito/presets/workspace/models"
 )
 
 func TestSelectWorkspaceNodes(t *testing.T) {
@@ -443,8 +444,9 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 						Template: corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{{
-									Name:  "inference-container",
-									Image: "inference-image:latest",
+									Name:      "inference-container",
+									Image:     "inference-image:latest",
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
 								}},
 							},
 						},
@@ -481,8 +483,9 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 						Template: corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
 								Containers: []corev1.Container{{
-									Name:  "inference-container",
-									Image: "inference-image:latest",
+									Name:      "inference-container",
+									Image:     "inference-image:latest",
+									Resources: corev1.ResourceRequirements{Limits: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}},
 								}},
 							},
 						},
@@ -511,7 +514,8 @@ func TestApplyInferenceWithPreset(t *testing.T) {
 				c.On("Get", mock.Anything, mock.Anything, mock.IsType(&appsv1.StatefulSet{}), mock.Anything).
 					Run(func(args mock.Arguments) {
 						ss := args.Get(2).(*appsv1.StatefulSet)
-						*ss = test.MockStatefulSetUpdated
+						*ss = *test.MockStatefulSetUpdated.DeepCopy()
+						ss.Spec.Template.Spec.Containers[0].Resources.Limits = corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}
 					}).
 					Return(nil)
 
@@ -2929,6 +2933,113 @@ func TestApplyInferenceCPUTransitionSynchronizesReplicas(t *testing.T) {
 	require.Equal(t, int32(1), *ss.Spec.Replicas)
 	require.Contains(t, ss.Spec.Template.Spec.Containers[0].Image, "base-vllm-cpu:0.0.2")
 	require.Equal(t, "vllm", ss.Annotations[v1beta1.AnnotationWorkspaceRuntime])
+}
+
+func TestHandleInferenceWorkloadTransformersTargetTransition(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	for _, cpuToGPU := range []bool{false, true} {
+		t.Run(fmt.Sprintf("cpuToGPU=%t", cpuToGPU), func(t *testing.T) {
+			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: "transformers", v1beta1.WorkspaceRevisionAnnotation: "1"}
+			ws.Resource.InstanceType = "Standard_NC24ads_A100_v4"
+			if cpuToGPU {
+				ws.Resource.InstanceType = "Standard_D4s_v3"
+			}
+			kubeClient := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithObjects(targetTransitionGPUNode()).Build()
+			model, err := models.GetModelByName(t.Context(), string(ws.Inference.Preset.Name), ws.Inference.Config, "", ws.Namespace, kubeClient)
+			require.NoError(t, err)
+			initialResult, err := inference.GeneratePresetInference(t.Context(), ws, ws.Annotations[v1beta1.WorkspaceRevisionAnnotation], model, kubeClient, nil)
+			require.NoError(t, err)
+			initial := initialResult.Workload.(*appsv1.StatefulSet)
+			initial.Annotations = map[string]string{
+				v1beta1.AnnotationWorkspaceRuntime:  "transformers",
+				v1beta1.WorkspaceRevisionAnnotation: "1",
+			}
+			const pinned = "registry.example/custom/kaito-base:deployed"
+			initial.Spec.Template.Spec.Containers[0].Image = pinned
+			require.NoError(t, kubeClient.Create(t.Context(), initial))
+			ws.Resource.InstanceType = "Standard_D4s_v3"
+			if cpuToGPU {
+				ws.Resource.InstanceType = "Standard_NC24ads_A100_v4"
+			}
+			desiredResult, err := inference.GeneratePresetInference(t.Context(), ws, ws.Annotations[v1beta1.WorkspaceRevisionAnnotation], model, kubeClient, nil)
+			require.NoError(t, err)
+			desired := desiredResult.Workload.(*appsv1.StatefulSet)
+			reconciler := &WorkspaceReconciler{Client: kubeClient}
+			require.NoError(t, reconciler.applyInference(t.Context(), ws))
+			actual := &appsv1.StatefulSet{}
+			require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(initial), actual))
+			desired.Spec.Template.Spec.Containers[0].Image = pinned
+			wantContainer := &desired.Spec.Template.Spec.Containers[0]
+			gotContainer := &actual.Spec.Template.Spec.Containers[0]
+			assert.ElementsMatch(t, strings.Fields(wantContainer.Command[2]), strings.Fields(gotContainer.Command[2]))
+			wantContainer.Command = gotContainer.Command
+			assert.True(t, reflect.DeepEqual(desired.Spec.Template.Spec.Affinity, actual.Spec.Template.Spec.Affinity))
+			wantJSON, err := json.Marshal(desired.Spec.Template.Spec)
+			require.NoError(t, err)
+			gotJSON, err := json.Marshal(actual.Spec.Template.Spec)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(wantJSON), string(gotJSON))
+			assert.Equal(t, cpuToGPU, inferencePodUsesGPU(&actual.Spec.Template.Spec))
+		})
+	}
+}
+
+func TestHandleInferenceWorkloadRejectsClaimTemplateTargetMigration(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	test.RegisterTestModel()
+	oldCPU := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPU
+		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
+	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+	ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: "transformers", v1beta1.WorkspaceRevisionAnnotation: "1"}
+	ws.Resource.InstanceType = "Standard_NC24ads_A100_v4"
+	storageClass := &storagev1.StorageClass{ObjectMeta: v1.ObjectMeta{Name: consts.LocalNVMeStorageClass}}
+	kubeClient := fake.NewClientBuilder().WithScheme(targetTransitionScheme(t)).WithObjects(storageClass, targetTransitionGPUNode()).Build()
+	model, err := models.GetModelByName(t.Context(), string(ws.Inference.Preset.Name), ws.Inference.Config, "", ws.Namespace, kubeClient)
+	require.NoError(t, err)
+	initialResult, err := inference.GeneratePresetInference(t.Context(), ws, ws.Annotations[v1beta1.WorkspaceRevisionAnnotation], model, kubeClient, nil)
+	require.NoError(t, err)
+	initial := initialResult.Workload.(*appsv1.StatefulSet)
+	require.NotEmpty(t, initial.Spec.VolumeClaimTemplates)
+	initial.Annotations = map[string]string{
+		v1beta1.AnnotationWorkspaceRuntime:  "transformers",
+		v1beta1.WorkspaceRevisionAnnotation: "1",
+	}
+	require.NoError(t, kubeClient.Create(t.Context(), initial))
+	before := &appsv1.StatefulSet{}
+	require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(initial), before))
+	ws.Resource.InstanceType = "Standard_D4s_v3"
+	reconciler := &WorkspaceReconciler{Client: kubeClient}
+	err = reconciler.applyInference(t.Context(), ws)
+	require.ErrorContains(t, err, "immutable volumeClaimTemplates differ")
+	require.ErrorContains(t, err, "create a new Workspace")
+	actual := &appsv1.StatefulSet{}
+	require.NoError(t, kubeClient.Get(t.Context(), client.ObjectKeyFromObject(initial), actual))
+	assert.Equal(t, before, actual, "reject before mutating the existing workload")
+}
+
+func TestValidateInferenceClaimTemplateMigration(t *testing.T) {
+	withClaim := &appsv1.StatefulSet{Spec: appsv1.StatefulSetSpec{VolumeClaimTemplates: []corev1.PersistentVolumeClaim{{ObjectMeta: v1.ObjectMeta{Name: "model-weights-volume"}}}}}
+	withoutClaim := &appsv1.StatefulSet{}
+	require.NoError(t, validateInferenceClaimTemplateMigration(withClaim, withClaim.DeepCopy()))
+	require.NoError(t, validateInferenceClaimTemplateMigration(withoutClaim, withoutClaim.DeepCopy()))
+	require.Error(t, validateInferenceClaimTemplateMigration(withClaim, withoutClaim))
+	require.Error(t, validateInferenceClaimTemplateMigration(withoutClaim, withClaim))
 }
 
 func TestUpdateWorkspaceTargetNodeCountBYOGPURoundTrip(t *testing.T) {

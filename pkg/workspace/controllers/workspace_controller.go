@@ -763,7 +763,14 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 
 	baseImageUpgrade := false
 	variantChanged := false
+	targetChanged := false
 	if existingErr == nil {
+		targetChanged = inferencePodUsesGPU(&existingObj.Spec.Template.Spec) != inferencePodUsesGPU(&desiredStatefulSet.Spec.Template.Spec)
+		if targetChanged {
+			if err := validateInferenceClaimTemplateMigration(existingObj, desiredStatefulSet); err != nil {
+				return err
+			}
+		}
 		variantChanged = inferenceImageVariant(workspace.GetInferenceContainerImage(existingObj)) != inferenceImageVariant(workspace.GetInferenceContainerImage(desiredStatefulSet))
 		baseImageUpgrade = shouldUpgradeBaseImage(wObj, existingObj, desiredStatefulSet)
 		if !baseImageUpgrade && !variantChanged {
@@ -811,7 +818,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	// Target image variants (GPU/CPU) can change without a revision hash change,
 	// for example when BYO node selectors resolve to a different target.
 	// Cache mutations and base-image upgrades must also trigger a workload update.
-	if shouldSkipInferenceWorkloadUpdate(ok, currentRevisionStr, revisionStr, replacePodTemplate, variantChanged) {
+	if shouldSkipInferenceWorkloadUpdate(ok, currentRevisionStr, revisionStr, replacePodTemplate, variantChanged || targetChanged) {
 		if migrateRuntime && deployedRuntime != "" {
 			annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = deployedRuntime
 			existingObj.SetAnnotations(annotations)
@@ -838,7 +845,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		syncInferenceMutablePodSpec(
 			&existingObj.Spec.Template.Spec,
 			&desiredStatefulSet.Spec.Template.Spec,
-			variantChanged,
+			variantChanged || targetChanged,
 		)
 	}
 
@@ -861,6 +868,24 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		if err := c.resetBenchmarkOnUpgrade(ctx, wObj); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// StatefulSet claim templates are immutable and override same-named pod volumes.
+// Refuse unsafe target migrations rather than silently retaining node-local GPU
+// storage on CPU pods or issuing an invalid StatefulSet update.
+func validateInferenceClaimTemplateMigration(existing, desired *appsv1.StatefulSet) error {
+	existingClaims := make(map[string]bool, len(existing.Spec.VolumeClaimTemplates))
+	for _, claim := range existing.Spec.VolumeClaimTemplates {
+		existingClaims[claim.Name] = true
+	}
+	desiredClaims := make(map[string]bool, len(desired.Spec.VolumeClaimTemplates))
+	for _, claim := range desired.Spec.VolumeClaimTemplates {
+		desiredClaims[claim.Name] = true
+	}
+	if !apiequality.Semantic.DeepEqual(existingClaims, desiredClaims) {
+		return fmt.Errorf("cannot change CPU/GPU target for StatefulSet %s/%s: immutable volumeClaimTemplates differ; create a new Workspace for the target and migrate or discard cached model weights before deleting the old Workspace and its PVCs", existing.Namespace, existing.Name)
 	}
 	return nil
 }
@@ -896,6 +921,21 @@ func syncInferenceMutablePodSpec(existingSpec, desiredSpec *corev1.PodSpec, sync
 	existingSpec.Containers[0].LivenessProbe = desiredSpec.Containers[0].LivenessProbe
 	existingSpec.InitContainers = desiredSpec.InitContainers
 	existingSpec.Volumes = desiredSpec.Volumes
+}
+
+// inferencePodUsesGPU detects target changes even when both runtimes use the
+// shared kaito-base image. Include MIG resources, whose names extend nvidia.com/.
+func inferencePodUsesGPU(spec *corev1.PodSpec) bool {
+	for _, container := range spec.Containers {
+		for _, resources := range []corev1.ResourceList{container.Resources.Requests, container.Resources.Limits} {
+			for name, quantity := range resources {
+				if strings.HasPrefix(string(name), "nvidia.com/") && quantity.Sign() > 0 {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func inferenceImageVariant(image string) string {

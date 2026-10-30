@@ -305,8 +305,8 @@ def _parse_policy_scanner_configs(
             if key not in {"type", "action"}
         }
         try:
-            # Use from_dict() to keep accepting policies with empty or non-string
-            # list items; parse_scanner_config() rejects them instead of filtering.
+            # Preserve existing behavior: patterns ["secret", "", 123] becomes ["secret"].
+            # The strict parse_scanner_config() would reject this scanner configuration.
             cfg = schema_cls.from_dict(normalized_raw)
         except (TypeError, ValueError) as e:
             logger.warning(

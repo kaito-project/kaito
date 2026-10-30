@@ -100,6 +100,8 @@ def test_explicit_cpu_device_has_no_offload_default(
 
     assert args.device == "cpu"
     assert args.kaito_kv_cache_cpu_memory_utilization is None
+    assert args.gpu_memory_utilization == 0.8
+    gpu_probe.assert_not_called()
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
@@ -150,3 +152,38 @@ def test_config_without_offload_setting_uses_runtime_default(
     )
 
     assert args.kaito_kv_cache_cpu_memory_utilization == expected
+
+
+@pytest.mark.parametrize("device", ["cpu", "cuda"])
+@pytest.mark.parametrize("source", ["cli", "config"])
+@pytest.mark.parametrize("utilization", [0.7, 0.9])
+def test_explicit_device_and_memory_budget_skip_gpu_probe(
+    monkeypatch, gpu_probe, tmp_path, device, source, utilization
+):
+    monkeypatch.delenv("VLLM_TARGET_DEVICE", raising=False)
+    if source == "cli":
+        argv = [f"--device={device}", f"--gpu-memory-utilization={utilization}"]
+    else:
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            f"vllm:\n  device: {device}\n  gpu-memory-utilization: {utilization}\n"
+        )
+        argv = ["--kaito-config-file", str(config)]
+
+    args = inference_api.KAITOArgumentParser().parse_args(argv)
+
+    assert args.device == device
+    assert args.gpu_memory_utilization == utilization
+    gpu_probe.assert_not_called()
+
+
+def test_parser_reuse_resolves_each_runtime_memory_default(monkeypatch, gpu_probe):
+    monkeypatch.delenv("VLLM_TARGET_DEVICE", raising=False)
+    parser = inference_api.KAITOArgumentParser()
+    gpu_probe.assert_not_called()
+    assert parser.parse_args(["--device=cpu"]).gpu_memory_utilization == 0.8
+    gpu_probe.assert_not_called()
+    assert parser.parse_args(["--device=cuda"]).gpu_memory_utilization == 0.87
+    gpu_probe.assert_called_once_with()
+    assert parser.parse_args(["--device=cpu"]).gpu_memory_utilization == 0.8
+    gpu_probe.assert_called_once_with()

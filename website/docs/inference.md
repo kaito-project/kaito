@@ -199,7 +199,7 @@ Key vLLM parameters include:
 - `tensor-parallel-size`: Number of GPUs to use for tensor parallelism
 - `max-model-len`: Maximum sequence length the model can handle
 
-For the complete list of vLLM parameters, refer to the [vLLM documentation](https://docs.vllm.ai/en/latest/serving/engine_args.html).
+For the complete list of vLLM parameters, refer to the [vLLM documentation](https://docs.vllm.ai/en/latest/configuration/engine_args.html).
 
 ## Serving with LoRA adapters
 

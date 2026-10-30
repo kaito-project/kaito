@@ -121,7 +121,11 @@ func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetOb
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return
 	}
-	desiredTag := inference.GetBaseImageTag()
+	desiredTag, err := inference.GetImageTag(desiredImage)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)
+		return
+	}
 
 	// List Workspaces belonging to this InferenceSet.
 	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
@@ -333,7 +337,11 @@ func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj 
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return
 	}
-	desiredTag := inference.GetBaseImageTag()
+	desiredTag, err := inference.GetImageTag(desiredImage)
+	if err != nil {
+		klog.ErrorS(err, "AutoUpgradeRunner: cannot authorize upgrade", "image", desiredImage)
+		return
+	}
 
 	wsList, err := inferencesetutil.ListWorkspaces(ctx, inferenceSetObj, r.Client)
 	if err != nil {

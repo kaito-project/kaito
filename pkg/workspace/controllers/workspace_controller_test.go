@@ -2801,7 +2801,10 @@ func TestRuntimeOnlyUpdateChangesHashAndPodTemplate(t *testing.T) {
 	old := featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	defer func() { featuregates.FeatureGates[consts.FeatureFlagVLLM] = old }()
 	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
-	for _, direction := range []struct{ from, to string }{{"vllm", "transformers"}, {"transformers", "vllm"}} {
+	for _, direction := range []struct {
+		from, to string
+		legacy   bool
+	}{{"vllm", "transformers", false}, {"transformers", "vllm", false}, {"vllm", "transformers", true}, {"transformers", "vllm", true}} {
 		t.Run(direction.from+"-to-"+direction.to, func(t *testing.T) {
 			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Annotations = map[string]string{}
@@ -2817,6 +2820,9 @@ func TestRuntimeOnlyUpdateChangesHashAndPodTemplate(t *testing.T) {
 			existing := &appsv1.StatefulSet{}
 			require.NoError(t, c.Get(context.Background(), client.ObjectKeyFromObject(ws), existing))
 			require.Equal(t, direction.from, existing.Annotations[v1beta1.AnnotationWorkspaceRuntime])
+			if direction.legacy {
+				delete(existing.Annotations, v1beta1.AnnotationWorkspaceRuntime)
+			}
 			// Simulate a deployed older tag. Runtime switches must not opt in to image upgrades.
 			existing.Spec.Template.Spec.Containers[0].Image = "mcr.microsoft.com/kaito/kaito-base:old"
 			existing.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{InitialDelaySeconds: 999}

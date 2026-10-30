@@ -575,7 +575,8 @@ class TestConfigureMiddlewares:
         monkeypatch.setattr(
             inference_api.KAITOArgumentParser,
             "_reset_vllm_defaults",
-            lambda _self: None,
+            # Keep this middleware-only parser stub independent of GPU probing.
+            lambda parser: parser.vllm_parser.set_defaults(gpu_memory_utilization=0.8),
         )
 
         args = inference_api.KAITOArgumentParser().parse_args(cli_args)

@@ -142,17 +142,9 @@ class KAITOArgumentParser(argparse.ArgumentParser):
             "disable_log_stats": False,
             "uvicorn_log_level": "error",
         }
-        if os.environ.get("VLLM_TARGET_DEVICE", "").strip().lower() == "cpu":
-            # Despite its name, vLLM also uses gpu_memory_utilization for the
-            # CPU memory budget. Leave headroom for the OS and startup overhead:
-            # vLLM 0.25.1's 0.92 default can exceed available RAM and fail the
-            # CPU worker's startup check before model loading. Explicit CLI or
-            # KAITO config values still override this parser default.
-            engine_default_args["gpu_memory_utilization"] = 0.8
-        else:
-            engine_default_args["gpu_memory_utilization"] = (
-                get_max_gpu_memory_utilization()
-            )
+        # Resolve the implicit memory budget only after CLI/YAML device parsing.
+        # None is a sentinel; explicit utilization values bypass the GPU probe.
+        engine_default_args["gpu_memory_utilization"] = None
         self.vllm_parser.set_defaults(**engine_default_args)
 
     def parse_args(self, *args, **kwargs):
@@ -178,6 +170,13 @@ class KAITOArgumentParser(argparse.ArgumentParser):
                 runtime_args.append(str(value))
 
         vllm_args = self.vllm_parser.parse_args(runtime_args, **kwargs)
+        if vllm_args.gpu_memory_utilization is None:
+            # Despite its name, this is also the native CPU memory budget.
+            # vLLM 0.25.1's 0.92 default can exceed available RAM; leave OS and
+            # startup headroom without overriding explicit CLI/YAML settings.
+            vllm_args.gpu_memory_utilization = (
+                0.8 if is_cpu_runtime(vllm_args) else get_max_gpu_memory_utilization()
+            )
         # This is a GPU-to-host offload default, not a native CPU KV cache
         # budget. Apply it after config merging, and only for GPU inference.
         if (

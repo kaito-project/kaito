@@ -43,6 +43,7 @@ import (
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/utils"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
+	mriutil "github.com/kaito-project/kaito/pkg/utils/multiroleinference"
 )
 
 const (
@@ -406,98 +407,38 @@ func (r *MultiRoleInferenceReconciler) reconcileInferenceSet(
 	mri *kaitov1alpha1.MultiRoleInference,
 	role kaitov1alpha1.MultiRoleInferenceRoleSpec,
 ) error {
-	isName := fmt.Sprintf("%s-%s", mri.Name, role.Type)
-	roleStr := string(role.Type)
-
-	// Build the desired InferenceSet.
+	projected := mriutil.NewInferenceSetForMultiRoleInference(mri, role)
 	desired := &kaitov1beta1.InferenceSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      isName,
-			Namespace: mri.Namespace,
+			Name:      projected.Name,
+			Namespace: projected.Namespace,
 		},
 	}
+	isName := desired.Name
+	roleStr := string(role.Type)
 
 	result, err := controllerutil.CreateOrUpdate(ctx, r.Client, desired, func() error {
+		// Reconcile only MRI-owned fields. Autoscalers own replicas when the
+		// role leaves them unset; child-only policies such as autoUpgrade must
+		// survive reconciliation as well.
+		if desired.Labels == nil {
+			desired.Labels = make(map[string]string)
+		}
+		for key, value := range projected.Labels {
+			desired.Labels[key] = value
+		}
+		if role.Replicas != nil {
+			desired.Spec.Replicas = projected.Spec.Replicas
+		}
+		desired.Spec.Selector = projected.Spec.Selector
+		desired.Spec.Template.Labels = projected.Spec.Template.Labels
+		desired.Spec.Template.Annotations = projected.Spec.Template.Annotations
+		desired.Spec.Template.Resource = projected.Spec.Template.Resource
+		desired.Spec.Template.Inference = projected.Spec.Template.Inference
 		// Set owner reference so the InferenceSet is garbage-collected with the MRI.
 		if err := controllerutil.SetControllerReference(mri, desired, r.Scheme); err != nil {
 			return err
 		}
-
-		// Labels on the InferenceSet metadata.
-		if desired.Labels == nil {
-			desired.Labels = make(map[string]string)
-		}
-		desired.Labels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
-		desired.Labels[kaitov1alpha1.LabelInferenceRole] = roleStr
-
-		// Spec — only reconcile replicas when explicitly set (non-nil).
-		// When nil, autoscaling is assumed and the controller skips replica reconciliation.
-		if role.Replicas != nil {
-			desired.Spec.Replicas = role.Replicas
-		}
-
-		// LabelSelector — start from the MRI's labelSelector and inject role info.
-		// Template labels below carry the same keys so child Workspaces match it. With node
-		// auto-provisioning, the InferenceSet controller also inherits it as the Workspace
-		// node selector, so role-specific labels land on the provisioned nodes.
-		desired.Spec.Selector = mri.Spec.LabelSelector.DeepCopy()
-		if desired.Spec.Selector == nil {
-			desired.Spec.Selector = &metav1.LabelSelector{}
-		}
-		if desired.Spec.Selector.MatchLabels == nil {
-			desired.Spec.Selector.MatchLabels = make(map[string]string)
-		}
-		desired.Spec.Selector.MatchLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
-		desired.Spec.Selector.MatchLabels[kaitov1alpha1.LabelInferenceRole] = roleStr
-
-		// Template metadata labels: propagate selector matchLabels (includes role labels).
-		templateLabels := make(map[string]string)
-		if mri.Spec.LabelSelector != nil && mri.Spec.LabelSelector.MatchLabels != nil {
-			for k, v := range mri.Spec.LabelSelector.MatchLabels {
-				templateLabels[k] = v
-			}
-		}
-		templateLabels[kaitov1alpha1.LabelMultiRoleInferenceParent] = mri.Name
-		templateLabels[kaitov1alpha1.LabelInferenceRole] = roleStr
-		desired.Spec.Template.Labels = templateLabels
-
-		// Template metadata annotations: propagate the MRI's own annotations so opt-outs
-		// (e.g. kaito.sh/model-streaming, kaito.sh/disable-benchmark) reach child workspaces.
-		// The InferenceSet controller clones Spec.Template.Annotations onto each workspace.
-		// Preserve nil for the empty case so CreateOrUpdate does not fight API-server
-		// round-tripping of empty maps, while still assigning nil to clear previously
-		// propagated annotations through MRI -> InferenceSet -> Workspace.
-		var templateAnnotations map[string]string
-		if len(mri.Annotations) > 0 {
-			templateAnnotations = make(map[string]string, len(mri.Annotations))
-			for k, v := range mri.Annotations {
-				templateAnnotations[k] = v
-			}
-		}
-		desired.Spec.Template.Annotations = templateAnnotations
-
-		// Resource.
-		desired.Spec.Template.Resource = kaitov1beta1.InferenceSetResourceSpec{
-			InstanceType: role.InstanceType,
-		}
-
-		// Inference — preset with shared model config.
-		desired.Spec.Template.Inference = kaitov1beta1.InferenceSpec{
-			Preset: &kaitov1beta1.PresetSpec{
-				PresetMeta: kaitov1beta1.PresetMeta{
-					Name: kaitov1beta1.ModelName(mri.Spec.Model.Name),
-				},
-				PresetOptions: kaitov1beta1.PresetOptions{
-					ModelAccessSecret: mri.Spec.Model.ModelAccessSecret,
-				},
-			},
-		}
-
-		// Role-specific runtime config.
-		if role.RuntimeConfig != "" {
-			desired.Spec.Template.Inference.Config = role.RuntimeConfig
-		}
-
 		return nil
 	})
 

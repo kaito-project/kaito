@@ -15,6 +15,7 @@ package v1alpha1
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -23,12 +24,45 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
 
 func int32Ptr(v int32) *int32 { return &v }
+
+func newValidMRI() *MultiRoleInference {
+	return &MultiRoleInference{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "valid-name",
+			Namespace: "default",
+		},
+		Spec: MultiRoleInferenceSpec{
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{"app": "test"},
+			},
+			Model: MultiRoleInferenceModelSpec{Name: "deepseek-ai/DeepSeek-V3"},
+			Roles: []MultiRoleInferenceRoleSpec{
+				{Type: MultiRoleInferenceRolePrefill, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
+				{Type: MultiRoleInferenceRoleDecode, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
+			},
+		},
+	}
+}
+
+func requireInstanceTypeChildValidation(_ context.Context, m *MultiRoleInference) *apis.FieldError {
+	for i, role := range m.Spec.Roles {
+		if role.InstanceType == "" {
+			return apis.ErrMissingField(fmt.Sprintf("spec.roles[%d].instanceType", i))
+		}
+	}
+	return nil
+}
+
+func setChildValidationStub(t *testing.T, fn func(context.Context, *MultiRoleInference) *apis.FieldError) {
+	orig := ValidateMultiRoleInferenceChildren
+	ValidateMultiRoleInferenceChildren = fn
+	t.Cleanup(func() { ValidateMultiRoleInferenceChildren = orig })
+}
 
 func TestMultiRoleInference_SupportedVerbs(t *testing.T) {
 	m := &MultiRoleInference{}
@@ -84,29 +118,10 @@ func TestMultiRoleInference_SetDefaults(t *testing.T) {
 }
 
 func TestMultiRoleInference_Validate(t *testing.T) {
-	// Existing tests assume the default (required) behavior for instanceType,
-	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
 	orig := consts.ActiveNodeProvisioner
 	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 	defer func() { consts.ActiveNodeProvisioner = orig }()
-	validMRI := func() *MultiRoleInference {
-		return &MultiRoleInference{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "valid-name",
-				Namespace: "default",
-			},
-			Spec: MultiRoleInferenceSpec{
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{"app": "test"},
-				},
-				Model: MultiRoleInferenceModelSpec{Name: "deepseek-ai/DeepSeek-V3"},
-				Roles: []MultiRoleInferenceRoleSpec{
-					{Type: MultiRoleInferenceRolePrefill, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
-					{Type: MultiRoleInferenceRoleDecode, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
-				},
-			},
-		}
-	}
+	setChildValidationStub(t, requireInstanceTypeChildValidation)
 
 	tests := []struct {
 		name    string
@@ -115,13 +130,13 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 	}{
 		{
 			name:    "valid MultiRoleInference",
-			mri:     validMRI(),
+			mri:     newValidMRI(),
 			wantErr: false,
 		},
 		{
 			name: "invalid DNS1123 name",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Name = "Invalid-Name"
 				return m
 			}(),
@@ -130,7 +145,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "name at the maximum length",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Name = strings.Repeat("a", 55)
 				return m
 			}(),
@@ -139,7 +154,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "name too long for child InferenceSet names",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Name = strings.Repeat("a", 56)
 				return m
 			}(),
@@ -148,7 +163,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "missing model name",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.Model.Name = ""
 				return m
 			}(),
@@ -157,7 +172,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "missing labelSelector",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.LabelSelector = nil
 				return m
 			}(),
@@ -166,7 +181,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "empty labelSelector",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.LabelSelector = &metav1.LabelSelector{}
 				return m
 			}(),
@@ -175,7 +190,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "wrong number of roles",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.Roles = m.Spec.Roles[:1]
 				return m
 			}(),
@@ -184,7 +199,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "duplicate role types (two prefill)",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.Roles[1].Type = MultiRoleInferenceRolePrefill
 				return m
 			}(),
@@ -193,7 +208,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "invalid replicas value",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.Roles[0].Replicas = int32Ptr(0)
 				return m
 			}(),
@@ -202,7 +217,7 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 		{
 			name: "empty instanceType",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.Roles[0].InstanceType = ""
 				return m
 			}(),
@@ -222,30 +237,20 @@ func TestMultiRoleInference_Validate(t *testing.T) {
 	}
 }
 
+func TestMultiRoleInference_Validate_BYOAllowsInstanceType(t *testing.T) {
+	orig := consts.ActiveNodeProvisioner
+	consts.ActiveNodeProvisioner = consts.NodeProvisionerBYO
+	defer func() { consts.ActiveNodeProvisioner = orig }()
+	setChildValidationStub(t, func(context.Context, *MultiRoleInference) *apis.FieldError { return nil })
+
+	assert.Nil(t, newValidMRI().Validate(context.Background()))
+}
+
 func TestMultiRoleInference_validateUpdate(t *testing.T) {
-	// Existing tests assume the default (required) behavior for instanceType,
-	// which corresponds to auto-provisioning (Karpenter/AzureGPU).
 	orig := consts.ActiveNodeProvisioner
 	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 	defer func() { consts.ActiveNodeProvisioner = orig }()
-	validMRI := func() *MultiRoleInference {
-		return &MultiRoleInference{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "valid-name",
-				Namespace: "default",
-			},
-			Spec: MultiRoleInferenceSpec{
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: map[string]string{"app": "test"},
-				},
-				Model: MultiRoleInferenceModelSpec{Name: "deepseek-ai/DeepSeek-V3"},
-				Roles: []MultiRoleInferenceRoleSpec{
-					{Type: MultiRoleInferenceRolePrefill, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
-					{Type: MultiRoleInferenceRoleDecode, Replicas: int32Ptr(1), InstanceType: "Standard_NC24ads_A100_v4"},
-				},
-			},
-		}
-	}
+	setChildValidationStub(t, requireInstanceTypeChildValidation)
 
 	tests := []struct {
 		name    string
@@ -255,28 +260,28 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 	}{
 		{
 			name:    "valid update",
-			mri:     validMRI(),
-			old:     validMRI(),
+			mri:     newValidMRI(),
+			old:     newValidMRI(),
 			wantErr: false,
 		},
 		{
 			name: "update with empty model name should fail",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.Model.Name = ""
 				return m
 			}(),
-			old:     validMRI(),
+			old:     newValidMRI(),
 			wantErr: true,
 		},
 		{
 			name: "update with empty instanceType should fail",
 			mri: func() *MultiRoleInference {
-				m := validMRI()
+				m := newValidMRI()
 				m.Spec.Roles[0].InstanceType = ""
 				return m
 			}(),
-			old:     validMRI(),
+			old:     newValidMRI(),
 			wantErr: true,
 		},
 	}
@@ -294,23 +299,52 @@ func TestMultiRoleInference_validateUpdate(t *testing.T) {
 	}
 }
 
-func TestMultiRoleInferenceCapacityTypeAnnotation(t *testing.T) {
-	originalProvisioner := consts.ActiveNodeProvisioner
-	consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
-	t.Cleanup(func() { consts.ActiveNodeProvisioner = originalProvisioner })
+func TestMultiRoleInferenceValidateFailsClosedWithoutChildValidation(t *testing.T) {
+	orig := ValidateMultiRoleInferenceChildren
+	t.Cleanup(func() { ValidateMultiRoleInferenceChildren = orig })
+	ValidateMultiRoleInferenceChildren = nil
 
-	makeMRI := func(value string) *MultiRoleInference {
-		return &MultiRoleInference{ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{kaitov1beta1.AnnotationCapacityType: value},
-		}}
-	}
+	err := newValidMRI().Validate(context.Background())
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "child InferenceSet validation is not configured")
+}
 
-	assert.Nil(t, makeMRI(consts.KarpenterCapacityTypeSpot).validateCapacityTypeAnnotation())
-	assert.NotNil(t, makeMRI("reserved").validateCapacityTypeAnnotation())
-	assert.NotNil(t, makeMRI(consts.KarpenterCapacityTypeSpot).
-		validateCapacityTypeAnnotationUpdate(makeMRI(consts.KarpenterCapacityTypeOnDemand)))
-	assert.Nil(t, makeMRI(consts.KarpenterCapacityTypeOnDemand).
-		validateCapacityTypeAnnotationUpdate(makeMRI("reserved")))
+func TestMultiRoleInferenceValidatePassesBaselineToChildValidation(t *testing.T) {
+	var gotBaseline any
+	calls := 0
+	setChildValidationStub(t, func(ctx context.Context, _ *MultiRoleInference) *apis.FieldError {
+		calls++
+		gotBaseline = apis.GetBaseline(ctx)
+		return nil
+	})
+
+	old := newValidMRI()
+	updated := newValidMRI()
+
+	assert.Nil(t, updated.Validate(context.Background()))
+	assert.Equal(t, 1, calls)
+	assert.Nil(t, gotBaseline)
+
+	assert.Nil(t, updated.Validate(apis.WithinUpdate(context.Background(), old)))
+	assert.Equal(t, 2, calls)
+	assert.Same(t, old, gotBaseline)
+}
+
+func TestMultiRoleInferenceValidateDeletingSkipsChildValidation(t *testing.T) {
+	called := false
+	setChildValidationStub(t, func(context.Context, *MultiRoleInference) *apis.FieldError {
+		called = true
+		return apis.ErrGeneric("referenced ConfigMap not found", "spec", "roles[0]")
+	})
+
+	now := metav1.Now()
+	old := newValidMRI()
+	deleting := old.DeepCopy()
+	deleting.DeletionTimestamp = &now
+
+	err := deleting.Validate(apis.WithinUpdate(context.Background(), old))
+	assert.Nil(t, err)
+	assert.False(t, called)
 }
 
 func TestMultiRoleInferenceValidateSpeculativeDecoding(t *testing.T) {

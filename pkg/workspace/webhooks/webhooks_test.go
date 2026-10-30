@@ -18,13 +18,46 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	otelresource "go.opentelemetry.io/otel/sdk/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	knativeresource "knative.dev/pkg/observability/resource"
+	"knative.dev/pkg/observability/semconv"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 )
+
+func TestDefaultTelemetryResource(t *testing.T) {
+	t.Setenv("SYSTEM_NAMESPACE", "kaito-system")
+	t.Setenv("POD_NAME", "workspace-controller")
+
+	for _, tt := range []struct {
+		name        string
+		override    string
+		serviceName string
+	}{
+		{name: "default service", serviceName: "webhook"},
+		{name: "environment override", override: "custom-webhook", serviceName: "custom-webhook"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("OTEL_SERVICE_NAME", tt.override)
+
+			var resource *otelresource.Resource
+			require.NotPanics(t, func() {
+				resource = knativeresource.Default("webhook")
+			})
+			require.NotNil(t, resource)
+			assert.Equal(t, otelresource.Default().SchemaURL(), resource.SchemaURL())
+			assert.Equal(t, semconv.SchemaURL, resource.SchemaURL())
+			assert.Contains(t, resource.Attributes(), semconv.ServiceName(tt.serviceName))
+			assert.Contains(t, resource.Attributes(), semconv.K8SNamespaceName("kaito-system"))
+			assert.Contains(t, resource.Attributes(), semconv.K8SPodName("workspace-controller"))
+		})
+	}
+}
 
 func TestNewControllerWebhooks(t *testing.T) {
 	tests := []struct {

@@ -796,7 +796,15 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	runtimeChanged := annotations[kaitov1beta1.AnnotationWorkspaceRuntime] != string(kaitov1beta1.GetWorkspaceRuntimeName(wObj))
+	deployedRuntime := annotations[kaitov1beta1.AnnotationWorkspaceRuntime]
+	migrateRuntime := deployedRuntime == ""
+	if migrateRuntime {
+		deployedRuntime = string(inferDeployedRuntime(existingObj))
+	}
+	desiredRuntime := string(kaitov1beta1.GetWorkspaceRuntimeName(wObj))
+	// Unknown legacy runtimes are not evidence of a switch. Do not guess the
+	// desired runtime and permanently hide a real mismatch behind a new marker.
+	runtimeChanged := deployedRuntime != "" && deployedRuntime != desiredRuntime
 	replacePodTemplate := runtimeChanged || baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet) ||
 		!apiequality.Semantic.DeepEqual(existingObj.Spec.Replicas, desiredStatefulSet.Spec.Replicas)
 
@@ -804,6 +812,11 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	// for example when BYO node selectors resolve to a different target.
 	// Cache mutations and base-image upgrades must also trigger a workload update.
 	if shouldSkipInferenceWorkloadUpdate(ok, currentRevisionStr, revisionStr, replacePodTemplate, variantChanged) {
+		if migrateRuntime && deployedRuntime != "" {
+			annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = deployedRuntime
+			existingObj.SetAnnotations(annotations)
+			return c.Update(ctx, existingObj)
+		}
 		return nil
 	}
 
@@ -830,7 +843,9 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	annotations[kaitov1beta1.WorkspaceRevisionAnnotation] = revisionStr
-	annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = string(kaitov1beta1.GetWorkspaceRuntimeName(wObj))
+	if replacePodTemplate || !migrateRuntime || deployedRuntime != "" {
+		annotations[kaitov1beta1.AnnotationWorkspaceRuntime] = desiredRuntime
+	}
 	existingObj.SetAnnotations(annotations)
 
 	// Update it with the latest one generated above.
@@ -897,9 +912,47 @@ func inferenceImageVariant(image string) string {
 // current desired base image tag to prevent stale labels from triggering upgrades.
 func shouldUpgradeBaseImage(wObj *kaitov1beta1.Workspace, existingObj, desiredStatefulSet *appsv1.StatefulSet) bool {
 	upgradeVersion := wObj.Labels[kaitov1alpha1.LabelUpgradeToVersion]
-	return upgradeVersion != "" &&
-		upgradeVersion == inference.GetBaseImageTag() &&
+	desiredTag, err := inference.GetImageTag(workspace.GetInferenceContainerImage(desiredStatefulSet))
+	return err == nil && upgradeVersion != "" && upgradeVersion == desiredTag &&
 		workspace.GetInferenceContainerImage(existingObj) != workspace.GetInferenceContainerImage(desiredStatefulSet)
+}
+
+// inferDeployedRuntime identifies a legacy workload from its serving container,
+// never from the desired Workspace or unrelated sidecars. The shared GPU image
+// supports both engines, so its image name alone is not sufficient evidence.
+func inferDeployedRuntime(ss *appsv1.StatefulSet) pkgmodel.RuntimeName {
+	containers := ss.Spec.Template.Spec.Containers
+	if len(containers) == 0 {
+		return ""
+	}
+	serving := &containers[0]
+	for i := range containers {
+		if containers[i].Name == ss.Name {
+			serving = &containers[i]
+			break
+		}
+	}
+	command := strings.Join(serving.Command, " ") + " " + strings.Join(serving.Args, " ")
+	vllm := strings.Contains(command, "/workspace/vllm/") || strings.Contains(command, "vllm.entrypoints.")
+	transformers := strings.Contains(command, "/workspace/tfs/") || strings.Contains(command, "transformers serve")
+	if vllm != transformers {
+		if vllm {
+			return pkgmodel.RuntimeNameVLLM
+		}
+		return pkgmodel.RuntimeNameHuggingfaceTransformers
+	}
+	if vllm { // Conflicting commands are not safe to classify.
+		return ""
+	}
+	for _, env := range serving.Env {
+		if env.Name == "VLLM_TARGET_DEVICE" && env.Value != "" {
+			return pkgmodel.RuntimeNameVLLM
+		}
+	}
+	if inferenceImageVariant(serving.Image) == "cpu-vllm" {
+		return pkgmodel.RuntimeNameVLLM
+	}
+	return ""
 }
 
 func shouldSkipInferenceWorkloadUpdate(hasCurrentRevision bool, currentRevisionStr, desiredRevisionStr string, baseImageUpgrade, variantChanged bool) bool {

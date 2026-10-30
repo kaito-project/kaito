@@ -2898,8 +2898,9 @@ func TestApplyInferenceCPUTransitionSynchronizesReplicas(t *testing.T) {
 	require.NoError(t, appsv1.AddToScheme(scheme))
 	require.NoError(t, v1beta1.AddToScheme(scheme))
 	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-	ws.Resource.InstanceType = ""
-	ws.Resource.Count = nil
+	ws.Resource = v1beta1.ResourceSpec{
+		LabelSelector: ws.Resource.LabelSelector.DeepCopy(),
+	}
 	ws.Status.TargetNodeCount = 3
 	node := &corev1.Node{ObjectMeta: v1.ObjectMeta{Name: "node", Labels: map[string]string{"apps": "test", corev1.LabelArchStable: "amd64", consts.NvidiaGPUProduct: "NVIDIA-A10-24Q", consts.NvidiaGPUCount: "1", consts.NvidiaGPUMemory: "24512"}}, Status: corev1.NodeStatus{Capacity: corev1.ResourceList{corev1.ResourceName(consts.NvidiaGPU): resource.MustParse("1")}, Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
 	c := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(ws, node).WithObjects(ws, node).Build()

@@ -62,13 +62,14 @@ func defaultTolerations() []corev1.Toleration {
 	tolerations := []corev1.Toleration{
 		{
 			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpEqual,
-			Key:      consts.GPUString,
+			Operator: corev1.TolerationOpExists,
+			Key:      nodes.CapacityNvidiaGPU,
 		},
 		{
-			Effect: corev1.TaintEffectNoSchedule,
-			Value:  consts.GPUString,
-			Key:    consts.SKUString,
+			Effect:   corev1.TaintEffectNoSchedule,
+			Value:    consts.GPUString,
+			Key:      consts.SKUString,
+			Operator: corev1.TolerationOpEqual,
 		},
 	}
 

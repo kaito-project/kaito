@@ -1453,43 +1453,6 @@ func TestSetAdapterPuller(t *testing.T) {
 	}
 }
 
-func TestDefaultTolerations(t *testing.T) {
-	testcases := map[string]struct {
-		cloudProvider string
-		expectSpot    bool
-	}{
-		"azure includes spot toleration": {
-			cloudProvider: consts.AzureCloudName,
-			expectSpot:    true,
-		},
-		"aws excludes spot toleration": {
-			cloudProvider: consts.AWSCloudName,
-			expectSpot:    false,
-		},
-	}
-
-	for name, tc := range testcases {
-		t.Run(name, func(t *testing.T) {
-			t.Setenv("CLOUD_PROVIDER", tc.cloudProvider)
-
-			actual := defaultTolerations(&v1beta1.Workspace{
-				ObjectMeta: metav1.ObjectMeta{Name: "test-workspace"},
-			})
-			hasSpot := false
-			for _, toleration := range actual {
-				if toleration.Key == consts.SpotInstanceKey && toleration.Value == consts.SpotInstanceValue {
-					hasSpot = true
-					break
-				}
-			}
-
-			if hasSpot != tc.expectSpot {
-				t.Fatalf("spot toleration presence = %v, want %v", hasSpot, tc.expectSpot)
-			}
-		})
-	}
-}
-
 func toParameterMap(in []string) map[string]string {
 	ret := make(map[string]string)
 	for _, eachToken := range in {

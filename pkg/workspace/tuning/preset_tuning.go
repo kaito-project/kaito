@@ -58,32 +58,6 @@ var (
 	// TODO: readinessProbe = &corev1.Probe{}
 )
 
-func defaultTolerations() []corev1.Toleration {
-	tolerations := []corev1.Toleration{
-		{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Operator: corev1.TolerationOpEqual,
-			Key:      consts.GPUString,
-		},
-		{
-			Effect: corev1.TaintEffectNoSchedule,
-			Value:  consts.GPUString,
-			Key:    consts.SKUString,
-		},
-	}
-
-	if sku.IsAzureCloudProvider() {
-		tolerations = append(tolerations, corev1.Toleration{
-			Effect:   corev1.TaintEffectNoSchedule,
-			Key:      consts.SpotInstanceKey,
-			Operator: corev1.TolerationOpEqual,
-			Value:    consts.SpotInstanceValue,
-		})
-	}
-
-	return tolerations
-}
-
 func GetTuningImageInfo() string {
 	presetObj := metadata.MustGet("base")
 	return utils.GetPresetImageName(presetObj.Registry, presetObj.Name, presetObj.Tag)
@@ -233,7 +207,7 @@ func GenerateBasicTuningPodSpec(skuNumGPUs int) func(*generator.WorkspaceGenerat
 			SKUNumGPUs: skuNumGPUs,
 		})
 
-		spec.Tolerations = defaultTolerations()
+		spec.Tolerations = nodes.WorkspaceTolerations()
 		spec.Containers = []corev1.Container{
 			{
 				Name:         ctx.Workspace.Name,

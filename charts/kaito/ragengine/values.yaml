@@ -8,6 +8,7 @@ image:
   tag: 0.13.0
 imagePullSecrets: []
 podAnnotations: {}
+podTemplateLabels: {}
 podSecurityContext:
   runAsNonRoot: true
 securityContext:

@@ -92,6 +92,7 @@ With persistent storage configured, vector indexes are automatically saved durin
 | imagePullSecrets             | list   | `[]`                                         | Image pull secrets                                            |
 | nodeSelector                 | object | `{}`                                         | Node selector for pod assignment                              |
 | podAnnotations               | object | `{}`                                         | Pod annotations                                               |
+| podTemplateLabels            | object | `{}`                                         | Extra labels added to the controller pod                      |
 | podSecurityContext.runAsNonRoot | bool | `true`                                       | Run container as non-root user                                |
 | presetRagRegistryName        | string | `"aimodelsregistrytest.azurecr.io"`          | Registry for preset RAG service images                        |
 | presetRagImageName           | string | `"kaito-rag-service"`                        | Name of the preset RAG service image                          |

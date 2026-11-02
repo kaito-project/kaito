@@ -52,6 +52,17 @@ const (
 type AutoUpgradeRunner struct {
 	Client   client.Client
 	Interval time.Duration
+
+	// resolveDesiredImage may be injected to test independently versioned runtimes.
+	resolveDesiredImage func(context.Context, *kaitov1beta1.Workspace, client.Client) (string, error)
+}
+
+func (r *AutoUpgradeRunner) desiredImage(ctx context.Context, is *kaitov1beta1.InferenceSet) (string, error) {
+	resolve := r.resolveDesiredImage
+	if resolve == nil {
+		resolve = inference.GetDesiredInferenceImageNameWithResolution
+	}
+	return resolve(ctx, inferencesetutil.NewWorkspaceForInferenceSet(is), r.Client)
 }
 
 // Start implements manager.Runnable. It polls every Interval and reconciles all
@@ -116,7 +127,7 @@ func (r *AutoUpgradeRunner) reconcileInferenceSet(ctx context.Context, inference
 // place. Only one Workspace is upgraded at a time.
 func (r *AutoUpgradeRunner) reconcileInPlace(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
 	// Get the current controller-embedded target image for this InferenceSet.
-	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, inferencesetutil.NewWorkspaceForInferenceSet(inferenceSetObj), r.Client)
+	desiredImage, err := r.desiredImage(ctx, inferenceSetObj)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return
@@ -332,7 +343,7 @@ func (r *AutoUpgradeRunner) tagWorkspaceForUpgrade(ctx context.Context, isObj *k
 // replica count, with no explicit surge bookkeeping — repeats until no drifted Workspaces
 // remain.
 func (r *AutoUpgradeRunner) reconcileSurge(ctx context.Context, inferenceSetObj *kaitov1beta1.InferenceSet) {
-	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, inferencesetutil.NewWorkspaceForInferenceSet(inferenceSetObj), r.Client)
+	desiredImage, err := r.desiredImage(ctx, inferenceSetObj)
 	if err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to resolve desired image", "inferenceset", klog.KObj(inferenceSetObj))
 		return

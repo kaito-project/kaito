@@ -961,45 +961,70 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate })
 	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 
-	for _, strategy := range []kaitov1beta1.AutoUpgradeStrategy{
-		kaitov1beta1.InPlaceUpgradeStrategy,
-		kaitov1beta1.SurgeBasedUpgradeStrategy,
+	// Check real runtime selection without imposing any relation between release tags.
+	cpu := makeSurgeInferenceSet("cpu-upgrade", "default")
+	cpu.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
+	catalogImage := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(cpu))
+	require.Contains(t, catalogImage, "kaito-base-vllm-cpu:")
+	catalogTag, err := inference.GetImageTag(catalogImage)
+	require.NoError(t, err)
+
+	gpuTag := inference.GetBaseImageTag()
+	for _, tags := range []struct {
+		name   string
+		cpuTag string
+	}{
+		{name: "release-catalog", cpuTag: catalogTag},
+		{name: "shared-version", cpuTag: gpuTag},
+		{name: "independent-version", cpuTag: gpuTag + "-cpu-test"},
 	} {
-		t.Run(string(strategy), func(t *testing.T) {
-			is := makeSurgeInferenceSet("cpu-upgrade", "default")
-			is.Spec.AutoUpgrade.Strategy = strategy
-			is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-			desiredImage := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(is))
-			desiredTag, err := inference.GetImageTag(desiredImage)
-			require.NoError(t, err)
-			require.Contains(t, desiredImage, "kaito-base-vllm-cpu:")
-			require.NotEqual(t, inference.GetBaseImageTag(), desiredTag, "fixture must exercise independently versioned CPU and GPU images")
-
-			for _, oldTag := range []string{"0.0.1", inference.GetBaseImageTag()} {
-				t.Run("old-authorization-"+oldTag, func(t *testing.T) {
-					ws := makeWorkspace("old-cpu", is.Namespace, is.Name, kaitov1beta1.WorkspaceStateReady, map[string]string{
-						kaitov1alpha1.LabelUpgradeToVersion: oldTag,
-					})
-					ss := makeStatefulSet(ws.Name, ws.Namespace, "mcr.microsoft.com/aks/kaito/kaito-base-vllm-cpu:0.0.1")
-					cl := newFakeClient(is.DeepCopy(), ws, ss)
-					r := &AutoUpgradeRunner{Client: cl}
-					r.reconcileInferenceSet(context.Background(), is.DeepCopy())
-
-					updated := &kaitov1beta1.Workspace{}
-					require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(ws), updated))
-					if strategy == kaitov1beta1.InPlaceUpgradeStrategy {
-						assert.Equal(t, desiredTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
-						assert.NotEqual(t, oldTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
-					} else {
-						all := listWorkspacesInNamespace(t, cl, is.Namespace)
-						require.Len(t, all, 2)
-						for i := range all {
-							if all[i].Name != ws.Name {
-								assert.Equal(t, desiredImage, inference.GetDesiredInferenceImageName(&all[i]))
+		t.Run(tags.name, func(t *testing.T) {
+			desiredTag := tags.cpuTag
+			desiredImage := "mcr.microsoft.com/aks/kaito/kaito-base-vllm-cpu:" + desiredTag
+			oldTags := []string{desiredTag + "-old"}
+			if desiredTag != gpuTag {
+				oldTags = append(oldTags, gpuTag)
+			}
+			for _, strategy := range []kaitov1beta1.AutoUpgradeStrategy{
+				kaitov1beta1.InPlaceUpgradeStrategy,
+				kaitov1beta1.SurgeBasedUpgradeStrategy,
+			} {
+				t.Run(string(strategy), func(t *testing.T) {
+					is := cpu.DeepCopy()
+					is.Spec.AutoUpgrade.Strategy = strategy
+					for _, oldTag := range oldTags {
+						t.Run("old-authorization-"+oldTag, func(t *testing.T) {
+							ws := makeWorkspace("old-cpu", is.Namespace, is.Name, kaitov1beta1.WorkspaceStateReady, map[string]string{
+								kaitov1alpha1.LabelUpgradeToVersion: oldTag,
+							})
+							ss := makeStatefulSet(ws.Name, ws.Namespace, "mcr.microsoft.com/aks/kaito/kaito-base-vllm-cpu:"+desiredTag+"-old")
+							cl := newFakeClient(is.DeepCopy(), ws, ss)
+							r := &AutoUpgradeRunner{Client: cl, resolveDesiredImage: func(_ context.Context, selected *kaitov1beta1.Workspace, _ client.Client) (string, error) {
+								require.Equal(t, "Standard_D8s_v5", selected.Resource.InstanceType)
+								return desiredImage, nil
+							}}
+							if tags.name == "release-catalog" {
+								r.resolveDesiredImage = nil
 							}
-						}
-						// Surge creates a fresh workspace, not an in-place authorization.
-						assert.Equal(t, oldTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
+							r.reconcileInferenceSet(context.Background(), is.DeepCopy())
+
+							updated := &kaitov1beta1.Workspace{}
+							require.NoError(t, cl.Get(context.Background(), client.ObjectKeyFromObject(ws), updated))
+							if strategy == kaitov1beta1.InPlaceUpgradeStrategy {
+								assert.Equal(t, desiredTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
+								assert.NotEqual(t, oldTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
+							} else {
+								all := listWorkspacesInNamespace(t, cl, is.Namespace)
+								require.Len(t, all, 2)
+								for i := range all {
+									if all[i].Name != ws.Name {
+										assert.Equal(t, catalogImage, inference.GetDesiredInferenceImageName(&all[i]))
+									}
+								}
+								// Surge creates a fresh workspace, not an in-place authorization.
+								assert.Equal(t, oldTag, updated.Labels[kaitov1alpha1.LabelUpgradeToVersion])
+							}
+						})
 					}
 				})
 			}

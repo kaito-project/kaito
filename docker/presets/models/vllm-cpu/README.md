@@ -10,7 +10,7 @@ Build locally without publishing:
 
 ```sh
 make docker-build-kaito-base-vllm-cpu \
-  REGISTRY=local KAITO_BASE_IMG_TAG=0.0.1 OUTPUT_TYPE=type=docker
+  REGISTRY=local KAITO_VLLM_CPU_IMG_TAG=0.0.2 OUTPUT_TYPE=type=docker
 ```
 
 The image retains upstream's `vllm serve` entrypoint. For example, on a supported
@@ -19,9 +19,14 @@ CPU host (this downloads model weights):
 ```sh
 docker run --rm -p 8000:8000 --shm-size=4g \
   -e VLLM_CPU_KVCACHE_SPACE=4 \
-  local/kaito-base-vllm-cpu:0.0.1 Qwen/Qwen2.5-0.5B-Instruct \
+  local/kaito-base-vllm-cpu:0.0.2 Qwen/Qwen2.5-0.5B-Instruct \
   --dtype bfloat16 --max-model-len 2048
 ```
+
+`KAITO_VLLM_CPU_IMG_TAG` controls both the CPU image tag and its build-time
+version, independently of the GPU `KAITO_BASE_IMG_TAG`. The same target can
+push to a development registry with `OUTPUT_TYPE=type=image,push=true`.
+Production publication follows the release workflow, not a local Makefile push.
 
 Publication uses the existing runtime-image workflow and the `base-vllm-cpu`
 entry in `presets/workspace/models/base_images.yaml`. This image has its own tag

@@ -812,7 +812,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	// Unknown legacy runtimes are not evidence of a switch. Do not guess the
 	// desired runtime and permanently hide a real mismatch behind a new marker.
 	runtimeChanged := deployedRuntime != "" && deployedRuntime != desiredRuntime
-	replacePodTemplate := runtimeChanged || baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet) ||
+	replacePodTemplate := runtimeChanged || targetChanged || variantChanged || baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet) ||
 		!apiequality.Semantic.DeepEqual(existingObj.Spec.Replicas, desiredStatefulSet.Spec.Replicas)
 
 	// Target image variants (GPU/CPU) can change without a revision hash change,

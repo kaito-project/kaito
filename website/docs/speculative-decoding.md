@@ -46,7 +46,7 @@ When the annotation is set to `"true"`, KAITO evaluates the preset and injects o
 | Case | Injected method | Current injected config |
 | --- | --- | --- |
 | Preset has KAITO-tuned `mtp` config | `mtp` | `num_speculative_tokens=1` |
-| Preset has KAITO-tuned `dspark` config | `dspark` | per preset, from the model's vLLM recipe, plus any engine arguments the preset needs |
+| Preset has KAITO-tuned `dspark` config | `dspark` | per preset, from the model's vLLM recipe, plus any engine arguments the preset needs; only when the GPUs have enough memory to spare (see below) |
 | Any other vLLM preset | `ngram` | `num_speculative_tokens=5`, `prompt_lookup_max=4` |
 | User already set `vllm.speculative-config` in `inference_config.yaml` | none | KAITO leaves the user config unchanged |
 
@@ -71,6 +71,7 @@ This means speculative decoding is available for **any vLLM preset that KAITO ac
 | `Qwen/Qwen3.6-35B-A3B-FP8` | `mtp` |
 | `Qwen/Qwen3.6-35B-A3B` | `mtp` |
 | `Qwen/Qwen3.6-27B` | `mtp` |
+| `deepseek-ai/DeepSeek-V4-Flash-0731` | `dspark` |
 | `deepseek-ai/DeepSeek-V4.1-Flash-1017` | `dspark` |
 
 ## Quickstart
@@ -218,4 +219,5 @@ The gain from speculative decoding depends on the model, GPU, traffic and load: 
 - KAITO's built-in fallback is intentionally conservative: `ngram` with `num_speculative_tokens=5` and `prompt_lookup_max=4`.
 - Tuned `mtp` and `dspark` entries are model-specific and may expand over time as KAITO adds validated presets.
 - For multi-node (pipeline-parallel) deployments, KAITO injects `dspark` without adaptive verification, because vLLM does not support it with pipeline parallelism.
+- `dspark`'s draft head needs GPU memory beyond the model weights, and on tight nodes it can shrink the context vLLM fits to a few thousand tokens. KAITO injects a `dspark` config only when it estimates at least 16 GiB per GPU remain after the weights; otherwise the workload runs without speculative decoding and the controller logs why. To use `dspark` anyway, set `vllm.speculative-config` in your inference config.
 - Real performance gains are workload-dependent. Repetition-heavy workloads usually benefit more than highly open-ended generation.

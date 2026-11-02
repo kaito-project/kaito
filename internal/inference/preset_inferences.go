@@ -47,6 +47,7 @@ import (
 	"github.com/kaito-project/kaito/pkg/accelerator/nvidia"
 	"github.com/kaito-project/kaito/pkg/catalog"
 	"github.com/kaito-project/kaito/pkg/catalog/hfgen"
+	"github.com/kaito-project/kaito/pkg/estimator"
 	"github.com/kaito-project/kaito/pkg/estimator/maxnumseqestimator"
 	"github.com/kaito-project/kaito/pkg/featuregates"
 	pkgmodel "github.com/kaito-project/kaito/pkg/model"
@@ -70,7 +71,18 @@ const (
 	// was injected. Kept as a distinct decision so telemetry / events can
 	// distinguish "preset-tuned" from "universal fallback" injections.
 	SpecDecoInjectedNGramFallback
+	// SpecDecoSkippedLowGPUMemory means the speculative decoding config was not
+	// injected because the GPUs would have too little memory left after the
+	// weights; the workload runs without speculative decoding.
+	SpecDecoSkippedLowGPUMemory
 )
+
+// minDSparkKVHeadroomGiB is the estimated per-GPU memory, after weights and
+// runtime overhead, that a node needs before KAITO injects a preset's DSpark
+// config. DSpark's draft head and its KV cache come out of this memory, and on
+// tighter nodes they can shrink the context vLLM fits from hundreds of
+// thousands of tokens to a few thousand.
+const minDSparkKVHeadroomGiB = 16
 
 // PresetInferenceResult wraps the generated workload object.
 type PresetInferenceResult struct {
@@ -762,7 +774,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			userConfigHasSpeculativeOverride = override
 		}
 		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride,
-			shouldUseDistributedInference(ctx, numNodes))
+			shouldUseDistributedInference(ctx, numNodes), gpuConfig, numNodes)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
 		}
@@ -1539,9 +1551,10 @@ func loadUserSpeculativeConfig(ctx context.Context, kubeClient client.Client, ws
 // when applicable, mutates inferenceParam.VLLM.ModelRunParams to include the
 // --speculative-config flag and any engine args the config requires.
 // pipelineParallel reports whether the workload spans nodes with pipeline
-// parallelism. The decision is returned so callers (and tests) can assert the
+// parallelism; gpuConfig and numNodes describe the GPUs the weights shard
+// across. The decision is returned so callers (and tests) can assert the
 // reason without inspecting the ModelRunParams map.
-func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride, pipelineParallel bool) (SpecDecoDecision, error) {
+func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.RuntimeName, inferenceParam *pkgmodel.PresetParam, userConfigHasSpeculativeOverride, pipelineParallel bool, gpuConfig *sku.GPUConfig, numNodes int) (SpecDecoDecision, error) {
 	if runtimeName != pkgmodel.RuntimeNameVLLM ||
 		ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding] != "true" {
 		return SpecDecoSkip, nil
@@ -1563,6 +1576,18 @@ func applySpeculativeDecoding(ws *v1beta1.Workspace, runtimeName pkgmodel.Runtim
 	if sdCfg == nil {
 		sdCfg = defaultFallbackNGramConfig()
 		fallback = true
+	}
+	// DSpark's draft head needs memory beyond the weights. When the estimate is
+	// unavailable (unknown model size or GPU memory), keep the user's opt-in.
+	if sdCfg.DSpark != nil {
+		headroom, known := estimator.KVHeadroomBytesPerGPU(inferenceParam, gpuConfig, numNodes)
+		if known && headroom < minDSparkKVHeadroomGiB*float64(sku.GiB) {
+			klog.InfoS("Not injecting speculative decoding: too little GPU memory left after model weights",
+				"workspace", klog.KObj(ws), "method", sdCfg.Method,
+				"estimatedHeadroomGiBPerGPU", fmt.Sprintf("%.1f", headroom/float64(sku.GiB)),
+				"requiredGiBPerGPU", minDSparkKVHeadroomGiB)
+			return SpecDecoSkippedLowGPUMemory, nil
+		}
 	}
 	if pipelineParallel && sdCfg.DSpark != nil && sdCfg.DSpark.EnableAdaptiveVerification {
 		cfg := *sdCfg

@@ -259,3 +259,37 @@ func TestDSparkSpecDecoEntryUsesGivenConfig(t *testing.T) {
 		t.Error("building an entry mutated the shared recipe config")
 	}
 }
+
+func TestDSparkSpecDecoEntryDeepSeekV4Flash0731(t *testing.T) {
+	entry, ok := speculativeDecodingByPreset["deepseek-ai/deepseek-v4-flash-0731"]
+	if !ok {
+		t.Fatal("missing dspark entry for deepseek-ai/deepseek-v4-flash-0731")
+	}
+	if entry.UserFacing != "deepseek-ai/DeepSeek-V4-Flash-0731" {
+		t.Errorf("UserFacing = %q", entry.UserFacing)
+	}
+	cfg := entry.Config
+	if cfg == nil || cfg.Method != SpeculativeDecodingMethodDSpark || cfg.DSpark == nil {
+		t.Fatalf("want dspark config, got %+v", cfg)
+	}
+	// https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash
+	want := model.DSparkConfig{NumSpeculativeTokens: 7, DraftSampleMethod: "probabilistic"}
+	if *cfg.DSpark != want {
+		t.Errorf("DSpark = %+v, want %+v", *cfg.DSpark, want)
+	}
+	if len(cfg.EngineArgs) != 0 {
+		t.Errorf("EngineArgs = %v, want none", cfg.EngineArgs)
+	}
+}
+
+func TestCPUOffloadedWeightSize(t *testing.T) {
+	for name, want := range map[string]string{
+		"deepseek-v4.1-flash-1017": "183.1Gi",
+		"deepseek-v4-flash-0731":   "",
+	} {
+		got, _ := longestPrefixMatch(name, cpuOffloadedWeightSizePrefixMap)
+		if got != want {
+			t.Errorf("%s: CPU-offloaded weight size = %q, want %q", name, got, want)
+		}
+	}
+}

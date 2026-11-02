@@ -193,6 +193,7 @@ func (m *vLLMCompatibleModel) GetInferenceParameters() *model.PresetParam {
 		MambaStateBytesPerLayer: m.model.MambaStateBytesPerLayer,
 		NumFullAttnLayers:       m.model.NumFullAttnLayers,
 		NumLinearLayers:         m.model.NumLinearLayers,
+		CPUOffloadedWeightSize:  m.model.CPUOffloadedWeightSize,
 	}
 
 	runParamsVLLM := make(map[string]string)

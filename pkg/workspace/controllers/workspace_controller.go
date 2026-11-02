@@ -1183,6 +1183,16 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 	}
 
 	ready := ss.Status.ReadyReplicas == replicas
+	hasBenchmarkProbe = hasBenchmarkStartupProbe(ss)
+	if hasBenchmarkProbe && kaitov1beta1.ShouldRunBenchmark(wObj) {
+		// ReadyReplicas can still describe the old pods immediately after a
+		// same-size template update. Do not record their write-once benchmark:
+		// wait until the controller observes this generation and every serving
+		// pod is ready at the desired revision.
+		ready = ready && replicas > 0 && ss.Status.ObservedGeneration >= ss.Generation &&
+			ss.Status.UpdatedReplicas == replicas && ss.Status.UpdateRevision != "" &&
+			ss.Status.CurrentRevision == ss.Status.UpdateRevision
+	}
 	// When not ready, classify the underlying pod/container failure (image pull,
 	// crash loop, OOM, eviction, unschedulable, SAS token fetch) so a specific,
 	// actionable reason is surfaced on the InferenceReady condition instead of a
@@ -1191,7 +1201,7 @@ func (c *WorkspaceReconciler) collectInferenceReadyStatus(ctx context.Context, w
 		failReason, failMsg = c.classifyInferencePodFailure(ctx, wObj)
 	}
 
-	return ready, hasBenchmarkStartupProbe(ss), failReason, failMsg, nil
+	return ready, hasBenchmarkProbe, failReason, failMsg, nil
 }
 
 // Inference not-ready reason constants. These are stable enum values surfaced on

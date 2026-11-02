@@ -24,8 +24,6 @@ import (
 	"k8s.io/klog/v2"
 	"knative.dev/pkg/apis"
 
-	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
-	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/speculativedecoding"
 )
@@ -54,13 +52,6 @@ func (is *InferenceSet) Validate(ctx context.Context) (errs *apis.FieldError) {
 		)
 	}
 	errs = errs.Also(is.validateSpeculativeDecoding())
-	child := &kaitov1beta1.Workspace{
-		ObjectMeta: is.Spec.Template.ObjectMeta,
-		Resource:   kaitov1beta1.ResourceSpec{InstanceType: is.Spec.Template.Resource.InstanceType},
-		Inference:  &is.Spec.Template.Inference,
-	}
-	child.Namespace = is.Namespace
-	errs = errs.Also(child.ValidateCPUInferenceConstraints(ctx, k8sclient.Client).ViaField("spec.template"))
 	return errs
 }
 

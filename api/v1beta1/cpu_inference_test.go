@@ -128,7 +128,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		if IsCPUInferenceWorkspace(ws) {
 			t.Fatalf("expected workspace to not be detected as cpu inference when feature gate is disabled")
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nil); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected cpu-specific validation to be skipped when enableCPUInference is disabled, got %v", err)
 		}
 	})
@@ -137,7 +137,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()
 		ws.Resource.Count = &two
-		err := ws.ValidateCPUInferenceConstraints(context.Background(), nil)
+		err := ws.validateCPUInferenceConstraints(context.Background(), nil)
 		if err == nil {
 			t.Fatalf("expected validation error when cpu workspace requests multiple nodes")
 		}
@@ -149,7 +149,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		if !IsCPUInferenceWorkspace(ws) {
 			t.Fatalf("expected workspace to be detected as cpu inference")
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nil); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected cpu workspace validation to pass, got %v", err)
 		}
 	})
@@ -166,7 +166,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		if IsCPUInferenceWorkspace(ws) {
 			t.Fatalf("expected mig-backed template workspace to not be detected as cpu inference")
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nil); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected non-cpu mig template to skip cpu validation, got %v", err)
 		}
 	})
@@ -191,7 +191,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
 		ws := baseWorkspace()
 		ws.Annotations[AnnotationWorkspaceRuntime] = "invalid-runtime"
-		err := ws.ValidateCPUInferenceConstraints(context.Background(), nil)
+		err := ws.validateCPUInferenceConstraints(context.Background(), nil)
 		if err == nil {
 			t.Fatalf("expected validation error for invalid cpu runtime annotation")
 		}
@@ -213,7 +213,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		if !IsCPUInferenceWorkspace(ws) {
 			t.Fatalf("expected preset workspace to be detected as cpu inference")
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nil); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected cpu preset validation to pass, got %v", err)
 		}
 	})
@@ -231,7 +231,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 				Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-distributed-model")}},
 			},
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nil); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected validation to pass for built-in preset on cpu instance type, got %v", err)
 		}
 	})
@@ -252,7 +252,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 		if !IsCPUInferenceWorkspace(ws) {
 			t.Fatalf("expected generic hf model id to be detected as cpu inference")
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nil); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nil); err != nil {
 			t.Fatalf("expected validation to pass for generic hf model id on cpu instance type, got %v", err)
 		}
 	})
@@ -274,7 +274,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 			},
 			Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}},
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nodeClient); err != nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nodeClient); err != nil {
 			t.Fatalf("expected byo cpu preset validation to pass, got %v", err)
 		}
 	})
@@ -382,7 +382,7 @@ func TestValidateCPUInferenceConstraints(t *testing.T) {
 			},
 			Inference: &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-model")}}},
 		}
-		if err := ws.ValidateCPUInferenceConstraints(context.Background(), nodeClient); err == nil {
+		if err := ws.validateCPUInferenceConstraints(context.Background(), nodeClient); err == nil {
 			t.Fatalf("expected arm64 byo nodes to be rejected for vllm cpu preset path")
 		}
 	})
@@ -415,7 +415,7 @@ func TestCPUInferencePresetRuntimeSelection(t *testing.T) {
 				Resource:   ResourceSpec{InstanceType: "Standard_D8s_v5"},
 				Inference:  &InferenceSpec{Preset: &PresetSpec{PresetMeta: PresetMeta{Name: "test-model"}}},
 			}
-			err := ws.ValidateCPUInferenceConstraints(context.Background(), nil)
+			err := ws.validateCPUInferenceConstraints(context.Background(), nil)
 			if (err != nil) != tc.wantError {
 				t.Fatalf("validation error = %v, want error = %v", err, tc.wantError)
 			}
@@ -535,7 +535,7 @@ func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 			}
 			if tc.cpu {
 				ws := &Workspace{Resource: ResourceSpec{InstanceType: tc.instance}, Inference: inference}
-				err := ws.ValidateCPUInferenceConstraints(context.Background(), nil)
+				err := ws.validateCPUInferenceConstraints(context.Background(), nil)
 				if (err == nil) != tc.amd64 {
 					t.Fatalf("vLLM CPU admission error = %v, amd64 = %v", err, tc.amd64)
 				}

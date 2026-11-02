@@ -120,7 +120,7 @@ func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *a
 		errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 	}
 	if w.Inference != nil {
-		errs = errs.Also(w.ValidateCPUInferenceConstraints(ctx, k8sclient.Client))
+		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 		if GetWorkspaceRuntimeName(w) != GetWorkspaceRuntimeName(old) {
 			errs = errs.Also(w.Inference.validateCreate(ctx, GetWorkspaceRuntimeName(w), w.Namespace).ViaField("inference"))
 			errs = errs.Also(w.validateInferenceConfig(ctx))
@@ -155,7 +155,7 @@ func (w *Workspace) ValidateCreate(ctx context.Context) (errs *apis.FieldError) 
 		}
 
 		runtime := GetWorkspaceRuntimeName(w)
-		errs = errs.Also(w.ValidateCPUInferenceConstraints(ctx, k8sclient.Client))
+		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 		// TODO: Add Adapter Spec Validation - Including DataSource Validation for Adapter
 		errs = errs.Also(
 			w.Resource.validateCreateWithInference(ctx, w.Inference, bypassResourceChecks, runtime, w.Namespace).ViaField("resource"),
@@ -203,9 +203,7 @@ func (w *Workspace) validateAnnotations() (errs *apis.FieldError) {
 	return errs
 }
 
-// ValidateCPUInferenceConstraints enforces the CPU admission contract shared by
-// both served Workspace versions and InferenceSet child templates.
-func (w *Workspace) ValidateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
+func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context, kubeClient client.Client) (errs *apis.FieldError) {
 	if !featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] {
 		return nil
 	}

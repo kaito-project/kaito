@@ -30,7 +30,7 @@ metadata:
   name: ragengine-example
 spec:
   compute:
-    instanceType: "Standard_NC6s_v3"
+    instanceType: "Standard_NV36ads_A10_v5"
     labelSelector:
       matchLabels:
         apps: ragengine-example
@@ -64,7 +64,7 @@ metadata:
   name: ragengine-with-storage
 spec:
   compute:
-    instanceType: "Standard_NC6s_v3"
+    instanceType: "Standard_NV36ads_A10_v5"
     labelSelector:
       matchLabels:
         apps: ragengine-example
@@ -108,4 +108,4 @@ With persistent storage configured, vector indexes are automatically saved durin
 
 ## Contributing
 
-Please refer to the [KAITO project contribution guidelines](https://github.com/kaito-project/kaito/blob/main/CONTRIBUTING.md) for information on how to contribute to this project.
+Please refer to the [KAITO project contribution guidelines](https://kaito-project.github.io/kaito/docs/contributing) for information on how to contribute to this project.

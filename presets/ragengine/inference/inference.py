@@ -101,22 +101,13 @@ class Inference(CustomLLM):
     def complete(
         self, prompt: str, formatted: bool = False, **kwargs: Any
     ) -> CompletionResponse:
-        # Required implementation - Only called by LlamaIndex reranker because LLMRerank library doesn't use async call
+        # Required by CustomLLM. The RAG service only uses acomplete(), so this
+        # is a thin sync wrapper for any LlamaIndex component that calls it.
         try:
-            result = self.run_async_coroutine(
+            return self.run_async_coroutine(
                 self.acomplete(prompt, formatted=formatted, **kwargs)
             )
-            if result.text == "Empty Response":
-                logger.error(
-                    "LLMRerank Request returned an unparsable or invalid response"
-                )
-                raise HTTPException(
-                    status_code=422,
-                    detail="Rerank operation failed: Invalid response from LLM. This feature is experimental.",
-                )
-            return result
         except HTTPException as http_exc:
-            # If it's already an HTTPException (e.g., 422), re-raise it as is
             raise http_exc
         except Exception as e:
             logger.error(f"Unexpected exception in complete(): {e}")

@@ -286,6 +286,9 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	if err != nil {
 		return nil, err
 	}
+	if isCPUInference != (gpuConfig == nil) {
+		return nil, fmt.Errorf("inference target resolution changed during pod generation; retry reconciliation")
+	}
 	distributed := !isCPUInference && shouldUseDistributedInference(gctx, numNodes)
 	if distributed {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
@@ -337,6 +340,15 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 			workload.Annotations = make(map[string]string)
 		}
 		workload.Annotations[v1beta1.AnnotationWorkspaceRuntime] = string(v1beta1.GetWorkspaceRuntimeName(workspaceObj))
+		if isCPUInference {
+			// Template labels must not alias the immutable StatefulSet selector.
+			podLabels := make(map[string]string, len(workload.Spec.Template.Labels)+1)
+			for key, value := range workload.Spec.Template.Labels {
+				podLabels[key] = value
+			}
+			podLabels[cpuInferenceWorkloadLabel] = "true"
+			workload.Spec.Template.Labels = podLabels
+		}
 	}
 	result := &PresetInferenceResult{Workload: workload}
 	return result, err
@@ -658,7 +670,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ctx.Workspace) {
 			return fmt.Errorf("CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
 		}
-		if !isCPUInference && gpuConfig == nil {
+		if isCPUInference != (gpuConfig == nil) {
 			return fmt.Errorf("inference target resolution changed during pod generation; retry reconciliation")
 		}
 
@@ -1261,6 +1273,8 @@ func appendRequiredNodeSelectorRequirements(spec *corev1.PodSpec, reqs []corev1.
 	nodeSel.NodeSelectorTerms[0].MatchExpressions = append(nodeSel.NodeSelectorTerms[0].MatchExpressions, reqs...)
 }
 
+const cpuInferenceWorkloadLabel = "kaito.sh/cpu-inference-workload"
+
 func applyCPUDedicatedPlacement(ws *v1beta1.Workspace, spec *corev1.PodSpec, isCPUInference bool) {
 	if spec == nil || !isCPUInference || ws == nil {
 		return
@@ -1290,23 +1304,15 @@ func applyCPUDedicatedPlacement(ws *v1beta1.Workspace, spec *corev1.PodSpec, isC
 		spec.Affinity.PodAntiAffinity = &corev1.PodAntiAffinity{}
 	}
 
-	selector := map[string]string{}
-	if createdBy := strings.TrimSpace(ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]); createdBy != "" {
-		selector[consts.WorkspaceCreatedByInferenceSetLabel] = createdBy
-	} else if ws.Name != "" {
-		selector[v1beta1.LabelWorkspaceName] = ws.Name
-	}
-	if len(selector) == 0 {
-		return
-	}
-
 	spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution = append(
 		spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution,
 		corev1.PodAffinityTerm{
 			TopologyKey: corev1.LabelHostname,
 			LabelSelector: &metav1.LabelSelector{
-				MatchLabels: selector,
+				MatchLabels: map[string]string{cpuInferenceWorkloadLabel: "true"},
 			},
+			// Empty NamespaceSelector matches all namespaces, not just this parent.
+			NamespaceSelector: &metav1.LabelSelector{},
 		},
 	)
 }

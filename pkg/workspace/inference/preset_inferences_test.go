@@ -30,10 +30,13 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	kaitov1alpha1 "github.com/kaito-project/kaito/api/v1alpha1"
 	"github.com/kaito-project/kaito/api/v1beta1"
@@ -1561,17 +1564,19 @@ func TestApplyCPUDedicatedPlacement(t *testing.T) {
 	if terms[0].TopologyKey != corev1.LabelHostname {
 		t.Fatalf("topologyKey = %q, want %q", terms[0].TopologyKey, corev1.LabelHostname)
 	}
-	if got := terms[0].LabelSelector.MatchLabels[consts.WorkspaceCreatedByInferenceSetLabel]; got != "iset-a" {
-		t.Fatalf("inferenceset selector = %q, want iset-a", got)
+	if got := terms[0].LabelSelector.MatchLabels[cpuInferenceWorkloadLabel]; got != "true" {
+		t.Fatalf("CPU workload selector = %q, want true", got)
 	}
 
+	require.NotNil(t, terms[0].NamespaceSelector, "CPU exclusivity must span all namespaces")
+	require.Empty(t, terms[0].NamespaceSelector.MatchLabels)
 	standaloneSpec := &corev1.PodSpec{}
 	applyCPUDedicatedPlacement(&v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "ws-b"}}, standaloneSpec, true)
 	if standaloneSpec.Affinity == nil || standaloneSpec.Affinity.PodAntiAffinity == nil {
 		t.Fatalf("expected standalone cpu workspace to get pod anti-affinity")
 	}
-	if got := standaloneSpec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchLabels[v1beta1.LabelWorkspaceName]; got != "ws-b" {
-		t.Fatalf("workspace selector = %q, want ws-b", got)
+	if got := standaloneSpec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchLabels[cpuInferenceWorkloadLabel]; got != "true" {
+		t.Fatalf("CPU workload selector = %q, want true", got)
 	}
 }
 
@@ -2466,7 +2471,7 @@ func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
 
 	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
 	workspace.Resource.InstanceType = ""
-	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
+	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchExpressions: []metav1.LabelSelectorRequirement{{Key: "kaito.sh/cpu-inference", Operator: metav1.LabelSelectorOpIn, Values: []string{"true"}}}}
 	workspace.Status.TargetNodeCount = 1
 
 	result, err := GeneratePresetInference(context.Background(), workspace, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), kubeClient, nil)
@@ -2475,6 +2480,9 @@ func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
 	}
 	ss := result.Workload.(*appsv1.StatefulSet)
 	assertNoLMCacheSidecar(t, &ss.Spec.Template.Spec)
+	require.Equal(t, getCPUVLLMImageName(), ss.Spec.Template.Spec.Containers[0].Image)
+	requirements := ss.Spec.Template.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions
+	require.Contains(t, requirements, corev1.NodeSelectorRequirement{Key: "kaito.sh/cpu-inference", Operator: corev1.NodeSelectorOpIn, Values: []string{"true"}})
 	hasCPUToleration := false
 	hasGPUToleration := false
 	for _, toleration := range ss.Spec.Template.Spec.Tolerations {
@@ -2756,7 +2764,10 @@ func TestGeneratePresetInference_ExplicitTransformersCPU(t *testing.T) {
 	ws.Inference.Preset.PresetOptions.ModelAccessSecret = "hf-token"
 	ss, err := GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
 	require.NoError(t, err)
-	pod := ss.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+	statefulSet := ss.Workload.(*appsv1.StatefulSet)
+	require.Equal(t, "true", statefulSet.Spec.Template.Labels[cpuInferenceWorkloadLabel])
+	require.NotContains(t, statefulSet.Spec.Selector.MatchLabels, cpuInferenceWorkloadLabel)
+	pod := statefulSet.Spec.Template.Spec
 	container := pod.Containers[0]
 	assert.Equal(t, GetBaseImageName(), container.Image)
 	var hfToken *corev1.EnvVar
@@ -2911,6 +2922,81 @@ func TestCPUPlacementRequiresAMD64InEveryAlternative(t *testing.T) {
 			if terms > 0 {
 				require.Contains(t, term.MatchExpressions, original.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0])
 			}
+		}
+	}
+}
+
+// Every later target lookup must agree with the GPU configuration snapshot.
+func TestGeneratePresetInference_TargetHandover(t *testing.T) {
+	test.RegisterTestModel()
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	oldCPU, oldNAP, oldVLLM := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM]
+	t.Cleanup(func() {
+		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldCPU, oldNAP, oldVLLM
+	})
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = true, true, true
+	for _, tc := range []struct {
+		name         string
+		initiallyCPU bool
+		switchAt     int
+	}{
+		{"CPU to GPU at probes", true, 2}, {"CPU to GPU at pod", true, 3},
+		{"GPU to CPU at probes", false, 3}, {"GPU to CPU at pod", false, 4},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			scheme := runtime.NewScheme()
+			require.NoError(t, corev1.AddToScheme(scheme))
+			calls := 0
+			c := fake.NewClientBuilder().WithScheme(scheme).WithInterceptorFuncs(interceptor.Funcs{List: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
+				nl, ok := list.(*corev1.NodeList)
+				if !ok {
+					return c.List(ctx, list, opts...)
+				}
+				calls++
+				cpu := tc.initiallyCPU
+				if calls >= tc.switchAt {
+					cpu = !cpu
+				}
+				node := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "target", Labels: map[string]string{"pool": "inference", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+				if !cpu {
+					node.Labels[corev1.LabelInstanceTypeStable] = "Standard_NC6s_v3"
+					node.Labels[consts.NvidiaGPUProduct] = "NVIDIA-V100"
+					node.Labels[consts.NvidiaGPUCount] = "1"
+					node.Labels[consts.NvidiaGPUMemory] = "16384"
+				}
+				nl.Items = []corev1.Node{node}
+				return nil
+			}}).Build()
+			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.Resource.InstanceType = ""
+			ws.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "inference"}}
+			result, err := GeneratePresetInference(context.Background(), ws, "0", plugin.KaitoModelRegister.MustGet("test-model"), c, nil)
+			require.ErrorContains(t, err, "target resolution changed")
+			if result != nil {
+				require.Nil(t, result.Workload)
+			}
+			require.Equal(t, tc.switchAt, calls)
+		})
+	}
+}
+
+func TestCPUNodeExclusivityAcrossParentsAndNamespaces(t *testing.T) {
+	for _, parent := range []string{"", "parent-a", "parent-b"} {
+		for _, namespace := range []string{"first", "second"} {
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Labels: map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: parent}}}
+			pod := &corev1.PodTemplateSpec{}
+			applyCPUDedicatedPlacement(ws, &pod.Spec, true)
+			require.Len(t, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, 1)
+			term := pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0]
+			require.Equal(t, corev1.LabelHostname, term.TopologyKey)
+			require.NotNil(t, term.NamespaceSelector)
+			nsSelector, err := metav1.LabelSelectorAsSelector(term.NamespaceSelector)
+			require.NoError(t, err)
+			require.True(t, nsSelector.Matches(labels.Set{"kubernetes.io/metadata.name": "other-namespace"}))
+			selector, err := metav1.LabelSelectorAsSelector(term.LabelSelector)
+			require.NoError(t, err)
+			require.True(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "true", consts.WorkspaceCreatedByInferenceSetLabel: "different-parent"}))
+			require.False(t, selector.Matches(labels.Set{cpuInferenceWorkloadLabel: "false"}))
 		}
 	}
 }

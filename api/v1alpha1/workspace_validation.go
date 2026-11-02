@@ -15,6 +15,7 @@ package v1alpha1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -30,6 +31,7 @@ import (
 	"knative.dev/pkg/apis"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/k8sclient"
 	"github.com/kaito-project/kaito/pkg/model"
 	"github.com/kaito-project/kaito/pkg/sku"
 	"github.com/kaito-project/kaito/pkg/utils"
@@ -103,6 +105,7 @@ func (w *Workspace) Validate(ctx context.Context) (errs *apis.FieldError) {
 			errs = errs.Also(w.Tuning.validateUpdate(old.Tuning).ViaField("tuning"))
 		}
 	}
+	errs = errs.Also(w.validateCPUInferenceConstraints(ctx))
 	return errs
 }
 
@@ -569,4 +572,18 @@ func validateDuplicateName(adapters []AdapterSpec, nameMap map[string]bool) (err
 		}
 	}
 	return errs
+}
+
+// validateCPUInferenceConstraints converts the common wire fields rather than
+// duplicating CPU detection, runtime, architecture and single-node rules.
+func (w *Workspace) validateCPUInferenceConstraints(ctx context.Context) *apis.FieldError {
+	data, err := json.Marshal(w)
+	if err != nil {
+		return apis.ErrGeneric(err.Error(), "inference")
+	}
+	var beta kaitov1beta1.Workspace
+	if err := json.Unmarshal(data, &beta); err != nil {
+		return apis.ErrGeneric(err.Error(), "inference")
+	}
+	return beta.ValidateCPUInferenceConstraints(ctx, k8sclient.Client)
 }

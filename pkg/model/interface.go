@@ -104,6 +104,12 @@ type Metadata struct {
 	// +optional
 	ModelFileSize string `yaml:"modelFileSize,omitempty"`
 
+	// CPUOffloadedWeightSize is the part of ModelFileSize that the runtime keeps
+	// in CPU memory instead of GPU memory (e.g. DeepSeek-V4.1's Engram tables),
+	// example: 183.1Gi. Memory estimators subtract it from the GPU-resident weights.
+	// +optional
+	CPUOffloadedWeightSize string `yaml:"cpuOffloadedWeightSize,omitempty"`
+
 	// DiskStorageRequirement is the disk storage requirement for the model, example: 90Gi.
 	// This field is only for best effort supported vLLM models.
 	// +optional

@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -145,8 +144,11 @@ func ComputeNodeCountForGPUConfig(m pkgmodel.Model, gpuConfig *sku.GPUConfig, ma
 	// If GPU memory information is available, calculate the optimal node count
 	if !gpuConfig.GPUMem.IsZero() && gpuConfig.GPUCount > 0 {
 		inferParams := m.GetInferenceParameters()
-		totalGPUMemRequired := resource.MustParse(inferParams.TotalSafeTensorFileSize)
-		modelSize := float64(totalGPUMemRequired.Value()) * estimator.WeightExpansionFactor // vllm model size is about 102% of HuggingFace size
+		residentWeights, err := estimator.ResidentWeightBytes(inferParams)
+		if err != nil {
+			return 0, err
+		}
+		modelSize := float64(residentWeights) * estimator.WeightExpansionFactor // vllm model size is about 102% of HuggingFace size
 		gpuMemPerGPU := float64(gpuConfig.GPUMem.Value() / int64(gpuConfig.GPUCount))
 		availGPUMem := gpuMemPerGPU * estimator.ResolveGPUMemoryUtilization(gpuConfig.GPUModel)
 

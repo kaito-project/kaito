@@ -17,6 +17,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -2432,7 +2433,7 @@ func TestDeepSeekV41FlashDSparkCommandOnH100(t *testing.T) {
 				Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: tc.annotation},
 			}}
 			params := m.GetInferenceParameters().DeepCopy()
-			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, false, false); err != nil {
+			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, false, false, gpuConfig, 1); err != nil {
 				t.Fatalf("applySpeculativeDecoding: %v", err)
 			}
 			applyGeneratorRuntimeOverrides(params, gpuConfig)
@@ -2454,6 +2455,70 @@ func TestDeepSeekV41FlashDSparkCommandOnH100(t *testing.T) {
 				if strings.Contains(command, flag) {
 					t.Errorf("command unexpectedly contains %s\n%s", flag, command)
 				}
+			}
+		})
+	}
+}
+
+// TestDeepSeekV4FlashDSparkCommandGatedByGPUMemory checks the vLLM command KAITO
+// renders for DeepSeek-V4-Flash-0731 with speculative decoding enabled: on
+// Standard_NC80adis_H100_v5 the weights leave too little GPU memory, so DSpark
+// is not injected; on an 8x H100 node it is, with the recipe's config.
+func TestDeepSeekV4FlashDSparkCommandGatedByGPUMemory(t *testing.T) {
+	m, err := metadata.GetModelByNameWithToken(context.Background(), "deepseek-ai/DeepSeek-V4-Flash-0731", "")
+	if err != nil {
+		t.Fatalf("resolve model: %v", err)
+	}
+	specConfig := `--speculative-config='{"draft_sample_method":"probabilistic","method":"dspark","num_speculative_tokens":7}'`
+	for _, tc := range []struct {
+		name      string
+		gpuConfig *sku.GPUConfig
+		enabled   bool
+		wantSpec  bool
+	}{
+		{
+			name:      "NC80adis enabled: gated off",
+			gpuConfig: &sku.GPUConfig{SKU: "Standard_NC80adis_H100_v5", GPUCount: 2, GPUMem: resource.MustParse("188Gi"), GPUModel: "NVIDIA H100"},
+			enabled:   true,
+		},
+		{
+			name:      "8x H100 enabled: injected",
+			gpuConfig: &sku.GPUConfig{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"},
+			enabled:   true,
+			wantSpec:  true,
+		},
+		{
+			name:      "8x H100 disabled",
+			gpuConfig: &sku.GPUConfig{SKU: "Standard_ND96isr_H100_v5", GPUCount: 8, GPUMem: resource.MustParse("640Gi"), GPUModel: "NVIDIA H100"},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := &v1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{
+				Name:        "dsv4",
+				Annotations: map[string]string{v1beta1.AnnotationEnableSpeculativeDecoding: strconv.FormatBool(tc.enabled)},
+			}}
+			params := m.GetInferenceParameters().DeepCopy()
+			if _, err := applySpeculativeDecoding(ws, pkgmodel.RuntimeNameVLLM, params, false, false, tc.gpuConfig, 1); err != nil {
+				t.Fatalf("applySpeculativeDecoding: %v", err)
+			}
+			applyGeneratorRuntimeOverrides(params, tc.gpuConfig)
+			command := strings.Join(params.GetInferenceCommand(pkgmodel.RuntimeContext{
+				RuntimeName: pkgmodel.RuntimeNameVLLM,
+				GPUConfig:   tc.gpuConfig,
+				SKUNumGPUs:  tc.gpuConfig.GPUCount,
+				NumNodes:    1,
+				MaxModelLen: pkgmodel.MaxModelLenAuto,
+			}), " ")
+			if got := strings.Contains(command, specConfig); got != tc.wantSpec {
+				t.Errorf("command contains %s = %v, want %v\n%s", specConfig, got, tc.wantSpec, command)
+			}
+			for _, flag := range []string{"--max-num-batched-tokens", "--max-num-seqs"} {
+				if strings.Contains(command, flag) {
+					t.Errorf("command sets %s; DeepSeek-V4-Flash uses vLLM's default\n%s", flag, command)
+				}
+			}
+			if !tc.wantSpec && strings.Contains(command, "--speculative-config") {
+				t.Errorf("speculative-config injected:\n%s", command)
 			}
 		})
 	}

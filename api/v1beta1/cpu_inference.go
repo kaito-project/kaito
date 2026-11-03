@@ -31,11 +31,12 @@ import (
 )
 
 var (
-	awsCPUInstanceTypePattern  = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
-	awsInstanceFamilyPattern   = regexp.MustCompile(`^([a-z]+)`)
-	awsArmCPUFamilyPattern     = regexp.MustCompile(`^(?:a1|[a-z]+[0-9]+g[a-z]*)$`)
-	azureCPUInstancePattern    = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?[a-z]*_v[0-9]+$`)
-	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*_v[0-9]+$`)
+	awsCPUInstanceTypePattern = regexp.MustCompile(`^[a-z][a-z0-9-]*\.[a-z0-9]+$`)
+	awsInstanceFamilyPattern  = regexp.MustCompile(`^([a-z]+)`)
+	awsArmCPUFamilyPattern    = regexp.MustCompile(`^(?:a1|[a-z]+[0-9]+g[a-z]*)$`)
+	// Azure CPU SKUs include both unversioned names (e.g. Standard_B2s) and versioned names.
+	azureCPUInstancePattern    = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?[a-z]*(?:_v[0-9]+)?$`)
+	azureArmCPUInstancePattern = regexp.MustCompile(`(?i)^standard_[a-z]+[0-9]+(?:-[0-9]+)?p[a-z]*(?:_v[0-9]+)?$`)
 )
 
 func hasNVIDIAAcceleratorResource(resources corev1.ResourceList) bool {

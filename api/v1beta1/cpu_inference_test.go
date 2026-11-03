@@ -509,6 +509,12 @@ func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 		instance        string
 		cpu, amd64, gpu bool
 	}{
+		{"Standard_B2s", true, true, false},
+		{"standard_b2s", true, true, false},
+		{"Standard_F16s", true, true, false},
+		{"STANDARD_F16S", true, true, false},
+		{"Standard_A1", true, true, false},
+		{"Standard_DS4_v2", true, true, false},
 		{"Standard_D16s_v6", true, true, false},
 		{"standard_d16s_v6", true, true, false},
 		{"STANDARD_D16S_V6", true, true, false},
@@ -517,6 +523,10 @@ func TestAzureCPUInstanceTypeCaseInsensitive(t *testing.T) {
 		{"standard_nc6s_v3", false, false, true},
 		{"STANDARD_ND96ASR_V4", false, false, true},
 		{"StAnDaRd_NV12s_v3", false, false, true},
+		{"Standard_NC6", false, false, true},
+		{"Standard_NV12", false, false, true},
+		// An omitted version suffix must not bypass the ARM-family exclusion.
+		{"Standard_D16ps", true, false, false},
 	} {
 		t.Run(tc.instance, func(t *testing.T) {
 			if got := isAzureGPUOrAcceleratorSKU(tc.instance); got != tc.gpu {
@@ -574,5 +584,35 @@ func TestSingleValueExpressionCPUSelector(t *testing.T) {
 	selector.MatchExpressions[0].Values = []string{"cpu", "gpu"}
 	if got := SanitizedMatchLabels(selector); got != nil {
 		t.Fatalf("unsupported multi-value expression must not broaden node selection: %v", got)
+	}
+}
+
+func TestAzureCPUInstanceTypeForNAPVersionSuffix(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	for _, tc := range []struct {
+		instance string
+		valid    bool
+	}{
+		{"Standard_B2s", true},
+		{"standard_b2s", true},
+		{"Standard_F16s", true},
+		{"Standard_A1", true},
+		{"Standard_DS4_v2", true},
+		{"Standard_D16s_v6", true},
+		{"Standard_E8s_v5", true},
+		{"Standard_NC6", false},
+		{"Standard_NV12", false},
+		{"Standard_ND96asr_v4", false},
+		{"Standard_B", false},
+		{"Standard_B2s_v", false},
+		{"Standard_B2s_vx", false},
+		{"Standard_B2s_extra", false},
+		{"", false},
+	} {
+		t.Run(tc.instance, func(t *testing.T) {
+			if err := ValidateCPUInstanceTypeForNAP(tc.instance); (err == nil) != tc.valid {
+				t.Fatalf("NAP validation error = %v, want valid = %v", err, tc.valid)
+			}
+		})
 	}
 }

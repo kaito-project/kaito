@@ -747,8 +747,13 @@ func TestResolveIndexerKVDtype(t *testing.T) {
 }
 
 func TestResolveGPUModelPolicies(t *testing.T) {
-	assert.Equal(t, "0.82", ResolveGPUMemoryUtilization("NVIDIA-A10"))
-	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("NVIDIA A100"))
+	assert.Equal(t, "0.82", ResolveGPUMemoryUtilization("", "NVIDIA-A10"))
+	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("", "NVIDIA A100"))
+	assert.Equal(t, "0.92", ResolveGPUMemoryUtilization("other-model", "NVIDIA H100"))
+	for _, modelName := range []string{"deepseek-v4.1-flash", "deepseek-v4.1-flash-1017"} {
+		assert.Equal(t, "0.90", ResolveGPUMemoryUtilization(modelName, "NVIDIA-H100-80GB-HBM3"))
+		assert.Equal(t, "0.92", ResolveGPUMemoryUtilization(modelName, "NVIDIA A100"))
+	}
 
 	mode, ok := ResolveCUDAGraphMode("nvidia-nemotron-nano-9b-v2", "NVIDIA-A10")
 	assert.True(t, ok)
@@ -812,6 +817,37 @@ func TestResolveCUDAGraphModePrefixPrecedence(t *testing.T) {
 			mode, ok := ResolveCUDAGraphMode(tc.modelName, tc.gpuModel)
 			assert.Equal(t, tc.want, mode)
 			assert.Equal(t, tc.want != "", ok)
+		})
+	}
+}
+
+func TestResolveGPUMemoryUtilizationPrecedence(t *testing.T) {
+	original := gpuMemoryUtilizationByModelAndGPU
+	t.Cleanup(func() {
+		gpuMemoryUtilizationByModelAndGPU = original
+	})
+	gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
+		{modelName: "example"}:                                "0.88",
+		{modelName: "example-large", gpuModel: "NVIDIA H100"}: "0.85",
+		{modelName: "example-small", gpuModel: "NVIDIA A10"}:  "0.75",
+	}
+
+	for _, tc := range []struct {
+		name      string
+		modelName string
+		gpuModel  string
+		want      string
+	}{
+		{"GPU-specific model policy", "example-large-1017", "NVIDIA-H100-80GB-HBM3", "0.85"},
+		{"GPU-specific model policy overrides GPU policy", "example-small-1017", "NVIDIA-A10", "0.75"},
+		{"generic model policy", "example-large-1017", "NVIDIA A100", "0.88"},
+		{"generic model policy overrides GPU policy", "example-medium", "NVIDIA-A10", "0.88"},
+		{"GPU policy without model policy", "other-model", "NVIDIA-A10", "0.82"},
+		{"default without any policy", "other-model", "NVIDIA H100", "0.92"},
+		{"empty name uses GPU policy", "", "NVIDIA-A10", "0.82"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, ResolveGPUMemoryUtilization(tc.modelName, tc.gpuModel))
 		})
 	}
 }

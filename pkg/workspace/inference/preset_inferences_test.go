@@ -1720,6 +1720,15 @@ func TestApplyGeneratorRuntimeOverrides(t *testing.T) {
 			},
 		},
 		{
+			name:      "model memory policy overrides GPU default",
+			modelName: "deepseek-v4.1-flash-1017",
+			gpuModel:  "NVIDIA H100",
+			want: map[string]string{
+				"gpu-memory-utilization":            "0.90",
+				"compilation-config.cudagraph_mode": "FULL_DECODE_ONLY",
+			},
+		},
+		{
 			name:      "A100 selects Marlin",
 			modelName: "mistral-medium-3.5-128b",
 			gpuModel:  "NVIDIA A100",

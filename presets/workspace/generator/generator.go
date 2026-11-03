@@ -441,6 +441,16 @@ var (
 		"NVIDIA A10": "0.82",
 	}
 
+	// gpuMemoryUtilizationByModelAndGPU overrides the per-GPU utilization for
+	// models that need extra runtime headroom, using model name prefixes. An
+	// empty GPU model applies to every GPU; the longest matching prefix wins
+	// within each GPU scope.
+	gpuMemoryUtilizationByModelAndGPU = map[modelGPUKey]string{
+		// The first request OOMs at 0.92 on 8xH100; 0.90 is validated.
+		// source: https://github.com/kaito-project/kaito/issues/2501
+		{modelName: "deepseek-v4.1-flash", gpuModel: "NVIDIA H100"}: "0.90",
+	}
+
 	// cudagraphModeByModelAndGPU overrides vLLM's default graph mode for known
 	// incompatibilities using model name prefixes. An empty GPU model applies to
 	// every GPU; the longest matching prefix wins within each GPU scope.
@@ -482,8 +492,12 @@ func SupportsMaxNumSeqsEstimate(architectures []string, gpuModel string) bool {
 }
 
 // ResolveGPUMemoryUtilization returns the vLLM GPU memory utilization for the
-// target GPU.
-func ResolveGPUMemoryUtilization(gpuModel string) string {
+// model on the target GPU. Model-specific policies take precedence over the
+// per-GPU default.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string) string {
+	if utilization, ok := resolveModelGPUPolicy(gpuMemoryUtilizationByModelAndGPU, modelName, gpuModel); ok {
+		return utilization
+	}
 	if utilization, ok := gpuMemoryUtilizationByGPUModel[sku.CanonicalGPUModel(gpuModel)]; ok {
 		return utilization
 	}
@@ -493,16 +507,22 @@ func ResolveGPUMemoryUtilization(gpuModel string) string {
 // ResolveCUDAGraphMode uses the longest model name prefix for the target GPU,
 // falling back to prefixes that apply to every GPU.
 func ResolveCUDAGraphMode(modelName, gpuModel string) (string, bool) {
+	return resolveModelGPUPolicy(cudagraphModeByModelAndGPU, modelName, gpuModel)
+}
+
+// resolveModelGPUPolicy returns the value of the longest model name prefix in
+// table for the target GPU, falling back to prefixes that apply to every GPU.
+func resolveModelGPUPolicy(table map[modelGPUKey]string, modelName, gpuModel string) (string, bool) {
 	canonicalGPUModel := sku.CanonicalGPUModel(gpuModel)
 	for _, targetGPUModel := range []string{canonicalGPUModel, ""} {
 		prefixes := make(map[string]string)
-		for key, mode := range cudagraphModeByModelAndGPU {
+		for key, value := range table {
 			if key.gpuModel == targetGPUModel {
-				prefixes[key.modelName] = mode
+				prefixes[key.modelName] = value
 			}
 		}
-		if mode, ok := longestPrefixMatch(modelName, prefixes); ok {
-			return mode, true
+		if value, ok := longestPrefixMatch(modelName, prefixes); ok {
+			return value, true
 		}
 	}
 	return "", false

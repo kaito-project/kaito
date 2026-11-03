@@ -58,10 +58,10 @@ var baseOverheadGiBByGPUModel = map[string]float64{
 }
 
 // ResolveGPUMemoryUtilization returns the --gpu-memory-utilization the launcher
-// runs vLLM with for the given GPU model, so estimators predict the same
-// per-GPU budget vLLM will have.
-func ResolveGPUMemoryUtilization(gpuModel string) float64 {
-	v, err := strconv.ParseFloat(presetgenerator.ResolveGPUMemoryUtilization(gpuModel), 64)
+// runs vLLM with for the given model and GPU model, so estimators predict the
+// same per-GPU budget vLLM will have.
+func ResolveGPUMemoryUtilization(modelName, gpuModel string) float64 {
+	v, err := strconv.ParseFloat(presetgenerator.ResolveGPUMemoryUtilization(modelName, gpuModel), 64)
 	if err != nil {
 		return defaultGPUMemoryUtilization
 	}

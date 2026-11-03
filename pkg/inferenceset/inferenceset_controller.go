@@ -405,18 +405,17 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		}
 	}
 
-	// Runtime selection is propagated at creation, not migrated on existing Workspaces.
-	desiredValue, desiredHas := desired.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	currentValue, currentHas := ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
-	if desiredHas {
+	desiredSpecDecoValue, desiredHasSpecDeco := desired.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
+	currentSpecDecoValue, currentHasSpecDeco := ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
+	if desiredHasSpecDeco {
 		if ws.Annotations == nil {
 			ws.Annotations = make(map[string]string)
 		}
-		if !currentHas || currentValue != desiredValue {
-			ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = desiredValue
+		if !currentHasSpecDeco || currentSpecDecoValue != desiredSpecDecoValue {
+			ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = desiredSpecDecoValue
 			needsUpdate = true
 		}
-	} else if currentHas {
+	} else if currentHasSpecDeco {
 		delete(ws.Annotations, kaitov1beta1.AnnotationEnableSpeculativeDecoding)
 		needsUpdate = true
 	}

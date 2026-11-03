@@ -405,24 +405,20 @@ func reconcileExistingWorkspaceMetadata(ws *kaitov1beta1.Workspace, desired *kai
 		}
 	}
 
-	for _, ann := range []string{
-		kaitov1beta1.AnnotationEnableSpeculativeDecoding,
-		kaitov1beta1.AnnotationWorkspaceRuntime,
-	} {
-		desiredValue, desiredHas := desired.Annotations[ann]
-		currentValue, currentHas := ws.Annotations[ann]
-		if desiredHas {
-			if ws.Annotations == nil {
-				ws.Annotations = make(map[string]string)
-			}
-			if !currentHas || currentValue != desiredValue {
-				ws.Annotations[ann] = desiredValue
-				needsUpdate = true
-			}
-		} else if currentHas {
-			delete(ws.Annotations, ann)
+	// Runtime selection is propagated at creation, not migrated on existing Workspaces.
+	desiredValue, desiredHas := desired.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
+	currentValue, currentHas := ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding]
+	if desiredHas {
+		if ws.Annotations == nil {
+			ws.Annotations = make(map[string]string)
+		}
+		if !currentHas || currentValue != desiredValue {
+			ws.Annotations[kaitov1beta1.AnnotationEnableSpeculativeDecoding] = desiredValue
 			needsUpdate = true
 		}
+	} else if currentHas {
+		delete(ws.Annotations, kaitov1beta1.AnnotationEnableSpeculativeDecoding)
+		needsUpdate = true
 	}
 
 	if consts.IsKarpenterProvisioner() {
@@ -691,13 +687,6 @@ func (c *InferenceSetReconciler) ensureGatewayAPIInferenceExtension(ctx context.
 		return err
 	}
 	if len(wsList.Items) == 0 {
-		isCPUTarget, resolveErr := kaitov1beta1.ResolveCPUInferenceSetTarget(ctx, iObj, c.Client)
-		if resolveErr != nil {
-			return resolveErr
-		}
-		if isCPUTarget {
-			return nil
-		}
 		klog.InfoS("No workspaces found for inferenceset(%s), skipping Gateway API Inference Extension reconciliation", "inferenceset", iObj.Name)
 		return nil
 	}

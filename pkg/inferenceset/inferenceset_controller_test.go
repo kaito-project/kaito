@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -426,7 +427,7 @@ func TestEnsureGatewayAPIInferenceExtension(t *testing.T) {
 // --------------------------------------------------------------------------
 
 func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
-	t.Run("updates speculative decoding and runtime annotations without clobbering unrelated child annotations", func(t *testing.T) {
+	t.Run("updates speculative decoding without clobbering runtime or unrelated child annotations", func(t *testing.T) {
 		prevProvisioner := consts.ActiveNodeProvisioner
 		consts.ActiveNodeProvisioner = consts.NodeProvisionerKarpenter
 		defer func() { consts.ActiveNodeProvisioner = prevProvisioner }()
@@ -470,7 +471,7 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		assert.Equal(t, iObj.Name, ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel])
 		assert.Equal(t, "keep-me", ws.Labels["extra"], "non-InferenceSet labels should remain additive")
 		assert.Equal(t, "true", ws.Annotations[v1beta1.AnnotationEnableSpeculativeDecoding])
-		assert.Equal(t, string(model.RuntimeNameHuggingfaceTransformers), ws.Annotations[v1beta1.AnnotationWorkspaceRuntime])
+		assert.Equal(t, string(model.RuntimeNameVLLM), ws.Annotations[v1beta1.AnnotationWorkspaceRuntime])
 		assert.Equal(t, consts.KarpenterCapacityTypeSpot, ws.Annotations[v1beta1.AnnotationCapacityType])
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 		assert.Equal(t, "3", ws.Annotations["workspace.kaito.io/revision"])
@@ -494,6 +495,47 @@ func TestReconcileExistingWorkspaceMetadata(t *testing.T) {
 		assert.NotContains(t, ws.Annotations, v1beta1.AnnotationEnableSpeculativeDecoding)
 		assert.Equal(t, "hash", ws.Annotations["workspace.kaito.io/hash"])
 	})
+}
+
+func TestReconcileExistingWorkspaceMetadataPreservesRuntime(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		initialRuntime string
+		updatedRuntime string
+	}{
+		{name: "parent runtime changed", initialRuntime: "vllm", updatedRuntime: "transformers"},
+		{name: "parent runtime removed", initialRuntime: "transformers"},
+		{name: "parent runtime added", updatedRuntime: "transformers"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
+			iObj.Annotations = map[string]string{}
+			if tc.initialRuntime != "" {
+				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = tc.initialRuntime
+			}
+			ws := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+			original := ws.DeepCopy()
+			if tc.initialRuntime != "" {
+				assert.Equal(t, tc.initialRuntime, ws.Annotations[v1beta1.AnnotationWorkspaceRuntime], "new Workspaces must inherit runtime selection")
+			} else {
+				assert.NotContains(t, ws.Annotations, v1beta1.AnnotationWorkspaceRuntime)
+			}
+
+			if tc.updatedRuntime == "" {
+				delete(iObj.Annotations, v1beta1.AnnotationWorkspaceRuntime)
+			} else {
+				iObj.Annotations[v1beta1.AnnotationWorkspaceRuntime] = tc.updatedRuntime
+			}
+			desired := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+			assert.False(t, reconcileExistingWorkspaceMetadata(ws, desired), "parent runtime edits must not trigger child metadata updates")
+			assert.Equal(t, original, ws, "existing Workspaces must retain their runtime selection")
+			if tc.updatedRuntime != "" {
+				assert.Equal(t, tc.updatedRuntime, desired.Annotations[v1beta1.AnnotationWorkspaceRuntime], "new Workspaces must inherit the edited runtime selection")
+			} else {
+				assert.NotContains(t, desired.Annotations, v1beta1.AnnotationWorkspaceRuntime)
+			}
+		})
+	}
 }
 
 func TestInferenceSetBenchmarkAggregation(t *testing.T) {
@@ -1143,13 +1185,15 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
 	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
+	// Exercise an ordinary CPU image version upgrade, not GPU-to-CPU migration.
+	oldCPUImage := desiredImage[:strings.LastIndex(desiredImage, ":")+1] + "old-version"
 
 	wss := []v1beta1.Workspace{
 		{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
 		{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Status: v1beta1.WorkspaceStatus{Conditions: []v1.Condition{{Type: string(v1beta1.WorkspaceConditionTypeSucceeded), Status: v1.ConditionTrue}}}},
 	}
 	objs := []client.Object{
-		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "old-cpu", Image: inference.GetBaseImageName()}}}}}},
+		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "old-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "old-cpu", Image: oldCPUImage}}}}}},
 		&appsv1.StatefulSet{ObjectMeta: v1.ObjectMeta{Name: "new-cpu", Namespace: "default"}, Spec: appsv1.StatefulSetSpec{Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "new-cpu", Image: desiredImage}}}}}},
 	}
 
@@ -1181,13 +1225,17 @@ func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
 	listErr := errors.New("node lookup unavailable")
 
 	for _, tt := range []struct {
-		name        string
-		cpuEnabled  bool
-		nodeListErr error
+		name          string
+		cpuEnabled    bool
+		hasWorkspaces bool
+		instanceType  string
+		nodeListErr   error
 	}{
-		{name: "CPU uses template resource selector", cpuEnabled: true},
-		{name: "CPU lookup error is propagated", cpuEnabled: true, nodeListErr: listErr},
-		{name: "disabled CPU does not look up nodes"},
+		{name: "CPU uses existing workspace resource selector", cpuEnabled: true, hasWorkspaces: true},
+		{name: "CPU lookup error is propagated", cpuEnabled: true, hasWorkspaces: true, nodeListErr: listErr},
+		{name: "explicit CPU workspace skips GWIE", cpuEnabled: true, hasWorkspaces: true, instanceType: "Standard_D8s_v5"},
+		{name: "no workspaces skips node lookup even with CPU enabled", cpuEnabled: true},
+		{name: "no workspaces skips node lookup with CPU disabled"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = tt.cpuEnabled
@@ -1196,17 +1244,25 @@ func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
 			iObj.Spec.Selector = &v1.LabelSelector{MatchLabels: map[string]string{"app": "workspaces"}}
 			iObj.Spec.Template.Resource.LabelSelector = &v1.LabelSelector{MatchLabels: map[string]string{"pool": "cpu"}}
 			mockClient := test.NewClient()
-			mockClient.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Return(nil).Once()
-			if tt.cpuEnabled {
+			mockClient.On("List", mock.Anything, mock.IsType(&v1beta1.WorkspaceList{}), mock.Anything).Run(func(args mock.Arguments) {
+				if tt.hasWorkspaces {
+					ws := utilsinferenceset.NewWorkspaceForInferenceSet(iObj)
+					// Existing replicas, rather than the parent template, determine the target.
+					ws.Resource.LabelSelector = &v1.LabelSelector{MatchLabels: map[string]string{"pool": "existing-cpu"}}
+					ws.Resource.InstanceType = tt.instanceType
+					args.Get(1).(*v1beta1.WorkspaceList).Items = []v1beta1.Workspace{*ws}
+				}
+			}).Return(nil).Once()
+			if tt.hasWorkspaces && tt.instanceType == "" {
 				mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).Run(func(args mock.Arguments) {
 					options := &client.ListOptions{}
 					for _, option := range args.Get(2).([]client.ListOption) {
 						option.ApplyToList(options)
 					}
-					assert.Equal(t, "pool=cpu", options.LabelSelector.String(), "must not query the top-level Workspace selector")
+					assert.Equal(t, "pool=existing-cpu", options.LabelSelector.String(), "must query the existing Workspace selector, not either parent selector")
 					nodes := args.Get(1).(*corev1.NodeList)
 					nodes.Items = []corev1.Node{{
-						ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "cpu", corev1.LabelArchStable: "amd64"}},
+						ObjectMeta: v1.ObjectMeta{Name: "cpu", Labels: map[string]string{"pool": "existing-cpu", corev1.LabelArchStable: "amd64"}},
 						Status:     corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
 					}}
 				}).Return(tt.nodeListErr).Once()
@@ -1219,7 +1275,11 @@ func TestEnsureGatewayAPIInferenceExtensionCPUSelectorResolution(t *testing.T) {
 				assert.NoError(t, err)
 			}
 			mockClient.AssertExpectations(t)
+			if !tt.hasWorkspaces || tt.instanceType != "" {
+				mockClient.AssertNotCalled(t, "List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything)
+			}
 			mockClient.AssertNotCalled(t, "Create", mock.Anything, mock.Anything, mock.Anything)
+			mockClient.AssertNotCalled(t, "Update", mock.Anything, mock.Anything, mock.Anything)
 		})
 	}
 }

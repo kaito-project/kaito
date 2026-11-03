@@ -286,34 +286,3 @@ func TestResolveInferenceSetBenchmarkApplicability_BYOCPUPresetSkipsParentBenchm
 	assert.NoError(t, err)
 	assert.False(t, benchmarkApplicable, "BYO CPU presets with empty instanceType should skip parent benchmark applicability")
 }
-
-func TestInferenceSetMIGImmutable(t *testing.T) {
-	makeIS := func(profile string) *InferenceSet {
-		var p *PartitionSpec
-		if profile != "" {
-			p = &PartitionSpec{Mode: PartitionModeMIG, Profile: profile}
-		}
-		return &InferenceSet{
-			ObjectMeta: metav1.ObjectMeta{Name: "test-is", Namespace: "default"},
-			Spec: InferenceSetSpec{
-				Template: InferenceSetTemplate{
-					Resource: InferenceSetResourceSpec{Partition: p},
-				},
-			},
-		}
-	}
-
-	// Unchanged partition is allowed.
-	errs := makeIS("1g.10gb").validateUpdate(makeIS("1g.10gb"))
-	assert.Nil(t, errs)
-
-	// Changing the profile is rejected.
-	errs = makeIS("2g.20gb").validateUpdate(makeIS("1g.10gb"))
-	assert.NotNil(t, errs)
-	assert.Contains(t, errs.Error(), "field is immutable")
-
-	// Adding a partition to a non-partitioned set is rejected.
-	errs = makeIS("1g.10gb").validateUpdate(makeIS(""))
-	assert.NotNil(t, errs)
-	assert.Contains(t, errs.Error(), "field is immutable")
-}

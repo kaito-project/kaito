@@ -735,7 +735,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 		assert.Equal(t, hash1, hash2)
 	})
 
-	t.Run("Should change hash when runtime annotation changes", func(t *testing.T) {
+	t.Run("Should preserve spec hash when runtime annotation changes", func(t *testing.T) {
 		inferenceset1 := &kaitov1beta1.InferenceSet{
 			ObjectMeta: metav1.ObjectMeta{
 				Annotations: map[string]string{kaitov1beta1.AnnotationWorkspaceRuntime: "vllm"},
@@ -757,7 +757,7 @@ func TestComputeInferenceSetHash(t *testing.T) {
 		hash1 := ComputeInferenceSetHash(inferenceset1)
 		hash2 := ComputeInferenceSetHash(inferenceset2)
 
-		assert.NotEqual(t, hash1, hash2)
+		assert.Equal(t, hash1, hash2)
 	})
 
 	t.Run("Should handle empty InferenceSet", func(t *testing.T) {

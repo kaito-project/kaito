@@ -336,10 +336,6 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 
 	workload, err := generator.GenerateManifest(gctx, ssOpts...)
 	if err == nil {
-		if workload.Annotations == nil {
-			workload.Annotations = make(map[string]string)
-		}
-		workload.Annotations[v1beta1.AnnotationWorkspaceRuntime] = string(v1beta1.GetWorkspaceRuntimeName(workspaceObj))
 		if isCPUInference {
 			// Template labels must not alias the immutable StatefulSet selector.
 			podLabels := make(map[string]string, len(workload.Spec.Template.Labels)+1)

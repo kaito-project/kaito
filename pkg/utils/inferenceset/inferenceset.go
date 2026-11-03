@@ -253,11 +253,7 @@ func ComputeInferenceSetHash(iObj *kaitov1beta1.InferenceSet) string {
 
 	hasher := sha256.New()
 	encoder := json.NewEncoder(hasher)
-	payload := map[string]interface{}{
-		"spec":              iObj.Spec,
-		"runtimeAnnotation": iObj.GetAnnotations()[kaitov1beta1.AnnotationWorkspaceRuntime],
-	}
-	encoder.Encode(payload)
+	encoder.Encode(iObj.Spec)
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 

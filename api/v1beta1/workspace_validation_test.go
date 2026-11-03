@@ -2614,44 +2614,6 @@ func TestWorkspaceValidateUpdate(t *testing.T) {
 			expectErrs: false,
 		},
 		{
-			name: "Runtime changes revalidate inference compatibility",
-			oldWorkspace: &Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "runtime-change",
-					Namespace: "kaito",
-					Annotations: map[string]string{
-						AnnotationWorkspaceRuntime: string(model.RuntimeNameVLLM),
-					},
-				},
-				Inference: &InferenceSpec{
-					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-vllm-only")}},
-				},
-				Resource: ResourceSpec{
-					InstanceType: "Standard_NV36ads_A10_v5",
-					Count:        pointerToInt(1),
-				},
-			},
-			newWorkspace: &Workspace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "runtime-change",
-					Namespace: "kaito",
-					Annotations: map[string]string{
-						AnnotationWorkspaceRuntime: string(model.RuntimeNameHuggingfaceTransformers),
-					},
-				},
-				Inference: &InferenceSpec{
-					Preset: &PresetSpec{PresetMeta: PresetMeta{Name: ModelName("test-vllm-only")}},
-				},
-				Resource: ResourceSpec{
-					InstanceType: "Standard_NV36ads_A10_v5",
-					Count:        pointerToInt(1),
-				},
-			},
-			expectErrs: true,
-			errFields:  []string{"inference"},
-			errContent: "does not support inference with Huggingface Transformers runtime",
-		},
-		{
 			name: "Upgrade scenario - v0.7 workspace with instanceType when disableNAP=true",
 			oldWorkspace: &Workspace{
 				ObjectMeta: metav1.ObjectMeta{

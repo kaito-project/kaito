@@ -822,9 +822,11 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 		return err
 	}
 
-	// Reset benchmark results only after a successful workload rollout.
-	if replacePodTemplate {
-		if err := c.resetBenchmarkOnRollout(ctx, wObj); err != nil {
+	// After a successful workload API update for a base image upgrade, clear the
+	// recorded benchmark so it can be collected for the new image. Rollout
+	// completion is checked separately before collecting benchmark results.
+	if baseImageUpgrade {
+		if err := c.resetBenchmarkOnUpgrade(ctx, wObj); err != nil {
 			return err
 		}
 	}
@@ -896,11 +898,7 @@ func (c *WorkspaceReconciler) syncWorkspaceStatus(ctx context.Context, key types
 	// that the workspace should benchmark and that the StatefulSet actually
 	// carries the benchmark startup probe. Legacy workspaces created before the
 	// benchmark feature have no probe (backward compatibility).
-	cpuInference, cpuResolveErr := kaitov1beta1.ResolveCPUInferenceTarget(ctx, wObj.Inference, wObj.Resource.InstanceType, wObj.Resource.LabelSelector, c.Client)
-	if cpuResolveErr != nil {
-		return cpuResolveErr
-	}
-	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe && !cpuInference
+	benchmarkApplicable := kaitov1beta1.ShouldRunBenchmark(wObj) && hasBenchmarkProbe
 
 	appendReconcileErrMessage := buildReconcileErrMessageAppender(reconcileErr)
 	maxModelLen := c.collectActualMaxModelLen(ctx, wObj, inferenceReady)
@@ -1610,10 +1608,10 @@ func refreshBenchmarkObservedGenerationIfCompleted(status *kaitov1beta1.Workspac
 	meta.SetStatusCondition(&status.Conditions, updated)
 }
 
-// resetBenchmarkOnRollout clears the recorded benchmark result and removes the
+// resetBenchmarkOnUpgrade clears the recorded benchmark result and removes the
 // BenchmarkCompleted condition, so the post-load benchmark re-runs against the new
-// serving configuration on the next reconcile.
-func (c *WorkspaceReconciler) resetBenchmarkOnRollout(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
+// image on the next reconcile.
+func (c *WorkspaceReconciler) resetBenchmarkOnUpgrade(ctx context.Context, wObj *kaitov1beta1.Workspace) error {
 	return workspace.UpdateWorkspaceStatus(ctx, c.Client, &client.ObjectKey{Name: wObj.Name, Namespace: wObj.Namespace},
 		func(status *kaitov1beta1.WorkspaceStatus) error {
 			status.Performance = nil
@@ -1784,9 +1782,7 @@ func (c *WorkspaceReconciler) UpdateWorkspaceTargetNodeCount(ctx context.Context
 				} else {
 					// For non-vLLM runtime, use the Resource.Count directly
 					//nolint:staticcheck //SA1019: deprecate Resource.Count field
-					if wObj.Resource.Count != nil {
-						targetNodeCount = int32(*wObj.Resource.Count)
-					}
+					targetNodeCount = int32(*wObj.Resource.Count)
 					klog.Infof("[EstimateNodeCount] workspace=%s using Resource.Count=%d for non-vLLM runtime", wObj.Name, targetNodeCount)
 				}
 			}

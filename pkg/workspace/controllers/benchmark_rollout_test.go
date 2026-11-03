@@ -234,7 +234,7 @@ func TestBenchmarkCollectionWaitsForStatefulSetRollout(t *testing.T) {
 			require.True(t, applicable)
 			require.Equal(t, tc.wantReady, ready)
 
-			// Mimic deferred status sync immediately after resetBenchmarkOnRollout.
+			// Mimic deferred status sync immediately after resetBenchmarkOnUpgrade.
 			status := &v1beta1.WorkspaceStatus{State: v1beta1.WorkspaceStateReady}
 			applyInferenceWorkspaceStatus(t.Context(), status, ws, buildReconcileErrMessageAppender(nil),
 				ready, metav1.ConditionTrue, applicable, reason, message)

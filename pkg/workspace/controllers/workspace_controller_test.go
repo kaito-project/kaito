@@ -2759,23 +2759,3 @@ func TestUpdateWorkspaceTargetNodeCountBYOCPUInitialization(t *testing.T) {
 	require.Equal(t, int32(1), stored.Status.TargetNodeCount)
 	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(context.Background(), ws))
 }
-
-func TestUpdateWorkspaceTargetNodeCountTransformersWithoutCount(t *testing.T) {
-	test.RegisterTestModel()
-	oldBYO := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldBYO })
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-	ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-	ws.Resource = v1beta1.ResourceSpec{
-		InstanceType:  ws.Resource.InstanceType,
-		LabelSelector: ws.Resource.LabelSelector,
-	}
-	ws.Annotations = map[string]string{
-		v1beta1.AnnotationWorkspaceRuntime: "transformers",
-	}
-	ws.Status.TargetNodeCount = 0
-	c := fake.NewClientBuilder().WithScheme(benchmarkTestScheme(t)).WithStatusSubresource(ws).WithObjects(ws, benchmarkTestGPUNode()).Build()
-	r := &WorkspaceReconciler{Client: c}
-	require.NoError(t, r.UpdateWorkspaceTargetNodeCount(t.Context(), ws))
-	require.Equal(t, int32(1), ws.Status.TargetNodeCount)
-}

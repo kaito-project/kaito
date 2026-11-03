@@ -30,6 +30,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -782,7 +783,8 @@ func TestSelectWorkspacesToDelete(t *testing.T) {
 	ctx := context.Background()
 	const ns = "default"
 	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
-	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, utilsinferenceset.NewWorkspaceForInferenceSet(iObj), nil)
+	require.NoError(t, err)
 	oldImage := desiredImage + "-old"
 
 	type wsSpec struct {
@@ -1184,7 +1186,8 @@ func TestSelectWorkspacesToDelete_UsesRuntimeAwareDesiredImageForCPU(t *testing.
 
 	iObj := test.MockInferenceSetWithPresetVLLM.DeepCopy()
 	iObj.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	desiredImage := inference.GetDesiredInferenceImageName(utilsinferenceset.NewWorkspaceForInferenceSet(iObj))
+	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(ctx, utilsinferenceset.NewWorkspaceForInferenceSet(iObj), nil)
+	require.NoError(t, err)
 	// Exercise an ordinary CPU image version upgrade, not GPU-to-CPU migration.
 	oldCPUImage := desiredImage[:strings.LastIndex(desiredImage, ":")+1] + "old-version"
 

@@ -679,7 +679,8 @@ func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage
 	is.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
 	is.Spec.Template.Inference.Preset = &kaitov1beta1.PresetSpec{PresetMeta: kaitov1beta1.PresetMeta{Name: "test-model"}}
 	ws := makeWorkspace("ws-1", ns, isName, kaitov1beta1.WorkspaceStateReady, nil)
-	desiredImage := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(is))
+	desiredImage, err := inference.GetDesiredInferenceImageNameWithResolution(t.Context(), inferencesetutil.NewWorkspaceForInferenceSet(is), nil)
+	require.NoError(t, err)
 	ss := makeStatefulSet("ws-1", ns, desiredImage)
 	cl := newFakeClient(is, ws, ss)
 	r := &AutoUpgradeRunner{Client: cl}
@@ -695,7 +696,8 @@ func TestReconcileInferenceSet_AllUpToDate_CPUPresetUsesRuntimeAwareDesiredImage
 
 func TestReconcileInferenceSet_WaitsForUpgrading(t *testing.T) {
 	setTestRegistry(t)
-	desiredTag := inference.GetBaseImageTag()
+	desiredTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	require.NoError(t, err)
 	const (
 		ns     = "default"
 		isName = "test-is"
@@ -727,7 +729,8 @@ func TestReconcileInferenceSet_WaitsForUpgrading(t *testing.T) {
 
 func TestReconcileInferenceSet_MarkSuccessOnDriftTransition(t *testing.T) {
 	desiredImage := setTestRegistry(t)
-	desiredTag := inference.GetBaseImageTag()
+	desiredTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	require.NoError(t, err)
 	const (
 		ns     = "default"
 		isName = "test-is"
@@ -964,12 +967,14 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 	// Check real runtime selection without imposing any relation between release tags.
 	cpu := makeSurgeInferenceSet("cpu-upgrade", "default")
 	cpu.Spec.Template.Resource.InstanceType = "Standard_D8s_v5"
-	catalogImage := inference.GetDesiredInferenceImageName(inferencesetutil.NewWorkspaceForInferenceSet(cpu))
+	catalogImage, err := inference.GetDesiredInferenceImageNameWithResolution(t.Context(), inferencesetutil.NewWorkspaceForInferenceSet(cpu), nil)
+	require.NoError(t, err)
 	require.Contains(t, catalogImage, "kaito-base-vllm-cpu:")
 	catalogTag, err := inference.GetImageTag(catalogImage)
 	require.NoError(t, err)
 
-	gpuTag := inference.GetBaseImageTag()
+	gpuTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	require.NoError(t, err)
 	for _, tags := range []struct {
 		name   string
 		cpuTag string
@@ -1018,7 +1023,9 @@ func TestReconcileInferenceSet_CPURuntimeUpgradeVersion(t *testing.T) {
 								require.Len(t, all, 2)
 								for i := range all {
 									if all[i].Name != ws.Name {
-										assert.Equal(t, catalogImage, inference.GetDesiredInferenceImageName(&all[i]))
+										image, err := inference.GetDesiredInferenceImageNameWithResolution(t.Context(), &all[i], cl)
+										require.NoError(t, err)
+										assert.Equal(t, catalogImage, image)
 									}
 								}
 								// Surge creates a fresh workspace, not an in-place authorization.

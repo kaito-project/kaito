@@ -86,3 +86,48 @@ func TestWorkspaceHashPreservesUpstreamInputs(t *testing.T) {
 		require.Equal(t, want, ComputeHash(ws))
 	}
 }
+
+// Replica drift alone must not expand reconciliation into a template rollout.
+// This also protects GPU workloads while CPU inference is disabled.
+func TestInferenceMatchingRevisionPreservesReplicaDrift(t *testing.T) {
+	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	test.RegisterTestModel()
+	for _, gate := range []string{consts.FeatureFlagEnableCPUInference, consts.FeatureFlagVLLM, consts.FeatureFlagDisableNodeAutoProvisioning} {
+		old := featuregates.FeatureGates[gate]
+		t.Cleanup(func() { featuregates.FeatureGates[gate] = old })
+	}
+	featuregates.FeatureGates[consts.FeatureFlagVLLM] = true
+	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = false
+	for _, tc := range []struct {
+		name, instanceType string
+		cpuEnabled         bool
+	}{
+		{"GPU with CPU gate off", "Standard_NC24ads_A100_v4", false},
+		{"CPU", "Standard_D8s_v5", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = tc.cpuEnabled
+			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
+			ws.Resource.InstanceType = tc.instanceType
+			ws.Status.TargetNodeCount = 1
+			ws.Annotations = map[string]string{v1beta1.AnnotationWorkspaceRuntime: "vllm", v1beta1.WorkspaceRevisionAnnotation: "1"}
+			seedCompletedBenchmark(ws)
+			c := fake.NewClientBuilder().WithScheme(benchmarkTestScheme(t)).WithStatusSubresource(ws).WithObjects(ws).Build()
+			r := &WorkspaceReconciler{Client: c}
+			require.NoError(t, r.applyInference(t.Context(), ws))
+			ss := &appsv1.StatefulSet{}
+			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(ws), ss))
+			require.EqualValues(t, 1, *ss.Spec.Replicas)
+			*ss.Spec.Replicas = 3
+			ss.Spec.Template.Spec.Containers[0].Image = "example.com/kaito:deployed"
+			ss.Spec.Template.Spec.Containers[0].StartupProbe = &corev1.Probe{InitialDelaySeconds: 999}
+			require.NoError(t, c.Update(t.Context(), ss))
+			before := ss.DeepCopy()
+			require.NoError(t, r.applyInference(t.Context(), ws))
+			require.NoError(t, c.Get(t.Context(), client.ObjectKeyFromObject(ws), ss))
+			require.Equal(t, before, ss)
+			requireBenchmarkStatus(t, c, ws, false)
+		})
+	}
+}

@@ -791,8 +791,7 @@ func (c *WorkspaceReconciler) applyInference(ctx context.Context, wObj *kaitov1b
 	}
 
 	currentRevisionStr, ok := annotations[kaitov1beta1.WorkspaceRevisionAnnotation]
-	replacePodTemplate := baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet) ||
-		!apiequality.Semantic.DeepEqual(existingObj.Spec.Replicas, desiredStatefulSet.Spec.Replicas)
+	replacePodTemplate := baseImageUpgrade || cache.MutationHashChanged(existingObj, desiredStatefulSet)
 
 	// If the current workload revision matches the one in Workspace and no upgrade is pending,
 	// we do not need to update it.

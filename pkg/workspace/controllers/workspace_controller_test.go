@@ -1940,7 +1940,9 @@ func TestSetWorkspaceCondition(t *testing.T) {
 }
 
 func TestShouldUpgradeBaseImage(t *testing.T) {
-	baseTag := inference.GetBaseImageTag()
+	t.Setenv("PRESET_REGISTRY_NAME", "mcr.microsoft.com/aks/kaito")
+	baseTag, err := inference.GetImageTag(inference.GetBaseImageName())
+	require.NoError(t, err)
 	baseImage := "mcr.microsoft.com/aks/kaito/kaito-base:" + baseTag
 	tests := []struct {
 		name     string

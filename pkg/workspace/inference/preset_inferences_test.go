@@ -2730,7 +2730,6 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 			if tc.wantError {
 				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
 				assert.Empty(t, image)
-				assert.Empty(t, GetDesiredInferenceImageName(ws))
 				ws.Status.TargetNodeCount = 1
 				_, err = GeneratePresetInference(context.Background(), ws, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), nil, nil)
 				require.ErrorContains(t, err, "CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
@@ -2742,7 +2741,6 @@ func TestPresetInferenceRuntimeImages(t *testing.T) {
 				want = getCPUVLLMImageName()
 			}
 			assert.Equal(t, want, image)
-			assert.Equal(t, want, GetDesiredInferenceImageName(ws))
 		})
 	}
 }

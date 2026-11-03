@@ -85,7 +85,7 @@ func (r *AutoUpgradeRunner) NeedLeaderElection() bool { return true }
 
 // reconcileAll lists all InferenceSets with autoUpgrade enabled and processes each.
 func (r *AutoUpgradeRunner) reconcileAll(ctx context.Context) {
-	klog.InfoS("AutoUpgradeRunner: reconcileAll tick", "desiredImage", inference.GetBaseImageName(), "desiredTag", inference.GetBaseImageTag())
+	klog.InfoS("AutoUpgradeRunner: reconcileAll tick", "desiredImage", inference.GetBaseImageName())
 	inferenceSetList := &kaitov1beta1.InferenceSetList{}
 	if err := r.Client.List(ctx, inferenceSetList); err != nil {
 		klog.ErrorS(err, "AutoUpgradeRunner: failed to list InferenceSets")

@@ -570,22 +570,6 @@ func getPresetInferenceImageName(runtimeName pkgmodel.RuntimeName, isCPU bool) s
 	return ""
 }
 
-// GetDesiredInferenceImageName returns the runtime-aware image that preset inference
-// should use for the given Workspace. Non-preset or nil workspaces fall back to the
-// generic base image. Unsupported CPU runtimes return an empty image; callers
-// needing validation errors should use GetDesiredInferenceImageNameWithResolution.
-func GetDesiredInferenceImageName(ws *v1beta1.Workspace) string {
-	if ws == nil || ws.Inference == nil || ws.Inference.Preset == nil {
-		return GetBaseImageName()
-	}
-	runtimeName := v1beta1.GetWorkspaceRuntimeName(ws)
-	isCPU := v1beta1.IsCPUInferenceWorkspace(ws)
-	if isCPU && runtimeName != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ws) {
-		return ""
-	}
-	return getPresetInferenceImageName(runtimeName, isCPU)
-}
-
 // GetDesiredInferenceImageNameWithResolution returns the runtime-aware image after
 // resolving BYO CPU selectors when instanceType is empty.
 func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1.Workspace, kubeClient client.Client) (string, error) {
@@ -601,12 +585,6 @@ func GetDesiredInferenceImageNameWithResolution(ctx context.Context, ws *v1beta1
 		return "", fmt.Errorf("CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType, got %s", runtimeName)
 	}
 	return getPresetInferenceImageName(runtimeName, isCPUInference), nil
-}
-
-// GetBaseImageTag returns just the tag portion of the base image reference.
-func GetBaseImageTag() string {
-	presetObj := metadata.MustGet("base")
-	return presetObj.Tag
 }
 
 // GetBaseRuntimeVersion returns the inference engine version baked into the base

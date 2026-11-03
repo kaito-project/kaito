@@ -16,6 +16,7 @@ package gpuprovisioner
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -26,8 +27,10 @@ import (
 	karpenterv1 "sigs.k8s.io/karpenter/pkg/apis/v1"
 
 	kaitov1beta1 "github.com/kaito-project/kaito/api/v1beta1"
+	"github.com/kaito-project/kaito/pkg/featuregates"
 	"github.com/kaito-project/kaito/pkg/nodeprovision"
 	"github.com/kaito-project/kaito/pkg/utils"
+	"github.com/kaito-project/kaito/pkg/utils/consts"
 	"github.com/kaito-project/kaito/pkg/utils/test"
 	"github.com/kaito-project/kaito/pkg/workspace/resource"
 )
@@ -213,5 +216,17 @@ func TestAzureGPUProvisionerEnsureNodesReady(t *testing.T) {
 				assert.Equal(t, tc.expectedReady, ready)
 			}
 		})
+	}
+}
+
+func TestBuildNodeSelectorCPUUsesWorkspaceIsolation(t *testing.T) {
+	oldGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
+	t.Cleanup(func() { featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldGate })
+	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
+	ws := &kaitov1beta1.Workspace{ObjectMeta: metav1.ObjectMeta{Name: "cpu-child", Namespace: "default", Labels: map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "parent"}}, Resource: kaitov1beta1.ResourceSpec{InstanceType: "Standard_D16s_v6"}, Inference: &kaitov1beta1.InferenceSpec{Template: &corev1.PodTemplateSpec{Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "cpu", Image: "cpu:v1"}}}}}}
+	got := (&AzureGPUProvisioner{}).BuildNodeSelector(context.Background(), ws)
+	want := []corev1.NodeSelectorRequirement{{Key: kaitov1beta1.LabelWorkspaceName, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Name}}, {Key: kaitov1beta1.LabelWorkspaceNamespace, Operator: corev1.NodeSelectorOpIn, Values: []string{ws.Namespace}}}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("workspace isolation requirements = %v, want %v", got, want)
 	}
 }

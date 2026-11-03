@@ -918,19 +918,5 @@ func (p *KarpenterProvisioner) BuildNodeSelector(ctx context.Context, ws *kaitov
 			Values:   []string{ws.Namespace},
 		},
 	}
-	if kaitov1beta1.IsCPUInferenceWorkspace(ws) {
-		if createdBy := ws.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; createdBy != "" {
-			reqs = append(reqs, corev1.NodeSelectorRequirement{
-				Key:      consts.KarpenterInferenceSetKey,
-				Operator: corev1.NodeSelectorOpIn,
-				Values:   []string{createdBy},
-			})
-		}
-		reqs = append(reqs, corev1.NodeSelectorRequirement{
-			Key:      consts.SKUString,
-			Operator: corev1.NodeSelectorOpIn,
-			Values:   []string{consts.CPUString},
-		})
-	}
 	return reqs
 }

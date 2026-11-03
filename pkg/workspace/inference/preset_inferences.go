@@ -282,13 +282,9 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	// For multi-node distributed inference with vLLM, we need StatefulSet to ensure pods are
 	// created with individual identities (their ordinal indexes) -
 	// https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-identity
-	isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx, workspaceObj.Inference, workspaceObj.Resource.InstanceType, workspaceObj.Resource.LabelSelector, kubeClient)
-	if err != nil {
-		return nil, err
-	}
-	if isCPUInference != (gpuConfig == nil) {
-		return nil, fmt.Errorf("inference target resolution changed during pod generation; retry reconciliation")
-	}
+	// getGPUConfig captures the target once for this generation: nil means CPU.
+	// Reuse it for the image, pod spec and probes instead of re-reading nodes.
+	isCPUInference := gpuConfig == nil
 	distributed := !isCPUInference && shouldUseDistributedInference(gctx, numNodes)
 	if distributed {
 		podOpts = append(podOpts, SetDistributedInferenceProbe)
@@ -350,6 +346,8 @@ func GeneratePresetInference(ctx context.Context, workspaceObj *v1beta1.Workspac
 	return result, err
 }
 
+// getGPUConfig resolves the inference target once per generation. A nil config with
+// no error denotes CPU; every successful GPU path returns a non-nil config.
 func getGPUConfig(ctx *generator.WorkspaceGeneratorContext) (*sku.GPUConfig, error) {
 	isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
 	if err != nil {
@@ -616,6 +614,7 @@ func GetPresetQuantization(presetName string) string {
 	return m.QuantMethod
 }
 
+// GenerateInferencePodSpec reuses the captured target: nil gpuConfig denotes CPU.
 func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingModelPath, streamingLoadFormat,
 	localModelWeightsPath string, lmCacheConfig *lmCacheResolvedConfig,
 ) func(*generator.WorkspaceGeneratorContext, *corev1.PodSpec) error {
@@ -637,15 +636,9 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 		volumes, volumeMounts = configureModelWeightsVolumes(
 			streamingModelPath, localModelWeightsPath, volumes, volumeMounts)
 
-		isCPUInference, err := v1beta1.ResolveCPUInferenceTarget(ctx.Ctx, ctx.Workspace.Inference, ctx.Workspace.Resource.InstanceType, ctx.Workspace.Resource.LabelSelector, ctx.KubeClient)
-		if err != nil {
-			return err
-		}
+		isCPUInference := gpuConfig == nil
 		if isCPUInference && v1beta1.GetWorkspaceRuntimeName(ctx.Workspace) != pkgmodel.RuntimeNameVLLM && !v1beta1.IsExplicitTransformersCPUWorkspace(ctx.Workspace) {
 			return fmt.Errorf("CPU preset inference requires vllm or explicit transformers with an amd64 CPU instanceType")
-		}
-		if isCPUInference != (gpuConfig == nil) {
-			return fmt.Errorf("inference target resolution changed during pod generation; retry reconciliation")
 		}
 
 		volumes, volumeMounts, cudaHome := configureCUDAToolkitVolume(
@@ -701,7 +694,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 			}
 			userConfigHasSpeculativeOverride = override
 		}
-		_, err = applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
+		_, err := applySpeculativeDecoding(ctx.Workspace, runtimeName, inferenceParam, userConfigHasSpeculativeOverride)
 		if err != nil {
 			return fmt.Errorf("speculative decoding: %w", err)
 		}
@@ -781,7 +774,7 @@ func GenerateInferencePodSpec(gpuConfig *sku.GPUConfig, numNodes int, streamingM
 
 		setInferenceContainers(spec, ctx.Workspace.Name, getPresetInferenceImageName(runtimeName, isCPUInference), commands, resourceReq,
 			volumeMounts, mainContainerEnv, readinessTimeout, vllmPort, cudaHome, ports)
-		setVLLMGracefulShutdown(spec, runtimeName, shouldUseDistributedInference(ctx, numNodes))
+		setVLLMGracefulShutdown(spec, runtimeName, !isCPUInference && shouldUseDistributedInference(ctx, numNodes))
 
 		applyInferenceRoleEnv(ctx.Workspace.Labels, ctx.Workspace.Name, spec)
 

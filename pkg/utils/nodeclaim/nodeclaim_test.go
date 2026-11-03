@@ -163,7 +163,7 @@ func TestWaitForPendingNodeClaims(t *testing.T) {
 	}
 }
 
-func TestGenerateNodeClaimManifest_PreservesControllerOwnedInferenceSetLabel(t *testing.T) {
+func TestGenerateNodeClaimManifest_OmitsInferenceSetLabel(t *testing.T) {
 	ws := test.MockWorkspaceWithPreset.DeepCopy()
 	ws.Labels = map[string]string{consts.WorkspaceCreatedByInferenceSetLabel: "cpu-set"}
 	ws.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{
@@ -175,8 +175,8 @@ func TestGenerateNodeClaimManifest_PreservesControllerOwnedInferenceSetLabel(t *
 	if nc == nil {
 		t.Fatalf("expected nodeclaim manifest")
 	}
-	if got := nc.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; got != "cpu-set" {
-		t.Fatalf("expected controller-owned created-by label to be preserved, got %q", got)
+	if got := nc.Labels[consts.WorkspaceCreatedByInferenceSetLabel]; got != "" {
+		t.Fatalf("expected workspace-only isolation without parent label propagation, got %q", got)
 	}
 	if got := nc.Labels["nodepool"]; got != "cpu" {
 		t.Fatalf("expected non-reserved selector label to be preserved, got %q", got)

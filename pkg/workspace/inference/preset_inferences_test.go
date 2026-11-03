@@ -2501,51 +2501,6 @@ func TestGeneratePresetInference_BYOCPUPresetUsesCPUToleration(t *testing.T) {
 	}
 }
 
-func TestGeneratePresetInference_BYOCPUTargetSnapshotChangeReturnsRetryableError(t *testing.T) {
-	test.RegisterTestModel()
-	oldCPUInferenceGate := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference]
-	oldNAPGate := featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning]
-	defer func() {
-		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = oldCPUInferenceGate
-		featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = oldNAPGate
-	}()
-	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference] = true
-	featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning] = true
-
-	mockClient := test.NewClient()
-	cpuNode := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "cpu-node",
-			Labels: map[string]string{"kaito.sh/cpu-inference": "true", corev1.LabelArchStable: "amd64"},
-		},
-		Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}},
-	}
-	listCalls := 0
-	mockClient.On("List", mock.Anything, mock.IsType(&corev1.NodeList{}), mock.Anything).
-		Run(func(args mock.Arguments) {
-			nodeListArg := args.Get(1).(*corev1.NodeList)
-			if listCalls == 0 {
-				nodeListArg.Items = []corev1.Node{*cpuNode}
-			} else {
-				nodeListArg.Items = nil
-			}
-			listCalls++
-		}).Return(nil).Times(3)
-
-	workspace := test.MockWorkspaceWithPresetVLLM.DeepCopy()
-	workspace.Resource.InstanceType = ""
-	workspace.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"kaito.sh/cpu-inference": "true"}}
-	workspace.Status.TargetNodeCount = 1
-
-	_, err := GeneratePresetInference(context.Background(), workspace, test.MockWorkspaceWithPresetHash, plugin.KaitoModelRegister.MustGet("test-model"), mockClient, nil)
-	if err == nil {
-		t.Fatalf("expected inconsistent cpu target snapshot to return an error")
-	}
-	if !strings.Contains(err.Error(), "inference target resolution changed during pod generation") {
-		t.Fatalf("expected retryable inconsistent snapshot error, got %v", err)
-	}
-}
-
 // TestGeneratePresetInferenceCUDAToolkitProvisioner verifies that CUDA toolkit
 // provisioning is gated on models that require runtime CUDA compilation: such a model gets a
 // cuda-toolkit-provisioner init container and a read-write hostPath at the
@@ -2924,43 +2879,39 @@ func TestCPUPlacementRequiresAMD64InEveryAlternative(t *testing.T) {
 	}
 }
 
-// Every later target lookup must agree with the GPU configuration snapshot.
-func TestGeneratePresetInference_TargetHandover(t *testing.T) {
+// A generation captures its CPU/GPU target before building images, resources and
+// probes. Changes after capture must not cause another resolution within that
+// generation; a subsequent reconcile must still read the current inventory.
+func TestGeneratePresetInference_CapturedTarget(t *testing.T) {
 	test.RegisterTestModel()
 	t.Setenv("CLOUD_PROVIDER", consts.AzureCloudName)
+	t.Setenv("PRESET_REGISTRY_NAME", "test-registry")
 	oldCPU, oldNAP, oldVLLM := featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM]
 	t.Cleanup(func() {
 		featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = oldCPU, oldNAP, oldVLLM
 	})
 	featuregates.FeatureGates[consts.FeatureFlagEnableCPUInference], featuregates.FeatureGates[consts.FeatureFlagDisableNodeAutoProvisioning], featuregates.FeatureGates[consts.FeatureFlagVLLM] = true, true, true
-	for _, tc := range []struct {
-		name         string
-		initiallyCPU bool
-		switchAt     int
-	}{
-		{"CPU to GPU at probes", true, 2}, {"CPU to GPU at pod", true, 3},
-		{"GPU to CPU at probes", false, 3}, {"GPU to CPU at pod", false, 4},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, cpu := range []bool{true, false} {
+		t.Run(fmt.Sprintf("CPU=%t", cpu), func(t *testing.T) {
 			scheme := runtime.NewScheme()
 			require.NoError(t, corev1.AddToScheme(scheme))
-			calls := 0
+			node := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "target", Labels: map[string]string{"pool": "inference", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
+			if !cpu {
+				node.Labels[corev1.LabelInstanceTypeStable] = "Standard_NC6s_v3"
+				node.Labels[consts.NvidiaGPUProduct] = "NVIDIA-V100"
+				node.Labels[consts.NvidiaGPUCount] = "1"
+				node.Labels[consts.NvidiaGPUMemory] = "16384"
+			}
+			inventoryAvailable := true
+			reads := 0
 			c := fake.NewClientBuilder().WithScheme(scheme).WithInterceptorFuncs(interceptor.Funcs{List: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
 				nl, ok := list.(*corev1.NodeList)
 				if !ok {
 					return c.List(ctx, list, opts...)
 				}
-				calls++
-				cpu := tc.initiallyCPU
-				if calls >= tc.switchAt {
-					cpu = !cpu
-				}
-				node := corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "target", Labels: map[string]string{"pool": "inference", corev1.LabelArchStable: "amd64"}}, Status: corev1.NodeStatus{Conditions: []corev1.NodeCondition{{Type: corev1.NodeReady, Status: corev1.ConditionTrue}}}}
-				if !cpu {
-					node.Labels[corev1.LabelInstanceTypeStable] = "Standard_NC6s_v3"
-					node.Labels[consts.NvidiaGPUProduct] = "NVIDIA-V100"
-					node.Labels[consts.NvidiaGPUCount] = "1"
-					node.Labels[consts.NvidiaGPUMemory] = "16384"
+				reads++
+				if !inventoryAvailable {
+					return fmt.Errorf("inventory changed after target capture")
 				}
 				nl.Items = []corev1.Node{node}
 				return nil
@@ -2968,12 +2919,33 @@ func TestGeneratePresetInference_TargetHandover(t *testing.T) {
 			ws := test.MockWorkspaceWithPresetVLLM.DeepCopy()
 			ws.Resource.InstanceType = ""
 			ws.Resource.LabelSelector = &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "inference"}}
-			result, err := GeneratePresetInference(context.Background(), ws, "0", plugin.KaitoModelRegister.MustGet("test-model"), c, nil)
-			require.ErrorContains(t, err, "target resolution changed")
-			if result != nil {
-				require.Nil(t, result.Workload)
-			}
-			require.Equal(t, tc.switchAt, calls)
+			ws.Inference.Config = ""
+			ws.Inference.Adapters = nil
+			ws.Status.TargetNodeCount = 1
+			gctx := &generator.WorkspaceGeneratorContext{Ctx: context.Background(), Workspace: ws, Model: plugin.KaitoModelRegister.MustGet("test-model"), KubeClient: c}
+			config, err := getGPUConfig(gctx)
+			require.NoError(t, err)
+			require.Equal(t, cpu, config == nil)
+			readsAtCapture := reads
+			inventoryAvailable = false
+			spec := &corev1.PodSpec{}
+			require.NoError(t, GenerateInferencePodSpec(config, 1, "", "", "", &lmCacheResolvedConfig{})(gctx, spec))
+			require.Equal(t, readsAtCapture, reads, "pod generation must reuse the captured target")
+			require.Equal(t, getPresetInferenceImageName(pkgmodel.RuntimeNameVLLM, cpu), spec.Containers[0].Image)
+			_, hasGPU := spec.Containers[0].Resources.Limits[corev1.ResourceName(consts.NvidiaGPU)]
+			require.Equal(t, !cpu, hasGPU)
+			require.NotNil(t, spec.Containers[0].ReadinessProbe.HTTPGet)
+			require.Equal(t, defaultTolerationsForTarget(cpu), spec.Tolerations)
+			_, err = getGPUConfig(gctx)
+			require.ErrorContains(t, err, "inventory changed", "a later generation must resolve afresh")
+			inventoryAvailable = true
+			result, err := GeneratePresetInference(context.Background(), ws, "0", gctx.Model, c, nil)
+			require.NoError(t, err)
+			complete := result.Workload.(*appsv1.StatefulSet).Spec.Template.Spec
+			require.Equal(t, spec.Containers[0].Image, complete.Containers[0].Image)
+			require.Equal(t, spec.Containers[0].Resources, complete.Containers[0].Resources)
+			require.Equal(t, spec.Containers[0].ReadinessProbe, complete.Containers[0].ReadinessProbe)
+			require.Equal(t, spec.Tolerations, complete.Tolerations)
 		})
 	}
 }

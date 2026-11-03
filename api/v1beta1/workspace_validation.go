@@ -120,7 +120,6 @@ func (w *Workspace) ValidateUpdate(ctx context.Context, old *Workspace) (errs *a
 		errs = errs.Also(w.validateModelStreamingAnnotationImmutable(old))
 	}
 	if w.Inference != nil {
-		errs = errs.Also(w.validateCPUInferenceConstraints(ctx, k8sclient.Client))
 		errs = errs.Also(w.Inference.validateUpdate(old.Inference).ViaField("inference"))
 	}
 	// Validate speculative decoding annotation on updates too.

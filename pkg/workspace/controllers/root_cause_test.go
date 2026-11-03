@@ -66,6 +66,14 @@ func TestWorkspaceRootCause(t *testing.T) {
 			expectedFound: true, expectedType: kaitov1beta1.ConditionTypeResourceStatus,
 			expectedSeverity: RootCauseProgress, expectedStage: RootCauseStageModel,
 		},
+		"failed model download is terminal over ResourceReady in progress": {
+			conditions: []metav1.Condition{
+				falseCond(kaitov1beta1.ConditionTypeResourceStatus, consts.ReasonModelMirrorNotReady),
+				falseCond(kaitov1beta1.WorkspaceConditionTypeModelMirrorReady, consts.ReasonDownloadFailed),
+			},
+			expectedFound: true, expectedType: kaitov1beta1.WorkspaceConditionTypeModelMirrorReady,
+			expectedSeverity: RootCauseTerminal, expectedStage: RootCauseStageModel,
+		},
 		"InferenceReady in progress": {
 			conditions:    []metav1.Condition{falseCond(kaitov1beta1.WorkspaceConditionTypeInferenceStatus, consts.ReasonInferencePending)},
 			expectedFound: true, expectedType: kaitov1beta1.WorkspaceConditionTypeInferenceStatus,

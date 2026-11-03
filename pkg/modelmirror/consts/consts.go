@@ -39,7 +39,7 @@ const (
 	ReasonPVCPending        = "PVCPending"
 	ReasonPVCCreateFailed   = "PVCCreateFailed"
 	ReasonJobCreateFailed   = "JobCreateFailed"
-	ReasonDownloadFailed    = "DownloadFailed"
+	ReasonDownloadFailed    = kaitoconsts.ReasonDownloadFailed
 	ReasonDownloadOOMKilled = kaitoconsts.ReasonDownloadOOMKilled
 	ReasonDownloadEvicted   = "DownloadEvicted"
 	ReasonDownloadSucceeded = "DownloadSucceeded"

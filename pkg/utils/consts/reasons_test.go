@@ -35,6 +35,7 @@ func TestIsTerminatedReason(t *testing.T) {
 		ReasonModelStreamingServiceAccountInvalid,
 		ReasonModelStreamingInvalidAnnotations,
 		ReasonDownloadOOMKilled,
+		ReasonDownloadFailed,
 	}
 	for _, reason := range terminated {
 		if !IsTerminatedReason(reason) {
@@ -52,6 +53,7 @@ func TestIsTerminatedReason(t *testing.T) {
 		"PodEvicted",
 		"WorkspaceInferenceStatusPending",
 		"ModelMirrorPending",
+		"DownloadEvicted",
 		"inferencesetNotReady",
 		"quotaexceeded",
 		"NodeClassNotReady",

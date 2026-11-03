@@ -62,9 +62,15 @@ const (
 	ReasonModelStreamingInvalidAnnotations = "ModelStreamingInvalidAnnotations"
 )
 
-// ReasonDownloadOOMKilled on the Workspace ModelMirrorReady condition reports a model download killed for exceeding
-// its memory.
-const ReasonDownloadOOMKilled = "DownloadOOMKilled"
+// Model download failure reasons on the Workspace ModelMirrorReady condition.
+const (
+	// ReasonDownloadOOMKilled reports a model download killed for exceeding its memory.
+	ReasonDownloadOOMKilled = "DownloadOOMKilled"
+	// ReasonDownloadFailed reports a model download Job that failed for a cause not classified more specifically.
+	// It is reported as terminated so consumers fail fast, although the ModelMirror controller keeps retrying and a
+	// later successful download clears it.
+	ReasonDownloadFailed = "DownloadFailed"
+)
 
 // In-progress reasons of a not-ready Workspace condition: the Workspace is still converging, without an observed
 // failure. Any other False reason is a failure. A controller that reports a new in-progress reason must add it here,
@@ -132,7 +138,8 @@ func IsTerminatedReason(reason string) bool {
 		ReasonModelStreamingInvalidStorageClass,
 		ReasonModelStreamingServiceAccountInvalid,
 		ReasonModelStreamingInvalidAnnotations,
-		ReasonDownloadOOMKilled:
+		ReasonDownloadOOMKilled,
+		ReasonDownloadFailed:
 		return true
 	}
 	return false
